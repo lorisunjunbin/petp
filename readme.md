@@ -43,5 +43,5 @@ GUI(wxpython) Windows / macOS
 ## tips:
 - Update all lib on macOS
    >pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
-- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got mismatched version issue.
+- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version.
      
