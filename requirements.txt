@@ -1,0 +1,15 @@
+selenium
+wxpython
+openpyxl
+pyyaml
+cryptocode
+cron-descriptor
+croniter
+logging
+asyncio
+
+requests
+docx
+paramiko
+pyautogui
+pyperclip
