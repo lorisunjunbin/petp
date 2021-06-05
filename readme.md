@@ -11,7 +11,7 @@ The last **P** means processor, which handle the specific task one-to-one.
 
 GUI(wxpython) Windows / macOS
 
-![image](./image/petp_overview.png)
+![image](/lorisunjunbin/petp/blob/master/image/PETP_overview.png?raw=true)
 
 ## What-Can-Do
 
