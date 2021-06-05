@@ -1,9 +1,0 @@
-!!python/object:core.pipeline.Pipeline
-cronEnabled: false
-cronExp: 0 * * * *
-list:
-- execution: ootb_ssh_run
-  input: ''
-- execution: ootb_sftp_get
-  input: ''
-pipeline: get_log_from_my_ali

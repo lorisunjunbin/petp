@@ -1,7 +1,0 @@
-!!python/object:core.execution.Execution
-execution: TEST_Alert
-list:
-- !!python/object:core.task.Task
-  input: '{"title": "Author - {self.get_deep_data([\"__m\",\"author\"])}", "msg":
-    "Email - {self.get_deep_data([\"__m\",\"email\"])}\\nCell - {self.get_deep_data([\"__m\",\"cell\"])}"}'
-  type: SHOW_RESULT

@@ -1,7 +1,0 @@
-!!python/object:core.execution.Execution
-execution: TEST_HTTP_REQUEST
-list:
-- !!python/object:core.task.Task
-  input: '{"request_url":"http://www.baidu.com","headers":"header1=value1;header2=value2",  "method":"get","data":"key1=value1;key2=value2",
-    "value_key":"resp_data"}'
-  type: HTTP_REQUEST

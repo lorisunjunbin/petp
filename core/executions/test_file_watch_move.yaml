@@ -1,7 +1,0 @@
-!!python/object:core.execution.Execution
-execution: test_file_watch_move
-list:
-- !!python/object:core.task.Task
-  input: '{"filename":"D:/tmp/stech_next_uat.log","movetofolder":"d:/","targetname":"{self.get_data(\"so\")}_copyed.log",
-    "filepath_key":"so_log"}'
-  type: FILE_WATCH_MOVE
