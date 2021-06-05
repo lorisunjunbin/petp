@@ -1,0 +1,10 @@
+!!python/object:core.execution.Execution
+execution: screeshot on baidu
+list:
+- !!python/object:core.task.Task
+  input: '{"url":"http://www.baidu.com"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"crop": "850;100;1650;500", "show": "yes", "data_key": "screeshot1", "filepath":
+    "{self.get_ddir()}/baidulogo.png", "format": "png", "wait": 3}'
+  type: SCREENSHOT

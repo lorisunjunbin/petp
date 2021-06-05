@@ -1,0 +1,15 @@
+!!python/object:core.execution.Execution
+execution: ootb_find_icons
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://icons8.com/"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".i8-text-input__input", "wait": 3}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "RPA robot"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".search-btn"}'
+  type: FIND_THEN_CLICK

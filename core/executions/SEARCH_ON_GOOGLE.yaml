@@ -1,0 +1,13 @@
+!!python/object:core.execution.Execution
+execution: SEARCH_ON_GOOGLE
+list:
+- !!python/object:core.task.Task
+  input: '{"url":"https://www.google.com/"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: "{\"keyinby\":\"xpath\", \"identity\":\"//input[contains(@name, 'q')]\",
+    \"value\":\"\u68D2\u8C46\u513F\"}"
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby":"xpath", "identity":"//input[contains(@name, ''q'')]", "value":"{KEY_ENTER}"}'
+  type: FIND_THEN_KEYIN

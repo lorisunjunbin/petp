@@ -1,0 +1,16 @@
+!!python/object:core.execution.Execution
+execution: ootb_search_wxpython
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://docs.wxpython.org/"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "input:nth-child(1)"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": "input:nth-child(1)", "value": "DatePickerCtrl
+    "}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"clickby": "xpath", "identity": "//*[@id=\"searchbox\"]/form/input[2]"}'
+  type: FIND_THEN_CLICK
