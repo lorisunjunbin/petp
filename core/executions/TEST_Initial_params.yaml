@@ -1,0 +1,10 @@
+!!python/object:core.execution.Execution
+execution: TEST_Initial_params
+list:
+- !!python/object:core.task.Task
+  input: '{ "key1":"value1", "key2":"value2" }'
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"file_path":"/Users/i335607/Downloads/w2f.txt", "content":"{self.get_data(\"key1\")}
+    - {self.get_data(\"key2\")}", "data_key":"flocation"}'
+  type: WRITE_TO_FILE

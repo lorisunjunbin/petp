@@ -1,0 +1,72 @@
+!!python/object:core.execution.Execution
+execution: dynatrace_find_storefrontall_last7days
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "Message Input", "msg": "please input dynatrace url", "value_key":
+    "url"}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"url": "https://aue.apm.sap.cx/e/ccv2-cust-c65cx-autobacss1-p1/", "url_key":
+    "url"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"chrome_name":"chrome"}'
+  type: ENTER_FULLSCREEN
+- !!python/object:core.task.Task
+  input: '{"waitfor":"css", "identity":"body > div.dhk-f.du-h > div.dhk-a > div >
+    div.dI-w.grid-viewport > div.grid-dashboard > div:nth-child(40) > div.grid-tileContent
+    > div", "timeout":200,"wait":5}'
+  type: WAIT_FOR
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "body > div.dhk-f.du-h > div.dhk-a > div
+    > div.dI-w.grid-viewport > div.grid-dashboard > div:nth-child(40) > div.grid-tileContent
+    > div"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "#rootPageContentElementId > div > div.dT-L.dT-M
+    > div.dT-l > div.dT-O > div > div.dT-s > div.dT-r > div > ul > li > input"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby":"css", "identity":"#rootPageContentElementId > div > div.dT-L.dT-M
+    > div.dT-l > div.dT-O > div > div.dT-s > div.dT-r > div > ul > li > input", "value":"process
+    group tags", "clearb4keyin":"yes","wait":1}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"waitfor":"id", "identity":"filterBarSuggestionsContentPanel", "timeout":200,
+    "wait":1}'
+  type: WAIT_FOR
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "{KEY_DOWN}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby":"css", "identity":".di-e", "value":"{KEY_ENTER}", "wait":1}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "svc-storefront:All"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"waitfor":"id", "identity":"filterBarSuggestionsContentPanel", "timeout":200,
+    "wait":1}'
+  type: WAIT_FOR
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "{KEY_DOWN}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "{KEY_ENTER}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"clickby":"xpath", "identity":"/html/body/div[4]/div[1]/div/div[2]/div[5]/div/div/div/div[4]",
+    "wait":1}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby":"xpath", "identity":"/html/body/div[4]/div[1]/div/div[2]/div[5]/div/div/div/div[3]/input",
+    "value":"-7d", "clearb4keyin":"yes","wait":1}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby":"xpath", "identity":"/html/body/div[4]/div[1]/div/div[2]/div[5]/div/div/div/div[3]/input",
+    "value":"{KEY_ENTER}", "clearb4keyin":"no","wait":1}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"crop":"550;600;3100;1200", "show":"yes", "filepath":"/Users/i335607/Downloads/abcd.png","data_key":"screen_location","wait":
+    3, "format":"png"}'
+  type: SCREENSHOT

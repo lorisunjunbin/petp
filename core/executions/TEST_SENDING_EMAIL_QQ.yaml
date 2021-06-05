@@ -1,0 +1,15 @@
+!!python/object:core.execution.Execution
+execution: TEST_SENDING_EMAIL_QQ
+list:
+- !!python/object:core.task.Task
+  input: '{"attach_path": "D:\\LoriProject\\petp\\download\\baidulogo.png", "tos":
+    "6099012@qq.com"}'
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"smtp": "{self.decrypt(\"uE5wVBhw8xUgeTk=*vCjcVO70xfA0KhO2L4BO6g==*LkqM0svfvF14p9m7v8rKSQ==*Tnn2AsG5r3dKfsumNs3m2Q==\")}",
+    "port": 25, "name": "{self.decrypt(\"0AZY5F4BQMocthJ+LeU=*kwyyyGISXu4/dLx/A7yj6A==*TD17RX5Q4D/2nykqLj3E2A==*qPJpXmT9tLoMtl2sFetdjQ==\")}",
+    "pwd": "{self.decrypt(\"Uw4U+EhUidZGNmRcwB7/Jw==*BLZPl8RScvhwK45Q4pI/qQ==*16vhhlpazroZJ8D7tLtBfQ==*RKTbbqCn6+3b4w8F48rH8Q==\")}",
+    "to": "{self.get_data(\"tos\")}", "subject": "\u6d4b\u8bd5\u90ae\u4ef6\u670d\u52a1\u662f\u5426\u53ef\u7528",
+    "content": "\u4f60\u597d\uff0c\\n\u8fd9\u662f\u4e00\u4e2a\u6d4b\u8bd5\u90ae\u4ef6\u3002\\n\u795d\u597d.",
+    "attachment": "{self.get_data(\"attach_path\")}"}'
+  type: SEND_EMAIL

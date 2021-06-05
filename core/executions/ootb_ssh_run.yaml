@@ -1,0 +1,12 @@
+!!python/object:core.execution.Execution
+execution: ootb_ssh_run
+list:
+- !!python/object:core.task.Task
+  input: '{"ssh_ip": "39.105.55.48", "uname": "{self.decrypt(\"zTVRmw==*ti+uSPZ6x07bFQ2aMjXU8Q==*hna9E9FJl/zy76SRJV0ItA==*tGfSLIIh1S9yX7UyJyaUTA==\")}",
+    "pwd": "{self.decrypt(\"sln6pQrIKjM=*YEzDl44HPk0sKnwAbxOOpw==*Gbocb3jfqb7UvzAQyPrb2w==*L+n4Gj+Bduma47gZTXZPKA==\")}",
+    "ssh_client_key": "sshclient"}'
+  type: CREATE_SSH_CLIENT
+- !!python/object:core.task.Task
+  input: '{"ssh_client_key": "sshclient", "cmd": "cd /www/jtools/sf_plugin_portal/logs
+    ; ls -lart", "output_key": "out", "close_after_run": "yes"}'
+  type: RUN_SSH_COMMAND

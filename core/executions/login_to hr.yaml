@@ -1,0 +1,23 @@
+!!python/object:core.execution.Execution
+execution: login_to hr
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "http://hr.gacne.com.cn:17154/portal/login"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"keyinby": "xpath", "identity": "//input[@name=''username'']", "value":
+    "{self.decrypt(\"bRq/RQY=*YcvT2fYHXBWIJtXLe/v4LA==*/GUnjWcH5cB3J+HrYivsVw==*2awyl7b2kLkylZZnF+Gg1Q==\")}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".form-group:nth-child(2) > .form-control",
+    "value": "111111"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".block"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "li:nth-child(2) .nav-label"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".dz-button"}'
+  type: FIND_THEN_CLICK

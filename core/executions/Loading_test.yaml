@@ -1,0 +1,24 @@
+!!python/object:core.execution.Execution
+execution: Loading_test
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://use.apm.sap.cx/e/ccv2-cust-ckrsu1mx97-breakthru1-p1/"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".grid-tile:nth-child(40) .dW-i"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".di-I"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".di-t > .ddf-b"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "{KEY_DOWN}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "store"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": ".di-e", "value": "{KEY_ENTER}"}'
+  type: FIND_THEN_KEYIN
