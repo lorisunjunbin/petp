@@ -20,8 +20,8 @@ TODO:
 """
 
 class Processor(object):
-    SEPARATOR: str = ';'
-    ITEMSEPARATOR: str = '='
+    SEPARATOR: str = '|'
+    ITEMSEPARATOR: str = '->'
     SALT:str = 'petpisawesome'
 
     TPL: str

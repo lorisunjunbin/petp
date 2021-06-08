@@ -50,7 +50,7 @@ class Pipeline(RunnAbleAsCron):
         for idx, executionDic in enumerate(self.list, start=1):
             executionInitData: dict = self.load_proper_input(executionDic)
 
-            data_chain = executionInitData | data_chain
+            data_chain = data_chain | executionInitData
 
             execution: Execution = Execution.get_execution(executionDic['execution'])
 
