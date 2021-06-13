@@ -9,9 +9,15 @@ The last **P** means processor, which handle the specific task one-to-one.
     Execution 1:n Task
     Task      1:1 Processor
 
-GUI(wxpython) Windows / macOS
+GUI(wxpython)  
+
+macOS
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview.png)
+
+Windows
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview_windows.png)
 
 ## What-Can-Do
 
