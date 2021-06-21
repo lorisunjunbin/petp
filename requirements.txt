@@ -12,3 +12,5 @@ docx
 paramiko
 pyautogui
 pyperclip
+
+logging
