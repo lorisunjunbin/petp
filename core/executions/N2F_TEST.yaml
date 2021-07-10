@@ -1,0 +1,11 @@
+!!python/object:core.execution.Execution
+execution: N2F_TEST
+list:
+- !!python/object:core.task.Task
+  input: '{"data_flat_key": "flat_data", "separator": ".", "data": "{\"key\":\"1111\",
+    \"obj\":{\"key\":\"222\",\"obj\":{\"key\":\"333\", \"obj\":{\"key\":\"4444\",
+    \"key1\":\"5555\"}}}}"}'
+  type: NESTED_TO_FLAT_CONVERTOR
+- !!python/object:core.task.Task
+  input: '{"title": "Flat Data result:", "msg": "{self.get_data(\"flat_data\")}"}'
+  type: SHOW_RESULT
