@@ -26,6 +26,9 @@ class NESTED_TO_FLAT_CONVERTORProcessor(Processor):
         for key in nested:
             obj = nested[key]
             if type(obj) is dict:
-                self.convertNestedToFlat(obj, flat, separator, prefix + key + separator)
+                self.convertNestedToFlat(obj, flat, separator, f'{prefix}{key}{separator}')
+            elif type(obj) is list:
+                for idx, item in enumerate(obj):
+                    self.convertNestedToFlat(item, flat, separator, f'{prefix}{key}[{idx}]{separator}')
             else:
-                flat[prefix + key] = obj    
+                flat[f'{prefix}{key}'] = obj    
