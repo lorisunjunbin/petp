@@ -1,0 +1,6 @@
+!!python/object:core.execution.Execution
+execution: TEST_FIB_WITH_CACHE
+list:
+- !!python/object:core.task.Task
+  input: '{"seed": "200", "useCache": "yes"}'
+  type: FIB
