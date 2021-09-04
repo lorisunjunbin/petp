@@ -113,6 +113,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-/core/executions/trash/
-/core/pipelines/trash/
 .idea/

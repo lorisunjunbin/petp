@@ -1,0 +1,9 @@
+!!python/object:core.pipeline.Pipeline
+cronEnabled: true
+cronExp: '* * * * *'
+list:
+- execution: SEARCH_BANGDOU_ON_BAIDU
+  input: '1234542435'
+- execution: CREATE_IP_FILTER_FILE
+  input: 23123adfadfadf
+pipeline: TEST_PIPELINE
