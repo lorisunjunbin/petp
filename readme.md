@@ -41,8 +41,10 @@ Windows
     3, Run: 
     > python PETP.py
 
-## TO-DO
+## TO-DO:
 
+- Load records from excel/csv/db table/etc, process associated with record. LoopStartProcessor/LoopEndProcessor ? 
+- 
 - Create more [processors](./core/processors)
 - Enhance [GUI](./mvp) none-blocking execution
 
