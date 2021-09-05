@@ -2,6 +2,7 @@ import logging
 import os
 
 from core.definition.yamlro import YamlRO
+from core.loop import Loop
 from core.processor import Processor
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
@@ -30,10 +31,29 @@ class Execution(object):
     def _run(self, initial_data):
         data_chain = initial_data
         list_size = len(self.list)
+        current_loop: Loop = None
+        current_loop_collection: []
+        current_loop_row = None
+        current_loop_idx = 0
+
+        self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
 
         idx = 0
         while idx < list_size:
+
             sequence = idx + 1
+
+            current_loop = self.find_current_loop(sequence)
+
+            if current_loop is not None and sequence == current_loop.get_task_start():
+                current_loop_collection = data_chain[current_loop.get_loop_key()]
+
+                logging.info(f'------- {str(current_loop_collection)}')
+
+                if len(current_loop_collection) > current_loop_idx:
+                    current_loop_row = current_loop_collection[current_loop_idx]
+                    data_chain[current_loop.get_item_key()] = current_loop_row
+                    data_chain[current_loop.get_loop_index_key()] = current_loop_idx
 
             task = self.list[idx]
             task.data_chain = data_chain
@@ -43,7 +63,8 @@ class Execution(object):
             processor: Processor = Processor.get_processor_by_type(task.type)
             processor.set_task(task)
 
-            logging.info(f'>-{task.start} >- {type(processor).__name__} -----------------------> Task: {sequence}')
+            logging.info(
+                f'>-{task.start} >- {type(processor).__name__} -----------------------> Task: {sequence} {current_loop.get_loop_code() + "-" + str(current_loop_idx) if current_loop is not None else ""}')
             logging.info(f'process start: {task.input} - {str(task.data_chain)}')
 
             processor.do_process()
@@ -51,11 +72,31 @@ class Execution(object):
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
 
             logging.info(f'process done: {str(task)}')
-            logging.info(f'<-{task.end} <- {type(processor).__name__} -----------------------< Task: {sequence} Done \n')
+            logging.info(
+                f'<-{task.end} <- {type(processor).__name__} -----------------------< Task: {sequence} {current_loop.get_loop_code() + "-" + str(current_loop_idx) if current_loop is not None else ""} Done \n')
+
+            if current_loop is not None and sequence == current_loop.get_task_end():
+                if len(current_loop_collection) > current_loop_idx:
+                    current_loop_idx += 1
+                    idx = current_loop.get_task_start() -1
+                    data_chain[current_loop.get_loop_index_key()] = current_loop_idx
+                    continue
+                else:
+                    current_loop_idx = 0
+                    current_loop_row = None
+                    data_chain[current_loop.get_item_key()] = current_loop_row
+                    data_chain[current_loop.get_loop_index_key()] = 0
 
             idx += 1
 
         return data_chain
+
+    def find_current_loop(self, sequence):
+        for loop in self.loops:
+            if loop.get_task_start() <= sequence <= loop.get_task_end():
+                return loop
+            else:
+                return None
 
     def _get_file_path(self):
         return f'{os.path.realpath(".")}/core/executions/{self.execution}.yaml'
