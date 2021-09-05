@@ -12,6 +12,7 @@ from cron_descriptor import ExpressionDescriptor
 from core.cron.cron import Cron
 from core.definition.SeleniumIDERecordingConverter import SeleniumIDERecordingConverter
 from core.execution import Execution
+from core.loop import Loop
 from core.pipeline import Pipeline
 from core.processor import Processor
 from core.task import Task
@@ -37,8 +38,9 @@ class PETPPresenter():
     cellChoiceEditorInEditting4E = None
     cellChoiceEditorInEditting4P = None
 
-    currentSelectedRow: int
+    currentSelectedRow: int = -1
     isLogContentFocused: bool = False
+    single_page: str = "petp"
 
     def __init__(self, model: PETPModel, view: PETPView, interactor: PETPInteractor):
 
@@ -55,7 +57,27 @@ class PETPPresenter():
         self._init_taskgrid_choice_editor()
         self._init_executiongrid_choice_editor()
         self._init_cron()
+        self._init_property_grid()
         self._init_log_loader()
+
+    def _init_property_grid(self):
+        self.v.taskProperty.AddPage(self.single_page)
+        self._append_property_category(self.v.taskProperty, "Input Editor")
+
+        self.v.loopProperty.AddPage(self.single_page)
+        self._append_property_category(self.v.loopProperty, "Loop Editor")
+
+    def _append_property_category(self, propgrid_manager, category_name):
+        page = propgrid_manager.GetPage(self.single_page)
+        page.Append(wx.propgrid.PropertyCategory(category_name))
+
+    def _reset_task_pgrid(self):
+        self.v.taskProperty.ClearPage(self.v.taskProperty.GetPageByName(self.single_page))
+        self._append_property_category(self.v.taskProperty, "Input Editor")
+
+    def _reset_loop_pgrid(self):
+        self.v.loopProperty.ClearPage(self.v.loopProperty.GetPageByName(self.single_page))
+        self._append_property_category(self.v.loopProperty, "Loop Editor")
 
     def _init_log_loader(self):
         threading.Thread(target=self._load_log_every, args=(5,), daemon=True).start()
@@ -85,6 +107,23 @@ class PETPPresenter():
         taskGrid = self.v.taskGrid
         for row in range(taskGrid.GetNumberRows()):
             self._bind_grid_cell_choice_editor(row, taskGrid, self.available_processors)
+
+    def on_add_loop(self):
+        loop_code = 'loop-' + DateUtil.get_now_in_str()
+        loop_tpl = Loop.tpl()
+        page = self.v.loopProperty.GetPage(self.single_page)
+        self._append_or_update_property_to_page(loop_code, loop_tpl, page)
+        page.FitColumns()
+
+    def on_del_loop(self):
+        page = self.v.loopProperty.GetPage(self.single_page)
+        self._delete_selected_property_from_page(page)
+
+    def on_convert_get_deep_data_4loop(self):
+        logging.info('convert get deep data')
+
+    def on_convert_get_data_4loop(self):
+        logging.info('convert get data')
 
     def on_close_window(self):
         self.v.tbicon.Destroy()
@@ -121,7 +160,7 @@ class PETPPresenter():
                     grid.SetCellValue(idx, 1, itm['input'])
 
     def _reset_property_grid(self):
-        self.v.taskProperty.Clear()
+        self._reset_task_pgrid()
         self.v.avaibleProperties.Clear()
 
     @reload_log_after
@@ -146,10 +185,24 @@ class PETPPresenter():
                 if (hasattr(itm, 'input')):
                     grid.SetCellValue(idx, 1, itm.input)
 
+            self._reset_loop_pgrid()
+            if not hasattr(self.execution, 'loops'):
+                return
+
+            if len(self.execution.loops) > 0:
+                for idx, itm in enumerate(self.execution.loops):
+                    self._append_or_update_property_to_page(
+                        itm.loop_code,
+                        itm.loop_attributes,
+                        self.v.loopProperty.GetPage(self.single_page)
+                    )
+
     def _save_execcution(self, name):
         grid = self.v.taskGrid
-        tasks = []
+        loopProperty = self.v.loopProperty
 
+        # prepare tasks
+        tasks = []
         for row in range(0, grid.GetNumberRows()):
             t_type = grid.GetCellValue(row, 0)
             t_input = grid.GetCellValue(row, 1)
@@ -158,8 +211,18 @@ class PETPPresenter():
             logging.info(f'{t_type} -> {t_input}')
             tasks.append(Task(t_type, t_input))
 
+        # prepare loops
+        loops = []
+        itr = loopProperty.GetPage(self.single_page).GetPyIterator(wx.propgrid.PG_ITERATE_ALL)
+
+        for prop in itr:
+            if isinstance(prop, wx.propgrid.PropertyCategory):
+                continue
+
+            loops.append(Loop(prop.GetName(), prop.GetValue()))
+
         if (len(tasks) > 0):
-            Execution(name, tasks).save()
+            Execution(name, tasks, loops).save()
 
     def _save_pipeline(self, name):
         grid = self.v.executionGrid
@@ -286,7 +349,6 @@ class PETPPresenter():
 
     @reload_log_after
     def on_load_from_recording(self):
-
         if hasattr(self, 'converter') and self.converter.is_initialized():
             tasks = self.converter.convert_from_selenium_ide_recording()
 
@@ -352,18 +414,21 @@ class PETPPresenter():
         self.currentSelectedRow = current_row
         current_input = grid.GetCellValue(current_row, 1)
         if len(current_input) > 5:
+
             inputDict = json.loads(current_input)
-            self.v.taskProperty.Clear()
-            page = self.v.taskProperty.AddPage("1")
-            page.Append(wx.propgrid.PropertyCategory("Input Editor"))
+            page = self.v.taskProperty.GetPage(self.single_page)
+            self._reset_task_pgrid()
+
             for k in inputDict:
                 v = inputDict[k]
-                self._append_property(k, v)
+                self._append_or_update_property_to_page(k, v, page)
+
+            page.FitColumns()
 
             current_processor = grid.GetCellValue(current_row, 0)
             self._fill_available_properties(current_processor, inputDict)
         else:
-            self.v.taskProperty.Clear()
+            self._reset_task_pgrid()
 
     def _fill_available_properties(self, processor, inputDict):
         self.v.avaibleProperties.Clear()
@@ -371,8 +436,13 @@ class PETPPresenter():
         available_processors = [k for k in tplDict.keys() if not k in inputDict]
         self.v.avaibleProperties.AppendItems(available_processors)
 
-    def _append_property(self, k, v):
-        page = self.v.taskProperty.GetPage("1")
+    def _append_or_update_property_to_page(self, k, v, page):
+        prop = page.GetPropertyByName(k)
+
+        if prop is not None:
+            prop.SetValue(v)
+            return False
+
         if type(v) is str:
             page.Append(wx.propgrid.StringProperty(k, wx.propgrid.PG_LABEL, v))
         elif type(v) is int:
@@ -381,6 +451,8 @@ class PETPPresenter():
             page.Append(wx.propgrid.ArrayStringProperty(k, wx.propgrid.PG_LABEL, v))
         else:
             raise AttributeError('Unsupported property type:' + str(type(v)))
+        page.FitColumns()
+        return True
 
     def on_cron_actived(self, evt):
         self._update_cron_setting(1 == evt.Selection)
@@ -395,7 +467,7 @@ class PETPPresenter():
         tp = self.v.taskProperty
         prop = tp.GetSelection()
         if prop is not None:
-            prop.SetValue(prop.GetValue()+dateStr)
+            prop.SetValue(prop.GetValue() + dateStr)
             self._modify_property(prop)
 
     def on_convert_get_data(self):
@@ -408,7 +480,7 @@ class PETPPresenter():
         tp = self.v.taskProperty
         prop = tp.GetSelection()
         if prop is None:
-             return
+            return
         current_value = prop.GetValue()
         if put2first:
             prop.SetValue(to + current_value)
@@ -424,10 +496,10 @@ class PETPPresenter():
     def on_convert_pwd(self):
         prefix = '{self.decrypt("'
         suffix = '")}'
-        tp =self.v.taskProperty
+        tp = self.v.taskProperty
         prop = tp.GetSelection()
         if prop is None:
-             return
+            return
 
         current_value = prop.GetValue()
 
@@ -436,11 +508,11 @@ class PETPPresenter():
             return
 
         if current_value.startswith(prefix) and current_value.endswith(suffix):
-            current_value = current_value.replace(prefix,'')
-            current_value = current_value.replace(suffix,'')
+            current_value = current_value.replace(prefix, '')
+            current_value = current_value.replace(suffix, '')
             prop.SetValue(Processor.decrypt_pwd(current_value))
         else:
-            prop.SetValue(prefix + Processor.encrypt_pwd(current_value) +suffix)
+            prop.SetValue(prefix + Processor.encrypt_pwd(current_value) + suffix)
 
         self._modify_property(prop)
 
@@ -460,7 +532,7 @@ class PETPPresenter():
         else:
             v = tplDict[k]
 
-        self._append_property(k,v)
+        self._append_or_update_property_to_page(k, v, self.v.taskProperty.GetPage(self.single_page))
         self._add_property(k, v)
 
         inputDict = json.loads(grid.GetCellValue(self.currentSelectedRow, 1))
@@ -470,17 +542,25 @@ class PETPPresenter():
     def on_delete_property(self):
         tp = self.v.taskProperty
         prop = tp.GetSelection()
-        if prop is None:
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
             logging.info('pls select property first.')
             return
 
         self._delete_property(prop)
-        tp.DeleteProperty(prop.GetName())
+        self._delete_selected_property_from_page(tp)
+
         grid = self.v.taskGrid
 
         inputDict = json.loads(grid.GetCellValue(self.currentSelectedRow, 1))
         processor = grid.GetCellValue(self.currentSelectedRow, 0)
         self._fill_available_properties(processor, inputDict)
+
+    def _delete_selected_property_from_page(self, pgm):
+        prop = pgm.GetSelection()
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
+            logging.info('pls select value property first.')
+            return
+        pgm.DeleteProperty(prop.GetName())
 
     @reload_log_after
     def _update_cron_setting(self, enabled: bool):
@@ -505,20 +585,24 @@ class PETPPresenter():
         self._modify_property(prop)
 
     def _add_property(self, propName, propValue):
-        self._op_property(propName, propValue, lambda inputDict, key, value: inputDict | {key: value})
+        self._op_taskgrid_property(propName, propValue, lambda inputDict, key, value: inputDict | {key: value})
         logging.info(f'Input property added @Task{self.currentSelectedRow + 1} - [ {propName} = {propValue} ]')
 
     def _delete_property(self, prop):
-        self._op_property(prop.GetName(), prop.GetValue(), lambda inputDict, key, value: {k : v for k, v in inputDict.items() if not k == key})
+        self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
+                                   lambda inputDict, key, value: {k: v for k, v in inputDict.items() if not k == key})
         logging.info(f'Input property deleted @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} ]')
 
     def _modify_property(self, prop):
-        self._op_property(prop.GetName(), prop.GetValue(), lambda inputDict, key, value: inputDict | {key: value})
+        self._op_taskgrid_property(prop.GetName(), prop.GetValue(), lambda inputDict, key, value: inputDict | {key: value})
         logging.info(f'Input property modified @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
 
-    def _op_property(self, key, value, func):
+    def _op_taskgrid_property(self, key, value, func):
         taskGrid = self.v.taskGrid
         inputCol = 1
+
+        if self.currentSelectedRow is None or key is None or value is None:
+            return
 
         input = taskGrid.GetCellValue(self.currentSelectedRow, inputCol)
         inputDict = json.loads(input)
@@ -531,11 +615,8 @@ class PETPPresenter():
         current_row = evt.GetRow()
         current_column = evt.GetCol()
         evt.Skip()
-        current_value = grid.GetCellValue(current_row, current_column)
-
 
     def _insert_row(self, grid, choices):
-
         selectedRows = grid.GetSelectedRows()
         totalRows = grid.GetNumberRows()
         insertAtRow = selectedRows[0] if len(selectedRows) > 0 else 0
@@ -573,7 +654,6 @@ class PETPPresenter():
         self.on_load_log()
 
     def on_load_log(self):
-
         if hasattr(self, 'isLoading') and self.isLoading:
             return
 

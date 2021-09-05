@@ -14,10 +14,12 @@ Execution 1:n Task
 class Execution(object):
     execution: str
     list: list
+    loops: []
 
-    def __init__(self, execution, lt):
+    def __init__(self, execution, lt, lps):
         self.execution = execution
         self.list = lt
+        self.loops = lps
 
     async def run(self, initial_data) -> dict:
         return self._run(initial_data)
@@ -26,26 +28,32 @@ class Execution(object):
         return self._run(initial_data)
 
     def _run(self, initial_data):
-
         data_chain = initial_data
+        list_size = len(self.list)
 
-        for idx, task in enumerate(self.list, start=1):
+        idx = 0
+        while idx < list_size:
+            sequence = idx + 1
+
+            task = self.list[idx]
             task.data_chain = data_chain
             task.start = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-            task.run_sequence = idx
+            task.run_sequence = sequence
 
             processor: Processor = Processor.get_processor_by_type(task.type)
             processor.set_task(task)
 
-            logging.info(f'>-{task.start} >- {type(processor).__name__} -----------------------> Task: {idx}')
-            logging.info(f'process task start: {task.input} - {str(task.data_chain)}')
+            logging.info(f'>-{task.start} >- {type(processor).__name__} -----------------------> Task: {sequence}')
+            logging.info(f'process start: {task.input} - {str(task.data_chain)}')
 
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
 
-            logging.info(f'process task done: {str(task)}')
-            logging.info(f'<-{task.end} <- {type(processor).__name__} -----------------------< Task: {idx} Done \n')
+            logging.info(f'process done: {str(task)}')
+            logging.info(f'<-{task.end} <- {type(processor).__name__} -----------------------< Task: {sequence} Done \n')
+
+            idx += 1
 
         return data_chain
 

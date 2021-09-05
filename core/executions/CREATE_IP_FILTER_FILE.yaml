@@ -14,3 +14,4 @@ list:
 - !!python/object:core.task.Task
   input: '{"title": "Current IP: {self.get_data(\"myip\")}", "msg": "Location: {self.get_data(\"ipfilter_location\")}"}'
   type: SHOW_RESULT
+loops: []

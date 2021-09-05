@@ -4,6 +4,7 @@ import wx
 import wx.dataview
 import wx.lib.colourutils
 
+
 class PETPInteractor():
 
     def __init__(self):
@@ -17,6 +18,12 @@ class PETPInteractor():
 
         self.v.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_notebook_page_changed, self.v.notebook)
         # Execution relevant
+
+        self.v.Bind(wx.EVT_BUTTON, self.on_add_loop, self.v.addLoop)
+        self.v.Bind(wx.EVT_BUTTON, self.on_del_loop, self.v.delLoop)
+        self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data_4loop, self.v.convertGetDeepData4Loop)
+        self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data_4loop, self.v.convertGetData4Loop)
+
         self.v.Bind(wx.EVT_BUTTON, self.on_add_row4e, self.v.addRow4E)
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_rows4e, self.v.delRow4E)
 
@@ -77,6 +84,22 @@ class PETPInteractor():
     def on_recording_test_changed(self, evt):
         evt.Skip()
         self.p.on_recording_test_changed()
+
+    def on_add_loop(self, evt):
+        evt.Skip()
+        self.p.on_add_loop()
+
+    def on_del_loop(self, evt):
+        evt.Skip()
+        self.p.on_del_loop()
+
+    def on_convert_get_data_4loop(self, evt):
+        evt.Skip()
+        self.p.on_convert_get_data_4loop()
+
+    def on_convert_get_deep_data_4loop(self, evt):
+        evt.Skip()
+        self.p.on_convert_get_deep_data_4loop()
 
     def on_add_row4e(self, evt):
         evt.Skip()

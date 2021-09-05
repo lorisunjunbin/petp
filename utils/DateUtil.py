@@ -62,7 +62,7 @@ class DateUtil:
         return datetime.now()
 
     @staticmethod
-    def get_now_in_str(df="%y%m%d%H%M%S"):
+    def get_now_in_str(df="%Y%m%d%H%M%S"):
         return DateUtil._dt_strftime(datetime.now(), df)
 
     @staticmethod
