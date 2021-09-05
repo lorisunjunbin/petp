@@ -27,7 +27,7 @@ Windows
     - SSH/SFTP tasks(paramiko)
     - File-related tasks, open/write/move/delete/etc.
     - read records from csv/excel
-    - loop ... not done yet.
+    - support multi-loop, no nested for now.
     - sending email
     - sending http request
     - input dialog / show message
@@ -48,9 +48,6 @@ Windows
     > python PETP.py
 
 ## TO-DO:
-
-- Load records from excel/csv/db table/etc, process associated with record in the LOOP.
-- support multi-loop, not nested loop for now.
 
 - Create more [processors](./core/processors)
 - Enhance [GUI](./mvp) none-blocking execution
