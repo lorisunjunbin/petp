@@ -33,7 +33,7 @@ class ExcelUtil:
         wb = Workbook()
         ws = wb.active
 
-        with open(csvFilePath, 'r', newline='', encoding='utf-16') as f:
+        with open(csvFilePath, 'r', newline='', encoding='utf-8') as f:
             reader = csv.reader(f, delimiter=dlr)
             for row in reader:
                 ws.append(row)
