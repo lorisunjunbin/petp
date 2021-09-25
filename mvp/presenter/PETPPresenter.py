@@ -87,6 +87,42 @@ class PETPPresenter():
             self.on_load_log()
             time.sleep(seconds)
 
+    def on_grid_cell_right_click(self, evt):
+        evt.Skip()
+
+        self.selected_row_2_copied_paste = evt.Row
+
+        if not hasattr(self, "popup_id_copy"):
+            self.popup_id_copy = wx.NewId()
+            self.popup_id_paste = wx.NewId()
+
+        menu = wx.Menu()
+
+        item_copy = wx.MenuItem(menu, self.popup_id_copy, "Copy")
+        self.v.Bind(wx.EVT_MENU, self._on_grid_row_copy, item_copy)
+
+        item_paste = wx.MenuItem(menu, self.popup_id_paste, "Paste")
+        self.v.Bind(wx.EVT_MENU, self._on_grid_row_paste, item_paste)
+
+        menu.Append(item_copy)
+        menu.Append(item_paste)
+
+        self.v.PopupMenu(menu)
+
+        menu.Destroy()
+
+    @reload_log_after
+    def _on_grid_row_copy(self, evt):
+        self.row_copied = [
+            self.v.taskGrid.GetCellValue(self.selected_row_2_copied_paste, 0),
+            self.v.taskGrid.GetCellValue(self.selected_row_2_copied_paste, 1)
+        ]
+        logging.info("selected_row_copied" + str(self.row_copied))
+
+    def _on_grid_row_paste(self, evt):
+        self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 0, self.row_copied[0])
+        self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 1, self.row_copied[1])
+
     def _init_cron(self):
         self.cron = Cron()
 

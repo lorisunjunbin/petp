@@ -60,16 +60,17 @@ class Execution(object):
             processor.set_task(task)
 
             logging.info(
-                f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {current_loop.get_loop_code() + "-" + str(current_loop_idx) if current_loop is not None else ""}')
-            logging.info(f'process start: {task.input} - {str(task.data_chain)}')
+                f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {current_loop.get_loop_code() + "#" + str(current_loop_idx) if current_loop is not None else ""}')
+            # logging.info(f'process start: {task.input} - {str(task.data_chain)}')
+            logging.info(f'process start: {task.input}')
 
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
 
-            logging.info(f'process done: {str(task)}')
+            # logging.info(f'process done: {str(task)}')
             logging.info(
-                f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {current_loop.get_loop_code() + "-" + str(current_loop_idx) if current_loop is not None else ""} Done \n')
+                f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {current_loop.get_loop_code() + "#" + str(current_loop_idx) if current_loop is not None else ""} Done \n')
 
             if current_loop is not None and sequence == current_loop.get_task_end():
                 current_loop_idx += 1
