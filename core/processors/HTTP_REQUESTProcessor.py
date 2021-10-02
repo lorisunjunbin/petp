@@ -47,17 +47,18 @@ class HTTP_REQUESTProcessor(Processor):
         logging.info('request.params - ' + str(params))
 
         if self.get_param('method') == 'get':
-            response = requests.get(request_url, headers=headers, params=params)
+            response = requests.get(request_url, headers=headers, params=params, verify=False)
 
         if self.get_param('method') == 'post':
-            response = requests.post(request_url, headers=headers, data=data, params=params)
+            response = requests.post(request_url, headers=headers, data=data, params=params, verify=False)
 
-        logging.info('response.status_code - ' +  str(response.status_code))
+        logging.info('response.status_code - ' + str(response.status_code))
         logging.info('response.headers - ' + str(response.headers))
         logging.info('response.text - ' + response.text)
         logging.info('----------------------------------------------\n')
 
         if response.status_code == 200:
+            response.encoding = 'utf-8'
             logging.info(f'r.text: {response.text}')
             self.populate_data(value_key, response.text)
         else:

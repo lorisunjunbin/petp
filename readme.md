@@ -25,6 +25,7 @@ Windows
     - Browser-related tasks(selenium)
     - cover selenium IDE recording to PETP tasks.
     - SSH/SFTP tasks(paramiko)
+    - HTML/XML parser(beautiful soup)
     - File-related tasks, open/write/move/delete/etc.
     - read records from csv/excel
     - support multi-loop, no nested for now.
@@ -51,11 +52,14 @@ Windows
 
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
+  - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
+  
 - Enhance [GUI](./mvp) none-blocking execution
 
 ## DONE:
 
 2021-09-22: Execution grid copy & paste, right-click on the row, context menu show up, then Copy or Paste
+2021-10-02: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) 
 
 ## tips:
 

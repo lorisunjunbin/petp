@@ -19,10 +19,11 @@ TODO:
     
 """
 
+
 class Processor(object):
     SEPARATOR: str = '|'
     ITEMSEPARATOR: str = '->'
-    SALT:str = 'petpisawesome'
+    SALT: str = 'petpisawesome'
 
     TPL: str
     DESC: str = f''' 
@@ -64,6 +65,7 @@ class Processor(object):
     def get_desc(self):
         return f'''
         ----------------------------------------------------{self.DESC}    ----------------------------------------------------'''
+
     def get_ddir(self):
         return os.path.realpath('./download')
 
@@ -79,10 +81,10 @@ class Processor(object):
 
         return name in self.input_param and \
                (
-                   len(self.input_param[name])> 0
-                if type(self.input_param[name]) is str
-                else not self.input_param[name] is None
-                )
+                   len(self.input_param[name]) > 0
+                   if type(self.input_param[name]) is str
+                   else not self.input_param[name] is None
+               )
 
     def get_all_params(self):
         return self.input_param
@@ -97,7 +99,8 @@ class Processor(object):
         return self.get_data(self.get_param(param)) if self.has_param(param) else self.get_data(default_data_name)
 
     def get_data_by_param_default_param(self, param, default_param_name):
-        return self.get_data(self.get_param(param)) if self.has_param(param) else self.expression2str(self.get_param(default_param_name))
+        return self.get_data(self.get_param(param)) if self.has_param(param) else self.expression2str(
+            self.get_param(default_param_name))
 
     def get_data(self, k):
         return self._get_data(self.task.data_chain, k)
@@ -109,7 +112,7 @@ class Processor(object):
             return hasattr(self.task.data_chain, k)
 
     def del_data(self, k):
-        if(self.has_data(k)):
+        if (self.has_data(k)):
             del self.task.data_chain[k]
 
     def _get_data(self, obj, k):
@@ -187,7 +190,7 @@ class Processor(object):
         return Processor.decrypt_pwd(str)
 
     @staticmethod
-    def encrypt_pwd(str)->str:
+    def encrypt_pwd(str) -> str:
         return cryptocode.encrypt(str, Processor.SALT)
 
     @staticmethod
