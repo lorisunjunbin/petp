@@ -9,16 +9,6 @@ from core.task import Task
 from utils.OSUtils import OSUtils
 from utils.SeleniumUtil import SeleniumUtil
 
-"""
-
-TODO: 
-
-    WEB_PERFORMANCE_TRACEProcessor
-    
-    ETC.Processor
-    
-"""
-
 
 class Processor(object):
     SEPARATOR: str = '|'
