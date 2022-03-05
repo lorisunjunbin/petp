@@ -1,0 +1,73 @@
+!!python/object:core.execution.Execution
+execution: Search_wxpython_on_youtube
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://www.youtube.com/"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"msg": "unsupported command: {''id'': ''0460f1ef-41f0-4009-9289-322eeb905c77'',
+    ''comment'': '''', ''command'': ''setWindowSize'', ''target'': ''1924x1196'',
+    ''targets'': [], ''value'': ''''}"}'
+  type: UNKNOWN_TASK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "#search-input > #search"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": "#search-input > #search", "value": "wxpython
+    phoenix"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "css", "identity": "#search-input > #search", "value": "{KEY_ENTER}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"msg": "unsupported command: {''id'': ''3b78e0bf-588e-401b-abb3-9a06256a8a2f'',
+    ''comment'': '''', ''command'': ''mouseOver'', ''target'': ''css=.ytd-item-section-renderer:nth-child(1)
+    > #dismissible #channel-info > .style-scope:nth-child(1)'', ''targets'': [[''css=.ytd-item-section-renderer:nth-child(1)
+    > #dismissible #channel-info > .style-scope:nth-child(1)'', ''css:finder''], [\"xpath=//div[@id=''channel-info'']/a\",
+    ''xpath:idRelative''], [\"xpath=(//a[contains(@href, ''/channel/UC486taQ8gRb6gHKvyzdmplg'')])[2]\",
+    ''xpath:href''], [''xpath=//div/div/div[2]/a'', ''xpath:position'']], ''value'':
+    ''''}"}'
+  type: UNKNOWN_TASK
+- !!python/object:core.task.Task
+  input: '{"msg": "unsupported command: {''id'': ''03479872-e56d-484d-829e-bbdc8e333800'',
+    ''comment'': '''', ''command'': ''mouseOver'', ''target'': ''linkText=Python GUI
+    \u5165\u9580\u6307\u5357 : \u5f9e Hello World \u5230\u57f7\u884c\u6a94 | wxPython
+    x wxWidgets | \u6703\u5beb\u7a0b\u5f0f \u6709\u5716\u6709\u771f\u76f8\u3010Gamma
+    Ray \u8edf\u9ad4\u5de5\u4f5c\u5ba4\u3011'', ''targets'': [[''linkText=Python GUI
+    \u5165\u9580\u6307\u5357 : \u5f9e Hello World \u5230\u57f7\u884c\u6a94 | wxPython
+    x wxWidgets | \u6703\u5beb\u7a0b\u5f0f \u6709\u5716\u6709\u771f\u76f8\u3010Gamma
+    Ray \u8edf\u9ad4\u5de5\u4f5c\u5ba4\u3011'', ''linkText''], [''css=.style-scope:nth-child(5)
+    > #dismissible #video-title'', ''css:finder''], [\"xpath=(//a[@id=''video-title''])[5]\",
+    ''xpath:attributes''], [\"xpath=(//div[@id=''title-wrapper'']/h3/a)[5]\", ''xpath:idRelative''],
+    [\"xpath=(//a[contains(@href, ''/watch?v=Hjg_qHPZ1-Q'')])[2]\", ''xpath:href''],
+    [''xpath=//ytd-video-renderer[5]/div/div/div/div/h3/a'', ''xpath:position''],
+    [\"xpath=//a[contains(.,''Python GUI \u5165\u9580\u6307\u5357 : \u5f9e Hello World
+    \u5230\u57f7\u884c\u6a94 | wxPython x wxWidgets | \u6703\u5beb\u7a0b\u5f0f \u6709\u5716\u6709\u771f\u76f8\u3010Gamma
+    Ray \u8edf\u9ad4\u5de5\u4f5c\u5ba4\u3011'')]\", ''xpath:innerText'']], ''value'':
+    ''''}"}'
+  type: UNKNOWN_TASK
+- !!python/object:core.task.Task
+  input: '{"msg": "unsupported command: {''id'': ''296d6119-3eb9-4351-be4d-6a10b6f1f3cc'',
+    ''comment'': '''', ''command'': ''mouseOut'', ''target'': ''linkText=Python GUI
+    \u5165\u9580\u6307\u5357 : \u5f9e Hello World \u5230\u57f7\u884c\u6a94 | wxPython
+    x wxWidgets | \u6703\u5beb\u7a0b\u5f0f \u6709\u5716\u6709\u771f\u76f8\u3010Gamma
+    Ray \u8edf\u9ad4\u5de5\u4f5c\u5ba4\u3011'', ''targets'': [[''linkText=Python GUI
+    \u5165\u9580\u6307\u5357 : \u5f9e Hello World \u5230\u57f7\u884c\u6a94 | wxPython
+    x wxWidgets | \u6703\u5beb\u7a0b\u5f0f \u6709\u5716\u6709\u771f\u76f8\u3010Gamma
+    Ray \u8edf\u9ad4\u5de5\u4f5c\u5ba4\u3011'', ''linkText''], [''css=.style-scope:nth-child(5)
+    > #dismissible #video-title'', ''css:finder''], [\"xpath=(//a[@id=''video-title''])[5]\",
+    ''xpath:attributes''], [\"xpath=(//div[@id=''title-wrapper'']/h3/a)[5]\", ''xpath:idRelative''],
+    [\"xpath=(//a[contains(@href, ''/watch?v=Hjg_qHPZ1-Q'')])[2]\", ''xpath:href''],
+    [''xpath=//ytd-video-renderer[5]/div/div/div/div/h3/a'', ''xpath:position''],
+    [\"xpath=//a[contains(.,''Python GUI \u5165\u9580\u6307\u5357 : \u5f9e Hello World
+    \u5230\u57f7\u884c\u6a94 | wxPython x wxWidgets | \u6703\u5beb\u7a0b\u5f0f \u6709\u5716\u6709\u771f\u76f8\u3010Gamma
+    Ray \u8edf\u9ad4\u5de5\u4f5c\u5ba4\u3011'')]\", ''xpath:innerText'']], ''value'':
+    ''''}"}'
+  type: UNKNOWN_TASK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".ytd-page-manager > #container"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".ytd-page-manager > #container"}'
+  type: FIND_THEN_CLICK
+loops: []

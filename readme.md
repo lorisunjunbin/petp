@@ -46,11 +46,17 @@ Beautiful soup example
     1, Install Chrome and python3
     https://www.python.org/downloads/
 
-    2, Install dependencies  
+    2, Install dependencies
     > pip install -r requirements.txt
+    OR 
+    2,Install dependencies one by one 
+    > pip install selenium
+    > pip install wxpython
+    > pip install ...other listed in requirements.txt, install without cache:  --no-cache-dir 
 
     3, Run: 
     > python PETP.py
+
 
 ## TO-DO:
 
@@ -59,6 +65,8 @@ Beautiful soup example
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
   
 - Enhance [GUI](./mvp) none-blocking execution
+
+- Upgrade to new wxpython to support python3.10+: https://wxpython.org/Phoenix/snapshot-builds/, https://docs.wxpython.org/MigrationGuide.html
 
 ## DONE:
 
