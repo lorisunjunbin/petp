@@ -32,9 +32,14 @@ class Execution(object):
         data_chain = initial_data
         list_size = len(self.list)
         current_loop: Loop = None
+        #loop for collection
         current_loop_collection: []
         current_loop_row = None
         current_loop_idx = 0
+
+        #loop for times
+        loop_times = 0
+        loop_times_cur = 0
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
@@ -45,11 +50,15 @@ class Execution(object):
             current_loop = self.find_current_loop(sequence)
 
             if current_loop is not None and sequence == current_loop.get_task_start():
-                current_loop_collection = data_chain[current_loop.get_loop_key()]
-                if len(current_loop_collection) > current_loop_idx:
-                    current_loop_row = current_loop_collection[current_loop_idx]
-                    data_chain[current_loop.get_item_key()] = current_loop_row
-                    data_chain[current_loop.get_loop_index_key()] = current_loop_idx
+                if current_loop.is_loop_for_times():
+                    loop_times = current_loop.get_loop_times()
+                    data_chain[current_loop.get_loop_index_key()] = loop_times_cur
+                else:
+                    current_loop_collection = data_chain[current_loop.get_loop_key()]
+                    if len(current_loop_collection) > current_loop_idx:
+                        current_loop_row = current_loop_collection[current_loop_idx]
+                        data_chain[current_loop.get_item_key()] = current_loop_row
+                        data_chain[current_loop.get_loop_index_key()] = current_loop_idx
 
             task = self.list[idx]
             task.data_chain = data_chain
@@ -73,16 +82,27 @@ class Execution(object):
                 f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {current_loop.get_loop_code() + "#" + str(current_loop_idx) if current_loop is not None else ""} Done \n')
 
             if current_loop is not None and sequence == current_loop.get_task_end():
-                current_loop_idx += 1
-                if len(current_loop_collection) > current_loop_idx:
-                    idx = current_loop.get_task_start() - 1
-                    data_chain[current_loop.get_loop_index_key()] = current_loop_idx
-                    continue
+                if current_loop.is_loop_for_times():
+                    loop_times_cur += 1
+                    if loop_times  > loop_times_cur:
+                        idx = current_loop.get_task_start() - 1
+                        data_chain[current_loop.get_loop_index_key()] = loop_times_cur
+                        continue
+                    else:
+                        loop_times_cur = 0
+                        loop_times = 0
+                        data_chain[current_loop.get_loop_index_key()] = 0
                 else:
-                    current_loop_idx = 0
-                    current_loop_row = None
-                    data_chain[current_loop.get_item_key()] = current_loop_row
-                    data_chain[current_loop.get_loop_index_key()] = 0
+                    current_loop_idx += 1
+                    if len(current_loop_collection) > current_loop_idx:
+                        idx = current_loop.get_task_start() - 1
+                        data_chain[current_loop.get_loop_index_key()] = current_loop_idx
+                        continue
+                    else:
+                        current_loop_idx = 0
+                        current_loop_row = None
+                        data_chain[current_loop.get_item_key()] = current_loop_row
+                        data_chain[current_loop.get_loop_index_key()] = 0
 
             idx += 1
 
@@ -94,6 +114,7 @@ class Execution(object):
 
         for loop in self.loops:
             if loop.get_task_start() <= sequence <= loop.get_task_end():
+                loop.verify_loop()
                 return loop
             else:
                 return None

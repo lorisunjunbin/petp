@@ -1,0 +1,15 @@
+!!python/object:core.execution.Execution
+execution: loop_time
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "loop for times", "msg": "loop index - {self.get_data(\"loop_idx\")}",
+    "param_not_empty": "loop_times"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"title": "Loop feature is DONE", "msg": "PETP is growing."}'
+  type: SHOW_RESULT
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":1, "task_end":1, "loop_key":"", "loop_times":5,
+    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20210906003623
