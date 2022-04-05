@@ -176,6 +176,9 @@ class Processor(object):
             result[key0value1[0]] = key0value1[1]
         return result
 
+    def str2list(self, str) -> list:
+        return str.split(self.SEPARATOR)
+
     def decrypt(self, str):
         return Processor.decrypt_pwd(str)
 

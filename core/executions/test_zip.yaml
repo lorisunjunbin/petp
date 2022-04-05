@@ -1,0 +1,14 @@
+!!python/object:core.execution.Execution
+execution: test_zip
+list:
+- !!python/object:core.task.Task
+  input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "|", "zipname":
+    "testzipa", "data_key": "test_zip_path", "targetfolder": "D:\\LoriDownload\\",
+    "pathinzip": "html\\"}'
+  type: ZIP
+- !!python/object:core.task.Task
+  input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "D:\\LoriDownload\\testzip\\abc.txt|D:\\LoriDownload\\testzip\\dddd.ppt",
+    "zipname": "testzipb", "data_key": "test_zip_path", "targetfolder": "D:\\LoriDownload\\",
+    "pathinzip": ""}'
+  type: ZIP
+loops: []
