@@ -69,6 +69,9 @@ Beautiful soup example
 - Upgrade to new wxpython to support python3.10+: https://wxpython.org/Phoenix/snapshot-builds/, https://docs.wxpython.org/MigrationGuide.html
 
 ## DONE:
+
+2022-04-06: ZIPProcessor, verfied under Windows.
+
 2022-03-28： Loop for times
 
 2021-09-22: Execution grid copy & paste, right-click on the row, context menu show up, then Copy or Paste
