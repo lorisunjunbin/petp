@@ -4,11 +4,11 @@ list:
 - !!python/object:core.task.Task
   input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "|", "zipname":
     "testzipa", "data_key": "test_zip_path", "targetfolder": "D:\\LoriDownload\\",
-    "pathinzip": "html\\"}'
+    "pathinzip": "html\\", "pathbereplaced": "D:\\LoriDownload\\testzip\\"}'
   type: ZIP
 - !!python/object:core.task.Task
-  input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "D:\\LoriDownload\\testzip\\abc.txt|D:\\LoriDownload\\testzip\\dddd.ppt",
+  input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "D:\\LoriDownload\\testzip\\abc.txt|D:\\LoriDownload\\testzip\\dddd.ppt|D:\\LoriDownload\\testzip\\yabangdouer\\woqu.doc",
     "zipname": "testzipb", "data_key": "test_zip_path", "targetfolder": "D:\\LoriDownload\\",
-    "pathinzip": ""}'
+    "pathinzip": "", "pathbereplaced": "D:\\LoriDownload\\testzip\\"}'
   type: ZIP
 loops: []

@@ -1,4 +1,5 @@
 import logging
+import glob
 import os
 import zipfile
 
@@ -6,7 +7,7 @@ from core.processor import Processor
 
 
 class ZIPProcessor(Processor):
-    TPL: str = '{"sourcefolder":"","sourcelist":"|","zipname":"", "pathinzip":"","targetfolder":"", "data_key":""}'
+    TPL: str = '{"sourcefolder":"","sourcelist":"|","zipname":"", "pathinzip":"","pathbereplaced":"","targetfolder":"", "data_key":""}'
     DESC: str = f''' 
         Create zip file with name $zipname, and including either all files in $sourcefolder or files within $sourcelist; put the file to $targetfolder, also populate the data_key.   
         
@@ -19,6 +20,7 @@ class ZIPProcessor(Processor):
         data_key = self.expression2str(self.get_param('data_key'))
 
         pathinzip = self.get_param('pathinzip') if self.has_param('pathinzip') else ''
+        pathbereplaced = self.get_param('pathbereplaced') if self.has_param('pathbereplaced') else ''
 
         zipname = self.expression2str(self.get_param('zipname'))
 
@@ -32,28 +34,31 @@ class ZIPProcessor(Processor):
         targetfile = ''
 
         if len(sourcelist) > 0:
-            targetfile = self.zipList(sourcelist, zipname, targetfolder, pathinzip)
+            targetfile = self.zipList(sourcelist, zipname, targetfolder, pathbereplaced, pathinzip)
         else:
-            targetfile = self.zipDir(sourcefolder, zipname, targetfolder, pathinzip)
+            targetfile = self.zipDir(sourcefolder, zipname, targetfolder, pathbereplaced, pathinzip)
 
         if not data_key is None:
             self.populate_data(data_key, targetfile)
 
     # zip a list of files
-    def zipList(self, sourcelist, zipname, targetfolder, pathinzip):
+    def zipList(self, sourcelist, zipname, targetfolder, pathbereplaced, pathinzip):
         targetzip = targetfolder + zipname + '.zip'
         with zipfile.ZipFile(targetzip, 'w') as zf:
             for file in sourcelist:
-                basename = os.path.basename(file)
-                logging.info(file)
-                zf.write(file, pathinzip + basename if len(pathinzip) > 0 else basename)
+                filepathinzip = file.replace(pathbereplaced, pathinzip) if len(pathinzip) > 0 else file.replace(
+                    pathbereplaced, '')
+                zf.write(file, filepathinzip)
         return targetzip
 
     # zip entire folder
-    def zipDir(self, sourcefolder, zipname, targetfolder, pathinzip):
-        targetzip = targetfolder + zipname + '.zip'
-        with zipfile.ZipFile(targetzip, 'w') as zf:
-            for file in os.listdir(sourcefolder):
-                logging.info(file)
-                zf.write(sourcefolder + file, pathinzip + file if len(pathinzip) > 0 else file)
-        return targetzip
+    def zipDir(self, sourcefolder, zipname, targetfolder, pathbereplaced, pathinzip):
+        sourcelist = []
+
+        for filename in glob.iglob(sourcefolder + '**/**', recursive=True):
+            if filename not in sourcelist and os.path.isfile(filename):
+                sourcelist.append(filename)
+
+        print(str(sourcelist))
+
+        return self.zipList(sourcelist, zipname, targetfolder, pathbereplaced, pathinzip)
