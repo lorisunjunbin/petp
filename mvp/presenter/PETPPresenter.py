@@ -41,6 +41,8 @@ class PETPPresenter():
     currentSelectedRow: int = -1
     isLogContentFocused: bool = False
     single_page: str = "petp"
+    logger_thread = None
+    keep_running = True
 
     def __init__(self, model: PETPModel, view: PETPView, interactor: PETPInteractor):
 
@@ -80,12 +82,14 @@ class PETPPresenter():
         self._append_property_category(self.v.loopProperty, "Loop Editor")
 
     def _init_log_loader(self):
-        threading.Thread(target=self._load_log_every, args=(5,), daemon=True).start()
+        self.logger_thread = threading.Thread(target=self._load_log_every, args=(3, 1,), daemon=True)
+        self.logger_thread.start()
 
-    def _load_log_every(self, seconds):
-        while True:
+    def _load_log_every(self, secondsAfter, secondsBefore):
+        while self.keep_running:
+            time.sleep(secondsBefore)
             self.on_load_log()
-            time.sleep(seconds)
+            time.sleep(secondsAfter)
 
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
@@ -162,6 +166,8 @@ class PETPPresenter():
         logging.info('convert get data')
 
     def on_close_window(self):
+        self.logger_thread = None
+        self.keep_running = False
         self.v.tbicon.Destroy()
 
     def on_notebook_page_changed(self, evt):
@@ -400,9 +406,11 @@ class PETPPresenter():
                 if (hasattr(t, 'input')):
                     taskGrid.SetCellValue(insertAt, 1, t.input)
 
-            logging.info(f'Successfully convert from Selenium IDE recording: {self.converter.file_path}, {self.converter.test_name}')
+            logging.info(
+                f'Successfully convert from Selenium IDE recording: {self.converter.file_path}, {self.converter.test_name}')
         else:
-            logging.warning('Recording location and test name should not be empty, also able to select the row where start to load.')
+            logging.warning(
+                'Recording location and test name should not be empty, also able to select the row where start to load.')
 
     def _bind_grid_cell_choice_editor(self, rowAt, grid, choices):
         grid.SetCellEditor(
@@ -630,8 +638,10 @@ class PETPPresenter():
         logging.info(f'Input property deleted @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} ]')
 
     def _modify_property(self, prop):
-        self._op_taskgrid_property(prop.GetName(), prop.GetValue(), lambda inputDict, key, value: inputDict | {key: value})
-        logging.info(f'Input property modified @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
+        self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
+                                   lambda inputDict, key, value: inputDict | {key: value})
+        logging.info(
+            f'Input property modified @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
 
     def _op_taskgrid_property(self, key, value, func):
         taskGrid = self.v.taskGrid

@@ -1,4 +1,5 @@
 import logging
+import time
 
 import wx
 
@@ -39,11 +40,15 @@ def start_app():
     view: PETPView = build_view()
     presenter: PETPPresenter = build_presenter(model, view)
 
+    time.sleep(2)
+
     view.Show()
     logging.info('PETP is running')
 
     presenter.on_load_log()
+
     app.MainLoop()
+
     logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + '\n')
 
 
