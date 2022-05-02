@@ -78,8 +78,6 @@ Beautiful soup example
 
 2021-10-02: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) 
 
-## Limitation on Mac M1:
-  - seems wxpython401 doesn't suport mac m1 chip, by far PETP does NOT work on my daily-driver, feel sad and try to figure out asap.
 
 ## tips:
 
