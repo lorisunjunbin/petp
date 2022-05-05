@@ -84,4 +84,21 @@ Beautiful soup example
 - Update all lib on macOS
   > pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 - Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version.
+
+## Wxpython
+
+https://wxpython.org/Phoenix/snapshot-builds/
+
+ln -s -f /usr/local/bin/python3 /usr/local/bin/python
+ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
+
+> python setup.py build
+> 
+> python setup.py install
+> 
+> pip install wheel
+> 
+> pip wheel wxPython-4.1.1/
+> 
+> pip install --force-reinstall wxPython-4.1.1-cp39-cp39-macosx_11_0_universal2.whl
      

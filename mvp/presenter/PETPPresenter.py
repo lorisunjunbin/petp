@@ -60,7 +60,7 @@ class PETPPresenter():
         self._init_executiongrid_choice_editor()
         self._init_cron()
         self._init_property_grid()
-        self._init_log_loader()
+        # self._init_log_loader()
 
     def _init_property_grid(self):
         self.v.taskProperty.AddPage(self.single_page)
