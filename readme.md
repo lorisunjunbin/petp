@@ -70,6 +70,8 @@ Beautiful soup example
 
 ## DONE:
 
+2022-05: Mac m1 cpu, fix wxpython install issue, pack and build wheel locally.
+
 2022-04-06: ZIPProcessor, verfied under Windows.
 
 2022-03-28： Loop for times
