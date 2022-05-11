@@ -248,7 +248,7 @@ class PETPPresenter():
         for row in range(0, grid.GetNumberRows()):
             t_type = grid.GetCellValue(row, 0)
             t_input = grid.GetCellValue(row, 1)
-            if (len(t_type) == 0 and len(t_input) == 0):
+            if len(t_type) == 0 and len(t_input) == 0:
                 break
             logging.info(f'{t_type} -> {t_input}')
             tasks.append(Task(t_type, t_input))
@@ -263,7 +263,7 @@ class PETPPresenter():
 
             loops.append(Loop(prop.GetName(), prop.GetValue()))
 
-        if (len(tasks) > 0):
+        if len(tasks) > 0:
             Execution(name, tasks, loops).save()
 
     def _save_pipeline(self, name):
