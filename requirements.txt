@@ -7,6 +7,10 @@ cron-descriptor
 croniter
 asyncio
 
+
+beautifulsoup4
+lxml
+
 requests
 docx
 paramiko

@@ -102,5 +102,5 @@ ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
 > 
 > pip wheel wxPython-4.1.1/
 > 
-> pip install --force-reinstall wxPython-4.1.1-cp39-cp39-macosx_11_0_universal2.whl
+> pip install --force-reinstall wxPython-4.1.2a1.dev5434+7d45ee6a-cp310-cp310-macosx_10_10_universal2.whl
      
