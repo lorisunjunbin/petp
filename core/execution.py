@@ -4,6 +4,7 @@ import os
 from core.definition.yamlro import YamlRO
 from core.loop import Loop
 from core.processor import Processor
+from core.task import Task
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
@@ -60,7 +61,8 @@ class Execution(object):
                         data_chain[current_loop.get_item_key()] = current_loop_collection[current_loop_idx]
                         data_chain[current_loop.get_loop_index_key()] = current_loop_idx
 
-            task = self.list[idx]
+            # process start -----
+            task: Task = self.list[idx]
             task.data_chain = data_chain
             task.start = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
             task.run_sequence = sequence
@@ -80,6 +82,7 @@ class Execution(object):
             # logging.info(f'process done: {str(task)}')
             logging.info(
                 f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {current_loop.get_loop_code() + "#" + str(current_loop_idx) if current_loop is not None else ""} Done \n')
+            # process end ----
 
             if is_loop_end:
                 if is_times_loop:

@@ -116,42 +116,42 @@ class SeleniumUtil:
     def find_elements_by_css(chrome, cssSelector=".sapMTableTBody .sapMListTblNavCol .sapMLIBImgNav",
                              ):
         logging.info('findElements- by cssSelector:' + cssSelector)
-        return chrome.find_elements_by_css_selector(cssSelector)
+        return chrome.find_elements(By.CSS_SELECTOR, cssSelector)
 
     @staticmethod
     def find_element_by_css(chrome, cssSelector):
         logging.info('findElement- by cssSelector:' + cssSelector)
-        return chrome.find_element_by_css_selector(cssSelector)
+        return chrome.find_element(By.CSS_SELECTOR, cssSelector)
 
     @staticmethod
     def select_value_by_id(chrome, id, val):
-        Select(chrome.find_element_by_id(id)).select_by_value(val)
+        Select(chrome.find_element(By.ID, id)).select_by_value(val)
         return chrome
 
     @staticmethod
     def find_element_by_link(chrome, lt):
         logging.info('find_element_by_link:' + lt)
-        return chrome.find_element_by_link_text(lt)
+        return chrome.find_element(By.LINK_TEXT, lt)
 
     @staticmethod
     def find_element_by_id(chrome, id):
         logging.info('find_element_by_id:' + id)
-        return chrome.find_element_by_id(id)
+        return chrome.find_element(By.ID, id)
 
     @staticmethod
     def find_elements_by_x_path(chrome, xpath):
         logging.info('find_elements_by_x_path:' + xpath)
-        return chrome.find_elements_by_xpath(xpath)
+        return chrome.find_elements(By.XPATH,xpath)
 
     @staticmethod
     def find_element_by_x_path(chrome, xpath):
         logging.info('find_element_by_x_path:' + xpath)
-        return chrome.find_element_by_xpath(xpath)
+        return chrome.find_element(By.XPATH, xpath)
 
     @staticmethod
     def find_sub_element_by_x_path(ele, xpath):
         logging.info('find_sub_element_by_x_path:' + xpath + ', parent:' + SeleniumUtil.get_id(ele))
-        return ele.find_element_by_xpath(xpath)
+        return ele.find_element(By.XPATH, xpath)
 
     @staticmethod
     def get_data(url, chrome, colcount=11, cssSelector=".sapMTableTBody .sapMListTblCell .sapMText",
@@ -165,7 +165,7 @@ class SeleniumUtil:
         rows = []
         if (chrome is not None):
             logging.info("find_elements_by_css_selector: " + cssSelector)
-            foundElements = chrome.find_elements_by_css_selector(cssSelector)
+            foundElements = chrome.find_elements(By.CSS_SELECTOR, cssSelector)
             logging.info('find_elements_by_css_selector, found total: ' + str(foundElements.__len__()))
 
             logging.info('getting values from UI')
@@ -320,7 +320,7 @@ class SeleniumUtil:
     def screenshot_by_x_path(chrome, xpath, filepath, tmppic_path):
 
         SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath)
-        element = chrome.find_element_by_xpath(xpath)
+        element = chrome.find_element(By.XPATH, xpath)
         location = element.location
         size = element.size
 
