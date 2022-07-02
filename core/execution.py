@@ -11,7 +11,6 @@ from utils.OSUtils import OSUtils
 Execution 1:n Task
 """
 
-
 class Execution(object):
     execution: str
     list: list
@@ -31,10 +30,8 @@ class Execution(object):
     def _run(self, initial_data):
         data_chain = initial_data
         list_size = len(self.list)
-        current_loop: Loop = None
         #loop for collection
         current_loop_collection: []
-        current_loop_row = None
         current_loop_idx = 0
 
         #loop for times
@@ -46,18 +43,21 @@ class Execution(object):
 
         idx = 0
         while idx < list_size:
-            sequence = idx + 1
-            current_loop = self.find_current_loop(sequence)
+            sequence: int = idx + 1
+            current_loop: Loop = self.find_current_loop(sequence)
+            is_loop_execution: bool = current_loop is not None
+            is_times_loop: bool = is_loop_execution and current_loop.is_loop_for_times()
+            is_loop_start: bool = is_loop_execution and sequence == current_loop.get_task_start()
+            is_loop_end: bool = is_loop_execution and sequence == current_loop.get_task_end()
 
-            if current_loop is not None and sequence == current_loop.get_task_start():
-                if current_loop.is_loop_for_times():
+            if is_loop_start:
+                if is_times_loop:
                     loop_times = current_loop.get_loop_times()
                     data_chain[current_loop.get_loop_index_key()] = loop_times_cur
-                else:
+                else:# is_collection_loop
                     current_loop_collection = data_chain[current_loop.get_loop_key()]
                     if len(current_loop_collection) > current_loop_idx:
-                        current_loop_row = current_loop_collection[current_loop_idx]
-                        data_chain[current_loop.get_item_key()] = current_loop_row
+                        data_chain[current_loop.get_item_key()] = current_loop_collection[current_loop_idx]
                         data_chain[current_loop.get_loop_index_key()] = current_loop_idx
 
             task = self.list[idx]
@@ -81,14 +81,14 @@ class Execution(object):
             logging.info(
                 f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {current_loop.get_loop_code() + "#" + str(current_loop_idx) if current_loop is not None else ""} Done \n')
 
-            if current_loop is not None and sequence == current_loop.get_task_end():
-                if current_loop.is_loop_for_times():
+            if is_loop_end:
+                if is_times_loop:
                     loop_times_cur += 1
                     if loop_times  > loop_times_cur:
                         idx = current_loop.get_task_start() - 1
                         data_chain[current_loop.get_loop_index_key()] = loop_times_cur
                         continue
-                    else:
+                    else:# is_collection_loop
                         loop_times_cur = 0
                         loop_times = 0
                         data_chain[current_loop.get_loop_index_key()] = 0
@@ -100,8 +100,7 @@ class Execution(object):
                         continue
                     else:
                         current_loop_idx = 0
-                        current_loop_row = None
-                        data_chain[current_loop.get_item_key()] = current_loop_row
+                        data_chain[current_loop.get_item_key()] = None
                         data_chain[current_loop.get_loop_index_key()] = 0
 
             idx += 1
