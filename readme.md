@@ -66,9 +66,9 @@ Beautiful soup example
   
 - Enhance [GUI](./mvp) none-blocking execution
 
-- Upgrade to new wxpython to support python3.10+: https://wxpython.org/Phoenix/snapshot-builds/, https://docs.wxpython.org/MigrationGuide.html
-
 ## DONE:
+
+2022-06: Update to python 3.10 and wxpython 4.1.2. 
 
 2022-05: Mac m1 cpu, fix wxpython install issue, pack and build wheel locally.
 
