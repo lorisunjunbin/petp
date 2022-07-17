@@ -1,0 +1,8 @@
+!!python/object:core.execution.Execution
+execution: DBAccess
+list:
+- !!python/object:core.task.Task
+  input: '{"type":"hana|mysql|postgres", "host":"192.168.8.8", "port":"3306", "database":"customdb","user":"admin",
+    "pwd":"nimda"}'
+  type: DBAccess
+loops: []
