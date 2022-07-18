@@ -36,6 +36,7 @@ Beautiful soup example
     - sending email
     - sending http request
     - input dialog / show message
+    - Database CRUD, mysql supported(Hana/postgresql is coming soon)
 
 ## Run first Execution within 4 steps:
 
@@ -67,6 +68,8 @@ Beautiful soup example
 - Enhance [GUI](./mvp) none-blocking execution
 
 ## DONE:
+
+2022-7: DB_ACCESSProcessor, Mysql supported.
 
 2022-07: Update to Selenium 4.3.0 
 
