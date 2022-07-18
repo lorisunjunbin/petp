@@ -2,20 +2,9 @@
 execution: DB_ACCESS
 list:
 - !!python/object:core.task.Task
-  input: '{"type": "Mysql", "host": "127.0.0.1", "port": "3306", "database": "stech_hitech",
-    "user": "root", "pwd": "1234", "sql": "select * from user where username=%s and
-    id=%s", "param": "admin, 1", "data_key": "dataset"}'
-  type: DB_ACCESS
-- !!python/object:core.task.Task
-  input: '{"title": "\u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset\")}"}'
-  type: SHOW_RESULT
-- !!python/object:core.task.Task
-  input: '{"sql_param": "admin, 1"}'
-  type: INITIAL_PARAMS
-- !!python/object:core.task.Task
-  input: '{"type": "Mysql", "host": "127.0.0.1", "port": "3306", "database": "stech_hitech",
-    "user": "root", "pwd": "1234", "sql": "select * from user where username=%s and
-    id=%s", "data_key": "dataset1", "param_key": "sql_param"}'
+  input: '{"type": "Mysql", "host": "127.0.0.1", "port": "3306", "database": "nacos_config",
+    "user": "root", "pwd": "{self.decrypt(\"6quVj7DPIaM=*FnNTG7Se+UKZvPeYZgc4rg==*/vUwr3L2zwCCH++TQaYfrw==*GtxN0ddtHWoClPBv94wpdw==\")}",
+    "sql": "select * from config_info", "data_key": "dataset1", "param": ""}'
   type: DB_ACCESS
 - !!python/object:core.task.Task
   input: '{"title": "\u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset1\")}"}'

@@ -34,7 +34,7 @@ class DB_ACCESSProcessor(Processor):
         try:
             dbAccess: BaseDBAccess = BaseDBAccess.get_dbaccess_by_type(type)
             dbAccess.connect(host, port, database, user, pwd)
-            data_set = dbAccess.execute(sql, tuple(map(str, param_str.split(', '))))
+            data_set = dbAccess.execute(sql, tuple(map(str, param_str.split(', '))) if param_str is not None and len(param_str) >0 else '')
         finally:
             dbAccess.disconnect()
 
