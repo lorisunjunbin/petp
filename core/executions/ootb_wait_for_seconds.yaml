@@ -1,0 +1,10 @@
+!!python/object:core.execution.Execution
+execution: ootb_wait_for_seconds
+list:
+- !!python/object:core.task.Task
+  input: '{"wait_seconds":"5"}'
+  type: WAIT_SECNONDS
+- !!python/object:core.task.Task
+  input: '{"title": "time-up", "msg": "already wait 5 seconds."}'
+  type: SHOW_RESULT
+loops: []
