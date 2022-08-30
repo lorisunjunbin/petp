@@ -1,16 +1,13 @@
 from core.processor import Processor
 
+import time
 
-class CHECK_PARAMProcessor(Processor):
-    TPL: str = '{"param_not_empty":"name on data_chain"}'
+class WAIT_SECNONDSProcessor(Processor):
+    TPL: str = '{"wait_seconds":"5"}'
     DESC: str = f''' 
-        - To check the required attribute of data_chain, will terminate the execution or pipeline if given attribute not available.
         {TPL}
     '''
 
     def process(self):
-        paramnames = self.get_param('param_not_empty')
-        data = self.get_deep_data(paramnames.split(self.SEPARATOR))
-
-        if data == None or len(data) == 0:
-            raise Exception(f'Parameter required: {paramnames} ')
+        wait_seconds = self.get_param('wait_seconds')
+        time.sleep(int(wait_seconds))
