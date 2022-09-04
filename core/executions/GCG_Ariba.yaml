@@ -1,0 +1,58 @@
+!!python/object:core.execution.Execution
+execution: GCG_Ariba
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://s1.sapariba.cn/Buyer/Main/ad/loginPage/SSOActions?awsso_cc=cGFzc3dvcmRhZGFwdGVyOlVHRnpjM2R2Y21SQlpHRndkR1Z5TVE9PTtyZWFsbTpSME10Y0dodlpXNXBlQzFVO2F3c3NvX3J1OmFIUjBjSE02THk5ek1TNXpZWEJoY21saVlTNWpiaTlUYjNWeVkybHVaeTlOWVdsdUx6OXlaV0ZzYlQxSFF5MXdhRzlsYm1sNExWUW1jR0Z6YzNkdmNtUmhaR0Z3ZEdWeVBWQmhjM04zYjNKa1FXUmhjSFJsY2pFPTthd3Nzb19sdTphSFIwY0hNNkx5OXpNUzV6WVhCaGNtbGlZUzVqYmk5VGIzVnlZMmx1Wnk5TllXbHVMMkZrTDJOc2FXVnVkRXh2WjI5MWRDOVRVMDlCWTNScGIyNXo7YXdzc29fYXA6UVVOTjthd3Nzb19hcmlkOk1UWTBPRFF6TURNek1UZzNOQT09O2F3c3NvX2t1OmFIUjBjSE02THk5ek1TNXpZWEJoY21saVlTNWpiaTlUYjNWeVkybHVaeTlOWVdsdUwyRmtMMk5zYVdWdWRFdGxaWEJCYkdsMlpTOVRVMDlCWTNScGIyNXo7YXdzc29fZmw6TVE9PQ%3D%3D%3A2fGot451Af6vXs1%2FidwZSWnXKwg%3D&awsso_ap=ACM&awsso_hpk=true&passwordadapter=PasswordAdapter1&realm=GC-phoenix-T&awsr=true"}'
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"keyinby": "id", "identity": "UserName", "value": "iris.li", "wait": 2}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "id", "identity": "Password", "value": "{self.decrypt(\"hq39jb8CxAj+ttaP5A==*Sr/nNBfw8GSBIrsP96WY5w==*tejltfxb490hpQSeVxL/CQ==*p/rXqFew9nOa4b2eTlOuyA==\")}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"keyinby": "id", "identity": "Password", "value": "{KEY_ENTER}"}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": ".a-srch-bar-create", "wait": 2}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "link", "identity": "Supplier Performance Management Project",
+    "identity_key": "", "wait": 3}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"keyinby": "id", "identity": "_mgl1jb", "value": "PETP-CREATE-TEST-{ 20384+
+    self.get_data(\"loop_idx\")}", "wait": 1}'
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "label:nth-child(1) .w-rdo"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "xpath", "identity": "//*[@id=\"_clbsh\"]/span[2]", "identity_key":
+    "", "wait": 1}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "xpath", "identity": "//*[@id=\"_clbsh1\"]", "identity_key":
+    "", "wait": 1, "value": "PETP-EST-PROJECT-{self.get_data(\"loop_idx\")}"}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "css", "identity": "#__ittub > span > div.w-chMenuPositionObj
+    > div.w-chWrapRight > a > div", "identity_key": "", "wait": 1}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "link", "identity": "VMS fianceteam123", "identity_key": "",
+    "wait": 1}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "xpath", "identity": "//button[@id=''_pljnc''][@title=''Create'']",
+    "identity_key": "", "wait": 3}'
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"clickby": "xpath", "identity": "//a[@title=\"Back\"]", "identity_key":
+    "", "wait": 6}'
+  type: FIND_THEN_CLICK
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":5, "task_end":14, "loop_key":"", "loop_times":"5000",
+    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20220328155714
