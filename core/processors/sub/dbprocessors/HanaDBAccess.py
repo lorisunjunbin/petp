@@ -8,7 +8,13 @@ from hdbcli import dbapi
 
 '''
 pip install hdbcli
- 
+    
+    type: com.zaxxer.hikari.HikariDataSource
+    jdbcUrl: jdbc:sap://10.1.19.205:30015?databaseName=HAD&currentschema=ARIBA_EXT_D&reconnect=true
+    username: ARIBA_EXT_D
+    password: Min12#Ext5@
+    driverClassName: com.sap.db.jdbc.Driver
+     
 refer to: 
 https://pypi.org/project/hdbcli/
 https://help.sap.com/docs/SAP_HANA_CLIENT/f1b440ded6144a54ada97ff95dac7adf/39eca89d94ca464ca52385ad50fc7dea.html?locale=en-US
