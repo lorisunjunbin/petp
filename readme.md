@@ -69,7 +69,11 @@ Beautiful soup example
 
 ## DONE:
 
-2022-7: DB_ACCESSProcessor, Mysql supported.
+2022-09: Support last run feature
+
+2022-09: MOUSE_CLICKProcessor & MOUSE_SCROLLProcessor, ootb_keep_screen_unlocked 
+
+2022-07: DB_ACCESSProcessor, Mysql supported.
 
 2022-07: Update to Selenium 4.3.0 
 
