@@ -60,7 +60,14 @@ class PETPPresenter():
         self._init_executiongrid_choice_editor()
         self._init_cron()
         self._init_property_grid()
+        self._load_last_run()
         # self._init_log_loader()
+
+    def _load_last_run(self):
+        if self.m.last_run is not None:
+            logging.info("loading last run: " + self.m.last_run)
+            self.v.executionChooser.SetValue(self.m.last_run)
+            self.on_task_execution_changed()
 
     def _init_property_grid(self):
         self.v.taskProperty.AddPage(self.single_page)
@@ -363,6 +370,12 @@ class PETPPresenter():
     def on_run_execution(self):
         combo = self.v.executionChooser
         self.execution = Execution.get_execution(combo.GetValue())
+
+        # record last_run
+        if self.m.last_run != combo.GetValue():
+            self.m.last_run = combo.GetValue()
+            self.m.set_config('last_run', self.m.last_run)
+
         asyncio.run(
             self.execution.run({"__m": self.m, "__p": self})
         )

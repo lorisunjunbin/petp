@@ -1,0 +1,20 @@
+!!python/object:core.execution.Execution
+execution: ootb_keep_screen_unlocked
+list:
+- !!python/object:core.task.Task
+  input: '{"x": 1000, "y": 10, "wait": 10}'
+  type: MOUSE_CLICK
+- !!python/object:core.task.Task
+  input: '{"x": 500, "y": 500, "vertical": -500, "wait": 10}'
+  type: MOUSE_SCROLL
+- !!python/object:core.task.Task
+  input: '{"x": 1000, "y": 500, "wait": 10}'
+  type: MOUSE_CLICK
+- !!python/object:core.task.Task
+  input: '{"x": 500, "y": 500, "vertical": 500, "wait": 10}'
+  type: MOUSE_SCROLL
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":1, "task_end":4, "loop_key":"", "loop_times":"99999999",
+    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20220930160320

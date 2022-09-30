@@ -11,6 +11,9 @@ class PETPModel(object):
         self.sysconfig.bind_model(self, ['application'])
         logging.info('Init PETPModel')
 
+    def set_config(self, key, value):
+        self.sysconfig.set_config(value, 'application', key)
+
     def __str__(self):
         return str(self.__dict__)
 
