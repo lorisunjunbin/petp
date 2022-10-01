@@ -61,9 +61,6 @@ Beautiful soup example
 
 ## TO-DO:
 
-- Enhance [GUI](./mvp) none-blocking execution
-  - https://www.blog.pythonlibrary.org/2010/05/22/wxpython-and-threads/
-  - https://wiki.wxpython.org/Non-Blocking%20Gui
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
@@ -71,6 +68,8 @@ Beautiful soup example
 
 
 ## DONE:
+
+2022-10: Enhancement [GUI](./mvp) none-blocking execution
 
 2022-09: Support last run feature
 
