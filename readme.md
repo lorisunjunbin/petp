@@ -62,6 +62,8 @@ Beautiful soup example
 ## TO-DO:
 
 - Enhance [GUI](./mvp) none-blocking execution
+  - https://www.blog.pythonlibrary.org/2010/05/22/wxpython-and-threads/
+  - https://wiki.wxpython.org/Non-Blocking%20Gui
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
@@ -82,7 +84,7 @@ Beautiful soup example
 
 2022-05: Mac m1 cpu, fix wxpython install issue, pack and build wheel locally.
 
-2022-04-06: ZIPProcessor, verfied under Windows.
+2022-04-06: ZIPProcessor, verified under Windows.
 
 2022-03-28： Loop for times
 

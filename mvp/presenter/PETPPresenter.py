@@ -12,6 +12,7 @@ from cron_descriptor import ExpressionDescriptor
 from core.cron.cron import Cron
 from core.definition.SeleniumIDERecordingConverter import SeleniumIDERecordingConverter
 from core.execution import Execution
+from core.executor import Executor
 from core.loop import Loop
 from core.pipeline import Pipeline
 from core.processor import Processor
@@ -19,6 +20,7 @@ from core.task import Task
 from decorators.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
+from mvp.presenter.event.PETPEvent import PETPEvent
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.ExcelUtil import ExcelUtil
@@ -376,9 +378,7 @@ class PETPPresenter():
             self.m.last_run = combo.GetValue()
             self.m.set_config('last_run', self.m.last_run)
 
-        asyncio.run(
-            self.execution.run({"__m": self.m, "__p": self})
-        )
+        Executor(self.execution, {"__m": self.m, "__p": self}, self.v).start()
 
     @reload_log_after
     def on_select_recording(self):
@@ -714,6 +714,7 @@ class PETPPresenter():
         self.on_load_log()
 
     def on_load_log(self):
+
         if hasattr(self, 'isLoading') and self.isLoading:
             return
 

@@ -1,5 +1,4 @@
 import logging
-import time
 import platform
 
 import wx
@@ -40,8 +39,6 @@ def start_app():
     model: PETPModel = build_model()
     view: PETPView = build_view()
     presenter: PETPPresenter = build_presenter(model, view)
-
-    time.sleep(2)
 
     view.Show()
     logging.info('PETP is running as ' + platform.architecture()[0])

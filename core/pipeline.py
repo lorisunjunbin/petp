@@ -57,7 +57,7 @@ class Pipeline(RunnAbleAsCron):
             logging.info(
                 f'[ {self.pipeline} ]>>{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} >============> Execution {idx}: {execution.execution}')
 
-            data_chain = execution.run_sync(data_chain)
+            data_chain = execution.run(data_chain)
 
             logging.info(
                 f'[ {self.pipeline} ]<<{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} <============< Execution {idx}: {execution.execution} < DONE \n')

@@ -4,6 +4,7 @@ import wx
 import wx.dataview
 import wx.lib.colourutils
 
+from mvp.presenter.event.PETPEvent import PETPEvent
 
 class PETPInteractor():
 
@@ -73,7 +74,23 @@ class PETPInteractor():
 
         self.v.logContents.Bind(wx.EVT_SET_FOCUS, self.on_logcontents_focused)
         self.v.logContents.Bind(wx.EVT_KILL_FOCUS, self.on_logcontents_unfocused)
+
+        PETPEvent.bind_to(self.v, PETPEvent.LOG, self.on_load_log)
+        PETPEvent.bind_to(self.v, PETPEvent.DONE, self.on_handle_done)
+
         logging.info('PETPInteractor installed')
+    def on_handle_done(self, evt: PETPEvent):
+        evt.Skip()
+        logging.info(evt.data)
+        self.p.on_logcontents_unfocused()
+        self.p.on_load_log()
+
+    def on_load_log(self, evt):
+        evt.Skip()
+        self.p.on_logcontents_unfocused()
+        asyncio.run(
+            self.p.on_load_log_async()
+        )
 
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
@@ -214,13 +231,6 @@ class PETPInteractor():
     def on_delete_property(self, evt):
         evt.Skip()
         self.p.on_delete_property()
-
-    def on_load_log(self, evt):
-        evt.Skip()
-        self.p.on_logcontents_unfocused()
-        asyncio.run(
-            self.p.on_load_log_async()
-        )
 
     def on_clean_log(self, evt):
         evt.Skip()

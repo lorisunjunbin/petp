@@ -12,6 +12,7 @@ from utils.OSUtils import OSUtils
 Execution 1:n Task
 """
 
+
 class Execution(object):
     execution: str
     list: list
@@ -22,20 +23,14 @@ class Execution(object):
         self.list = lt
         self.loops = lps
 
-    async def run(self, initial_data) -> dict:
-        return self._run(initial_data)
-
-    def run_sync(self, initial_data) -> dict:
-        return self._run(initial_data)
-
-    def _run(self, initial_data):
+    def run(self, initial_data) -> dict:
         data_chain = initial_data
         list_size = len(self.list)
-        #loop for collection
+        # loop for collection
         current_loop_collection: []
         current_loop_idx = 0
 
-        #loop for times
+        # loop for times
         loop_times = 0
         loop_times_cur = 0
 
@@ -55,7 +50,7 @@ class Execution(object):
                 if is_times_loop:
                     loop_times = current_loop.get_loop_times()
                     data_chain[current_loop.get_loop_index_key()] = loop_times_cur
-                else:# is_collection_loop
+                else:  # is_collection_loop
                     current_loop_collection = data_chain[current_loop.get_loop_key()]
                     if len(current_loop_collection) > current_loop_idx:
                         data_chain[current_loop.get_item_key()] = current_loop_collection[current_loop_idx]
@@ -87,11 +82,11 @@ class Execution(object):
             if is_loop_end:
                 if is_times_loop:
                     loop_times_cur += 1
-                    if loop_times  > loop_times_cur:
+                    if loop_times > loop_times_cur:
                         idx = current_loop.get_task_start() - 1
                         data_chain[current_loop.get_loop_index_key()] = loop_times_cur
                         continue
-                    else:# is_collection_loop
+                    else:  # is_collection_loop
                         loop_times_cur = 0
                         loop_times = 0
                         data_chain[current_loop.get_loop_index_key()] = 0
