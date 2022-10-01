@@ -702,11 +702,12 @@ class PETPPresenter():
         self._on_delete_rows(self.v.executionGrid)
 
     def _on_delete_rows(self, grid):
-        rows2BeDeleted = grid.GetSelectedRows()
-        deleteStartRow = rows2BeDeleted[0] if len(rows2BeDeleted) > 0 else 0
-        deleteNumber = len(rows2BeDeleted) if len(rows2BeDeleted) > 0 else 1
-
-        if grid.GetNumberRows() > 0:
+        total_row = grid.GetNumberRows()
+        if total_row > 0:
+            rows_be_deleted = grid.GetSelectedRows()
+            last_row_at = total_row - 1
+            deleteStartRow = rows_be_deleted[0] if len(rows_be_deleted) > 0 else last_row_at
+            deleteNumber = len(rows_be_deleted) if len(rows_be_deleted) > 0 else 1
             grid.DeleteRows(pos=deleteStartRow, numRows=deleteNumber, updateLabels=True)
 
     async def on_load_log_async(self):

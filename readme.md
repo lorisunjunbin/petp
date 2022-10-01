@@ -61,11 +61,12 @@ Beautiful soup example
 
 ## TO-DO:
 
+- Enhance [GUI](./mvp) none-blocking execution
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
   
-- Enhance [GUI](./mvp) none-blocking execution
+
 
 ## DONE:
 
@@ -111,5 +112,5 @@ ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
 > 
 > pip wheel wxPython-4.1.1/
 > 
-> pip install --force-reinstall wxPython-4.1.2a1.dev5434+7d45ee6a-cp310-cp310-macosx_10_10_universal2.whl
+> pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
      
