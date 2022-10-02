@@ -6,6 +6,7 @@ import wx.lib.colourutils
 
 from mvp.presenter.event.PETPEvent import PETPEvent
 
+
 class PETPInteractor():
 
     def __init__(self):
@@ -78,10 +79,10 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.LOG, self.on_load_log)
         PETPEvent.bind_to(self.v, PETPEvent.DONE, self.on_handle_done)
 
-        logging.info('PETPInteractor installed')
+        logging.info('PETPInteractor installed.')
+
     def on_handle_done(self, evt: PETPEvent):
         evt.Skip()
-        logging.info(evt.data)
         self.p.on_logcontents_unfocused()
         self.p.on_load_log()
 

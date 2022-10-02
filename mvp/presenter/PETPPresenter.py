@@ -1,8 +1,6 @@
 import asyncio
 import json
 import logging
-import threading
-import time
 
 import wx
 import wx.dataview
@@ -20,7 +18,6 @@ from core.task import Task
 from decorators.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
-from mvp.presenter.event.PETPEvent import PETPEvent
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.ExcelUtil import ExcelUtil
@@ -63,7 +60,6 @@ class PETPPresenter():
         self._init_cron()
         self._init_property_grid()
         self._load_last_run()
-        # self._init_log_loader()
 
     def _load_last_run(self):
         if self.m.last_run is not None:
@@ -89,16 +85,6 @@ class PETPPresenter():
     def _reset_loop_pgrid(self):
         self.v.loopProperty.ClearPage(self.v.loopProperty.GetPageByName(self.single_page))
         self._append_property_category(self.v.loopProperty, "Loop Editor")
-
-    def _init_log_loader(self):
-        self.logger_thread = threading.Thread(target=self._load_log_every, args=(3, 1,), daemon=True)
-        self.logger_thread.start()
-
-    def _load_log_every(self, secondsAfter, secondsBefore):
-        while self.keep_running:
-            time.sleep(secondsBefore)
-            self.on_load_log()
-            time.sleep(secondsAfter)
 
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
@@ -726,6 +712,7 @@ class PETPPresenter():
             self.v.logContents.SetValue(file.read())
             self.v.logContents.AppendText('')
             self.v.logContents.ScrollLines(-1)
+
         self.isLoading = False
 
     @reload_log_after
