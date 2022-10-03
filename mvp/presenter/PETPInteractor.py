@@ -51,6 +51,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_execution, self.v.delExection)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_task_execution_changed, self.v.executionChooser)
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
+        self.v.Bind(wx.EVT_BUTTON, self.on_stop_execution, self.v.stopExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_run_execution, self.v.runExection)
 
         # Pipeline relevant
@@ -163,6 +164,9 @@ class PETPInteractor():
     def on_run_execution(self, evt):
         evt.Skip()
         self.p.on_run_execution()
+    def on_stop_execution(self, evt):
+        evt.Skip()
+        self.p.on_stop_execution()
 
     def on_save_pipeline(self, evt):
         evt.Skip()

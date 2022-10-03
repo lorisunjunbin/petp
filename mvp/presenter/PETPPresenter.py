@@ -28,6 +28,7 @@ class PETPPresenter():
     CRON_INVALID: str = "Invalid CRON"
     cron: Cron
     execution: Execution
+    executors: list = []
     pipeline: Pipeline
     converter: SeleniumIDERecordingConverter
 
@@ -364,7 +365,18 @@ class PETPPresenter():
             self.m.last_run = combo.GetValue()
             self.m.set_config('last_run', self.m.last_run)
 
-        Executor(self.execution, {"__m": self.m, "__p": self}, self.v).start()
+        executor = Executor(self.execution, {"__m": self.m, "__p": self}, self.v)
+        self.executors.append(executor)
+        executor.start()
+
+    @reload_log_after
+    def on_stop_execution(self):
+        for executor in self.executors:
+            if executor.is_alive():
+                executor.execution.should_be_stop = True
+                # executor.join()
+
+        self.executors = []
 
     @reload_log_after
     def on_select_recording(self):

@@ -17,6 +17,7 @@ class Execution(object):
     execution: str
     list: list
     loops: []
+    should_be_stop: bool
 
     def __init__(self, execution, lt, lps):
         self.execution = execution
@@ -33,13 +34,20 @@ class Execution(object):
         # loop for times
         loop_times = 0
         loop_times_cur = 0
+        self.should_be_stop = False
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
 
         idx = 0
         while idx < list_size:
+
             sequence: int = idx + 1
+
+            if self.should_be_stop:
+                logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {sequence}')
+                return data_chain
+
             current_loop: Loop = self.find_current_loop(sequence)
             is_loop_execution: bool = current_loop is not None
             is_times_loop: bool = is_loop_execution and current_loop.is_loop_for_times()
