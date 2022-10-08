@@ -4,6 +4,7 @@ class PETPEvent(wx.PyEvent):
     """ available petp events"""
     LOG = 88880001
     DONE = 88880002
+    START = 88880003
 
     def __init__(self,etype, data):
 

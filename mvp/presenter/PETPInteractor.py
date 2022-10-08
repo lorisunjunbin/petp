@@ -79,13 +79,16 @@ class PETPInteractor():
 
         PETPEvent.bind_to(self.v, PETPEvent.LOG, self.on_load_log)
         PETPEvent.bind_to(self.v, PETPEvent.DONE, self.on_handle_done)
+        PETPEvent.bind_to(self.v, PETPEvent.START, self.on_handle_start)
 
         logging.info('PETPInteractor installed.')
 
+    def on_handle_start(self, evt: PETPEvent):
+        logging.info(evt.data)
+        self.on_load_log(evt)
     def on_handle_done(self, evt: PETPEvent):
-        evt.Skip()
-        self.p.on_logcontents_unfocused()
-        self.p.on_load_log()
+        logging.info(evt.data)
+        self.on_load_log(evt)
 
     def on_load_log(self, evt):
         evt.Skip()

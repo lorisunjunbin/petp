@@ -19,5 +19,6 @@ class Executor(Thread):
         self.init_data = init_data
 
     def run(self):
+        wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.START, f"{self.execution.execution} is START via new thread"))
         self.execution.run(self.init_data)
-        wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.DONE, f"{self.execution.execution} is DONE via other thread!"))
+        wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.DONE, f"{self.execution.execution} is DONE."))

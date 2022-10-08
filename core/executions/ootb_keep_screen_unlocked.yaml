@@ -2,16 +2,16 @@
 execution: ootb_keep_screen_unlocked
 list:
 - !!python/object:core.task.Task
-  input: '{"x": 1000, "y": 10, "wait": 10}'
+  input: '{"x": 1000, "y": 10, "wait": 30}'
   type: MOUSE_CLICK
 - !!python/object:core.task.Task
-  input: '{"x": 500, "y": 500, "vertical": -500, "wait": 10}'
+  input: '{"x": 500, "y": 500, "vertical": -500, "wait": 30}'
   type: MOUSE_SCROLL
 - !!python/object:core.task.Task
-  input: '{"x": 1000, "y": 500, "wait": 10}'
+  input: '{"x": 1000, "y": 500, "wait": 30}'
   type: MOUSE_CLICK
 - !!python/object:core.task.Task
-  input: '{"x": 500, "y": 500, "vertical": 500, "wait": 10}'
+  input: '{"x": 500, "y": 500, "vertical": 500, "wait": 30}'
   type: MOUSE_SCROLL
 loops:
 - !!python/object:core.loop.Loop
