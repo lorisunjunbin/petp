@@ -2,17 +2,17 @@
 execution: ootb_keep_screen_unlocked
 list:
 - !!python/object:core.task.Task
-  input: '{"x": 1000, "y": 10, "wait": 30}'
+  input: '{"data_key_x":"mouse_at_x", "data_key_y":"mouse_at_y", "wait":5}'
+  type: MOUSE_POSITION
+- !!python/object:core.task.Task
+  input: '{"x": -1, "y": -1, "wait": 60, "x_from": "mouse_at_x", "y_from": "mouse_at_y"}'
   type: MOUSE_CLICK
 - !!python/object:core.task.Task
-  input: '{"x": 500, "y": 500, "vertical": -500, "wait": 30}'
-  type: MOUSE_SCROLL
+  input: '{"data_key_x": "mouse_at_x", "data_key_y": "mouse_at_y", "wait": 5}'
+  type: MOUSE_POSITION
 - !!python/object:core.task.Task
-  input: '{"x": 1000, "y": 500, "wait": 30}'
+  input: '{"x": -1, "y": -1, "wait": 60, "y_from": "mouse_at_y", "x_from": "mouse_at_x"}'
   type: MOUSE_CLICK
-- !!python/object:core.task.Task
-  input: '{"x": 500, "y": 500, "vertical": 500, "wait": 30}'
-  type: MOUSE_SCROLL
 loops:
 - !!python/object:core.loop.Loop
   loop_attributes: '{"task_start":1, "task_end":4, "loop_key":"", "loop_times":"99999999",
