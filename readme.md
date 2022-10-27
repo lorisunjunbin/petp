@@ -22,8 +22,8 @@ Windows
 
 ## What-Can-Do:
 
-    Orchestrate below available tasks as Execution, support loop; 
-    Combine Execution as Pipline, run once or as cron.
+    Orchestrate below available task(s) as Execution, dataset based loop and time based loop. 
+    Combine Execution(s) as Pipline, run once or as cron.
 
     - Browser-related tasks(selenium, cover selenium IDE recording to PETP tasks.
     - SSH/SFTP tasks(paramiko)
@@ -35,8 +35,6 @@ Windows
     - Input dialog / Show message
     - Mouse click/scroll(pyautogui)
     - Database CRUD, mysql supported(Hana/postgresql is coming soon)
-    - Dataset based loop and time based loop.
-    - Run multiple Executions as Pipline, run as cron
 
 ## Run first Execution within 4 steps:
 
