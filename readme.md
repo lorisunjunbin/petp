@@ -20,13 +20,10 @@ Windows
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview_windows.png)
 
-Beautiful soup example
-
-![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/Beautifulsoup.png)
-
 ## What-Can-Do:
 
-    Orchestrate below available tasks as Execution, support loop; combine Execution as Pipline, run once or as cron.
+    Orchestrate below available tasks as Execution, support loop; 
+    Combine Execution as Pipline, run once or as cron.
 
     - Browser-related tasks(selenium, cover selenium IDE recording to PETP tasks.
     - SSH/SFTP tasks(paramiko)
@@ -40,7 +37,6 @@ Beautiful soup example
     - Database CRUD, mysql supported(Hana/postgresql is coming soon)
     - Dataset based loop and time based loop.
     - Run multiple Executions as Pipline, run as cron
-    
 
 ## Run first Execution within 4 steps:
 
@@ -58,7 +54,7 @@ Beautiful soup example
     > pip install selenium
     > pip install wxpython
     > pip install ...other listed in requirements.txt, install without cache:  --no-cache-dir 
-
+    
     3, Run: 
     > python PETP.py
 
@@ -68,6 +64,8 @@ Beautiful soup example
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
+  
+
 
 ## DONE:
 
@@ -96,24 +94,16 @@ Beautiful soup example
 
 ## tips:
 
+- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version (selenium task only).
+
+- Install Wxpython snapshot
+  > Downloan from https://wxpython.org/Phoenix/snapshot-builds/
+  > pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
+  
+- Link python 3
+ > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
+ > ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
+
 - Update all lib on macOS
   > pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
-- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version.
-
-## Wxpython
-
-https://wxpython.org/Phoenix/snapshot-builds/
-
-ln -s -f /usr/local/bin/python3 /usr/local/bin/python
-ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
-
-> python setup.py build
-> 
-> python setup.py install
-> 
-> pip install wheel
-> 
-> pip wheel wxPython-4.1.1/
-> 
-> pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
-     
+  
