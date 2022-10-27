@@ -97,11 +97,14 @@ Windows
 - Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version (selenium task only).
 
 - Install Wxpython snapshot
+
   > Downloan from https://wxpython.org/Phoenix/snapshot-builds/
+   
   > pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
   
 - Link python 3
  > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
+
  > ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
 
 - Update all lib on macOS
