@@ -10,16 +10,6 @@ one-to-one.
     Execution 1:n Task
     Task      1:1 Processor
 
-GUI(wxpython)
-
-macOS
-
-![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview.png)
-
-Windows
-
-![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview_windows.png)
-
 ## What-Can-Do:
 
     Orchestrate below available task(s) as Execution, dataset based loop and time based loop. 
@@ -35,6 +25,14 @@ Windows
     - Input dialog / Show message
     - Mouse click/scroll(pyautogui)
     - Database CRUD, mysql supported(Hana/postgresql is coming soon)
+
+MacOS
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview.png)
+
+Windows
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview_windows.png)
 
 ## Run first Execution within 4 steps:
 
@@ -63,8 +61,7 @@ Windows
 - Create more [processors](./core/processors)
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
   
-
-
+  
 ## DONE:
 
 2022-10: Enhancement [GUI](./mvp) none-blocking execution
@@ -89,6 +86,11 @@ Windows
 
 2021-10-02: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) 
 
+## Appreciate for
+
+  - [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
+
+  - [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://chromedriver.chromium.org/downloads)
 
 ## tips:
 
@@ -104,4 +106,5 @@ Windows
 
 - Update all lib on macOS
   > pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+  
   
