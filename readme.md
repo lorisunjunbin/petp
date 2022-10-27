@@ -40,7 +40,7 @@ Beautiful soup example
 
 ## Run first Execution within 4 steps:
 
-![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/user_manual.jpg)
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/user_manual.png)
 
 ## Install & Run
 
