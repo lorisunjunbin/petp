@@ -24,19 +24,23 @@ Beautiful soup example
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/Beautifulsoup.png)
 
-## What-Can-Do
+## What-Can-Do:
 
-    - Browser-related tasks(selenium)
-    - cover selenium IDE recording to PETP tasks.
+    Orchestrate below available tasks as Execution, support loop; combine Execution as Pipline, run once or as cron.
+
+    - Browser-related tasks(selenium, cover selenium IDE recording to PETP tasks.
     - SSH/SFTP tasks(paramiko)
     - HTML/XML parser(beautiful soup)
     - File-related tasks, open/write/move/delete/etc.
-    - read records from csv/excel
-    - support multi-loop, no nested for now.
-    - sending email
-    - sending http request
-    - input dialog / show message
+    - Read records from csv/excel
+    - Send email
+    - Send http request
+    - Input dialog / Show message
+    - Mouse click/scroll(pyautogui)
     - Database CRUD, mysql supported(Hana/postgresql is coming soon)
+    - Dataset based loop and time based loop.
+    - Run multiple Executions as Pipline, run as cron
+    
 
 ## Run first Execution within 4 steps:
 
@@ -64,8 +68,6 @@ Beautiful soup example
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
   - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
-  
-
 
 ## DONE:
 
