@@ -1,10 +1,10 @@
 # ![image](./image/petp_small.png) PET-P
 
-This is techno person RPA toolkit, handy task runner/execution engine, RPA robot build by python.
+This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by python.
 
 **PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, pipeline may combine multiple
-executions, each execution contains multiple tasks. The last **P** means processor, which handle the specific task
-one-to-one.
+executions,
+and each one contains various tasks. The last **P** means processor, which handles the specific task one-to-one.
 
     Pipeline  1:n Execution
     Execution 1:n Task
@@ -54,27 +54,25 @@ Windows
     3, Run: 
     > python PETP.py
 
-
 ## TO-DO:
 
 - Able to easily create customized processors.
 - Create more [processors](./core/processors)
-  - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
-  
-  
+    - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
+
 ## DONE:
 
 2022-10: Enhancement [GUI](./mvp) none-blocking execution
 
 2022-09: Support last run feature
 
-2022-09: MOUSE_CLICKProcessor & MOUSE_SCROLLProcessor, ootb_keep_screen_unlocked 
+2022-09: MOUSE_CLICKProcessor & MOUSE_SCROLLProcessor, ootb_keep_screen_unlocked
 
 2022-07: DB_ACCESSProcessor, Mysql supported.
 
-2022-07: Update to Selenium 4.3.0 
+2022-07: Update to Selenium 4.3.0
 
-2022-06: Update to python 3.10 and wxpython 4.1.2. 
+2022-06: Update to python 3.10 and wxpython 4.1.2.
 
 2022-05: Mac m1 cpu, fix wxpython install issue, pack and build wheel locally.
 
@@ -84,30 +82,33 @@ Windows
 
 2021-09-22: Execution grid copy & paste, right-click on the row, context menu show up, then Copy or Paste
 
-2021-10-02: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) 
+2021-10-02: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py)
 
 ## Appreciate for
 
-  - [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
+- [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
 
-  - [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://chromedriver.chromium.org/downloads)
+- [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://chromedriver.chromium.org/downloads)
 
 ## tips:
 
-- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version (selenium task only).
+- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version (selenium task
+  only).
 
 - Install Wxpython snapshot
 
   > Downloan from https://wxpython.org/Phoenix/snapshot-builds/
-   
-  > pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
-  
-- Link python 3
- > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
 
- > ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
+  > pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
+
+- Link python 3
+
+> ln -s -f /usr/local/bin/python3 /usr/local/bin/python
+
+> ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
 
 - Update all lib on macOS
-  > pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+
+> pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
   
   
