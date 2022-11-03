@@ -3,6 +3,8 @@ import time
 import logging
 
 import pyautogui
+pyautogui.PAUSE = 0.5
+pyautogui.FAILSAFE = False
 
 from core.processor import Processor
 
