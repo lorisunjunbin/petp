@@ -59,6 +59,9 @@ class Processor(object):
     def get_ddir(self):
         return os.path.realpath('./download')
 
+    def get_rdir(self):
+        return os.path.realpath('./resources')
+
     def set_task(self, task: Task):
         self.task = task
         self.input_param = json.loads(self.task.input)

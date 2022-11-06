@@ -88,15 +88,3 @@ class DateUtil:
     def _dt_strptime(dstr, df):
         DateUtil.setLocale()
         return datetime.strptime(dstr, df)
-
-
-if __name__ == '__main__':
-    print(str(int('01')))
-    print(DateUtil.get_week_num(datetime.now()))
-    print(DateUtil.get_week_start_end(datetime.now()))
-    print(DateUtil.get_week_start_end_with(datetime.now(), -1))
-    print(DateUtil.get_week_start_end_with(datetime.now(), 1))
-    print(DateUtil.get_date('08.31.2020', '%m.%d.%Y'))
-    print(DateUtil.get_date_with_delta(
-        DateUtil.get_date('08.31.2020', '%m.%d.%Y'), 2))
-    print(DateUtil.remove_leading0('08.31.2020', '.'))

@@ -2,7 +2,7 @@
 execution: read_from_excel_search_on_baidu
 list:
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/test.xlsx", "skip_first": "no", "data_key":
+  input: '{"file_path": "{self.get_rdir()}/test.xlsx", "skip_first": "no", "data_key":
     "loop_list", "end_at": "4"}'
   type: READ_EXCEL
 - !!python/object:core.task.Task

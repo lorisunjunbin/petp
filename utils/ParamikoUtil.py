@@ -1,4 +1,4 @@
-# Esperanto: Paranoid + Friend
+
 import paramiko
 import logging
 
@@ -7,6 +7,7 @@ from datetime import datetime
 
 class ParamikoUtil:
     """
+        # Esperanto: Paranoid + Friend
         install latest python: https://www.python.org/downloads/
 
         pip install paramiko

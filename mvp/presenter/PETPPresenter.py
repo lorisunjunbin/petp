@@ -544,6 +544,10 @@ class PETPPresenter():
         self._modify_property(prop)
 
     @reload_log_after
+    def on_convert_rdir(self):
+        self._convert('{self.get_rdir()}/', True)
+
+    @reload_log_after
     def on_convert_ddir(self):
         self._convert('{self.get_ddir()}/', True)
 

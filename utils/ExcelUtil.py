@@ -134,10 +134,3 @@ class ExcelUtil:
     @staticmethod
     def get_email_template_path(fileName):
         return "file://" + os.path.realpath('email_template') + fileName
-
-
-if __name__ == '__main__':
-    pass
-    # print(ExcelUtil.get_email_template_path())
-    # print(ExcelUtil.get_data_from_excel_file(
-    #     '/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/folder_file_bak/export_CW33.xlsx', 1, 12))

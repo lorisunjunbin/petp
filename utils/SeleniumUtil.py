@@ -479,17 +479,3 @@ class SeleniumUtil:
         else:
             logging.info(f'fn return false, skip click on: {xpath}')
         return chrome
-
-
-if __name__ == '__main__':
-    SeleniumUtil.move_to_crm_target_frame(
-        'https://icp.wdf.sap.corp/sap(bD1lbiZjPTAwMSZkPW1pbg==)/bc/bsp/sap/crm_ui_start/default.htm',
-    )
-
-    # data, chrome = SeleniumUtil.get_data(ExcelUtil.get_email_template_path(), None, 2, "input", "//input", 10,
-    #                                     )
-    # print(str(data))
-
-    # chrome.implicitly_wait(10000)
-    # SeleniumUtil.get_data(
-    #    "https://go.support.sap.com/isep/#/AlertOverview/?parent=Entry&status=In%2520Frontoffice%2520Follow-up&region=China&results=ALL")
