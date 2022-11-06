@@ -62,6 +62,10 @@ Windows
 
 ## DONE:
 
+2022-11: Samplify & Optimize entire [UI](./mvp/view).
+
+2022-11: clean & restructure code UI event binding.  
+
 2022-10: Enhancement [GUI](./mvp) none-blocking execution
 
 2022-09: Support last run feature
