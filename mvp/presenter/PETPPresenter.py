@@ -300,7 +300,7 @@ class PETPPresenter():
         if combo.FindString(name) == -1:
             combo.Insert(name, 0)
         else:
-            logging.warning(f'Pipeline: {combo.GetValue()} already existed, overrwrite!')
+            logging.warning(f'Pipeline: {combo.GetValue()} already existed, overwrite!')
 
         self._save_pipeline(name)
 

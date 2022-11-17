@@ -104,6 +104,7 @@ Windows
   > Downloan from https://wxpython.org/Phoenix/snapshot-builds/
 
   > pip install --force-reinstall wxPython-4.2.1a1.dev5496+7c4d21d7-cp310-cp310-win_amd64.whl
+  > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-macosx_10_10_universal2.whl
 
 - Link python 3
 
@@ -113,6 +114,6 @@ Windows
 
 - Update all lib on macOS
 
-> pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+> pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
   
   
