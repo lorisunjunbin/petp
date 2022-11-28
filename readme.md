@@ -15,7 +15,7 @@ and each one contains various tasks. The last **P** means processor, which handl
     Orchestrate below available task(s) as Execution, dataset based loop and time based loop. 
     Combine Execution(s) as Pipline, run once or as cron.
 
-    - Browser-related tasks(selenium, cover selenium IDE recording to PETP tasks.
+    - Browser-related tasks by selenium, able to covert selenium IDE recording to PETP tasks.
     - SSH/SFTP tasks(paramiko)
     - HTML/XML parser(beautiful soup)
     - File-related tasks, open/write/move/delete/etc.
