@@ -105,6 +105,7 @@ Windows
 
   > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-win_amd64.whl
   > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-macosx_10_10_universal2.whl
+  > pip install --force-reinstall wxPython-4.2.1a1.dev5545+a3b6cfec-cp310-cp310-macosx_10_10_universal2.whl 
 
 - Link python 3
 
