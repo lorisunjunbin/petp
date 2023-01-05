@@ -10,6 +10,7 @@ asyncio
 
 beautifulsoup4
 lxml
+jsonpath-python
 
 requests
 docx

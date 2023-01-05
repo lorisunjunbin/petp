@@ -1,0 +1,154 @@
+{
+  "count": 1,
+  "data": [
+    {
+      "extendedLocation": null,
+      "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-eastus2-1/providers/Microsoft.Compute/virtualMachines/hec45v134852",
+      "identity": {
+        "principalId": "2ff822b3-9cbd-4eee-84b9-fd55c79c4460",
+        "tenantId": "69b863e3-480a-4ee9-8bd0-20a8adb6909b",
+        "type": "SystemAssigned"
+      },
+      "kind": "",
+      "location": "eastus2",
+      "managedBy": "",
+      "name": "hec45v134852",
+      "plan": null,
+      "properties": {
+        "availabilitySet": {
+          "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-eastus2-1/providers/Microsoft.Compute/availabilitySets/AVSET-HEC45-HSH-H4D-CSCI",
+          "resourceGroup": "HEC45-HSH-eastus2-1"
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": true,
+            "storageUri": "https://sahec45hshdiag0001.blob.core.windows.net/"
+          }
+        },
+        "extended": {
+          "instanceView": {
+            "computerName": "hec45v134852",
+            "hyperVGeneration": "V1",
+            "osName": "sles",
+            "osVersion": "15.1",
+            "powerState": {
+              "code": "PowerState/running",
+              "displayStatus": "VM running",
+              "level": "Info"
+            }
+          }
+        },
+        "hardwareProfile": {
+          "vmSize": "Standard_D8s_v3"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-eastus2-1/providers/Microsoft.Network/networkInterfaces/nic-hec45v134852",
+              "resourceGroup": "HEC45-HSH-eastus2-1"
+            }
+          ]
+        },
+        "osProfile": {
+          "adminUsername": "azureadmin",
+          "allowExtensionOperations": true,
+          "computerName": "hec45v134852",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "patchSettings": {
+              "assessmentMode": "ImageDefault",
+              "patchMode": "ImageDefault"
+            },
+            "provisionVMAgent": true,
+            "ssh": {
+              "publicKeys": [
+                {
+                  "keyData": "---- BEGIN SSH2 PUBLIC KEY ----\nComment: \"sap-admin\"\nAAAAB3NzaC1yc2EAAAADAQABAAABAQC494yk/OMKzGkJW9c0GvCQTYdd+ucBt3v\n8r9b60+V/shjvYiG0JM6jwtczPRH+W4EXAn8UQZWR74d3s3R4wCF5j5gnCZJm+1\nQcX5LNTNVeZx2dVlCNH27ycXqvzUPKApu6MmmCXs3lDjmVqCuTIMWbYwI0H/DBS\nWNYbsF/1VKJKKyRXpJ1UUIQPhZQ08+Z2+o6O1ctWCAfpiM7o9aJPrijeJkvXjW4\nXdfi00LddxJcnzeSxkIdziqIdc17PZsU/9lxTPmcv3Rp+lGskbxbE/+j7WT9S/o\nsnhFb6kdX31dJ5uNEH32vxHHyZheDO4ue8MCmE4Fv1jjsur899TlvK31p\n---- END SSH2 PUBLIC KEY ----\n",
+                  "path": "/home/azureadmin/.ssh/authorized_keys"
+                }
+              ]
+            }
+          },
+          "requireGuestProvisionSignal": true,
+          "secrets": []
+        },
+        "provisioningState": "Succeeded",
+        "proximityPlacementGroup": {
+          "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-EASTUS2-1/providers/Microsoft.Compute/proximityPlacementGroups/PPG-HEC45-HSH-D4D",
+          "resourceGroup": "HEC45-HSH-EASTUS2-1"
+        },
+        "storageProfile": {
+          "dataDisks": [
+            {
+              "caching": "None",
+              "createOption": "Attach",
+              "deleteOption": "Detach",
+              "diskSizeGB": 20,
+              "lun": 0,
+              "managedDisk": {
+                "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-eastus2-1/providers/Microsoft.Compute/disks/bd29007127",
+                "resourceGroup": "HEC45-HSH-eastus2-1",
+                "storageAccountType": "Premium_LRS"
+              },
+              "name": "bd29007127",
+              "toBeDetached": false
+            },
+            {
+              "caching": "ReadOnly",
+              "createOption": "Attach",
+              "deleteOption": "Detach",
+              "diskSizeGB": 128,
+              "lun": 1,
+              "managedDisk": {
+                "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-eastus2-1/providers/Microsoft.Compute/disks/bd29007667",
+                "resourceGroup": "HEC45-HSH-eastus2-1",
+                "storageAccountType": "Premium_LRS"
+              },
+              "name": "bd29007667",
+              "toBeDetached": false
+            }
+          ],
+          "imageReference": {
+            "exactVersion": "1.0.6",
+            "id": "/subscriptions/50cf698b-3c79-45a6-b160-16e996932043/resourceGroups/HEConAzureShared-Master-Templates/providers/Microsoft.Compute/galleries/HeconAzureSharedMasterImageGallery/images/sles15_sp1/versions/1.0.6",
+            "resourceGroup": "HEConAzureShared-Master-Templates"
+          },
+          "osDisk": {
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "deleteOption": "Detach",
+            "diskSizeGB": 32,
+            "managedDisk": {
+              "id": "/subscriptions/8afd0842-ac6b-4664-825d-a5b78700361a/resourceGroups/HEC45-HSH-eastus2-1/providers/Microsoft.Compute/disks/bd_hec45v134852_OsDisk_1",
+              "resourceGroup": "HEC45-HSH-eastus2-1",
+              "storageAccountType": "Premium_LRS"
+            },
+            "name": "bd_hec45v134852_OsDisk_1",
+            "osType": "Linux"
+          }
+        },
+        "timeCreated": "2021-10-21T13:31:49.5801130Z",
+        "vmId": "6a593712-869e-4c6d-a30b-38616668b257"
+      },
+      "resourceGroup": "hec45-hsh-eastus2-1",
+      "sku": null,
+      "subscriptionId": "8afd0842-ac6b-4664-825d-a5b78700361a",
+      "tags": {
+        "InfrastructureProvider": "GMPTIC",
+        "Name": "hec45v134852",
+        "Serial": "1F2E3864-3273-11EC-97A0-FA03F9CE6956",
+        "bkp_fs_schedule": "mo:111111111111111111111111,tu:111111111111111111111111,we:111111111111111111111111,th:111111111111111111111111,fr:111111111111111111111111,sa:111111111111111111111111,su:111111111111111111111111,min:1d,max:3d",
+        "bkp_storage_account": "sahec45hshbackup0001",
+        "comment": "HSH H4D CI CS  |B1_0304210644-4310250-HSO.000151-0-6_PROCESS_ID:54230703",
+        "mc-ripurchased": "3yri-s-coverage-met",
+        "purchase-ri": "3yri-s",
+        "status": "Live"
+      },
+      "tenantId": "69b863e3-480a-4ee9-8bd0-20a8adb6909b",
+      "type": "microsoft.compute/virtualmachines",
+      "zones": null
+    }
+  ],
+  "skip_token": null,
+  "total_records": 1
+}

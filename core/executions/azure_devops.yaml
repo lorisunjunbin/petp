@@ -1,0 +1,11 @@
+!!python/object:core.execution.Execution
+execution: azure_devops
+list:
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/rawdata-azure.json", "data_key": "json_rawdata",
+    "json_path": "$.data[*].(name,location,properties.availabilitySet.resourceGroup,type,properties.hardwareProfile.vmSize,properties.storageProfile.osDisk.diskSizeGB,properties.storageProfile.dataDisks)"}'
+  type: READ_JSON
+- !!python/object:core.task.Task
+  input: '{"title": "\u8bfb\u56de\u6765\u7684\u6570\u636e\u6709", "msg": "{self.get_data(\"json_rawdata\")}"}'
+  type: SHOW_RESULT
+loops: []
