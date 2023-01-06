@@ -8,4 +8,27 @@ list:
 - !!python/object:core.task.Task
   input: '{"title": "\u8bfb\u56de\u6765\u7684\u6570\u636e\u6709", "msg": "{self.get_data(\"json_rawdata\")}"}'
   type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/CustomerServerOverview.xlsx", "sheet_index":
+    1, "end_at": "100", "skip_first": "no", "data_key": "CustomerServerOverview_sheet1"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/CustomerServerOverview.xlsx", "sheet_index":
+    0, "end_at": "100", "skip_first": "no", "data_key": "CustomerServerOverview_sheet0",
+    "fields": "System ID|Server Name|System Number|TIC Server Comment"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/LandscapeExport.xlsx", "sheet_index": 0,
+    "end_at": "100", "skip_first": "no", "data_key": "LandscapeExport_sheet0", "fields":
+    "SID|ServerType|StartDate|Runtime|StorageGB"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/LandscapeExport.xlsx", "sheet_index": 1,
+    "end_at": "100", "skip_first": "no", "data_key": "LandscapeExport_sheet1"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"LandscapeExportSheet0": "LandscapeExport_sheet0", "LandscapeExportSheet1":
+    "LandscapeExport_sheet1", "CustomerServerOverviewSheet0": "CustomerServerOverview_sheet0",
+    "CustomerServerOverviewSheet1": "CustomerServerOverview_sheet1", "data_key": "biz_specific_data"}'
+  type: BIZ_SPECIFIC_DATA_COLLECT
 loops: []

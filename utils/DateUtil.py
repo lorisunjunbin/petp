@@ -1,5 +1,6 @@
 import locale
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 from utils.OSUtils import OSUtils
 
@@ -17,10 +18,10 @@ class DateUtil:
             hour=23, minute=59, second=59, microsecond=999)
 
         return week_start, week_end
-    
+
     @staticmethod
     def get_week_start_end_str(week_start, week_end, df="%d.%m.%Y", separator=' ~ '):
-        return DateUtil._dt_strftime(week_start, df) + separator +  DateUtil._dt_strftime(week_end, df)
+        return DateUtil._dt_strftime(week_start, df) + separator + DateUtil._dt_strftime(week_end, df)
 
     @staticmethod
     def get_week_start_end_with(date, delta):
@@ -49,9 +50,9 @@ class DateUtil:
     @staticmethod
     def setLocale():
         if OSUtils.get_sytem() == 'win32':
-            locale.setlocale(locale.LC_ALL, 'en-US.UTF-8') #for windows
+            locale.setlocale(locale.LC_ALL, 'en-US.UTF-8')  # for windows
         else:
-            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8') #for mac os, or others.
+            locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')  # for mac os, or others.
 
     @staticmethod
     def get_date(date_str, df='%d.%m.%Y'):
@@ -88,3 +89,11 @@ class DateUtil:
     def _dt_strptime(dstr, df):
         DateUtil.setLocale()
         return datetime.strptime(dstr, df)
+
+    @staticmethod
+    def months_delta(date, month):
+        return date + relativedelta(months=month)
+
+    @staticmethod
+    def is_after_now(date):
+        return date > DateUtil.get_now()

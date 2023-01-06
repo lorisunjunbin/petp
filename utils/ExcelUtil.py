@@ -13,6 +13,33 @@ from utils.DateUtil import DateUtil
 
 
 class ExcelUtil:
+    @staticmethod
+    def filter_by_fields(fields: [str] = [], data: [[]] = []):
+        """
+        1, find all matched column index from data[0] associated with fields
+        2, collect matched columns into new data_filtered, then return
+
+        """
+        # figure out which columns should be kept
+        first_row = data[0]
+        column_idx: [int] = []
+        for f_idx, field in enumerate(fields):
+            for c_idx, cell in enumerate(first_row):
+                if field == cell:
+                    column_idx.append(c_idx)
+
+        logging.info('fields:' + str(fields) + ' @column: ' + str(column_idx))
+
+        # construct new data in [[]]
+        data_filtered: [[]] = []
+        for row_idx, row in enumerate(data):
+            new_row: [] = []
+            for col_idx in column_idx:
+                new_row.append(row[col_idx])
+
+            data_filtered.append(new_row)
+
+        return data_filtered
 
     @staticmethod
     def get_data_from_csv(csvFilePath, skipFirst=False, dlr='\t'):
@@ -42,10 +69,10 @@ class ExcelUtil:
         logging.info(f'convert_csv_to_xlsx save file to: {xlsxFilePath}')
 
     @staticmethod
-    def get_data_from_excel_file(fileName, startAtRow=0, endAtColumn=50):
+    def get_data_from_excel_file(fileName, startAtRow=0, endAtColumn=50, sheet_index=0):
         result = []
         wb = load_workbook(filename=fileName, read_only=True)
-        ws = wb.worksheets[0]
+        ws = wb.worksheets[sheet_index]
         for idx_row, row in enumerate(ws.rows):
             if idx_row >= startAtRow:
                 isEnd = False
