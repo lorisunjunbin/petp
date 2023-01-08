@@ -5,13 +5,14 @@ list:
   input: '{"so": "MyCurrentInternetIP"}'
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
-  input: '{"data_key": "myip", "cmdstr": "curl ifconfig.co"}'
+  input: '{"data_key": "myip", "cmdstr": "curl ifconfig.co", "timeout": 30}'
   type: CMD
 - !!python/object:core.task.Task
   input: '{"file_path": "{self.get_ddir()}/_{self.get_data(\"so\")}_ip_filter.txt",
-    "content": "{self.get_data(\"myip\")}/32", "data_key": "ipfilter_location"}'
+    "content": "{self.get_data(\"myip\").split()[-1]}/32", "data_key": "ipfilter_location"}'
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task
-  input: '{"title": "Current IP: {self.get_data(\"myip\")}", "msg": "Location: {self.get_data(\"ipfilter_location\")}"}'
+  input: '{"title": "{self.get_data(\"myip\").split()[-1]}/32", "msg": "Location:
+    {self.get_data(\"ipfilter_location\")}"}'
   type: SHOW_RESULT
 loops: []
