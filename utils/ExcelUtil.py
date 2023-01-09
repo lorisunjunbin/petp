@@ -9,6 +9,8 @@ import wx.lib.colourutils
 import subprocess
 import logging
 
+from openpyxl.worksheet.worksheet import Worksheet
+
 from utils.DateUtil import DateUtil
 
 
@@ -67,6 +69,19 @@ class ExcelUtil:
 
         wb.save(xlsxFilePath)
         logging.info(f'convert_csv_to_xlsx save file to: {xlsxFilePath}')
+
+    @staticmethod
+    def write_dict_to_excel(full_file_path: str, data_as_dict: dict[str:[]]):
+        wb = Workbook()
+        # remove the default active sheet.
+        wb.remove(wb.active)
+
+        for k, v in data_as_dict.items():
+            sheet: Worksheet = wb.create_sheet(k)
+            for row in v:
+                sheet.append(row)
+        # save to target file
+        wb.save(full_file_path)
 
     @staticmethod
     def get_data_from_excel_file(fileName, startAtRow=0, endAtColumn=50, sheet_index=0):
