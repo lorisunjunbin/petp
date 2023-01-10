@@ -2,7 +2,7 @@
 execution: azure_devops
 list:
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_rdir()}/rawdata-azure.json", "data_key": "json_filtered_data",
+  input: '{"file_path": "{self.get_rdir()}/overalldiskuse.json", "data_key": "json_filtered_data",
     "json_path": "$.data[*].(name,location,properties.availabilitySet.resourceGroup,type,properties.hardwareProfile.vmSize,properties.storageProfile.osDisk.diskSizeGB,properties.storageProfile.dataDisks)"}'
   type: READ_JSON
 - !!python/object:core.task.Task

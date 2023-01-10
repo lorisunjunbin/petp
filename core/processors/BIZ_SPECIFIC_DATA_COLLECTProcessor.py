@@ -79,23 +79,26 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         final_result = [
             # excel first row as title row.
             ["Server Name",
+             "SID",
              "AZURE_DataDiskSize",
              "DED_storageSize",
              "diff(AzureSize-20-DEDSize)",
-             "Azure_details",
-             "DED_details"]
+             "DED_details",
+             "Azure_details"]
         ]
         for azure_server in data_from_azure:
             ded_details = self.collect_ded_details(azure_server["name"], filtered_CustomerServerOverviewSheet0,
                                                    filtered_LandscapeExportSheet0)
+            ded_sid = list(set(map(lambda r: r['SID'], ded_details)))
             ded_storage_size = self.collect_ded_storage_size(ded_details)
             final_result.append([
                 azure_server["name"],  # Server Name
+                ded_sid[0] if len(ded_sid) == 1 else json.dumps(ded_sid),  # SID
                 azure_server["dataDiskTotalGB"],  # AZURE_DataDiskSize
                 ded_storage_size,  # DED_storageSize
                 self.collect_diff(azure_server["dataDiskTotalGB"], ded_storage_size),  # diff(AzureSize-20-DEDSize)
-                json.dumps(azure_server['azure_datadisk_details']),  # Azure_details
-                json.dumps(ded_details)  # DED_details
+                json.dumps(ded_details),  # DED_details
+                json.dumps(azure_server['azure_datadisk_details'])  # Azure_details
             ])
         return final_result
 
