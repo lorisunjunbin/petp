@@ -6,7 +6,8 @@ from utils.DateUtil import DateUtil
 
 
 class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
-    TPL: str = '{"json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "LandscapeExportSheet1":"", "CustomerServerOverviewSheet0":"", "CustomerServerOverviewSheet1":"",  "data_key":"name on data_chain"}'
+    TPL: str = '{"json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
+
     DESC: str = f''' 
    
     customerServerOverview.xlsx  ---过滤掉K列(TIC Server Comment)：以CMS，CGS开头的行，S列(System Number)以DR开头的行之后，按照T列(System ID)分组，按E列(Server Name)执行命令获取azure数据
@@ -17,32 +18,35 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
     '''
 
+    #  DR 开头要过 去区分开；
+    #  第一步DED校验逻辑：U列InstanceType为空且Service 不包含 NO SERVER
     def process(self):
-        # System ID|Server Name|System Number|TIC Server Comment
-        CustomerServerOverviewSheet0 = self.get_data(self.get_param('CustomerServerOverviewSheet0'))
-        CustomerServerOverviewSheet1 = self.get_data(self.get_param('CustomerServerOverviewSheet1'))
-
         json_filtered_data = self.get_data(self.get_param('json_filtered_data'))
 
-        # SID|ServerType|StartDate|Runtime|StorageGB
+        # System ID|Server Name|System Number|TIC Server Comment
+        CustomerServerOverviewSheet0 = self.get_data(self.get_param('CustomerServerOverviewSheet0'))
+
+        # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID (HANA)|SystemNumber
         LandscapeExportSheet0 = self.get_data(self.get_param('LandscapeExportSheet0'))
-        LandscapeExportSheet1 = self.get_data(self.get_param('LandscapeExportSheet1'))
 
         filtered_CustomerServerOverviewSheet0 = list(
             filter(
                 lambda row: not row[3].startswith('CMD') and not row[3].startswith('CGS'),
-                CustomerServerOverviewSheet0)
+                CustomerServerOverviewSheet0
+            )
         )
 
         filtered_LandscapeExportSheet0 = list(
             filter(
-                lambda row: row[1] == 'MASTER' and DateUtil.is_after_now(
-                    DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3]))),
+                lambda row: (row[1] == 'MASTER' or row[1] == 'STANDBY') and DateUtil.is_after_now(
+                    DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3]))
+                ),
                 LandscapeExportSheet0
             )
         )
 
-        logging.info(json.dumps(json_filtered_data))
+        # 第一步DED校验逻辑：U列InstanceType为空且Service 不包含 NO SERVER 程序停止并抛错
+        self.validate(filtered_LandscapeExportSheet0)
 
         filtered_LandscapeExportSheet0.insert(0, LandscapeExportSheet0[0])
         result = self.collect_result(json_filtered_data, filtered_CustomerServerOverviewSheet0,
@@ -52,8 +56,6 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             "CustomerServerOverviewSheet0": filtered_CustomerServerOverviewSheet0,
             "LandscapeExportSheet0": filtered_LandscapeExportSheet0
         }
-
-        logging.info(json.dumps(data))
 
         self.populate_data(self.get_param('data_key'), data)
 
@@ -71,43 +73,87 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             }, json_filtered_data)
         )
 
-        logging.info(json.dumps(data_from_azure))
-
         return self.build_result(data_from_azure, filtered_CustomerServerOverviewSheet0, filtered_LandscapeExportSheet0)
 
     def build_result(self, data_from_azure, filtered_CustomerServerOverviewSheet0, filtered_LandscapeExportSheet0):
+        # SID, hana-none-hana, servername, az dis, ded disk, details.
         final_result = [
             # excel first row as title row.
-            ["Server Name",
-             "SID",
-             "AZURE_DataDiskSize",
-             "DED_storageSize",
-             "diff(AzureSize-20-DEDSize)",
-             "DED_details",
-             "Azure_details"]
+            [
+                "SID",
+                "TYPE",
+                "DR or NOT",
+                "Server Name(s)",
+                "AZURE_DataDiskSize",
+                "DED_storageSize",
+                "diff(AzureSize-20-DEDSize)",
+                "DED_details",
+                "Azure_details"
+            ]
         ]
-        for azure_server in data_from_azure:
-            ded_details = self.collect_ded_details(azure_server["name"], filtered_CustomerServerOverviewSheet0,
-                                                   filtered_LandscapeExportSheet0)
-            ded_sid = list(set(map(lambda r: r['SID'], ded_details)))
+        # filtered_CustomerServerOverviewSheet0:
+        # ['System ID', 'Server Name', 'System Number', 'TIC Server Comment']
+        # ['VD1', 'hec44v023219', '000000000500239629', 'HIL VD1 FTP  |B1_0304137835-4309806-HSO.000191-16-982_PROCESS_ID:53911958']
+
+        cso_SystemID_2_records = self.group_by(
+            lambda r: r[0]
+                      + ('|HANA' if "DB DB" in r[3] else "|NoneHANA")
+                      + ("|DR" if r[2].startswith("DR_") else "|Normal"),
+            filtered_CustomerServerOverviewSheet0)
+
+        # filtered_LandscapeExportSheet0
+        # ['SID', 'ServerType', 'StartDate', 'Runtime', 'StorageGB', 'Database', 'Service', 'InstanceType', 'DB SID (HANA)', 'SystemNumber']
+        # ['D79', 'MASTER', '2021-09-30', '60.000000', '1049.000000', 'HANA', 'HANA-Virtual-256GiB-AZURE, Linux(M32ls)', 'DB|DB01|', 'D89', '000000000500227006']
+
+        le_SID_2_records = self.group_by(lambda r: r[0]
+                                                   + ('|HANA' if 'DB|DB' in r[7] else "|NoneHANA")
+                                                   + ("|DR" if r[9].startswith("DR_") else "|Normal"),
+                                         filtered_LandscapeExportSheet0)
+
+        for sid_type in sorted(le_SID_2_records.keys()):
+            sid0type1DRorNot2 = sid_type.split(self.SEPARATOR)
+
+            le_records = le_SID_2_records[sid_type]
+            cso_records = cso_SystemID_2_records[sid_type] if sid_type in cso_SystemID_2_records else []
+
+            server_names = list(set(list(map(lambda r: r[1], cso_records))))
+
+            azure_servers = list(filter(lambda r: r['name'] in server_names, data_from_azure))
+            azure_storage_size = sum(list(map(lambda r: float(r['dataDiskTotalGB']), azure_servers)))
+            ded_details = self.collect_ded_details(le_records)
+
             ded_storage_size = self.collect_ded_storage_size(ded_details)
+
             final_result.append([
-                azure_server["name"],  # Server Name
-                ded_sid[0] if len(ded_sid) == 1 else json.dumps(ded_sid),  # SID
-                azure_server["dataDiskTotalGB"],  # AZURE_DataDiskSize
+                sid0type1DRorNot2[0],  # SID
+                sid0type1DRorNot2[1],  # TYPE
+                sid0type1DRorNot2[2],  # DR OR not
+                self.SEPARATOR.join(server_names),  # Server Names
+                azure_storage_size,  # AZURE_DataDiskSize
                 ded_storage_size,  # DED_storageSize
-                self.collect_diff(azure_server["dataDiskTotalGB"], ded_storage_size),  # diff(AzureSize-20-DEDSize)
+                self.collect_diff(azure_storage_size, ded_storage_size),  # diff(AzureSize-20-DEDSize)
                 json.dumps(ded_details),  # DED_details
-                json.dumps(azure_server['azure_datadisk_details'])  # Azure_details
+                json.dumps(azure_servers)  # Azure_details
             ])
+
         return final_result
 
-    def collect_ded_details(self, server_name, filtered_CustomerServerOverviewSheet0, filtered_LandscapeExportSheet0):
-        sids = list(map(
-            lambda i: i[0], list(filter(
-                lambda r: r[1] == server_name, filtered_CustomerServerOverviewSheet0)
-            ))
-        )
+    def group_by(self, fn, given: [] = [], skip_first: bool = True):
+        result: dict[str:[]] = {}
+        for idx, row in enumerate(given):
+            if idx == 0 and skip_first:
+                continue
+
+            key = fn(row)
+            if not key in result:
+                result[key] = []
+
+            result[key].append(row)
+
+        return result
+
+    def collect_ded_details(self, filtered_LandscapeExportSheet0):
+
         # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType
         return list(map(
             lambda i: {
@@ -119,8 +165,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 "Database": i[5],
                 "Service": i[6],
                 "InstanceType": i[7]
-            }, list(filter(
-                lambda r: r[0] in sids, filtered_LandscapeExportSheet0))
+            }, filtered_LandscapeExportSheet0
         ))
 
     def collect_diff(self, azure_datadisk_totalGB, ded_storage_size):
@@ -130,3 +175,16 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         return sum(
             list(map(lambda r: float(r['StorageGB']), ded_details))
         )
+
+    def validate(self, filtered_LandscapeExportSheet0):
+        # #  第一步DED校验逻辑：U列InstanceType为空且Service 不包含 NO SERVER
+        # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID (HANA)|SystemNumber
+        found = list(filter(
+            lambda r: (r[7] is None or len(r[7]) == 0) and (not "NO SERVER" in r[6])
+            , filtered_LandscapeExportSheet0
+        ))
+
+        if len(found) > 0:
+            err_msg = " 和同数据待完善, 原因：InstanceType为空, 且Service 不包含 NO SERVER "
+            logging.error(err_msg)
+            raise ValueError(err_msg)

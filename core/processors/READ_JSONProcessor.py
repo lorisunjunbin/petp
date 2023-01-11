@@ -25,5 +25,4 @@ class READ_JSONProcessor(Processor):
 
         with open(file_path, "rb") as file:
             data = json.load(file) if json_path is None else JSONPath(json_path).parse(json.load(file))
-            logging.info(json.dumps(data))
             self.populate_data(self.get_param('data_key'), data)

@@ -6,6 +6,7 @@ import time
 import cryptocode
 
 from core.task import Task
+from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.SeleniumUtil import SeleniumUtil
 
@@ -56,6 +57,9 @@ class Processor(object):
         return f'''
         ----------------------------------------------------{self.DESC}    ----------------------------------------------------'''
 
+    def get_now_str(self):
+        return DateUtil.get_now_in_str()
+
     def get_ddir(self):
         return os.path.realpath('./download')
 
@@ -73,11 +77,11 @@ class Processor(object):
     def has_param(self, name):
 
         return name in self.input_param and \
-               (
-                   len(self.input_param[name]) > 0
-                   if type(self.input_param[name]) is str
-                   else not self.input_param[name] is None
-               )
+            (
+                len(self.input_param[name]) > 0
+                if type(self.input_param[name]) is str
+                else not self.input_param[name] is None
+            )
 
     def get_all_params(self):
         return self.input_param

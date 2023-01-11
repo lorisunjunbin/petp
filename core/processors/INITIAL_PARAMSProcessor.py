@@ -18,4 +18,4 @@ class INITIAL_PARAMSProcessor(Processor):
     def process(self):
         allParams = self.get_all_params()
         for key in allParams:
-            self.populate_data(key, allParams[key])
+            self.populate_data(key, self.expression2str(allParams[key]))

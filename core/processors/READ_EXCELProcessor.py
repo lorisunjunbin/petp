@@ -4,6 +4,7 @@ from utils.ExcelUtil import ExcelUtil
 
 class READ_EXCELProcessor(Processor):
     TPL: str = '{"file_path":"", "fields":"unset OR Field1|Field2|", "sheet_index":0, "file_path_key":"str on data_chain", "end_at":"10", "skip_first":"yes|no", "data_key":"name on data_chain"}'
+
     DESC: str = f''' 
 
         Load MS Excel file from location, read data into array and save to data_chain. 
