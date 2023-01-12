@@ -4,11 +4,16 @@ list:
 - !!python/object:core.task.Task
   input: '{"path_json": "{self.get_rdir()}/hilti/hiltivm_full.json", "path_CustomerServerOverview":
     "{self.get_rdir()}/hilti/CustomerServerOverview - HILTI.xlsx", "path_LandscapExport":
-    "{self.get_rdir()}/hilti/Landscape Export - HILTI_V2.xlsx"}'
+    "{self.get_rdir()}/hilti/Landscape Export - HILTI_V2.xlsx", "path_json_netapp":
+    "{self.get_rdir()}/hilti/netappvmlist.json"}'
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
   input: '{"data_key": "json_filtered_data", "json_path": "$.data[*].(name,location,properties.availabilitySet.resourceGroup,type,properties.hardwareProfile.vmSize,properties.storageProfile.osDisk.diskSizeGB,properties.storageProfile.dataDisks)",
     "file_path_key": "path_json"}'
+  type: READ_JSON
+- !!python/object:core.task.Task
+  input: '{"data_key": "json_filtered_data_netapp", "json_path": "$[*].(name,usageThreshold)",
+    "file_path_key": "path_json_netapp"}'
   type: READ_JSON
 - !!python/object:core.task.Task
   input: '{"sheet_index": 0, "end_at": "100", "skip_first": "no", "data_key": "CustomerServerOverview_sheet0",
@@ -24,7 +29,7 @@ list:
   input: '{"LandscapeExportSheet0": "LandscapeExport_sheet0", "CustomerServerOverviewSheet0":
     "CustomerServerOverview_sheet0", "data_key": "biz_specific_data", "json_filtered_data":
     "json_filtered_data", "file_path": "{self.get_rdir()}/CustomerServerOverview -
-    HILTI"}'
+    HILTI", "json_filtered_data_netapp": "json_filtered_data_netapp"}'
   type: BIZ_SPECIFIC_DATA_COLLECT
 - !!python/object:core.task.Task
   input: '{"file_path": "{self.get_ddir()}/azure_devops_{self.get_now_str()}.xlsx",

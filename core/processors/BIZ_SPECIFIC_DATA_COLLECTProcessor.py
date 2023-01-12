@@ -6,14 +6,18 @@ from utils.DateUtil import DateUtil
 
 
 class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
-    TPL: str = '{"json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
+    TPL: str = '{"json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
 
     DESC: str = f''' 
    
     MAPPING - customerServerOverview.xlsx  ---过滤掉K列(TIC Server Comment)：以CMS，CGS开头的行，S列(System Number)以DR开头的行之后，按照T列(System ID)分组，按E列(Server Name)执行命令获取azure数据
     
     DED - LandscapeExport.xlsx ---对比的目标文件，按照M列(SID)分组，过滤T列(ServerType)=MASTER，AE列(StartDate)+AG列(Runtime)大于当前时间，X列(StorageGB)相加即为要比较的数值
-
+    
+    1， 数据加载，筛选，校验，
+    2， 异常数据收集
+    3， 磁盘资源 比对结果报告生成
+    
         {TPL}
 
     '''
@@ -22,6 +26,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
     #  第一步DED校验逻辑：U列InstanceType为空且Service 不包含 NO SERVER
     def process(self):
         json_filtered_data = self.get_data(self.get_param('json_filtered_data'))
+        json_filtered_data_netapp = self.get_data(self.get_param('json_filtered_data_netapp'))
 
         # System ID|Server Name|System Number|TIC Server Comment
         CustomerServerOverviewSheet0 = self.get_data(self.get_param('CustomerServerOverviewSheet0'))
@@ -49,7 +54,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         self.validate(filtered_LandscapeExportSheet0)
 
         filtered_LandscapeExportSheet0.insert(0, LandscapeExportSheet0[0])
-        result, exception = self.collect_result_and_exception(json_filtered_data, filtered_CustomerServerOverviewSheet0,
+        result, exception = self.collect_result_and_exception(json_filtered_data_netapp, json_filtered_data,
+                                                              filtered_CustomerServerOverviewSheet0,
                                                               filtered_LandscapeExportSheet0)
         data = {
             "RESULT": result,
@@ -60,7 +66,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         self.populate_data(self.get_param('data_key'), data)
 
-    def collect_result_and_exception(self, json_filtered_data: [{}], filtered_CustomerServerOverviewSheet0,
+    def collect_result_and_exception(self, json_filtered_data_netapp: [{}], json_filtered_data: [{}],
+                                     filtered_CustomerServerOverviewSheet0,
                                      filtered_LandscapeExportSheet0):
         # data from azure, after any changes of json-path, should review here
         data_from_azure = list(
@@ -74,9 +81,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             }, json_filtered_data)
         )
 
-        return self.build_result(data_from_azure, filtered_CustomerServerOverviewSheet0, filtered_LandscapeExportSheet0)
+        return self.build_result(json_filtered_data_netapp, data_from_azure, filtered_CustomerServerOverviewSheet0,
+                                 filtered_LandscapeExportSheet0)
 
-    def build_result(self, data_from_azure, filtered_CustomerServerOverviewSheet0, filtered_LandscapeExportSheet0):
+    def build_result(self, json_filtered_data_netapp, data_from_azure, filtered_CustomerServerOverviewSheet0,
+                     filtered_LandscapeExportSheet0):
         # SID, hana-none-hana, servername, az dis, ded disk, details.
         final_result = [
             # excel first row as title row.
@@ -84,10 +93,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 "SID",
                 "TYPE",
                 "DR or NOT",
-                "Server Name(s)",
+                "NetAppVolumeQuota",
                 "AZURE_DataDiskSize",
                 "DED_storageSize",
-                "diff(AzureSize-20-DEDSize)",
+                "diff(VolumeQuota+AzureSize-20-DEDSize)",
+                "Server Name(s)",
                 # "DED_details",
                 # "Azure_details"
             ]
@@ -97,44 +107,55 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         # ['VD1', 'hec44v023219', '000000000500239629', 'HIL VD1 FTP  |B1_0304137835-4309806-HSO.000191-16-982_PROCESS_ID:53911958']
 
         cso_SystemID_2_records = self.group_by(
-            lambda r: r[0]
-                      + ('|HANA' if "DB DB" in r[3] else "|NoneHANA")
-                      + ("|DR" if r[2].startswith("DR_") else "|Normal"),
+            lambda r: r[0] + ("|DR" if r[2].startswith("DR_") else "|Normal"),
             filtered_CustomerServerOverviewSheet0)
 
         # filtered_LandscapeExportSheet0
         # ['SID', 'ServerType', 'StartDate', 'Runtime', 'StorageGB', 'Database', 'Service', 'InstanceType', 'DB SID (HANA)', 'SystemNumber']
         # ['D79', 'MASTER', '2021-09-30', '60.000000', '1049.000000', 'HANA', 'HANA-Virtual-256GiB-AZURE, Linux(M32ls)', 'DB|DB01|', 'D89', '000000000500227006']
 
-        le_SID_2_records = self.group_by(lambda r: r[0]
-                                                   + ('|HANA' if 'DB' in r[7] else "|NoneHANA")
-                                                   + ("|DR" if r[9].startswith("DR_") else "|Normal"),
-                                         filtered_LandscapeExportSheet0)
+        le_SID_2_records = self.group_by(
+            lambda r: (r[8] + '|HANA|' + r[0] if r[6].startswith("HANA-") else r[0] + "|NoneHANA|-")
+                      + ("|DR" if r[9].startswith("DR_") else "|Normal"),
+            filtered_LandscapeExportSheet0)
 
         final_exception: [[]] = self.collect_exception(le_SID_2_records, cso_SystemID_2_records)
 
+        duplicated_records = self.find_duplicated_records(le_SID_2_records, cso_SystemID_2_records)
+
         for sid_type in sorted(le_SID_2_records.keys()):
-            sid0type1DRorNot2 = sid_type.split(self.SEPARATOR)
+            sid0type1Id2DRorNot3 = sid_type.split(self.SEPARATOR)
+            sid = sid0type1Id2DRorNot3[0]
+            drornot = sid0type1Id2DRorNot3[3]
 
             le_records = le_SID_2_records[sid_type]
-            cso_records = cso_SystemID_2_records[sid_type] if sid_type in cso_SystemID_2_records else []
+            cso_key = self.SEPARATOR.join([sid, drornot])
+            cso_records = cso_SystemID_2_records[cso_key] if cso_key in cso_SystemID_2_records else []
+
+            duplicated_server_names = duplicated_records[sid] if sid in duplicated_records else []
 
             server_names = list(set(list(map(lambda r: r[1], cso_records))))
 
-            azure_servers = list(filter(lambda r: r['name'] in server_names, data_from_azure))
+            filtered_server_names = list(filter(lambda r: not r in duplicated_server_names, server_names))
+
+            azure_servers = list(filter(lambda r: r['name'] in filtered_server_names, data_from_azure))
             azure_storage_size = sum(list(map(lambda r: float(r['dataDiskTotalGB']), azure_servers)))
             ded_details = self.collect_ded_details(le_records)
 
             ded_storage_size = self.collect_ded_storage_size(ded_details)
+            netapp_volume_quota = self.find_quota(sid0type1Id2DRorNot3[0], json_filtered_data_netapp)
 
             final_result.append([
-                sid0type1DRorNot2[0],  # SID
-                sid0type1DRorNot2[1],  # TYPE
-                sid0type1DRorNot2[2],  # DR OR not
-                self.SEPARATOR.join(server_names),  # Server Names
+                sid,  # SID
+                sid0type1Id2DRorNot3[1],  # TYPE
+                drornot,  # DR OR not
+                netapp_volume_quota,  # NetAppVolumnQuta
                 azure_storage_size,  # AZURE_DataDiskSize
                 ded_storage_size,  # DED_storageSize
-                self.collect_diff(azure_storage_size, ded_storage_size),  # diff(AzureSize-20-DEDSize)
+                self.collect_diff(netapp_volume_quota, azure_storage_size, ded_storage_size),
+                # diff(AzureSize-20-DEDSize)
+                self.SEPARATOR.join(server_names),  # Server Names
+
                 # json.dumps(ded_details),  # DED_details
                 # json.dumps(azure_servers)  # Azure_details
             ])
@@ -168,8 +189,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             }, filtered_LandscapeExportSheet0
         ))
 
-    def collect_diff(self, azure_datadisk_totalGB, ded_storage_size):
-        return azure_datadisk_totalGB - 20 - ded_storage_size
+    def collect_diff(self, netapp_volume_quota, azure_datadisk_totalGB, ded_storage_size):
+        return netapp_volume_quota + azure_datadisk_totalGB - 20 - ded_storage_size
 
     def collect_ded_storage_size(self, ded_details):
         return sum(
@@ -196,19 +217,48 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         :return: the entities which are in customer overview, but not in landscape
         """
         exception_entites = {}
-        for sid_type_drornot in sorted(cso_SystemID_2_records.keys()):
-            if not sid_type_drornot in le_SID_2_records:
-                exception_entites[sid_type_drornot] = cso_SystemID_2_records[sid_type_drornot]
+        le_keys = le_SID_2_records.keys()
+        for sid_drornot in sorted(cso_SystemID_2_records.keys()):
+            sid0DRorNot1 = sid_drornot.split(self.SEPARATOR)
+            found = list(filter(lambda k: str(sid0DRorNot1[0]) in k, le_keys))
+            if (len(found)) == 0:
+                exception_entites[sid_drornot] = cso_SystemID_2_records[sid_drornot]
 
-        result = [["SID", "TYPE", "DRorNOT", "Records in CustomerOverview NotIn Landscape"]]
+        result = [["SID", "DRorNOT", "Records in CustomerOverview NotIn Landscape"]]
 
-        for sid_type_drornot in exception_entites.keys():
-            sid0type1DRorNot2 = sid_type_drornot.split(self.SEPARATOR)
+        for sid_drornot in exception_entites.keys():
+            sid0DRorNot1 = sid_drornot.split(self.SEPARATOR)
             result.append([
-                sid0type1DRorNot2[0],
-                sid0type1DRorNot2[1],
-                sid0type1DRorNot2[2],
-                json.dumps(exception_entites[sid_type_drornot])
+                sid0DRorNot1[0],
+                sid0DRorNot1[1],
+                json.dumps(exception_entites[sid_drornot])
             ])
 
+        return result
+
+    def find_quota(self, sid, json_filtered_data_netapp):
+        found = list(filter(lambda r: sid in r['name'], json_filtered_data_netapp))
+        if len(found) > 0:
+            return int(found[0]['usageThreshold']) / 1024 / 1024 / 1024
+        return 0
+
+    def find_duplicated_records(self, le_SID_2_records, cso_SystemID_2_records):
+        result = {}
+        for sid_drornot in cso_SystemID_2_records.keys():
+            cso_sid0drornot1 = sid_drornot.split(self.SEPARATOR)
+
+            cso_sid = cso_sid0drornot1[0]
+
+            for sid_type_rid_drornot in le_SID_2_records.keys():
+                le_sid0type1rid2dronot3 = sid_type_rid_drornot.split(self.SEPARATOR)
+
+                le_sid = le_sid0type1rid2dronot3[0]
+                le_type = le_sid0type1rid2dronot3[1]
+                le_rid = le_sid0type1rid2dronot3[2]
+
+                if cso_sid == le_sid and 'HANA' == le_type:
+                    if not le_rid in result:
+                        result[le_rid] = []
+                        for row in cso_SystemID_2_records[sid_drornot]:
+                            result[le_rid].append(row[1])
         return result
