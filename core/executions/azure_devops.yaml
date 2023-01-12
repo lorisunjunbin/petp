@@ -2,7 +2,7 @@
 execution: azure_devops
 list:
 - !!python/object:core.task.Task
-  input: '{"path_json": "{self.get_rdir()}/hilti/hiltivm.json", "path_CustomerServerOverview":
+  input: '{"path_json": "{self.get_rdir()}/hilti/hiltivm_full.json", "path_CustomerServerOverview":
     "{self.get_rdir()}/hilti/CustomerServerOverview - HILTI.xlsx", "path_LandscapExport":
     "{self.get_rdir()}/hilti/Landscape Export - HILTI_V2.xlsx"}'
   type: INITIAL_PARAMS

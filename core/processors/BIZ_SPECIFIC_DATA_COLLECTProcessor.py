@@ -10,9 +10,9 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
     DESC: str = f''' 
    
-    customerServerOverview.xlsx  ---过滤掉K列(TIC Server Comment)：以CMS，CGS开头的行，S列(System Number)以DR开头的行之后，按照T列(System ID)分组，按E列(Server Name)执行命令获取azure数据
+    MAPPING - customerServerOverview.xlsx  ---过滤掉K列(TIC Server Comment)：以CMS，CGS开头的行，S列(System Number)以DR开头的行之后，按照T列(System ID)分组，按E列(Server Name)执行命令获取azure数据
     
-    LandscapeExport.xlsx ---对比的目标文件，按照M列(SID)分组，过滤T列(ServerType)=MASTER，AE列(StartDate)+AG列(Runtime)大于当前时间，X列(StorageGB)相加即为要比较的数值
+    DED - LandscapeExport.xlsx ---对比的目标文件，按照M列(SID)分组，过滤T列(ServerType)=MASTER，AE列(StartDate)+AG列(Runtime)大于当前时间，X列(StorageGB)相加即为要比较的数值
 
         {TPL}
 
@@ -31,7 +31,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         filtered_CustomerServerOverviewSheet0 = list(
             filter(
-                lambda row: not row[3].startswith('CMD') and not row[3].startswith('CGS'),
+                lambda row: not row[3].startswith('CMS') and not row[3].startswith('CGS'),
                 CustomerServerOverviewSheet0
             )
         )
@@ -49,18 +49,19 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         self.validate(filtered_LandscapeExportSheet0)
 
         filtered_LandscapeExportSheet0.insert(0, LandscapeExportSheet0[0])
-        result = self.collect_result(json_filtered_data, filtered_CustomerServerOverviewSheet0,
-                                     filtered_LandscapeExportSheet0)
+        result, exception = self.collect_result_and_exception(json_filtered_data, filtered_CustomerServerOverviewSheet0,
+                                                              filtered_LandscapeExportSheet0)
         data = {
-            "result": result,
-            "CustomerServerOverviewSheet0": filtered_CustomerServerOverviewSheet0,
-            "LandscapeExportSheet0": filtered_LandscapeExportSheet0
+            "RESULT": result,
+            "Exception": exception,
+            "CustomerServerOverview": filtered_CustomerServerOverviewSheet0,
+            "LandscapeExport": filtered_LandscapeExportSheet0,
         }
 
         self.populate_data(self.get_param('data_key'), data)
 
-    def collect_result(self, json_filtered_data: [{}], filtered_CustomerServerOverviewSheet0,
-                       filtered_LandscapeExportSheet0):
+    def collect_result_and_exception(self, json_filtered_data: [{}], filtered_CustomerServerOverviewSheet0,
+                                     filtered_LandscapeExportSheet0):
         # data from azure, after any changes of json-path, should review here
         data_from_azure = list(
             map(lambda record: {
@@ -87,8 +88,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 "AZURE_DataDiskSize",
                 "DED_storageSize",
                 "diff(AzureSize-20-DEDSize)",
-                "DED_details",
-                "Azure_details"
+                # "DED_details",
+                # "Azure_details"
             ]
         ]
         # filtered_CustomerServerOverviewSheet0:
@@ -106,9 +107,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         # ['D79', 'MASTER', '2021-09-30', '60.000000', '1049.000000', 'HANA', 'HANA-Virtual-256GiB-AZURE, Linux(M32ls)', 'DB|DB01|', 'D89', '000000000500227006']
 
         le_SID_2_records = self.group_by(lambda r: r[0]
-                                                   + ('|HANA' if 'DB|DB' in r[7] else "|NoneHANA")
+                                                   + ('|HANA' if 'DB' in r[7] else "|NoneHANA")
                                                    + ("|DR" if r[9].startswith("DR_") else "|Normal"),
                                          filtered_LandscapeExportSheet0)
+
+        final_exception: [[]] = self.collect_exception(le_SID_2_records, cso_SystemID_2_records)
 
         for sid_type in sorted(le_SID_2_records.keys()):
             sid0type1DRorNot2 = sid_type.split(self.SEPARATOR)
@@ -132,24 +135,21 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 azure_storage_size,  # AZURE_DataDiskSize
                 ded_storage_size,  # DED_storageSize
                 self.collect_diff(azure_storage_size, ded_storage_size),  # diff(AzureSize-20-DEDSize)
-                json.dumps(ded_details),  # DED_details
-                json.dumps(azure_servers)  # Azure_details
+                # json.dumps(ded_details),  # DED_details
+                # json.dumps(azure_servers)  # Azure_details
             ])
 
-        return final_result
+        return final_result, final_exception
 
     def group_by(self, fn, given: [] = [], skip_first: bool = True):
         result: dict[str:[]] = {}
         for idx, row in enumerate(given):
             if idx == 0 and skip_first:
                 continue
-
             key = fn(row)
             if not key in result:
                 result[key] = []
-
             result[key].append(row)
-
         return result
 
     def collect_ded_details(self, filtered_LandscapeExportSheet0):
@@ -188,3 +188,27 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             err_msg = " 和同数据待完善, 原因：InstanceType为空, 且Service 不包含 NO SERVER "
             logging.error(err_msg)
             raise ValueError(err_msg)
+
+    def collect_exception(self, le_SID_2_records, cso_SystemID_2_records):
+        """
+        :param le_SID_2_records:
+        :param cso_SystemID_2_records:
+        :return: the entities which are in customer overview, but not in landscape
+        """
+        exception_entites = {}
+        for sid_type_drornot in sorted(cso_SystemID_2_records.keys()):
+            if not sid_type_drornot in le_SID_2_records:
+                exception_entites[sid_type_drornot] = cso_SystemID_2_records[sid_type_drornot]
+
+        result = [["SID", "TYPE", "DRorNOT", "Records in CustomerOverview NotIn Landscape"]]
+
+        for sid_type_drornot in exception_entites.keys():
+            sid0type1DRorNot2 = sid_type_drornot.split(self.SEPARATOR)
+            result.append([
+                sid0type1DRorNot2[0],
+                sid0type1DRorNot2[1],
+                sid0type1DRorNot2[2],
+                json.dumps(exception_entites[sid_type_drornot])
+            ])
+
+        return result
