@@ -4,7 +4,6 @@ import logging
 from core.processor import Processor
 from utils.DateUtil import DateUtil
 
-
 class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
     TPL: str = '{"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr","json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
 
@@ -111,7 +110,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         # SID, hana-none-hana, servername, az dis, ded disk, details.
         # excel first row as title row.
         final_result = [["SID", "TYPE", "DR or NOT", "NetAppVolumeQuota", "AZURE_DataDiskSize", "DED_storageSize",
-                         "diff(VolumeQuota+AzureSize-20-DEDSize)", "Server Name(s)",  # "DED_details", "Azure_details"
+                         "diff(VolumeQuota+AzureSize-20-DEDSize)", "Server Name(s)", "Flavor Matched","Flavor Found","Flavor Azure","Flavor DED" # "DED_details", "Azure_details"
                          ]]
 
         # group by
@@ -165,9 +164,13 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
             azure_servers = list(filter(lambda r: r['name'] in filtered_server_names, data_from_azure))
             azure_storage_size = sum(list(map(lambda r: float(r['dataDiskTotalGB']), azure_servers)))
+            azure_flavor = list(map(lambda r: r['vmSize'][9:], azure_servers)) # remove the leading: Standard_
 
             ded_details = self.collect_ded_details(le_SID_2_records[sid_type])
             ded_storage_size = self.collect_ded_storage_size(ded_details)
+            ded_flavor = list(map(lambda r:r["Service"], ded_details))
+
+            flavor_matched, flavor_found_matched = self.compare_flaver(azure_flavor, ded_flavor)
 
             netapp_volume_quota = self.calc_quota(sid0type1Id2DRorNot3[0],
                                                   json_filtered_data_netapp_dr if "DR" == drornot else json_filtered_data_netapp)
@@ -175,6 +178,10 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             final_result.append([sid, type, drornot, netapp_volume_quota, azure_storage_size, ded_storage_size,
                                  self.collect_diff(netapp_volume_quota, azure_storage_size, ded_storage_size),
                                  self.SEPARATOR.join(filtered_server_names),
+                                 flavor_matched,
+                                 json.dumps(flavor_found_matched),
+                                 json.dumps(azure_flavor),
+                                 json.dumps(ded_flavor),
                                  # json.dumps(ded_details),  # DED_details
                                  # json.dumps(azure_servers)  # Azure_details
                                  ])
@@ -326,3 +333,15 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 result.append([sid, drornot, "NetAppVolumeJson", json.dumps(item)])
 
         return result
+
+    def compare_flaver(self, azure_flavor, ded_flavor):
+        found_matched = []
+        for azure_idx, azure_one in enumerate(azure_flavor):
+            for ded_idx, ded_one in enumerate(ded_flavor):
+                if azure_one in ded_one and not ded_idx in found_matched:
+                    found_matched.append( ded_idx)
+
+        matched = True if len(azure_flavor) == len(found_matched) \
+                          and len(azure_flavor) == len(ded_flavor) else False
+
+        return matched, found_matched
