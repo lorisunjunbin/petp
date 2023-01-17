@@ -13,14 +13,16 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class Processor(object):
     SEPARATOR: str = '|'
-    ITEMSEPARATOR: str = '->'
+
+    ITEM_SEPARATOR: str = '->'
+
     SALT: str = 'petpisawesome'
 
     TPL: str
     DESC: str = f''' 
         TODO: Explain the usage of current  processor 
         - overview
-        - parameter explaination for  one by one
+        - parameter explanation for  one by one
         - give example
     '''
 
@@ -28,7 +30,7 @@ class Processor(object):
     input_param: dict
 
     def process(self):
-        # implemented in sub class
+        # implemented in subclass
         pass
 
     def do_process(self):
@@ -179,7 +181,7 @@ class Processor(object):
     def str2dict(self, str) -> dict:
         result = {}
         for kv in str.split(self.SEPARATOR):
-            key0value1 = kv.split(self.ITEMSEPARATOR)
+            key0value1 = kv.split(self.ITEM_SEPARATOR)
             result[key0value1[0]] = key0value1[1]
         return result
 

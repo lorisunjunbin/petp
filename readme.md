@@ -1,6 +1,7 @@
 # ![image](./image/petp_small.png) PET-P
 
-This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by python.
+This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by python, friendly for
+DevOps, and automation tests.
 
 **PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, pipeline may combine multiple
 executions,
@@ -50,9 +51,12 @@ Windows
     > pip install selenium
     > pip install wxpython
     > pip install ...other listed in requirements.txt, install without cache:  --no-cache-dir 
-    
+
     3, Run: 
     > python PETP.py
+
+    4, Still not running? most of the issue is missing dependiceis xxx, pls install xxx accordingly.
+    > pip install xxx
 
 ## TO-DO:
 
@@ -64,7 +68,7 @@ Windows
 
 2022-11: Samplify & Optimize entire [UI](./mvp/view).
 
-2022-11: clean & restructure code UI event binding.  
+2022-11: clean & restructure code UI event binding.
 
 2022-10: Enhancement [GUI](./mvp) none-blocking execution
 
@@ -101,11 +105,13 @@ Windows
 
 - Install Wxpython snapshot
 
-  > Downloan from https://wxpython.org/Phoenix/snapshot-builds/
+> Downloan from https://wxpython.org/Phoenix/snapshot-builds/
 
-  > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-win_amd64.whl
-  > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-macosx_10_10_universal2.whl
-  > pip install --force-reinstall wxPython-4.2.1a1.dev5545+a3b6cfec-cp310-cp310-macosx_10_10_universal2.whl 
+> pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-win_amd64.whl
+
+> pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-macosx_10_10_universal2.whl
+
+> pip install --force-reinstall wxPython-4.2.1a1.dev5545+a3b6cfec-cp310-cp310-macosx_10_10_universal2.whl
 
 - Link python 3
 
