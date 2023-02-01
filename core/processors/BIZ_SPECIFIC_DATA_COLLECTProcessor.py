@@ -4,6 +4,7 @@ import logging
 from core.processor import Processor
 from utils.DateUtil import DateUtil
 
+
 class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
     TPL: str = '{"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr","json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
 
@@ -110,7 +111,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         # SID, hana-none-hana, servername, az dis, ded disk, details.
         # excel first row as title row.
         final_result = [["SID", "TYPE", "DR or NOT", "NetAppVolumeQuota", "AZURE_DataDiskSize", "DED_storageSize",
-                         "diff(VolumeQuota+AzureSize-20-DEDSize)", "Server Name(s)", "Flavor Matched","Flavor Found","Flavor Azure","Flavor DED" # "DED_details", "Azure_details"
+                         "diff(VolumeQuota+AzureSize-20-DEDSize)", "Server Name(s)", "Flavor Matched", "Flavor Found",
+                         "Flavor Azure", "Flavor DED"  # "DED_details", "Azure_details"
                          ]]
 
         # group by
@@ -138,6 +140,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         # ['SID', 'ServerType', 'StartDate', 'Runtime', 'StorageGB', 'Database', 'Service', 'InstanceType', 'DB SID (HANA)', 'SystemNumber']
         # ['D79', 'MASTER', '2021-09-30', '60.000000', '1049.000000', 'HANA', 'HANA-Virtual-256GiB-AZURE, Linux(M32ls)', 'DB|DB01|', 'D89', '000000000500227006']
+        #  {"D89|HANA|D79|DR" : [{},{}] }
+        #  {"D79|NoneHANA|-|DR" : [{},{}]}
         le_SID_2_records: dict[str:[]] = self.group_by(
             lambda r: (r[8] + '|HANA|' + r[0] if r[6].startswith("HANA-") else r[0] + "|NoneHANA|-")
                       + ("|DR" if r[9].startswith("DR_") else "|Normal"),
@@ -164,11 +168,16 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
             azure_servers = list(filter(lambda r: r['name'] in filtered_server_names, data_from_azure))
             azure_storage_size = sum(list(map(lambda r: float(r['dataDiskTotalGB']), azure_servers)))
-            azure_flavor = list(map(lambda r: r['vmSize'][9:], azure_servers)) # remove the leading: Standard_
+            azure_flavor = list(map(lambda r: r['vmSize'][9:], azure_servers))  # remove the leading: Standard_
 
             ded_details = self.collect_ded_details(le_SID_2_records[sid_type])
             ded_storage_size = self.collect_ded_storage_size(ded_details)
-            ded_flavor = list(map(lambda r:r["Service"], ded_details))
+            ded_flavor = list(map(
+                lambda r: r["Service"], list(filter(
+                    lambda r: "NO SERVER" not in r["Service"],
+                    ded_details
+                ))
+            ))
 
             flavor_matched, flavor_found_matched = self.compare_flaver(azure_flavor, ded_flavor)
 
@@ -303,7 +312,9 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 if cso_sid == le_sid and 'HANA' == le_type:
                     if not le_rid in result:
                         result[le_rid] = []
-                        for row in cso_SystemID_2_records[sid_drornot]:
+                        
+                    for row in cso_SystemID_2_records[sid_drornot]:
+                        if not row[1] in result[le_rid]:
                             result[le_rid].append(row[1])
         return result
 
@@ -339,9 +350,9 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         for azure_idx, azure_one in enumerate(azure_flavor):
             for ded_idx, ded_one in enumerate(ded_flavor):
                 if azure_one in ded_one and not ded_idx in found_matched:
-                    found_matched.append( ded_idx)
-
+                    found_matched.append(ded_idx)
+        #                     如果 从 Azure中 收集的 Flavor 在 ded Flavor中都找到
         matched = True if len(azure_flavor) == len(found_matched) \
-                          and len(azure_flavor) == len(ded_flavor) else False
+                          and len(azure_flavor) == len(ded_flavor) else False  # 并且 azure flavor的个数 和 ded flavor 个数相同
 
         return matched, found_matched
