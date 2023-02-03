@@ -55,11 +55,30 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                                                               filtered_LandscapeExportSheet0)
 
         self.populate_data(self.get_param('data_key'), {
+            "OVERVIEW": self.collect_overview(result),
             "RESULT": result,
             "Exception": [*exception, *netapp_exceptions],
             "CustomerServerOverview": filtered_CustomerServerOverviewSheet0,
             "LandscapeExport": filtered_LandscapeExportSheet0,
         })
+
+    def collect_overview(self, result):
+        number = 0  # diff 个数
+        sum = 0  # diff 总和
+        flaver_sum = 0  # flaver false 个数
+        for item in result:
+            if str(type(item[6])) != "<class 'str'>":
+                if int(item[6]) < 0:
+                    number += 1
+                    sum += item[6]
+                if item[8] == False:
+                    flaver_sum += 1
+
+        return [
+            ["SystemRequireOptimization", number],
+            ["VMFlaverNotMatchDED", flaver_sum],
+            ["StorageCanBeSaved(GB)", abs(sum)]
+        ]
 
     def filter_LandscapeExport(self, LandscapeExportSheet0):
         return list(
@@ -312,7 +331,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 if cso_sid == le_sid and 'HANA' == le_type:
                     if not le_rid in result:
                         result[le_rid] = []
-                        
+
                     for row in cso_SystemID_2_records[sid_drornot]:
                         if not row[1] in result[le_rid]:
                             result[le_rid].append(row[1])
