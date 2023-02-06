@@ -27,7 +27,7 @@ list:
 - !!python/object:core.task.Task
   input: '{"sheet_index": 0, "end_at": "100", "skip_first": "no", "data_key": "LandscapeExport_sheet0",
     "fields": "SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB
-    SID (HANA)|SystemNumber", "file_path_key": "path_LandscapExport"}'
+    SID (HANA)|SystemNumber|Active|DeliveryStatus", "file_path_key": "path_LandscapExport"}'
   type: READ_EXCEL
 - !!python/object:core.task.Task
   input: '{"LandscapeExportSheet0": "LandscapeExport_sheet0", "CustomerServerOverviewSheet0":

@@ -81,11 +81,15 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         ]
 
     def filter_LandscapeExport(self, LandscapeExportSheet0):
+        # Landscape Export xlsx里过滤掉Active =N 的数据 及DeliveryStatus=Decommissioned的数据 - Feb 6
         return list(
             filter(
-                lambda row: (row[1] == 'MASTER' or row[1] == 'STANDBY') and DateUtil.is_after_now(
-                    DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3]))
-                ),
+                lambda row: (not row[11] == 'Decommissioned')
+                            and (not row[10] == 'N')
+                            and (row[1] == 'MASTER' or row[1] == 'STANDBY')
+                            and DateUtil.is_after_now(
+                    DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3]))),
+                
                 LandscapeExportSheet0
             )
         )
