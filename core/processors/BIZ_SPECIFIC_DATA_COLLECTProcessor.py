@@ -9,9 +9,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
     TPL: str = '{"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr","json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
 
     DESC: str = f''' 
-       
-    MAPPING - customerServerOverview.xlsx  ---过滤掉K列(TIC Server Comment)：以CMS，CGS开头的行，S列(System Number)以DR开头的行之后，按照T列(System ID)分组，按E列(Server Name)执行命令获取azure数据
-    DED - LandscapeExport.xlsx ---对比的目标文件，按照M列(SID)分组，过滤T列(ServerType)=MASTER，AE列(StartDate)+AG列(Runtime)大于当前时间，X列(StorageGB)相加即为要比较的数值
+        
+        非通用处理器，特殊业务   
     
         {TPL}
 
@@ -28,10 +27,17 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         CustomerServerOverviewSheet0 = self.get_data(self.get_param('CustomerServerOverviewSheet0'))
         # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID (HANA)|SystemNumber
         LandscapeExportSheet0 = self.get_data(self.get_param('LandscapeExportSheet0'))
+        print(CustomerServerOverviewSheet0)
 
         # apply filter logics
         filtered_CustomerServerOverviewSheet0 = self.filter_CustomerServerOverview(CustomerServerOverviewSheet0)
         filtered_LandscapeExportSheet0 = self.filter_LandscapeExport(LandscapeExportSheet0)
+
+        # filter inactive data
+        Inactive_Data_sheet0 = LandscapeExportSheet0[0]
+        Inactive_Data_sheet0.append("comment")
+        inactive_Data = self.filter_InactiveData(LandscapeExportSheet0, CustomerServerOverviewSheet0)
+        inactive_Data.insert(0, Inactive_Data_sheet0)
 
         # 截取 name 后三位 作为 SID 到 Landscape 找，如果找不到， 则记录异常
         netapp_exceptions_normal = self.find_netapp_exception(json_filtered_data_netapp, "Normal",
@@ -42,8 +48,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         netapp_exceptions = [*netapp_exceptions_normal, *netapp_exceptions_dr]
 
-        # do validate
-        self.validate(filtered_LandscapeExportSheet0)
+        errors = self.validate(filtered_LandscapeExportSheet0, filtered_CustomerServerOverviewSheet0)
+
+        if (len(errors) > 0):
+            errors.insert(0, ['SID', 'ERROR_TYPE'])
+            logging.error("Validate failure, refer to generated excel for more details.")
 
         # add titles as first row
         filtered_LandscapeExportSheet0.insert(0, LandscapeExportSheet0[0])
@@ -56,7 +65,9 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         self.populate_data(self.get_param('data_key'), {
             "OVERVIEW": self.collect_overview(result),
+            "ERROR": errors,
             "RESULT": result,
+            "InactiveData": inactive_Data,
             "Exception": [*exception, *netapp_exceptions],
             "CustomerServerOverview": filtered_CustomerServerOverviewSheet0,
             "LandscapeExport": filtered_LandscapeExportSheet0,
@@ -66,12 +77,13 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         number = 0  # diff 个数
         sum = 0  # diff 总和
         flaver_sum = 0  # flaver false 个数
+
         for item in result:
-            if str(type(item[6])) != "<class 'str'>":
-                if int(item[6]) < 0:
+            if str(type(item[7])) != "<class 'str'>":
+                if int(item[7]) > 0:
                     number += 1
-                    sum += item[6]
-                if item[8] == False:
+                sum += item[7]
+                if item[9] == False:
                     flaver_sum += 1
 
         return [
@@ -84,15 +96,38 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         # Landscape Export xlsx里过滤掉Active =N 的数据 及DeliveryStatus=Decommissioned的数据 - Feb 6
         return list(
             filter(
-                lambda row: (not row[11] == 'Decommissioned')
+                lambda row: (len(row[7]) > 0)  # 过滤掉instance Type 是 空的
+                            and (not row[11] == 'Decommissioned')
                             and (not row[10] == 'N')
                             and (row[1] == 'MASTER' or row[1] == 'STANDBY')
                             and DateUtil.is_after_now(
                     DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3]))),
-                
+
                 LandscapeExportSheet0
             )
         )
+
+    def filter_InactiveData(self, LandscapeExportSheet0, CustomerServerOverviewSheet0):
+        # 输出Active=N的数据 row[10]为N Feb 9
+        # 添加comment:如果Active=N, 但是在customerserveroverview里能找到 2.16
+        InactiveData = list(
+            filter(
+                lambda row: (not row[11] == 'Decommission')
+                            and (row[10] == 'N')
+                            and (row[1] == 'MASTER' or row[1] == 'STANDBY')
+                            and (DateUtil.is_after_now(
+                    DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3])))), LandscapeExportSheet0
+            )
+        )
+        Comment = ""
+        for item in InactiveData:
+            for tempcid in CustomerServerOverviewSheet0:
+                if item[0] in tempcid:
+                    comment = "Active =N But SID exists in customerserveroverview"
+                    item.append(comment)
+                    break
+
+        return InactiveData
 
     def filter_CustomerServerOverview(self, CustomerServerOverviewSheet0):
         return list(
@@ -114,8 +149,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 "name": record['name'],
                 "vmSize": record['properties.hardwareProfile.vmSize'],
                 "osDiskTotalGB": record['properties.storageProfile.osDisk.diskSizeGB'],
-                "dataDiskTotalGB": sum(
-                    list(map(lambda r: r['diskSizeGB'], record['properties.storageProfile.dataDisks']))),
+                "dataDiskTotalGB": self.calc_datadisk_size_total(record),
                 "azure_datadisk_details": record['properties.storageProfile.dataDisks']
             }, json_filtered_data)
         )
@@ -125,6 +159,10 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                                                        filtered_CustomerServerOverviewSheet0,
                                                        filtered_LandscapeExportSheet0)
 
+    def calc_datadisk_size_total(self, record):
+        return sum(list(
+            map(lambda r: r['diskSizeGB'] if 'diskSizeGB' in r else 0, record['properties.storageProfile.dataDisks'])))
+
     def build_result_and_collect_exception(self, json_filtered_data_netapp,
                                            json_filtered_data_netapp_dr,
                                            data_from_azure,
@@ -133,10 +171,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         # SID, hana-none-hana, servername, az dis, ded disk, details.
         # excel first row as title row.
-        final_result = [["SID", "TYPE", "DR or NOT", "NetAppVolumeQuota", "AZURE_DataDiskSize", "DED_storageSize",
-                         "diff(VolumeQuota+AzureSize-20-DEDSize)", "Server Name(s)", "Flavor Matched", "Flavor Found",
-                         "Flavor Azure", "Flavor DED"  # "DED_details", "Azure_details"
-                         ]]
+        final_result = [
+            ["SID", "TYPE", "DB SID(HANA)", "DR or NOT", "NetAppVolumeQuota", "AZURE_DataDiskSize", "DED_storageSize",
+             "diff(VolumeQuota+AzureSize-20-DEDSize)", "Server Name(s)", "Flavor Matched", "Flavor Found",
+             "Flavor Azure", "Flavor DED", "NoMatched Reason",  # "DED_details", "Azure_details"
+             ]]
 
         # group by
         cso_SystemID_2_records, le_SID_2_records = self.prepare_groupby_data(filtered_CustomerServerOverviewSheet0,
@@ -170,6 +209,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                       + ("|DR" if r[9].startswith("DR_") else "|Normal"),
             filtered_LandscapeExportSheet0
         )
+
         return cso_SystemID_2_records, le_SID_2_records
 
     def collect_each_row_of_result(self, cso_SystemID_2_records, data_from_azure, final_result,
@@ -201,22 +241,26 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                     ded_details
                 ))
             ))
+            ded_dbsid = ded_details[0].get("DB SID(HANA)")
 
-            flavor_matched, flavor_found_matched = self.compare_flaver(azure_flavor, ded_flavor)
+            flavor_matched, flavor_found_matched, flaver_nomatched_reason = self.compare_flaver(azure_flavor,
+                                                                                                ded_flavor)
 
             netapp_volume_quota = self.calc_quota(sid0type1Id2DRorNot3[0],
                                                   json_filtered_data_netapp_dr if "DR" == drornot else json_filtered_data_netapp)
 
-            final_result.append([sid, type, drornot, netapp_volume_quota, azure_storage_size, ded_storage_size,
-                                 self.collect_diff(netapp_volume_quota, azure_storage_size, ded_storage_size),
-                                 self.SEPARATOR.join(filtered_server_names),
-                                 flavor_matched,
-                                 json.dumps(flavor_found_matched),
-                                 json.dumps(azure_flavor),
-                                 json.dumps(ded_flavor),
-                                 # json.dumps(ded_details),  # DED_details
-                                 # json.dumps(azure_servers)  # Azure_details
-                                 ])
+            final_result.append(
+                [sid, type, ded_dbsid, drornot, netapp_volume_quota, azure_storage_size, ded_storage_size,
+                 self.collect_diff(netapp_volume_quota, azure_storage_size, ded_storage_size),
+                 self.SEPARATOR.join(filtered_server_names),
+                 flavor_matched,
+                 json.dumps(flavor_found_matched),
+                 json.dumps(azure_flavor),
+                 json.dumps(ded_flavor),
+                 json.dumps(flaver_nomatched_reason),
+                 # json.dumps(ded_details),  # DED_details
+                 # json.dumps(azure_servers)  # Azure_details
+                 ])
 
         return final_result
 
@@ -242,9 +286,16 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             result[key].append(row)
         return result
 
-    def collect_ded_details(self, filtered_LandscapeExportSheet0):
+    def value_2_count(self, given: dict = {}):
+        result = {}
+        for key in sorted(given.keys()):
+            result[key] = len(given[key])
 
-        # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType
+        return result
+
+    def collect_ded_details(self, filtered_LandscapeExportSheet0):
+        # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID(HANA)
+        # 2.16添加DB SID 列
         return list(map(
             lambda i: {
                 "SID": i[0],
@@ -254,7 +305,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 "StorageGB": i[4],
                 "Database": i[5],
                 "Service": i[6],
-                "InstanceType": i[7]
+                "InstanceType": i[7],
+                "DB SID(HANA)": i[8]
             }, filtered_LandscapeExportSheet0
         ))
 
@@ -266,21 +318,42 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             list(map(lambda r: float(r['StorageGB']), ded_details))
         )
 
-    def validate(self, filtered_LandscapeExportSheet0):
+    def validate(self, filtered_LandscapeExportSheet0, filtered_CustomerServerOverviewSheet0):
         """
-        DED校验逻辑：U列InstanceType为空且Service 不包含 NO SERVER
+        当DED 和 CustomerOverview 中 按照 sid group by count 不相同时报错；
         """
+        sid_2_count_ded = self.value_2_count(
+            self.group_by(lambda r: r[0], filtered_LandscapeExportSheet0)
+        )
 
-        # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID (HANA)|SystemNumber
-        found = list(filter(
-            lambda r: (r[7] is None or len(r[7]) == 0) and (not "NO SERVER" in r[6])
-            , filtered_LandscapeExportSheet0
-        ))
+        sid_2_count_cso = self.value_2_count(
+            self.group_by(lambda r: r[0], filtered_CustomerServerOverviewSheet0)
+        )
 
-        if len(found) > 0:
-            err_msg = " 和同数据待完善, 原因：InstanceType为空, 且Service 不包含 NO SERVER "
-            logging.error(err_msg)
-            raise ValueError(err_msg)
+        found = []
+        # customer overview 中有的 sid，需要在ded中存在， 并且个数相同
+        for cso_sid in sid_2_count_cso.keys():
+            if cso_sid in sid_2_count_ded.keys():
+
+                # Customer overview 中的 sid 对应的 记录数 跟 ded中对应的 记录数不同
+                if not sid_2_count_ded[cso_sid] == sid_2_count_cso[cso_sid]:
+                    count_cso = sid_2_count_cso[cso_sid]
+                    count_ded = sid_2_count_ded[cso_sid]
+                    found.append([
+                        cso_sid,
+                        'CustomerOverviewHasMore'
+                        if count_cso > count_ded else
+                        'LandscapeHasMore',
+                        count_cso,
+                        count_ded
+                    ])
+            else:
+                found.append([cso_sid, 'InCustomerOverviewNotInLandscape'])
+
+        if '' in sid_2_count_ded.keys():
+            found.append(['', 'LandscapHasEmptySID', sid_2_count_ded['']])
+
+        return found
 
     def collect_exception(self, le_SID_2_records, cso_SystemID_2_records):
         """
@@ -349,6 +422,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         :return: list of SID, DRorNOT, in JSON but not in Landscape
         """
+        # 2.10 修改usageThreshold单位fromBtoGB
         result = []
         for item in json_data_netapp:
             name = item['name']
@@ -364,18 +438,33 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                 unique_name = name
                 item["name"] = name.split('/')[-1]
                 item["volume_unique_name"] = unique_name
+                threshold = item['usageThreshold']
+                usageThreshold = threshold / 1024 / 1024 / 1024
+                item['usageThreshold'] = usageThreshold
                 result.append([sid, drornot, "NetAppVolumeJson", json.dumps(item)])
 
         return result
 
+    # 判断flavor 是否match
+    # 2023.2.9 添加parameterNonMatched_reason，展示flavor 不匹配的原因
     def compare_flaver(self, azure_flavor, ded_flavor):
         found_matched = []
+        NonMatched_reason = ""
         for azure_idx, azure_one in enumerate(azure_flavor):
             for ded_idx, ded_one in enumerate(ded_flavor):
                 if azure_one in ded_one and not ded_idx in found_matched:
                     found_matched.append(ded_idx)
+
         #                     如果 从 Azure中 收集的 Flavor 在 ded Flavor中都找到
         matched = True if len(azure_flavor) == len(found_matched) \
                           and len(azure_flavor) == len(ded_flavor) else False  # 并且 azure flavor的个数 和 ded flavor 个数相同
 
-        return matched, found_matched
+        # 如果个数一直说明value不一致，否则值不同
+        if len(azure_flavor) == len(ded_flavor) and matched == False:
+            NonMatched_reason = "Value not matched"
+        elif matched == False:
+            NonMatched_reason = "Number not matched"
+        else:
+            NonMatched_reason = ""
+
+        return matched, found_matched, NonMatched_reason
