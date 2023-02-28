@@ -6,19 +6,21 @@ from utils.DateUtil import DateUtil
 
 
 class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
-    TPL: str = '{"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr","json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data":"json_filtered_data","LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
+    TPL: str = '{"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr","json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data_vm":"json_filtered_data_vm", "json_filtered_data_vm_dr":"json_filtered_data_vm_dr", "LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
 
     DESC: str = f''' 
-        
+
         非通用处理器，特殊业务   
-    
+
         {TPL}
 
     '''
 
     def process(self):
-
-        json_filtered_data = self.get_data(self.get_param('json_filtered_data'))
+        # 将vmdata 中normal和dr分开 2.23
+        json_filtered_data_vm = self.get_data(self.get_param('json_filtered_data_vm'))
+        json_filtered_data_vm_dr = self.get_data(self.get_param('json_filtered_data_vm_dr'))
+        json_filtered_data = json_filtered_data_vm + json_filtered_data_vm_dr
 
         json_filtered_data_netapp = self.get_data(self.get_param('json_filtered_data_netapp'))
         json_filtered_data_netapp_dr = self.get_data(self.get_param('json_filtered_data_netapp_dr'))
@@ -27,11 +29,10 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         CustomerServerOverviewSheet0 = self.get_data(self.get_param('CustomerServerOverviewSheet0'))
         # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID (HANA)|SystemNumber
         LandscapeExportSheet0 = self.get_data(self.get_param('LandscapeExportSheet0'))
-        print(CustomerServerOverviewSheet0)
 
         # apply filter logics
         filtered_CustomerServerOverviewSheet0 = self.filter_CustomerServerOverview(CustomerServerOverviewSheet0)
-        filtered_LandscapeExportSheet0 = self.filter_LandscapeExport(LandscapeExportSheet0)
+        reserved_landscape, filtered_out_landscape = self.collect_LandscapeExport(LandscapeExportSheet0)
 
         # filter inactive data
         Inactive_Data_sheet0 = LandscapeExportSheet0[0]
@@ -41,27 +42,27 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         # 截取 name 后三位 作为 SID 到 Landscape 找，如果找不到， 则记录异常
         netapp_exceptions_normal = self.find_netapp_exception(json_filtered_data_netapp, "Normal",
-                                                              filtered_LandscapeExportSheet0)
+                                                              reserved_landscape)
 
         netapp_exceptions_dr = self.find_netapp_exception(json_filtered_data_netapp_dr, "DR",
-                                                          filtered_LandscapeExportSheet0)
+                                                          reserved_landscape)
 
         netapp_exceptions = [*netapp_exceptions_normal, *netapp_exceptions_dr]
 
-        errors = self.validate(filtered_LandscapeExportSheet0, filtered_CustomerServerOverviewSheet0)
+        errors = self.validate(reserved_landscape, filtered_CustomerServerOverviewSheet0)
 
         if (len(errors) > 0):
             errors.insert(0, ['SID', 'ERROR_TYPE'])
             logging.error("Validate failure, refer to generated excel for more details.")
 
         # add titles as first row
-        filtered_LandscapeExportSheet0.insert(0, LandscapeExportSheet0[0])
+        reserved_landscape.insert(0, LandscapeExportSheet0[0])
 
         # collect result and exceptio
         result, exception = self.collect_result_and_exception(json_filtered_data_netapp, json_filtered_data_netapp_dr,
                                                               json_filtered_data,
                                                               filtered_CustomerServerOverviewSheet0,
-                                                              filtered_LandscapeExportSheet0)
+                                                              reserved_landscape)
 
         self.populate_data(self.get_param('data_key'), {
             "OVERVIEW": self.collect_overview(result),
@@ -70,7 +71,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             "InactiveData": inactive_Data,
             "Exception": [*exception, *netapp_exceptions],
             "CustomerServerOverview": filtered_CustomerServerOverviewSheet0,
-            "LandscapeExport": filtered_LandscapeExportSheet0,
+            "LandscapeExport": reserved_landscape,
+            "Filteredout_LandscapeExport": filtered_out_landscape
         })
 
     def collect_overview(self, result):
@@ -92,20 +94,41 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             ["StorageCanBeSaved(GB)", abs(sum)]
         ]
 
-    def filter_LandscapeExport(self, LandscapeExportSheet0):
-        # Landscape Export xlsx里过滤掉Active =N 的数据 及DeliveryStatus=Decommissioned的数据 - Feb 6
-        return list(
-            filter(
-                lambda row: (len(row[7]) > 0)  # 过滤掉instance Type 是 空的
-                            and (not row[11] == 'Decommissioned')
-                            and (not row[10] == 'N')
-                            and (row[1] == 'MASTER' or row[1] == 'STANDBY')
-                            and DateUtil.is_after_now(
-                    DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3]))),
+    def collect_LandscapeExport(self, LandscapeExportSheet0):
+        reserved = []
+        filtered_out = []
 
-                LandscapeExportSheet0
-            )
-        )
+        ded_records_be_deleted = self.find_records_be_deleted(LandscapeExportSheet0)
+
+        for idx, row in enumerate(LandscapeExportSheet0):
+            if self.shoud_be_reserved(idx, row, ded_records_be_deleted):
+                reserved.append(row)
+            else:
+                filtered_out.append(row)
+
+        return reserved, filtered_out
+
+    def shoud_be_reserved(self, idx, row, ded_records_be_deleted):
+        return not idx in ded_records_be_deleted \
+            and len(row[7]) > 0 \
+            and (row[1] == 'MASTER' or row[1] == 'STANDBY') \
+            and DateUtil.is_after_now(DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3])))
+
+    def find_records_be_deleted(self, LandscapeExportSheet0):
+        deleted_flag = ['Decommissioned', 'Cancelled', 'Off Boarding']
+        in_deleting = False
+        deleted_row_idx = []
+
+        for idx, row in enumerate(LandscapeExportSheet0):
+            if row[11] in deleted_flag \
+                    or (len(row[11]) is 0 and in_deleting):
+
+                in_deleting = True
+                deleted_row_idx.append(idx)
+            else:
+                in_deleting = False
+
+        return deleted_row_idx
 
     def filter_InactiveData(self, LandscapeExportSheet0, CustomerServerOverviewSheet0):
         # 输出Active=N的数据 row[10]为N Feb 9
@@ -142,7 +165,6 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                                      json_filtered_data: [{}],
                                      filtered_CustomerServerOverviewSheet0,
                                      filtered_LandscapeExportSheet0):
-
         # data from azure, after any changes of json-path, should review here
         data_from_azure = list(
             map(lambda record: {
@@ -160,15 +182,24 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                                                        filtered_LandscapeExportSheet0)
 
     def calc_datadisk_size_total(self, record):
-        return sum(list(
+        sum_disksizeGB = 0
+        for item in record['properties.storageProfile.dataDisks']:
+            if 'diskSizeGB' in item:
+                current_disksizeGB = item['diskSizeGB']
+                sum_disksizeGB += current_disksizeGB
+
+        temp_sum = sum(list(
             map(lambda r: r['diskSizeGB'] if 'diskSizeGB' in r else 0, record['properties.storageProfile.dataDisks'])))
+        if sum_disksizeGB != temp_sum:
+            print("========================nonononono=======================================")
+
+        return temp_sum
 
     def build_result_and_collect_exception(self, json_filtered_data_netapp,
                                            json_filtered_data_netapp_dr,
                                            data_from_azure,
                                            filtered_CustomerServerOverviewSheet0,
                                            filtered_LandscapeExportSheet0):
-
         # SID, hana-none-hana, servername, az dis, ded disk, details.
         # excel first row as title row.
         final_result = [
@@ -192,7 +223,6 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         return final_result, final_exception
 
     def prepare_groupby_data(self, filtered_CustomerServerOverviewSheet0, filtered_LandscapeExportSheet0):
-
         # ['System ID', 'Server Name', 'System Number', 'TIC Server Comment']
         # ['VD1', 'hec44v023219', '000000000500239629', 'HIL VD1 FTP  |B1_0304137835-4309806-HSO.000191-16-982_PROCESS_ID:53911958']
         cso_SystemID_2_records: dict[str:[]] = self.group_by(
@@ -214,7 +244,6 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
     def collect_each_row_of_result(self, cso_SystemID_2_records, data_from_azure, final_result,
                                    json_filtered_data_netapp, json_filtered_data_netapp_dr, le_SID_2_records):
-
         # server name has both hana, none-hana, then none-hana SID consider as duplicated.
         duplicated_records = self.find_duplicated_records(le_SID_2_records, cso_SystemID_2_records)
 
@@ -314,6 +343,12 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         return netapp_volume_quota + azure_datadisk_totalGB - 20 - ded_storage_size
 
     def collect_ded_storage_size(self, ded_details):
+        # 2.23 如果landscape里stroageGB列为空，设为100
+        '''
+        return sum(
+            list(map(lambda r: float(r['StorageGB']) if 'storageGB' in r else 100, ded_details))
+        )
+        '''
         return sum(
             list(map(lambda r: float(r['StorageGB']), ded_details))
         )
@@ -322,23 +357,26 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         """
         当DED 和 CustomerOverview 中 按照 sid group by count 不相同时报错；
         """
-        sid_2_count_ded = self.value_2_count(
-            self.group_by(lambda r: r[0], filtered_LandscapeExportSheet0)
-        )
+        sid_map2_count_2be_deleted = {}
 
-        sid_2_count_cso = self.value_2_count(
-            self.group_by(lambda r: r[0], filtered_CustomerServerOverviewSheet0)
-        )
+        ded_groupby = self.group_by(lambda r: self.get_sid_or_dbsid(r, sid_map2_count_2be_deleted),
+                                    filtered_LandscapeExportSheet0, skip_first=False)
+        sid_2_count_ded = self.value_2_count(ded_groupby)
+
+        cso_groupby = self.group_by(lambda r: r[0], filtered_CustomerServerOverviewSheet0)
+        sid_2_count_cso = self.value_2_count(cso_groupby)
 
         found = []
         # customer overview 中有的 sid，需要在ded中存在， 并且个数相同
         for cso_sid in sid_2_count_cso.keys():
             if cso_sid in sid_2_count_ded.keys():
+                count_cso = (sid_2_count_cso[cso_sid] - sid_map2_count_2be_deleted[
+                    cso_sid]) if cso_sid in sid_map2_count_2be_deleted else sid_2_count_cso[cso_sid]
+
+                count_ded = sid_2_count_ded[cso_sid]
 
                 # Customer overview 中的 sid 对应的 记录数 跟 ded中对应的 记录数不同
-                if not sid_2_count_ded[cso_sid] == sid_2_count_cso[cso_sid]:
-                    count_cso = sid_2_count_cso[cso_sid]
-                    count_ded = sid_2_count_ded[cso_sid]
+                if not count_cso == count_ded:
                     found.append([
                         cso_sid,
                         'CustomerOverviewHasMore'
@@ -354,6 +392,19 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             found.append(['', 'LandscapHasEmptySID', sid_2_count_ded['']])
 
         return found
+
+    def get_sid_or_dbsid(self, row, sid_map2_count_2be_deleted):
+        sid = row[0]
+        dbsid = row[8]
+        is_hana = row[6].startswith('HANA-')
+
+        if is_hana:
+            if sid in sid_map2_count_2be_deleted:
+                sid_map2_count_2be_deleted[sid] += 1
+            else:
+                sid_map2_count_2be_deleted[sid] = 1
+
+        return dbsid if is_hana else sid
 
     def collect_exception(self, le_SID_2_records, cso_SystemID_2_records):
         """
@@ -383,7 +434,6 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         return result
 
     def calc_quota(self, sid, json_filtered_data_netapp):
-
         found = list(filter(lambda r: sid in r['name'], json_filtered_data_netapp))
 
         if len(found) > 0:
