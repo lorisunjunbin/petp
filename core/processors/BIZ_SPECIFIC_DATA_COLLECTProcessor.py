@@ -6,79 +6,204 @@ from utils.DateUtil import DateUtil
 
 
 class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
-    TPL: str = '{"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr","json_filtered_data_netapp":"json_filtered_data_netapp","json_filtered_data_vm":"json_filtered_data_vm", "json_filtered_data_vm_dr":"json_filtered_data_vm_dr", "LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", "data_key":"name on data_chain"}'
+    TPL: str = '{"disk_tier_size":"disk_tier_size", ' \
+               '"hana_infra_template":"hana_infra_template",' \
+               '"json_filtered_data_netapp_dr":"json_filtered_data_netapp_dr",' \
+               '"json_filtered_data_netapp":"json_filtered_data_netapp",' \
+               '"json_filtered_data_vm":"json_filtered_data_vm", ' \
+               '"json_filtered_data_vm_dr":"json_filtered_data_vm_dr", ' \
+               '"LandscapeExportSheet0":"", "CustomerServerOverviewSheet0":"", ' \
+               '"data_key":"name on data_chain"}'
 
     DESC: str = f''' 
 
-        非通用处理器，特殊业务   
+        SPECIFIC - Compare Azure resources with cloud portal, mainly focusing on disk size, 
+                   includes dimension: *flavor* and *tier*. 
 
         {TPL}
 
     '''
 
     def process(self):
-        # 将vmdata 中normal和dr分开 2.23
-        json_filtered_data_vm = self.get_data(self.get_param('json_filtered_data_vm'))
-        json_filtered_data_vm_dr = self.get_data(self.get_param('json_filtered_data_vm_dr'))
-        json_filtered_data = json_filtered_data_vm + json_filtered_data_vm_dr
-
-        json_filtered_data_netapp = self.get_data(self.get_param('json_filtered_data_netapp'))
-        json_filtered_data_netapp_dr = self.get_data(self.get_param('json_filtered_data_netapp_dr'))
-
-        # System ID|Server Name|System Number|TIC Server Comment
-        CustomerServerOverviewSheet0 = self.get_data(self.get_param('CustomerServerOverviewSheet0'))
-        # SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB SID (HANA)|SystemNumber
-        LandscapeExportSheet0 = self.get_data(self.get_param('LandscapeExportSheet0'))
+        # read inbound data
+        customer_server_overview_sheet0, landscape_export_sheet0, disk_tier_size, \
+            hana_infra_template, json_filtered_data, json_filtered_data_netapp, \
+            json_filtered_data_netapp_dr = self.read_data_from_parameters()
 
         # apply filter logics
-        filtered_CustomerServerOverviewSheet0 = self.filter_CustomerServerOverview(CustomerServerOverviewSheet0)
-        reserved_landscape, filtered_out_landscape = self.collect_LandscapeExport(LandscapeExportSheet0)
+        filtered_CustomerServerOverviewSheet0 = self.filter_CustomerServerOverview(customer_server_overview_sheet0)
+        reserved_landscape, filtered_out_landscape = self.collect_LandscapeExport(landscape_export_sheet0)
 
         # filter inactive data
-        Inactive_Data_sheet0 = LandscapeExportSheet0[0]
-        Inactive_Data_sheet0.append("comment")
-        inactive_Data = self.filter_InactiveData(LandscapeExportSheet0, CustomerServerOverviewSheet0)
-        inactive_Data.insert(0, Inactive_Data_sheet0)
+        inactive_data = self.collect_inactive_data(customer_server_overview_sheet0, landscape_export_sheet0)
 
-        # 截取 name 后三位 作为 SID 到 Landscape 找，如果找不到， 则记录异常
-        netapp_exceptions_normal = self.find_netapp_exception(json_filtered_data_netapp, "Normal",
-                                                              reserved_landscape)
-
-        netapp_exceptions_dr = self.find_netapp_exception(json_filtered_data_netapp_dr, "DR",
-                                                          reserved_landscape)
-
+        # collect exceptions of net app
+        netapp_exceptions_normal = self.find_netapp_exception(json_filtered_data_netapp, "Normal", reserved_landscape)
+        netapp_exceptions_dr = self.find_netapp_exception(json_filtered_data_netapp_dr, "DR", reserved_landscape)
         netapp_exceptions = [*netapp_exceptions_normal, *netapp_exceptions_dr]
 
+        # collect errors
         errors = self.validate(reserved_landscape, filtered_CustomerServerOverviewSheet0)
 
-        if (len(errors) > 0):
-            errors.insert(0, ['SID', 'ERROR_TYPE'])
-            logging.error("Validate failure, refer to generated excel for more details.")
-
         # add titles as first row
-        reserved_landscape.insert(0, LandscapeExportSheet0[0])
+        reserved_landscape.insert(0, landscape_export_sheet0[0])
 
-        # collect result and exceptio
+        # collect result and exception
         result, exception = self.collect_result_and_exception(json_filtered_data_netapp, json_filtered_data_netapp_dr,
-                                                              json_filtered_data,
-                                                              filtered_CustomerServerOverviewSheet0,
+                                                              json_filtered_data, filtered_CustomerServerOverviewSheet0,
                                                               reserved_landscape)
+        # compare disk_tier_size
+        disk_tier_comparison = self.compare_disk_tier(result, json_filtered_data, hana_infra_template, disk_tier_size)
 
+        # populate outbound data to data chain
         self.populate_data(self.get_param('data_key'), {
             "OVERVIEW": self.collect_overview(result),
             "ERROR": errors,
             "RESULT": result,
-            "InactiveData": inactive_Data,
+            "DISK_TIER": disk_tier_comparison,
+            "InactiveData": inactive_data,
             "Exception": [*exception, *netapp_exceptions],
             "CustomerServerOverview": filtered_CustomerServerOverviewSheet0,
             "LandscapeExport": reserved_landscape,
             "Filteredout_LandscapeExport": filtered_out_landscape
         })
 
+    def read_data_from_parameters(self):
+        """
+        :return: each data of given parameters.
+        """
+        return self.get_data(self.get_param('CustomerServerOverviewSheet0')), \
+            self.get_data(self.get_param('LandscapeExportSheet0')), \
+            self.get_data(self.get_param('disk_tier_size')), \
+            self.get_data(self.get_param('hana_infra_template')), \
+            self.get_data(self.get_param('json_filtered_data_vm')) + self.get_data(
+                self.get_param('json_filtered_data_vm_dr')), \
+            self.get_data(self.get_param('json_filtered_data_netapp')), \
+            self.get_data(self.get_param('json_filtered_data_netapp_dr'))
+
+    def collect_inactive_data(self, CustomerServerOverviewSheet0, LandscapeExportSheet0):
+        Inactive_Data_sheet0 = LandscapeExportSheet0[0]
+        Inactive_Data_sheet0.append("comment")
+        inactive_Data = self.filter_InactiveData(LandscapeExportSheet0, CustomerServerOverviewSheet0)
+        inactive_Data.insert(0, Inactive_Data_sheet0)
+        return inactive_Data
+
+    def compare_disk_tier(self, previous_result, json_filtered_data, hana_infra_template, disk_tier_size):
+        """
+        For the Hana DB SID which got flavor matched and disk size has difference between azure and ded
+        """
+        result = []
+
+        hana_records_need_to_process = list(
+            filter(
+                lambda row: row[1] == 'HANA' and row[9] == True and float(row[7]) > 0, previous_result
+            )
+        )
+
+        if len(hana_records_need_to_process) > 0:
+
+            tier_2_disksize = self.collect_tier_2_disksize(disk_tier_size)
+
+            for idx, record in enumerate(hana_records_need_to_process):
+                sid = record[0]
+                azure_storage = record[5]
+                ded_storage = record[6]
+                server = record[8]
+                flavor = record[11]
+
+                flavors = json.loads(flavor)
+                if len(flavors) > 1:
+                    logging.warning(f'HANA {sid} has more flavors {flavors}')
+
+                servers = server.split(self.SEPARATOR)
+                if len(servers) > 1:
+                    logging.warning(f'HANA {sid} has more servers {servers}')
+
+                # ded中找到的对应能容
+                flavor_storge_2_pxs = self.collect_flavor_storge_2_pxs(flavors[0], ded_storage, hana_infra_template)
+
+                # azure 中 按照server name 找到
+                found = self.find_first_matched(json_filtered_data, 'name', servers[0])
+                if not found is None:
+                    # mapping refer to: figure_out_px
+                    data_disks_details = found['properties.storageProfile.dataDisks']
+                    data_disks_tier = list(map(lambda r: {
+                        'name': r['name'],
+                        'diskSizeGB': r['diskSizeGB'],
+                        'tier': self.figure_out_px(tier_2_disksize, r['diskSizeGB'])
+                    }, data_disks_details))
+
+                    data_disks_tier_2_count = self.figure_out_px_2_count(data_disks_tier)
+
+                    result.append([
+                        sid, server, flavor,
+                        ded_storage, json.dumps(flavor_storge_2_pxs),
+                        azure_storage, json.dumps(data_disks_tier_2_count),
+                        json.dumps(data_disks_tier)
+                    ])
+
+        result.insert(0, ['SID', 'SERVER', 'Flavor',
+                          'DED_totalGB',
+                          '[{data},{fm208s_v2},{hana_backup},{hana_backup_log},{sysfiles}) - Infra-Template',
+                          'Azure_totalGB', 'Azure_tier',
+                          'Azure_tier_details'])
+        return result
+
+    def figure_out_px_2_count(self, data_disks_tier):
+        result = {}
+        for idx, itm in enumerate(data_disks_tier):
+            tier = itm['tier']
+            if tier in result.keys():
+                result[tier] += 1
+            else:
+                result[tier] = 1
+
+        return result
+
+    # 根据 每个 data disk storage size 找到对应  P？
+    def figure_out_px(self, given: dict, storage: int):
+        for key, value in given.items():
+            if storage <= value:
+                return key
+
+    def find_first_matched(self, given: [{}], key: str, value):
+        found = list(filter(lambda row: row[key] == value, given))
+        return found[0] if len(found) > 0 else None
+
+    def collect_flavor_storge_2_pxs(self, flavor, storage: float, hana_infra_template):
+        result = {}
+        found_row = list(filter(lambda row: flavor in row[0] and float(row[3]) == storage, hana_infra_template))
+        if len(found_row) > 0:
+            data = self.collect_px_2_count(found_row[0][10])  # 'Total disk size for data FS (GB)'
+            fm208s_v2 = self.collect_px_2_count(found_row[0][12])  # 'fM208s_v2'
+            hana_backup = self.collect_px_2_count(found_row[0][14])  # 'Total disk size for /hana_backup/<SID>(GB)'
+            hana_backup_log = self.collect_px_2_count(
+                found_row[0][16])  # 'Total disk size for /hana_backup/<SID>/log(GB)'
+            sysfiles = self.collect_px_2_count(found_row[0][18])  # 'Total Disk Size for sysfiles FS (GB)'
+
+        return [data, fm208s_v2, hana_backup, hana_backup_log, sysfiles]
+
+    def collect_px_2_count(self, given: str):
+        count0_px1 = given[1:-1].split('x')
+
+        px = count0_px1[1].strip()
+        count = int(count0_px1[0].strip())
+
+        return {px: count}
+
+    def collect_tier_2_disksize(self, disk_tier_size):
+        result = {}
+
+        for idx, row in enumerate(disk_tier_size):
+            gib = row[0][:-4]  # 删掉结尾的4个字符
+            result[row[1]] = float(gib) if len(gib) > 0 else 0
+
+        return result
+
     def collect_overview(self, result):
         number = 0  # diff 个数
         sum = 0  # diff 总和
-        flaver_sum = 0  # flaver false 个数
+        flavor_sum = 0  # flavor false 个数
 
         for item in result:
             if str(type(item[7])) != "<class 'str'>":
@@ -86,11 +211,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                     number += 1
                 sum += item[7]
                 if item[9] == False:
-                    flaver_sum += 1
+                    flavor_sum += 1
 
         return [
             ["SystemRequireOptimization", number],
-            ["VMFlaverNotMatchDED", flaver_sum],
+            ["VMFlavorNotMatchDED", flavor_sum],
             ["StorageCanBeSaved(GB)", abs(sum)]
         ]
 
@@ -111,7 +236,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
     def shoud_be_reserved(self, idx, row, ded_records_be_deleted):
         return not idx in ded_records_be_deleted \
             and len(row[7]) > 0 \
-            and (row[1] == 'MASTER' or row[1] == 'STANDBY') \
+            and (row[1] == 'MASTER' or row[1] == 'STANDBY' or row[1] == 'ADDNODE') \
             and DateUtil.is_after_now(DateUtil.months_delta(DateUtil.get_date(row[2], "%Y-%m-%d"), float(row[3])))
 
     def find_records_be_deleted(self, LandscapeExportSheet0):
@@ -121,7 +246,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         for idx, row in enumerate(LandscapeExportSheet0):
             if row[11] in deleted_flag \
-                    or (len(row[11]) is 0 and in_deleting):
+                    or (len(row[11]) == 0 and in_deleting):
 
                 in_deleting = True
                 deleted_row_idx.append(idx)
@@ -190,8 +315,9 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         temp_sum = sum(list(
             map(lambda r: r['diskSizeGB'] if 'diskSizeGB' in r else 0, record['properties.storageProfile.dataDisks'])))
+
         if sum_disksizeGB != temp_sum:
-            print("========================nonononono=======================================")
+            logging.warning("----- sum_disksizeGB is NOT equal temp_sum -----")
 
         return temp_sum
 
@@ -272,7 +398,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             ))
             ded_dbsid = ded_details[0].get("DB SID(HANA)")
 
-            flavor_matched, flavor_found_matched, flaver_nomatched_reason = self.compare_flaver(azure_flavor,
+            flavor_matched, flavor_found_matched, flavor_nomatched_reason = self.compare_flavor(azure_flavor,
                                                                                                 ded_flavor)
 
             netapp_volume_quota = self.calc_quota(sid0type1Id2DRorNot3[0],
@@ -286,7 +412,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
                  json.dumps(flavor_found_matched),
                  json.dumps(azure_flavor),
                  json.dumps(ded_flavor),
-                 json.dumps(flaver_nomatched_reason),
+                 json.dumps(flavor_nomatched_reason),
                  # json.dumps(ded_details),  # DED_details
                  # json.dumps(azure_servers)  # Azure_details
                  ])
@@ -390,6 +516,10 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         if '' in sid_2_count_ded.keys():
             found.append(['', 'LandscapHasEmptySID', sid_2_count_ded['']])
+
+        if (len(found) > 0):
+            found.insert(0, ['SID', 'ERROR_TYPE'])
+            logging.error("Validate failure, refer to generated excel for more details.")
 
         return found
 
@@ -497,7 +627,7 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
     # 判断flavor 是否match
     # 2023.2.9 添加parameterNonMatched_reason，展示flavor 不匹配的原因
-    def compare_flaver(self, azure_flavor, ded_flavor):
+    def compare_flavor(self, azure_flavor, ded_flavor):
         found_matched = []
         NonMatched_reason = ""
         for azure_idx, azure_one in enumerate(azure_flavor):
@@ -511,9 +641,11 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
 
         # 如果个数一直说明value不一致，否则值不同
         if len(azure_flavor) == len(ded_flavor) and matched == False:
-            NonMatched_reason = "Value not matched"
-        elif matched == False:
-            NonMatched_reason = "Number not matched"
+            NonMatched_reason = "Flavor not matched"
+        elif matched == False and len(azure_flavor) > len(ded_flavor):
+            NonMatched_reason = "Azure has more flavor"
+        elif matched == False and len(azure_flavor) < len(ded_flavor):
+            NonMatched_reason = "Ded has more flavor"
         else:
             NonMatched_reason = ""
 

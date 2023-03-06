@@ -1,0 +1,63 @@
+!!python/object:core.execution.Execution
+execution: AVR
+list:
+- !!python/object:core.task.Task
+  input: '{"cid": "AVR", "version_tpl": "V3.2", "path_hana_tpl": "{self.get_rdir()}/Azure
+    HANA Infra-Template-{self.get_data(\"version_tpl\")}.xlsx","path_disk_tier_size":
+    "{self.get_rdir()}/disk_size.xlsx",  "path_json_vm": "{self.get_rdir()}/{self.get_data(\"cid\")}/vmdata_{self.get_data(\"cid\")}.json",
+    "path_json_vm_dr": "{self.get_rdir()}/{self.get_data(\"cid\")}/vmdata_dr_{self.get_data(\"cid\")}.json",
+    "path_CustomerServerOverview": "{self.get_rdir()}/{self.get_data(\"cid\")}/CustomerServerOverview-{self.get_data(\"cid\")}.xlsx",
+    "path_LandscapExport": "{self.get_rdir()}/{self.get_data(\"cid\")}/{self.get_data(\"cid\")}-Landscape
+    Export.xlsx", "path_json_netapp": "{self.get_rdir()}/{self.get_data(\"cid\")}/netappvolume_{self.get_data(\"cid\")}.json",
+    "path_json_netapp_dr": "{self.get_rdir()}/{self.get_data(\"cid\")}/netappvolume_dr_{self.get_data(\"cid\")}.json"}'
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"data_key": "json_filtered_data_vm", "json_path": "$.data[*].(name,location,properties.availabilitySet.resourceGroup,type,properties.hardwareProfile.vmSize,properties.storageProfile.osDisk.diskSizeGB,properties.storageProfile.dataDisks)",
+    "file_path_key": "path_json_vm"}'
+  type: READ_JSON
+- !!python/object:core.task.Task
+  input: '{"data_key": "json_filtered_data_vm_dr", "json_path": "$.data[*].(name,location,properties.availabilitySet.resourceGroup,type,properties.hardwareProfile.vmSize,properties.storageProfile.osDisk.diskSizeGB,properties.storageProfile.dataDisks)",
+    "file_path_key": "path_json_vm_dr"}'
+  type: READ_JSON
+- !!python/object:core.task.Task
+  input: '{"data_key": "json_filtered_data_netapp_dr", "json_path": "$[*].(name,usageThreshold)",
+    "file_path_key": "path_json_netapp_dr"}'
+  type: READ_JSON
+- !!python/object:core.task.Task
+  input: '{"data_key": "json_filtered_data_netapp", "json_path": "$[*].(name,usageThreshold)",
+    "file_path_key": "path_json_netapp"}'
+  type: READ_JSON
+- !!python/object:core.task.Task
+  input: '{"sheet_index": 0, "end_at": "100", "skip_first": "no", "data_key": "disk_tier_size",
+    "file_path_key": "path_disk_tier_size"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"sheet_index": 2, "end_at": "100", "skip_first": "no", "data_key": "hana_infra_template",
+    "file_path_key": "path_hana_tpl"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"sheet_index": 0, "end_at": "100", "skip_first": "no", "data_key": "CustomerServerOverview_sheet0",
+    "fields": "System ID|Server Name|System Number|TIC Server Comment", "file_path_key":
+    "path_CustomerServerOverview"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"sheet_index": 0, "end_at": "100", "skip_first": "no", "data_key": "LandscapeExport_sheet0",
+    "fields": "SID|ServerType|StartDate|Runtime|StorageGB|Database|Service|InstanceType|DB
+    SID (HANA)|SystemNumber|Active|DeliveryStatus", "file_path_key": "path_LandscapExport"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"LandscapeExportSheet0": "LandscapeExport_sheet0", "CustomerServerOverviewSheet0":
+    "CustomerServerOverview_sheet0", "data_key": "biz_specific_data", "json_filtered_data_netapp":
+    "json_filtered_data_netapp", "json_filtered_data_netapp_dr": "json_filtered_data_netapp_dr",
+    "json_filtered_data_vm": "json_filtered_data_vm", "json_filtered_data_vm_dr":
+    "json_filtered_data_vm_dr", "hana_infra_template": "hana_infra_template", "disk_tier_size":
+    "disk_tier_size"}'
+  type: BIZ_SPECIFIC_DATA_COLLECT
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_ddir()}/{self.get_data(\"cid\")}-azure_devops_{self.get_now_str()}.xlsx",
+    "value_key": "biz_specific_data", "data_key": "azure_devops_output"}'
+  type: WRITE_TO_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path_key": "azure_devops_output", "timeout": 10}'
+  type: OPEN_FILE
+loops: []
