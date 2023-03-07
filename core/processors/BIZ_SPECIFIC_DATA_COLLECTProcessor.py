@@ -171,7 +171,6 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
         return found[0] if len(found) > 0 else None
 
     def collect_flavor_storge_2_pxs(self, flavor, storage: float, hana_infra_template):
-        result = {}
         found_row = list(filter(lambda row: flavor in row[0] and float(row[3]) == storage, hana_infra_template))
         if len(found_row) > 0:
             data = self.collect_px_2_count(found_row[0][10])  # 'Total disk size for data FS (GB)'
@@ -180,8 +179,8 @@ class BIZ_SPECIFIC_DATA_COLLECTProcessor(Processor):
             hana_backup_log = self.collect_px_2_count(
                 found_row[0][16])  # 'Total disk size for /hana_backup/<SID>/log(GB)'
             sysfiles = self.collect_px_2_count(found_row[0][18])  # 'Total Disk Size for sysfiles FS (GB)'
-
-        return [data, fm208s_v2, hana_backup, hana_backup_log, sysfiles]
+            return [data, fm208s_v2, hana_backup, hana_backup_log, sysfiles]
+        return []
 
     def collect_px_2_count(self, given: str):
         count0_px1 = given[1:-1].split('x')
