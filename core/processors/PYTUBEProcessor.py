@@ -3,6 +3,7 @@ import logging
 from core.processor import Processor
 from pytube import YouTube
 
+# https://pytube.io/en/latest/user/quickstart.html
 
 class PYTUBEProcessor(Processor):
     TPL: str = '{' \
@@ -24,7 +25,7 @@ class PYTUBEProcessor(Processor):
         file_extension = self.expression2str(self.get_param('file_extension')) if self.has_param(
             'file_extension') else 'mp4'
         download_folder = self.expression2str(self.get_param('download_folder')) if self.has_param(
-            'download_folder') else None
+            'download_folder') else 'download'
         specific_file_name = self.expression2str(self.get_param('specific_file_name')) if self.has_param(
             'specific_file_name') else None
         file_prefix = self.expression2str(self.get_param('file_prefix')) if self.has_param('file_prefix') else None

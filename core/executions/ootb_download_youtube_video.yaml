@@ -11,4 +11,9 @@ list:
     "mp4", "download_folder": "{self.get_ddir()}/", "specific_file_name": "", "file_prefix":
     "", "quality": "LOW", "timeout": ""}'
   type: PYTUBE
+- !!python/object:core.task.Task
+  input: '{"video_url": "https://www.youtube.com/shorts/WyopjbVyyds", "file_extension":
+    "mp4", "download_folder": "", "specific_file_name": "", "file_prefix": "", "quality":
+    "HIGH|LOW", "timeout": ""}'
+  type: PYTUBE
 loops: []
