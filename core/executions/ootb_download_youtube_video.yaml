@@ -1,0 +1,14 @@
+!!python/object:core.execution.Execution
+execution: ootb_download_youtube_video
+list:
+- !!python/object:core.task.Task
+  input: '{"video_url": "https://www.youtube.com/shorts/yKJqZj4GjSY", "file_extension":
+    "mp4", "download_folder": "{self.get_ddir()}/", "specific_file_name": "yKJqZj4GjSY.mp4",
+    "file_prefix": "yt_", "timeout": "", "quality": "HIGH|LOW"}'
+  type: PYTUBE
+- !!python/object:core.task.Task
+  input: '{"video_url": "https://www.youtube.com/shorts/Fn-osmFZbnA", "file_extension":
+    "mp4", "download_folder": "{self.get_ddir()}/", "specific_file_name": "", "file_prefix":
+    "", "quality": "LOW", "timeout": ""}'
+  type: PYTUBE
+loops: []

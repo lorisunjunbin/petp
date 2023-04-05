@@ -14,3 +14,4 @@ paramiko
 pyautogui
 pyperclip
 python-dateutil
+pytube

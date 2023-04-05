@@ -9,6 +9,7 @@ class INPUT_DIALOGProcessor(Processor):
     TPL: str = '{"title":" Message Input","msg":"","value_key":"","default_value":""}'
 
     DESC: str = f''' 
+        DOES NOT WORKS, due to run execution in a new thread, try to figure out later.
         To collect user input via popup text entry dialog, save to data_chain. wx must run Dialog in MainThread, so should not use this processor as cron mode. 
         
         {TPL}
