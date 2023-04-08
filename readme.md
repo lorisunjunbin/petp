@@ -66,6 +66,8 @@ Windows
 
 ## DONE:
 
+2023-04: PYTUBEProcessor, download youtube videos.
+
 2022-11: Samplify & Optimize entire [UI](./mvp/view).
 
 2022-11: clean & restructure code UI event binding.
