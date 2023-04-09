@@ -1,5 +1,6 @@
 import asyncio
 import logging
+
 import wx
 import wx.dataview
 import wx.lib.colourutils
@@ -20,6 +21,7 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.LOG, self.on_load_log)
         PETPEvent.bind_to(self.v, PETPEvent.DONE, self.on_handle_done)
         PETPEvent.bind_to(self.v, PETPEvent.START, self.on_handle_start)
+        PETPEvent.bind_to(self.v, PETPEvent.OPEN_INPUT_DIALOG, self.on_handle_open_input_dialog)
 
         # UI event binding
         self.v.Bind(wx.EVT_CLOSE, self.on_close_window)
@@ -99,6 +101,9 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_del_loop, self.v.delLoop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data_4loop, self.v.convertGetDeepData4Loop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data_4loop, self.v.convertGetData4Loop)
+
+    def on_handle_open_input_dialog(self, evt: PETPEvent):
+        self.p.on_handle_open_input_dialog(evt)
 
     def on_handle_start(self, evt: PETPEvent):
         logging.info(evt.data)

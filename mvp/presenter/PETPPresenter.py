@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from threading import Condition
 
 import wx
 import wx.dataview
@@ -18,6 +19,7 @@ from core.task import Task
 from decorators.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
+from mvp.presenter.event.PETPEvent import PETPEvent
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.ExcelUtil import ExcelUtil
@@ -742,3 +744,10 @@ class PETPPresenter():
 
     def on_logcontents_unfocused(self):
         self.isLogContentFocused = False
+
+    def on_handle_open_input_dialog(self, evt: PETPEvent):
+        dlg = wx.TextEntryDialog(None, evt.data['msg'], evt.data['title'])
+        dlg.SetValue(evt.data['default_value'])
+        if dlg.ShowModal() == wx.ID_OK:
+            evt.handler(dlg.GetValue())
+        dlg.Destroy()

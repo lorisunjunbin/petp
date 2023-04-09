@@ -24,7 +24,7 @@ class Execution(object):
         self.list = lt
         self.loops = lps
 
-    def run(self, initial_data) -> dict:
+    def run(self, initial_data, condition, view) -> dict:
         data_chain = initial_data
         list_size = len(self.list)
         # loop for collection
@@ -72,6 +72,8 @@ class Execution(object):
 
             processor: Processor = Processor.get_processor_by_type(task.type)
             processor.set_task(task)
+            processor.set_condition(condition)
+            processor.set_view(view)
 
             logging.info(f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
             logging.info(f'process start: {task.input}')

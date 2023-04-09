@@ -5,12 +5,13 @@ class PETPEvent(wx.PyEvent):
     LOG = 88880001
     DONE = 88880002
     START = 88880003
+    OPEN_INPUT_DIALOG = 88880004
 
-    def __init__(self,etype, data):
-
+    def __init__(self, etype, data, handler=None):
         wx.PyEvent.__init__(self)
         self.SetEventType(etype)
         self.data = data
+        self.handler = handler
 
     @staticmethod
     def bind_to(wxComp, etype, func):

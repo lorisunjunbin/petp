@@ -1,0 +1,12 @@
+!!python/object:core.execution.Execution
+execution: ootb_input_dialog_show_result
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "\u4fe1\u606f\u8f93\u5165", "msg": "\u968f\u8868\u8bf4\u70b9\u5565",
+    "value_key": "input_value_key", "default_value": "HELLO PETP"}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"title": "\u524d\u5e8f\u4efb\u52a1\u5f55\u5165\u5185\u5bb9\u5c55\u793a",
+    "msg": "{self.get_data(\"input_value_key\")}"}'
+  type: SHOW_RESULT
+loops: []

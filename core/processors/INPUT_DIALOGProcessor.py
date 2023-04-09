@@ -1,8 +1,10 @@
 import logging
+import threading
 
 import wx
 
 from core.processor import Processor
+from mvp.presenter.event.PETPEvent import PETPEvent
 
 
 class INPUT_DIALOGProcessor(Processor):
@@ -22,9 +24,20 @@ class INPUT_DIALOGProcessor(Processor):
         value_key = self.expression2str(self.get_param('value_key'))
         default_value = self.expression2str(self.get_param('default_value')) if self.has_param('default_value') else ''
 
-        dlg = wx.TextEntryDialog(None, msg, title)
-        dlg.SetValue(default_value)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.populate_data(value_key, dlg.GetValue())
-        dlg.Destroy()
-        logging.info(f'\n\n=========\n{self.get_data(value_key)}\n=========\n')
+        wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.OPEN_INPUT_DIALOG,
+                                                {"msg": msg, "title": title, "default_value": default_value},
+                                                self.handle_ui_thread_callback))
+        # 挂起当前线程，让UI主线程继续执行
+        cond = self.get_condition()
+        with cond:
+            cond.wait()
+
+        logging.info(f'=========\n{self.get_data(value_key)}\n=============================')
+
+    def handle_ui_thread_callback(self, given):
+        value_key = self.expression2str(self.get_param('value_key'))
+        self.populate_data(value_key, given)
+        # 通知当前线程继续执行
+        cond = self.get_condition()
+        with cond:
+            cond.notify()

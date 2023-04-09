@@ -3,6 +3,7 @@ import logging
 from core.processor import Processor
 from pytube import YouTube
 
+
 # https://pytube.io/en/latest/user/quickstart.html
 
 class PYTUBEProcessor(Processor):
@@ -13,6 +14,7 @@ class PYTUBEProcessor(Processor):
                ',"specific_file_name":""' \
                ',"file_prefix":""' \
                ',"quality":"HIGH|LOW"' \
+               ',"file_download_path_key":""' \
                ',"timeout":""' \
                '}'
     DESC: str = f''' 
@@ -34,6 +36,8 @@ class PYTUBEProcessor(Processor):
 
         high_quality = True if 'HIGH' in quality else False
 
+        logging.info('start downloding from'+ video_url)
+
         yd = YouTube(video_url,
                      on_progress_callback=self._handle_progress,
                      on_complete_callback=self._handle_complete) \
@@ -48,6 +52,7 @@ class PYTUBEProcessor(Processor):
             output_path=download_folder,
             filename=specific_file_name,
             filename_prefix=file_prefix,
+            max_retries=3,
             timeout=timeout
         )
 
@@ -58,3 +63,8 @@ class PYTUBEProcessor(Processor):
 
     def _handle_complete(self, stream, msg):
         logging.info(f'Download completed, ' + msg)
+        path_video_download = self.expression2str(self.get_param('file_download_path_key')) if self.has_param(
+            'file_download_path_key') else None
+
+        if not path_video_download is None:
+            self.populate_data(path_video_download, msg)

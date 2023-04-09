@@ -2,10 +2,12 @@ import json
 import logging
 import os
 import time
+from threading import Condition
 
 import cryptocode
 
 from core.task import Task
+from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.SeleniumUtil import SeleniumUtil
@@ -28,6 +30,8 @@ class Processor(object):
 
     task: Task
     input_param: dict
+    condition: Condition
+    view: PETPView
 
     def process(self):
         # implemented in subclass
@@ -35,6 +39,21 @@ class Processor(object):
 
     def do_process(self):
         self.process()
+
+    def handle_ui_thread_callback(self, given):
+        pass
+
+    def set_view(self, view):
+        self.view = view
+
+    def get_view(self):
+        return self.view
+
+    def set_condition(self, condition: Condition):
+        self.condition = condition
+
+    def get_condition(self):
+        return self.condition
 
     def need_skip(self):
         # if run in cron and skip_in_pipeline is yes.
