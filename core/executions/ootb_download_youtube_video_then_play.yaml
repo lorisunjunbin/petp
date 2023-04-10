@@ -8,7 +8,8 @@ list:
 - !!python/object:core.task.Task
   input: '{"video_url": "{self.get_data(\"youtube_video_url\")}", "file_extension":
     "mp4", "download_folder": "", "specific_file_name": "", "file_prefix": "", "quality":
-    "HIGH", "timeout": "", "file_download_path_key": "path_video_download"}'
+    "HIGH", "timeout": "", "file_download_path_key": "path_video_download", "max_retries":
+    3}'
   type: PYTUBE
 - !!python/object:core.task.Task
   input: '{"file_path": "", "file_path_key": "path_video_download", "timeout": 5}'

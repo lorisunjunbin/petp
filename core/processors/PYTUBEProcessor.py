@@ -15,6 +15,7 @@ class PYTUBEProcessor(Processor):
                ',"file_prefix":""' \
                ',"quality":"HIGH|LOW"' \
                ',"file_download_path_key":""' \
+               ',"max_retries":3' \
                ',"timeout":""' \
                '}'
     DESC: str = f''' 
@@ -33,10 +34,11 @@ class PYTUBEProcessor(Processor):
         file_prefix = self.expression2str(self.get_param('file_prefix')) if self.has_param('file_prefix') else None
         quality = self.expression2str(self.get_param('quality')) if self.has_param('quality') else None
         timeout = self.expression2str(self.get_param('timeout')) if self.has_param('timeout') else None
+        max_retries = self.get_param('max_retries') if self.has_param('max_retries') else 0
 
         high_quality = True if 'HIGH' in quality else False
 
-        logging.info('start downloding from'+ video_url)
+        logging.info('start downloding from' + video_url)
 
         yd = YouTube(video_url,
                      on_progress_callback=self._handle_progress,
@@ -52,7 +54,7 @@ class PYTUBEProcessor(Processor):
             output_path=download_folder,
             filename=specific_file_name,
             filename_prefix=file_prefix,
-            max_retries=3,
+            max_retries=max_retries,
             timeout=timeout
         )
 
