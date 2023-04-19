@@ -2,22 +2,22 @@
 execution: ootb_translate_via_youdao
 list:
 - !!python/object:core.task.Task
-  input: '{"url": "https://fanyi.youdao.com/"}'
+  input: '{"url": "https://fanyi.youdao.com/index.html#/"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "id", "identity": "inputOriginal"}'
+  input: '{"clickby": "id", "identity": "js_fanyi_input"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "inputOriginal", "value": "PETP \u662f\u4e00\u4e2aRPA\u81ea\u52a8\u5316\u673a\u5668\u4eba"}'
+  input: '{"keyinby": "id", "identity": "js_fanyi_input", "value": "PETP \u662f\u4e00\u4e2aRPA\u81ea\u52a8\u5316\u673a\u5668\u4eba"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".i-know", "identity_key": "", "wait": 1}'
+  input: '{"clickby": "css", "identity": ".close", "identity_key": "", "wait": 1}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
   input: '{"clickby": "css", "identity": "p > span"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"collectby": "css", "identity": ".show-suggest", "value_type": "any", "value_key":
+  input: '{"collectby": "css", "identity": "p > span", "value_type": "any", "value_key":
     "8606880a-6cfb-4a57-8749-47f214f71e16"}'
   type: FIND_THEN_COLLECT
 - !!python/object:core.task.Task
@@ -26,3 +26,4 @@ list:
 - !!python/object:core.task.Task
   input: '{"chrome_name":"chrome", "skip_in_pipeline":"no"}'
   type: CLOSE_CHROME
+loops: []
