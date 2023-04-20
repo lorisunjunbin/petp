@@ -60,9 +60,12 @@ Windows
 
 ## TO-DO:
 
-- Able to easily create customized processors.
 - Create more [processors](./core/processors)
+    - processor of: chatGPT - https://platform.openai.com/docs/api-reference/introduction
     - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
+
+- Able to easily create customized processors.
+
 
 ## DONE:
 
