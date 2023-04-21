@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from threading import Condition
+from threading import Condition, Thread
 
 import wx
 import wx.dataview
@@ -126,7 +126,7 @@ class PETPPresenter():
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 1, self.row_copied[1])
 
     def _init_cron(self):
-        self.cron = Cron()
+        self.cron = Cron(self.v)
 
     def _load_available_executions(self):
         self.v.executionChooser.AppendItems(Execution.get_available_executions())
@@ -353,9 +353,7 @@ class PETPPresenter():
         if self.v.asCronChecbox.IsChecked() and not self.CRON_INVALID == self.v.cronInput.GetValue():
             self.cron.add_one(self.pipeline)
         else:
-            asyncio.run(
-                self.pipeline.run({"__m": self.m, "__p": self})
-            )
+            Thread(target=self.pipeline.run, args=({"__m": self.m, "__p": self}, self.v), daemon=True).start()
 
     @reload_log_after
     def on_run_execution(self):

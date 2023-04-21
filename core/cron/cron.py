@@ -5,13 +5,17 @@ from datetime import datetime, timedelta
 from croniter import croniter
 from core.cron.runnableascron import RunnAbleAsCron
 
+from threading import Condition, Thread
 
 class Cron:
     runnableAsCron: [RunnAbleAsCron] = []
     runningCron: {str} = set()
+    view: None
+    cond: Condition
 
-    def __init__(self, ):
-        threading.Thread(target=self._loop_worker, daemon=True).start()
+    def __init__(self, view):
+        self.view = view
+        Thread(target=self._loop_worker, daemon=True).start()
 
     def add_one(self, cron: RunnAbleAsCron):
         self.runnableAsCron.append(cron)
@@ -28,6 +32,7 @@ class Cron:
 
     def _loop_worker(self):
         logging.info('cron - loop_worker is running')
+        self.cond = Condition()
         while True:
             if len(self.runnableAsCron) > 0:
                 c: RunnAbleAsCron = self.runnableAsCron.pop(0)
@@ -57,7 +62,7 @@ class Cron:
             roundedDownTime = self._round_down_time()
             if (roundedDownTime == nextRunTime):
                 logging.info(f'Cron - running_as_cron [ {schedule} ] start : {cron.get_name()}')
-                cron.runsync({'running_as_cron': schedule})
+                cron.runsync({'running_as_cron': schedule}, self.view, self.cond)
                 logging.info(f'Cron - running_as_cron [ {schedule} ] done: {cron.get_name()}')
                 nextRunTime = self._get_next_cron_run_time(schedule)
             elif (roundedDownTime > nextRunTime):

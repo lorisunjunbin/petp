@@ -8,6 +8,8 @@ from core.execution import Execution
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
+from threading import Condition
+
 """
 Pipeline 1-n Execution
 """
@@ -19,6 +21,8 @@ class Pipeline(RunnAbleAsCron):
     cronEnabled: bool
     list: list  # item of list: {execution:'', input:''}
 
+    cond: Condition
+
     def __init__(self, pipeline, list, cronEnabled=False, cronExp='0 * * * *'):
 
         self.pipeline = pipeline
@@ -26,11 +30,12 @@ class Pipeline(RunnAbleAsCron):
         self.cronEnabled = cronEnabled
         self.list = list
 
-    async def run(self, initdata={}):
-        self._run(initdata)
+    def run(self, initdata, view):
+        self.cond = Condition()
+        self._run(initdata, self.cond, view)
 
-    def runsync(self, initdata={}):
-        self._run(initdata)
+    def runsync(self, initdata, view, cond):
+        self._run(initdata, cond, view)
 
     def get_name(self):
         return self.pipeline
@@ -41,7 +46,7 @@ class Pipeline(RunnAbleAsCron):
     def get_cron(self):
         return self.cronExp
 
-    def _run(self, initdata={}):
+    def _run(self, initdata, cond, view):
 
         data_chain = initdata | {'run_in_pipeline': 'yes'}
 
@@ -57,7 +62,7 @@ class Pipeline(RunnAbleAsCron):
             logging.info(
                 f'[ {self.pipeline} ]>>{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} >============> Execution {idx}: {execution.execution}')
 
-            data_chain = execution.run(data_chain)
+            data_chain = execution.run(data_chain, cond, view)
 
             logging.info(
                 f'[ {self.pipeline} ]<<{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} <============< Execution {idx}: {execution.execution} < DONE \n')
@@ -69,10 +74,12 @@ class Pipeline(RunnAbleAsCron):
             result = json.loads(executionDic['input'])
             if type(result) is dict:
                 return result
-            logging.warning(f"invalid input {executionDic['input']} for execution: {executionDic['execution']}, will return empty dict.")
+            logging.warning(
+                f"invalid input {executionDic['input']} for execution: {executionDic['execution']}, will return empty dict.")
             return {}
         except:
-            logging.warning(f"invalid input {executionDic['input']} for execution: {executionDic['execution']}, will return empty dict.")
+            logging.warning(
+                f"invalid input {executionDic['input']} for execution: {executionDic['execution']}, will return empty dict.")
             return {}
 
     def _get_file_path(self):

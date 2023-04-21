@@ -3,7 +3,7 @@ cronEnabled: true
 cronExp: '* * * * *'
 list:
 - execution: SEARCH_BANGDOU_ON_BAIDU
-  input: '1234542435'
-- execution: CREATE_IP_FILTER_FILE
-  input: 23123adfadfadf
+  input: '1'
+- execution: ootb_translate_via_youdao
+  input: '3'
 pipeline: TEST_PIPELINE
