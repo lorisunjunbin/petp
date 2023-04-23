@@ -91,6 +91,11 @@ class Processor(object):
         self.task = task
         self.input_param = json.loads(self.task.input)
 
+    def get_param_bool_if_equal(self, name, true_flag='yes'):
+        return True \
+            if self.has_param(name) and true_flag == self.input_param[name].lower() \
+            else False
+
     def get_param(self, name):
         if self.has_param(name):
             return self.input_param[name]

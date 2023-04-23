@@ -1,0 +1,8 @@
+!!python/object:core.execution.Execution
+execution: ootb_find_latest_file_in_folder
+list:
+- !!python/object:core.task.Task
+  input: '{"path_to_find": "/Users/i335607/Downloads", "file_type": ".zip", "found_file_key":
+    "found_file"}'
+  type: FIND_LATEST_FILE
+loops: []

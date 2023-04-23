@@ -748,4 +748,6 @@ class PETPPresenter():
         dlg.SetValue(evt.data['default_value'])
         if dlg.ShowModal() == wx.ID_OK:
             evt.handler(dlg.GetValue())
+        else:
+            evt.handler('')
         dlg.Destroy()
