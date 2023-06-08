@@ -19,10 +19,14 @@ list:
     "timeout": 200, "wait": 1}'
   type: WAIT_FOR
 - !!python/object:core.task.Task
+  input: '{"collectby": "xpath", "identity": "//*[@id=\"main\"]//span[@role=\"button\"]/span[2]/span",
+    "value_type": "text", "value_key": "price_quan_hou"}'
+  type: FIND_THEN_COLLECT
+- !!python/object:core.task.Task
   input: '{"chrome_name":"chrome"}'
   type: GO_BACK
 loops:
 - !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start":4, "task_end":6, "loop_key":"goods_wrapper_collection",
+  loop_attributes: '{"task_start":4, "task_end":7, "loop_key":"goods_wrapper_collection",
     "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
   loop_code: loop-20230608221326

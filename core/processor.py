@@ -6,6 +6,7 @@ from threading import Condition
 
 import cryptocode
 
+from core.loop import Loop
 from core.task import Task
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
@@ -29,6 +30,8 @@ class Processor(object):
     '''
 
     is_in_loop: False
+    current_loop: Loop
+
     task: Task
     input_param: dict
     condition: Condition
@@ -43,10 +46,15 @@ class Processor(object):
 
     def handle_ui_thread_callback(self, given):
         pass
+
+    def set_current_loop(self, loop):
+        self.current_loop = loop
+
+    def get_current_loop(self):
+        return self.current_loop
+
     def set_in_loop(self, is_in_loop):
         self.is_in_loop = is_in_loop
-    def is_in_loop(self):
-        return self.is_in_loop
 
     def set_view(self, view):
         self.view = view
@@ -117,6 +125,27 @@ class Processor(object):
     def get_all_params(self):
         return self.input_param
 
+    def append_data_for_loop(self, k, v):
+        """
+        keep the data @ data_chain[loop_code][current_idx][k] = v
+        """
+        d = self.task.data_chain
+        l = self.get_current_loop()
+        loop_code = l.get_loop_code()
+        loop_index_key = l.get_loop_index_key()
+        current_idx = d[loop_index_key]
+
+        if not loop_code in d:
+            d[loop_code] = {}
+
+        if not current_idx in d[loop_code]:
+            d[loop_code][current_idx] = {}
+
+        d[loop_code][current_idx][k] = v
+
+        logging.info(str(d))
+
+
     def populate_data(self, k, v):
         d = self.task.data_chain
         if k in d:
@@ -179,9 +208,10 @@ class Processor(object):
             return self.get_element_with_wait(chrome, css=identity, timeout=timeout)
         else:
             raise Exception('unsupported by: ' + by)
+
     def get_elements(self, chrome, by: str, identity: str, timeout=200):
         if by == 'xpath':
-            return self.get_elements_by(chrome, xpath=identity, timeout= timeout)
+            return self.get_elements_by(chrome, xpath=identity, timeout=timeout)
         if by == 'css':
             return self.get_elements_by(chrome, css=identity, timeout=timeout)
 

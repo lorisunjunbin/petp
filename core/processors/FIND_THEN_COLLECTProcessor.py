@@ -25,5 +25,8 @@ class FIND_THEN_COLLECTProcessor(Processor):
         if valueCollected is None and value_type  is not None:
             valueCollected = self.get_property_or_attribute(ele, value_type)
 
-        self.populate_data(value_key, valueCollected)
+        if self.is_in_loop:
+            self.append_data_for_loop(value_key, valueCollected)
+        else:
+            self.populate_data(value_key, valueCollected)
 
