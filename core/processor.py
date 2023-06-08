@@ -28,6 +28,7 @@ class Processor(object):
         - give example
     '''
 
+    is_in_loop: False
     task: Task
     input_param: dict
     condition: Condition
@@ -42,6 +43,10 @@ class Processor(object):
 
     def handle_ui_thread_callback(self, given):
         pass
+    def set_in_loop(self, is_in_loop):
+        self.is_in_loop = is_in_loop
+    def is_in_loop(self):
+        return self.is_in_loop
 
     def set_view(self, view):
         self.view = view
@@ -157,6 +162,12 @@ class Processor(object):
 
         return result
 
+    def get_property_or_attribute(self, ele, key):
+        try:
+            return ele.get_property(key)
+        except:
+            return ele.get_attribute(key)
+
     def get_element_by(self, chrome, by: str, identity: str, timeout=200):
         if by == 'id':
             return self.get_element_with_wait(chrome, id=identity, timeout=timeout)
@@ -168,6 +179,21 @@ class Processor(object):
             return self.get_element_with_wait(chrome, css=identity, timeout=timeout)
         else:
             raise Exception('unsupported by: ' + by)
+    def get_elements(self, chrome, by: str, identity: str, timeout=200):
+        if by == 'xpath':
+            return self.get_elements_by(chrome, xpath=identity, timeout= timeout)
+        if by == 'css':
+            return self.get_elements_by(chrome, css=identity, timeout=timeout)
+
+    def get_elements_by(self, chrome, xpath=None, css=None, timeout=200):
+
+        if not xpath == None:
+            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            return SeleniumUtil.find_elements_by_x_path(chrome, xpath)
+
+        if not css == None:
+            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            return SeleniumUtil.find_elements_by_css(chrome, css)
 
     def get_element_with_wait(self, chrome, id=None, xpath=None, link=None, css=None, timeout=200):
         if not id == None:

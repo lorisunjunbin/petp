@@ -14,7 +14,7 @@ class FIND_THEN_COLLECTProcessor(Processor):
         identity = self.get_param('identity')
         ele = self.get_element_by(chrome, collectby, identity)
 
-        valueCollected = ''
+        valueCollected = None
 
         if value_type == 'text':
             valueCollected = ele.text
@@ -22,13 +22,8 @@ class FIND_THEN_COLLECTProcessor(Processor):
         if value_type == 'value':
             valueCollected = ele.get_property('value')
 
-        if value_type == 'any':
-            valueCollected = self.getValue(ele)
+        if valueCollected is None and value_type  is not None:
+            valueCollected = self.get_property_or_attribute(ele, value_type)
 
         self.populate_data(value_key, valueCollected)
 
-    def getValue(self, ele):
-        try:
-            return ele.text
-        except:
-            return ele.get_attribute('value')

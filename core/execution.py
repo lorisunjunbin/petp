@@ -74,6 +74,7 @@ class Execution(object):
             processor.set_task(task)
             processor.set_condition(condition)
             processor.set_view(view)
+            processor.set_in_loop(is_loop_execution)
 
             logging.info(f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
             logging.info(f'process start: {task.input}')
