@@ -25,8 +25,12 @@ list:
 - !!python/object:core.task.Task
   input: '{"chrome_name":"chrome"}'
   type: GO_BACK
+- !!python/object:core.task.Task
+  input: '{"title": "\u5faa\u73af\u6536\u96c6\u4e0b\u6765\u7684\u6570\u636e", "msg":
+    "{self.get_data(\"loop-20230608221326\")}"}'
+  type: SHOW_RESULT
 loops:
 - !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start":4, "task_end":7, "loop_key":"goods_wrapper_collection",
+  loop_attributes: '{"task_start":4, "task_end":8, "loop_key":"goods_wrapper_collection",
     "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
   loop_code: loop-20230608221326
