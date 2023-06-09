@@ -20,7 +20,7 @@ class SeleniumUtil:
     @staticmethod
     def get_chrome_keys():
         result = list(filter(lambda k: not k[0].startswith('__'), Keys.__dict__.copy().items()))
-        #logging.info(f'Supported keys: {str(result)}')
+        # logging.info(f'Supported keys: {str(result)}')
         return result
 
     @staticmethod
@@ -39,7 +39,7 @@ class SeleniumUtil:
 
         caps = DesiredCapabilities.CHROME.copy()
         caps['goog:loggingPrefs'] = {'performance': 'ALL'}
-        driver: WebDriver = webdriver.Chrome(executable_path=wdpath, chrome_options=options, desired_capabilities=caps)
+        driver: WebDriver = webdriver.Chrome(chrome_options=options, desired_capabilities=caps)
         return driver
 
     @staticmethod
@@ -62,7 +62,7 @@ class SeleniumUtil:
 
         options.add_experimental_option("prefs", prefs)
 
-        return webdriver.Chrome(executable_path=wdpath, options=options)
+        return webdriver.Chrome(options=options)
 
     """ UI 5 specific"""
 
@@ -85,7 +85,7 @@ class SeleniumUtil:
     @staticmethod
     def remove_footer(chrome):
         SeleniumUtil.call_js(chrome,
-                            "var fts = document.getElementsByTagName('footer'); if(!!fts && fts.length > 0) fts[0].remove();")
+                             "var fts = document.getElementsByTagName('footer'); if(!!fts && fts.length > 0) fts[0].remove();")
 
     """ Common """
 
@@ -141,7 +141,7 @@ class SeleniumUtil:
     @staticmethod
     def find_elements_by_x_path(chrome, xpath):
         logging.info('find_elements_by_x_path:' + xpath)
-        return chrome.find_elements(By.XPATH,xpath)
+        return chrome.find_elements(By.XPATH, xpath)
 
     @staticmethod
     def find_element_by_x_path(chrome, xpath):
@@ -337,10 +337,10 @@ class SeleniumUtil:
     @staticmethod
     def screenshot_with_crop(chrome, left, top, right, bottom, filepath, tmppic_path, show=False, format=None):
         chrome.save_screenshot(tmppic_path)
-        SeleniumUtil.image_crop(tmppic_path,filepath, left, top, right, bottom, show, format)
+        SeleniumUtil.image_crop(tmppic_path, filepath, left, top, right, bottom, show, format)
 
     @staticmethod
-    def image_crop(filepath,targetpath, x, y, x2, y2, show=False, format=None):
+    def image_crop(filepath, targetpath, x, y, x2, y2, show=False, format=None):
         im = Image.open(filepath)
         im = im.crop((x, y, x2, y2))
         logging.info('image_crop file:' + filepath + ' [left:' + str(x) + ', top:' + str(y) + ', right:' + str(
@@ -372,7 +372,8 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_id_visible:" + eleId)
             return chrome
         except:
-            logging.error(f"wait_for_element_id_visible - fail to wait within {to} seconds, associated with eleId:" + eleId)
+            logging.error(
+                f"wait_for_element_id_visible - fail to wait within {to} seconds, associated with eleId:" + eleId)
             return None
 
     @staticmethod

@@ -9,6 +9,7 @@ import wx.lib.colourutils
 import subprocess
 import logging
 
+from openpyxl.worksheet._read_only import ReadOnlyWorksheet
 from openpyxl.worksheet.worksheet import Worksheet
 
 from utils.DateUtil import DateUtil
@@ -24,11 +25,7 @@ class ExcelUtil:
         """
         # figure out which columns should be kept
         first_row = data[0]
-        column_idx: [int] = []
-        for f_idx, field in enumerate(fields):
-            for c_idx, cell in enumerate(first_row):
-                if field == cell:
-                    column_idx.append(c_idx)
+        column_idx = ExcelUtil.find_column_index_arr_via_fields(first_row, fields)
 
         logging.info('fields:' + str(fields) + ' @column: ' + str(column_idx))
 
@@ -42,6 +39,15 @@ class ExcelUtil:
             data_filtered.append(new_row)
 
         return data_filtered
+
+    @staticmethod
+    def find_column_index_arr_via_fields(first_row: [], fields: [str] = []):
+        column_idx: [int] = []
+        for f_idx, field in enumerate(fields):
+            for c_idx, cell in enumerate(first_row):
+                if field == cell:
+                    column_idx.append(c_idx)
+        return column_idx
 
     @staticmethod
     def get_data_from_csv(csvFilePath, skipFirst=False, dlr='\t'):
@@ -116,6 +122,43 @@ class ExcelUtil:
         logging.info(f'get_data_from_excel_file load {len(result)} records from file: {fileName} ')
 
         return result
+
+    @staticmethod
+    def get_data_from_excel_file_by_fields(fileName, sheet_index=0, startAtRow=0, fields=[]):
+        result = []
+        wb = load_workbook(filename=fileName, read_only=True)
+        ws: ReadOnlyWorksheet = wb.worksheets[sheet_index]
+        logging.info(f'type is: {type(ws)}')
+        column_indexes = ExcelUtil.find_column_index_arr_via_fields(ExcelUtil.get_first_row(ws), fields)
+
+        for row in ws.iter_rows(min_row=startAtRow + 1, max_row=ws.max_row):
+            cells = []
+
+            if len(column_indexes) > 0:
+                for c_idx in column_indexes:
+                    if row[c_idx] is not None:
+                        cells.append(str(row[c_idx].value))
+                    else:
+                        cells.append('')
+
+                if (len(cells) > 0):
+                    result.append(cells)
+            else:
+                break
+
+        logging.info(f'get_data_from_excel_file_by_fields load {len(result)} records from file: {fileName} ')
+
+        return result
+
+    @staticmethod
+    def get_first_row(work_sheet):
+        first_row = []
+        cur_row = 1
+        for row in work_sheet.iter_rows(min_row=1, max_row=1, values_only=True):
+            for cell in row:
+                first_row.append(str(cell))
+            break
+        return first_row
 
     @staticmethod
     def generate_file(fullFilePath, data=[], anyway=True):
