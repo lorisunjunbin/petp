@@ -23,8 +23,8 @@ class FIND_THEN_CLICKProcessor(Processor):
         super().extra_wait()
 
         try:
-            SeleniumUtil.move_to_ele_then_click(chrome, ele)
-            # ele.click()
+            ele.click()
             logging.info('click: ' + identity)
         except Exception as ex:
             logging.info('move to click: ' + identity)
+            SeleniumUtil.move_to_ele_then_click(chrome, ele)
