@@ -5,7 +5,11 @@ list:
   input: '{"url": "https://mobile.yangkeduo.com/brand_activity_subsidy.html?_pdd_fs=1&_pdd_tc=ffffff&_pdd_sbs=1&cpsSign=CE_230410_9987363_194261946_8fdd18a478e911db6e25768e40fb0490&duoduo_type=2&pid=9987363_194261946&_x_ddjb_id=9987363_194261946%7CCE_230410_9987363_194261946_8fdd18a478e911db6e25768e40fb0490%7C39996&refer_page_name=duo_transfer_channel&refer_page_sn=11572&refer_page_id=11572_1686139280310_p3wwe7c257&_x_ddjb_act=%7B%22st%22%3A%226%22%7D"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"x": -1, "y": -1, "vertical": -2000, "wait": 5, "x_from": "mouse_at_x",
+  input: '{"x": 134, "y": -243, "vertical": -1000, "wait": 2, "x_from": "mouse_at_x",
+    "y_from": "mouse_at_y"}'
+  type: MOUSE_SCROLL
+- !!python/object:core.task.Task
+  input: '{"x": 166, "y": -243, "vertical": 968, "wait": 1, "x_from": "mouse_at_x",
     "y_from": "mouse_at_y"}'
   type: MOUSE_SCROLL
 - !!python/object:core.task.Task
@@ -15,6 +19,10 @@ list:
 - !!python/object:core.task.Task
   input: '{"title": "\u627e\u5230\u7684SPU\u96c6\u5408\uff1a", "msg": "{self.get_data(\"goods_wrapper_collection\")}"}'
   type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"x_from": "mouse_at_x", "y_from": "mouse_at_y", "x": -1, "y": -1, "vertical":
+    2, "wait": 5}'
+  type: MOUSE_SCROLL
 - !!python/object:core.task.Task
   input: '{"clickby": "id", "identity_key": "loop_item", "wait": 3}'
   type: FIND_THEN_CLICK
@@ -33,14 +41,18 @@ list:
     "value_type": "text", "value_key": "price_quan_hou", "wait": 2}'
   type: FIND_THEN_COLLECT
 - !!python/object:core.task.Task
-  input: '{"chrome_name":"chrome"}'
-  type: GO_BACK
-- !!python/object:core.task.Task
   input: '{"title": "\u5faa\u73af\u6536\u96c6\u4e0b\u6765\u7684\u6570\u636e", "msg":
     "{self.get_data(\"loop-20230608221326\")}"}'
   type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"chrome_name":"chrome"}'
+  type: GO_BACK
+- !!python/object:core.task.Task
+  input: '{"x": 134, "y": -243, "vertical": -10, "wait": 2, "x_from": "mouse_at_x",
+    "y_from": "mouse_at_y"}'
+  type: MOUSE_SCROLL
 loops:
 - !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start":4, "task_end":10, "loop_key":"goods_wrapper_collection",
+  loop_attributes: '{"task_start":6, "task_end":14, "loop_key":"goods_wrapper_collection",
     "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
   loop_code: loop-20230608221326
