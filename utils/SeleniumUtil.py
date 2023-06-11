@@ -14,12 +14,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from utils.OSUtils import OSUtils
 
 
+
+
 class SeleniumUtil:
+    """
+
+    TODO: clean up and refine this method.
+
+    """
 
     @staticmethod
     def get_chrome_keys():
         result = list(filter(lambda k: not k[0].startswith('__'), Keys.__dict__.copy().items()))
-        # logging.info(f'Supported keys: {str(result)}')
         return result
 
     @staticmethod
@@ -48,9 +54,6 @@ class SeleniumUtil:
 
     @staticmethod
     def ui5_change_checkbox(chrome, checkboxid, trueOrFalse):
-        # sap.ui.getCore().byId('idCommentTable-sa').setSelected(false)
-        # SeleniumUtil.call_js(chrome, 'sap.ui.getCore().byId("' + checkboxid + '").setSelected(' + trueOrFalse + '); ')
-
         SeleniumUtil.call_js(chrome, 'sap.ui.getCore().byId("' + checkboxid + '").setSelected(' + trueOrFalse + '); ')
 
     @staticmethod
@@ -59,7 +62,6 @@ class SeleniumUtil:
 
     @staticmethod
     def ui5_click_button(chrome, buttonId):
-        # sap.ui.getCore().byId('__button11').firePress()
         SeleniumUtil.call_js(chrome, 'sap.ui.getCore().byId("' + buttonId + '").firePress();')
 
     @staticmethod
@@ -462,19 +464,6 @@ class SeleniumUtil:
         return chrome
 
     @staticmethod
-    def get_element_by(chrome, by: str, identity: str, timeout=200):
-        if by == 'id':
-            return SeleniumUtil.get_element_with_wait(chrome, id=identity, timeout=timeout)
-        elif by == 'xpath':
-            return SeleniumUtil.get_element_with_wait(chrome, xpath=identity, timeout=timeout)
-        elif by == 'link':
-            return SeleniumUtil.get_element_with_wait(chrome, link=identity, timeout=timeout)
-        elif by == 'css':
-            return SeleniumUtil.get_element_with_wait(chrome, css=identity, timeout=timeout)
-        else:
-            raise Exception('unsupported by: ' + by)
-
-    @staticmethod
     def get_elements(chrome, by: str, identity: str, timeout=200):
         if by == 'xpath':
             return SeleniumUtil.get_elements_by(chrome, xpath=identity, timeout=timeout)
@@ -491,6 +480,19 @@ class SeleniumUtil:
         if not css == None:
             SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
             return SeleniumUtil.find_elements_by_css(chrome, css)
+
+    @staticmethod
+    def get_element_by(chrome, by: str, identity: str, timeout=200):
+        if by == 'id':
+            return SeleniumUtil.get_element_with_wait(chrome, id=identity, timeout=timeout)
+        elif by == 'xpath':
+            return SeleniumUtil.get_element_with_wait(chrome, xpath=identity, timeout=timeout)
+        elif by == 'link':
+            return SeleniumUtil.get_element_with_wait(chrome, link=identity, timeout=timeout)
+        elif by == 'css':
+            return SeleniumUtil.get_element_with_wait(chrome, css=identity, timeout=timeout)
+        else:
+            raise Exception('unsupported by: ' + by)
 
     @staticmethod
     def get_element_with_wait(chrome, id=None, xpath=None, link=None, css=None, timeout=200):
