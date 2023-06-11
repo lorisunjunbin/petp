@@ -29,7 +29,7 @@ class FILE_CHOOSERProcessor(Processor):
         fileuploadby = self.get_param('fileuploadby')
         identity = self.expression2str(self.get_param('identity'))
         filepath = self.get_data_by_param_default_param('filepath_key', 'filepath')
-        ele = self.get_element_by(chrome, fileuploadby, identity)
+        ele = SeleniumUtil.get_element_by(chrome, fileuploadby, identity)
 
         try:
             SeleniumUtil.move_to_ele_then_click(chrome, ele)

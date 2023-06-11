@@ -5,15 +5,16 @@ list:
   input: '{"url": "https://docs.python.org/3/"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".related:nth-child(1) input:nth-child(1)"}'
+  input: '{"clickby": "xpath", "identity": "/html/body/div[2]/ul/li[9]/div/form/input[1]"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": ".related:nth-child(1) input:nth-child(1)",
+  input: '{"keyinby": "xpath", "identity": "/html/body/div[2]/ul/li[9]/div/form/input[1]",
     "value": "python list comprehension"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".related:nth-child(1) input:nth-child(2)"}'
+  input: '{"clickby": "xpath", "identity": "/html/body/div[2]/ul/li[9]/div/form/input[2]"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": "li:nth-child(6) > a"}'
+  input: '{"clickby": "xpath", "identity": "//input[@type=\"submit\"]", "wait": 5}'
   type: FIND_THEN_CLICK
+loops: []

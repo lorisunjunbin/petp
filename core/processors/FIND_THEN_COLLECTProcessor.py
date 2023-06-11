@@ -1,4 +1,5 @@
 from core.processor import Processor
+from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_COLLECTProcessor(Processor):
@@ -12,7 +13,7 @@ class FIND_THEN_COLLECTProcessor(Processor):
         value_type = self.get_param('value_type')
         value_key = self.get_param('value_key')
         identity = self.get_param('identity')
-        ele = self.get_element_by(chrome, collectby, identity)
+        ele = SeleniumUtil.get_element_by(chrome, collectby, identity)
 
         valueCollected = None
 

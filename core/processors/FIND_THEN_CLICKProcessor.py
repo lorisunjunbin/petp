@@ -18,7 +18,7 @@ class FIND_THEN_CLICKProcessor(Processor):
         clickby = self.get_param('clickby')
         identity = self.get_data(self.get_param('identity_key')) if self.has_param('identity_key') \
             else self.get_param('identity')
-        ele = self.get_element_by(chrome, clickby, identity)
+        ele = SeleniumUtil.get_element_by(chrome, clickby, identity)
 
         super().extra_wait()
 

@@ -11,8 +11,6 @@ from core.task import Task
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
-from utils.SeleniumUtil import SeleniumUtil
-
 
 class Processor(object):
     SEPARATOR: str = '|'
@@ -196,63 +194,6 @@ class Processor(object):
             return ele.get_property(key)
         except:
             return ele.get_attribute(key)
-
-    def get_element_by(self, chrome, by: str, identity: str, timeout=200):
-        if by == 'id':
-            return self.get_element_with_wait(chrome, id=identity, timeout=timeout)
-        elif by == 'xpath':
-            return self.get_element_with_wait(chrome, xpath=identity, timeout=timeout)
-        elif by == 'link':
-            return self.get_element_with_wait(chrome, link=identity, timeout=timeout)
-        elif by == 'css':
-            return self.get_element_with_wait(chrome, css=identity, timeout=timeout)
-        else:
-            raise Exception('unsupported by: ' + by)
-
-    def get_elements(self, chrome, by: str, identity: str, timeout=200):
-        if by == 'xpath':
-            return self.get_elements_by(chrome, xpath=identity, timeout=timeout)
-        if by == 'css':
-            return self.get_elements_by(chrome, css=identity, timeout=timeout)
-
-    def get_elements_by(self, chrome, xpath=None, css=None, timeout=200):
-
-        if not xpath == None:
-            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
-            return SeleniumUtil.find_elements_by_x_path(chrome, xpath)
-
-        if not css == None:
-            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
-            return SeleniumUtil.find_elements_by_css(chrome, css)
-
-    def get_element_with_wait(self, chrome, id=None, xpath=None, link=None, css=None, timeout=200):
-        if not id == None:
-            SeleniumUtil.wait_for_element_id_presence(chrome, id, timeout)
-            ele = SeleniumUtil.find_element_by_id(chrome, id)
-            SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_id_visible(chrome, id, timeout)
-            return SeleniumUtil.find_element_by_id(chrome, id)
-
-        if not xpath == None:
-            SeleniumUtil.wait_for_element_xpath_presence(chrome, xpath, timeout)
-            ele = SeleniumUtil.find_element_by_x_path(chrome, xpath)
-            SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
-            return SeleniumUtil.find_element_by_x_path(chrome, xpath)
-
-        if not link == None:
-            SeleniumUtil.wait_for_element_link_presence(chrome, link, timeout)
-            ele = SeleniumUtil.find_element_by_link(chrome, link)
-            SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_link_visible(chrome, link, timeout)
-            return SeleniumUtil.find_element_by_link(chrome, link)
-
-        if not css == None:
-            SeleniumUtil.wait_for_element_css_presence(chrome, css, timeout)
-            ele = SeleniumUtil.find_element_by_css(chrome, css)
-            SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
-            return SeleniumUtil.find_element_by_css(chrome, css)
 
     def expression2str(self, expression):
         if not expression is None and len(expression) > 0:

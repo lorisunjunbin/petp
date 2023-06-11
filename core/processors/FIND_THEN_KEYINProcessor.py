@@ -26,7 +26,7 @@ class FIND_THEN_KEYINProcessor(Processor):
         keyinby = self.get_param('keyinby')
         identity = self.get_param('identity')
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
-        ele = self.get_element_by(chrome, keyinby, identity)
+        ele = SeleniumUtil.get_element_by(chrome, keyinby, identity)
         super().extra_wait()
         # to build chrome default support keys that match to selenium IDE recording.
         avaliable_keys = {}

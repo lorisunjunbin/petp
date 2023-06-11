@@ -7,7 +7,6 @@ from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -22,25 +21,6 @@ class SeleniumUtil:
         result = list(filter(lambda k: not k[0].startswith('__'), Keys.__dict__.copy().items()))
         # logging.info(f'Supported keys: {str(result)}')
         return result
-
-    @staticmethod
-    def get_webdriver4_chrome_with_performance_tracing():
-        wdpath = os.path.realpath('webdriver') + '/' + OSUtils.get_sytem() + '/chromedriver'
-        down_path = os.path.realpath('download')
-
-        options = webdriver.ChromeOptions()
-        options.add_argument("--start-maximized")
-
-        prefs = {"profile.default_content_settings.popups": 0,
-                 "download.default_directory": down_path,
-                 "directory_upgrade": True}
-
-        options.add_experimental_option("prefs", prefs)
-
-        caps = DesiredCapabilities.CHROME.copy()
-        caps['goog:loggingPrefs'] = {'performance': 'ALL'}
-        driver: WebDriver = webdriver.Chrome(chrome_options=options, desired_capabilities=caps)
-        return driver
 
     @staticmethod
     def is_web_driver(chrome) -> bool:
@@ -480,3 +460,64 @@ class SeleniumUtil:
         else:
             logging.info(f'fn return false, skip click on: {xpath}')
         return chrome
+
+    @staticmethod
+    def get_element_by(chrome, by: str, identity: str, timeout=200):
+        if by == 'id':
+            return SeleniumUtil.get_element_with_wait(chrome, id=identity, timeout=timeout)
+        elif by == 'xpath':
+            return SeleniumUtil.get_element_with_wait(chrome, xpath=identity, timeout=timeout)
+        elif by == 'link':
+            return SeleniumUtil.get_element_with_wait(chrome, link=identity, timeout=timeout)
+        elif by == 'css':
+            return SeleniumUtil.get_element_with_wait(chrome, css=identity, timeout=timeout)
+        else:
+            raise Exception('unsupported by: ' + by)
+
+    @staticmethod
+    def get_elements(chrome, by: str, identity: str, timeout=200):
+        if by == 'xpath':
+            return SeleniumUtil.get_elements_by(chrome, xpath=identity, timeout=timeout)
+        if by == 'css':
+            return SeleniumUtil.get_elements_by(chrome, css=identity, timeout=timeout)
+
+    @staticmethod
+    def get_elements_by(chrome, xpath=None, css=None, timeout=200):
+
+        if not xpath == None:
+            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            return SeleniumUtil.find_elements_by_x_path(chrome, xpath)
+
+        if not css == None:
+            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            return SeleniumUtil.find_elements_by_css(chrome, css)
+
+    @staticmethod
+    def get_element_with_wait(chrome, id=None, xpath=None, link=None, css=None, timeout=200):
+        if not id == None:
+            SeleniumUtil.wait_for_element_id_presence(chrome, id, timeout)
+            ele = SeleniumUtil.find_element_by_id(chrome, id)
+            SeleniumUtil.move_to_ele(chrome, ele)
+            SeleniumUtil.wait_for_element_id_visible(chrome, id, timeout)
+            return SeleniumUtil.find_element_by_id(chrome, id)
+
+        if not xpath == None:
+            SeleniumUtil.wait_for_element_xpath_presence(chrome, xpath, timeout)
+            ele = SeleniumUtil.find_element_by_x_path(chrome, xpath)
+            SeleniumUtil.move_to_ele(chrome, ele)
+            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            return SeleniumUtil.find_element_by_x_path(chrome, xpath)
+
+        if not link == None:
+            SeleniumUtil.wait_for_element_link_presence(chrome, link, timeout)
+            ele = SeleniumUtil.find_element_by_link(chrome, link)
+            SeleniumUtil.move_to_ele(chrome, ele)
+            SeleniumUtil.wait_for_element_link_visible(chrome, link, timeout)
+            return SeleniumUtil.find_element_by_link(chrome, link)
+
+        if not css == None:
+            SeleniumUtil.wait_for_element_css_presence(chrome, css, timeout)
+            ele = SeleniumUtil.find_element_by_css(chrome, css)
+            SeleniumUtil.move_to_ele(chrome, ele)
+            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            return SeleniumUtil.find_element_by_css(chrome, css)

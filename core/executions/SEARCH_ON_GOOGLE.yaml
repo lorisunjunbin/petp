@@ -5,9 +5,11 @@ list:
   input: '{"url":"https://www.google.com/"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: "{\"keyinby\":\"xpath\", \"identity\":\"//input[contains(@name, 'q')]\",
-    \"value\":\"\u68D2\u8C46\u513F\"}"
+  input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
+    "\u4e2b\u68d2\u8c46\u513f"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby":"xpath", "identity":"//input[contains(@name, ''q'')]", "value":"{KEY_ENTER}"}'
+  input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
+    "{KEY_ENTER}"}'
   type: FIND_THEN_KEYIN
+loops: []

@@ -5,8 +5,9 @@ list:
   input: '{"url":"http://www.baidu.com"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: "{\"keyinby\":\"id\", \"identity\":\"kw\", \"value\":\"\u68D2\u8C46\u513F\"}"
+  input: '{"keyinby": "id", "identity": "kw", "value": "\u4e2b\u68d2\u8c46\u513f"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
   input: '{"clickby":"id", "identity":"su"}'
   type: FIND_THEN_CLICK
+loops: []

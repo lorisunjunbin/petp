@@ -1,4 +1,5 @@
 from core.processor import Processor
+from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_MULTI_THEN_COLLECTProcessor(Processor):
@@ -13,7 +14,7 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
         value_key = self.get_param('value_key')
         identity = self.get_param('identity')
 
-        elements = self.get_elements(chrome, collectby, identity)
+        elements = SeleniumUtil.get_elements(chrome, collectby, identity)
 
         valueCollection = []
 

@@ -11,5 +11,6 @@ list:
   input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "RPA robot"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".search-btn"}'
+  input: '{"identity": ".main-hero-section__search-btn", "clickby": "css"}'
   type: FIND_THEN_CLICK
+loops: []

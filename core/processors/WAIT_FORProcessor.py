@@ -1,6 +1,6 @@
 import logging
 from core.processor import Processor
-
+from utils.SeleniumUtil import SeleniumUtil
 
 
 class WAIT_FORProcessor(Processor):
@@ -18,6 +18,6 @@ class WAIT_FORProcessor(Processor):
         identity = self.get_data(self.get_param('identity_key')) if self.has_param('identity_key') \
             else self.get_param('identity')
 
-        ele = self.get_element_by(chrome, waitfor, identity, timeout)
+        ele = SeleniumUtil.get_element_by(chrome, waitfor, identity, timeout)
         super().extra_wait()
         logging.info('wait for ele: ' + str(ele))
