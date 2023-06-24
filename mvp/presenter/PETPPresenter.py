@@ -1,7 +1,7 @@
-import asyncio
+import json
 import json
 import logging
-from threading import Condition, Thread
+from threading import Thread
 
 import wx
 import wx.dataview
