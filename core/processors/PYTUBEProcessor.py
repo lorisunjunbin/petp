@@ -1,5 +1,5 @@
 import logging
-
+import ssl
 from core.processor import Processor
 from pytube import YouTube
 
@@ -39,6 +39,8 @@ class PYTUBEProcessor(Processor):
         high_quality = True if 'HIGH' in quality else False
 
         logging.info('start downloding from' + video_url)
+
+        ssl._create_default_https_context = ssl._create_unverified_context
 
         yd = YouTube(video_url,
                      on_progress_callback=self._handle_progress,
