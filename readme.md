@@ -119,7 +119,11 @@ Windows
 > pip install --force-reinstall wxPython-4.2.1a1.dev5545+a3b6cfec-cp310-cp310-macosx_10_10_universal2.whl
 
 > pip install --force-reinstall wxPython-4.2.2a1.dev5590+a5bb3d9b-cp311-cp311-macosx_10_10_universal2.whl
- 
+
+> pip install --force-reinstall wxPython-4.2.2a1.dev5613+83db65a2-cp311-cp311-macosx_10_10_universal2.whl
+
+> pip install --force-reinstall wxPython-4.2.2a1.dev5622+e4fd9a3e-cp311-cp311-macosx_10_10_universal2.whl
+
 - Link python 3
 
 > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
