@@ -1,0 +1,20 @@
+!!python/object:core.execution.Execution
+execution: get_log_from_centos
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "Please Input Info", "msg": "root password", "value_key": "root_pwd",
+    "default_value": ""}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"sftp_ip": "47.122.4.142", "sftp_port": 22, "uname": "root", "pwd": "{self.get_data(\"root_pwd\")}",
+    "sftp_client_key": "sftpclient"}'
+  type: CREATE_SFTP_CLIENT
+- !!python/object:core.task.Task
+  input: '{"from_remote": "/www/jtools/logs/sfsmal2.log", "to_local": "D:/LoriDownload/sfsmal2.log",
+    "sftp_client_key": "sftpclient", "sftp_get_file_key": "sftp_get_back_log", "close_after_run":
+    "yes"}'
+  type: RUN_SFTP_GET
+- !!python/object:core.task.Task
+  input: '{"file_path_key": "sftp_get_back_log", "timeout": 10}'
+  type: OPEN_FILE
+loops: []
