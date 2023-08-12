@@ -92,7 +92,7 @@ class ExcelUtil:
     @staticmethod
     def get_data_from_excel_file(fileName, startAtRow=0, endAtColumn=50, sheet_index=0):
         result = []
-        wb = load_workbook(filename=fileName, read_only=True)
+        wb = load_workbook(filename=fileName, read_only=True, data_only=True)
         ws = wb.worksheets[sheet_index]
         for idx_row, row in enumerate(ws.rows):
             if idx_row >= startAtRow:
