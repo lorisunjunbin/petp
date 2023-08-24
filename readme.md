@@ -105,8 +105,8 @@ Windows
 
 ## tips:
 
-- Upgrade [chromedriver](https://chromedriver.chromium.org/downloads) if got error of mismatched version (selenium task
-  only).
+- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) if got error of mismatched version (selenium task
+  only).  Deprecated web-site: https://chromedriver.chromium.org/downloads/version-selection
 
 - Install Wxpython snapshot
 
