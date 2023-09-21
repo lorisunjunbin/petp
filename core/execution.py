@@ -1,10 +1,13 @@
 import logging
 import os
 
+import wx
+
 from core.definition.yamlro import YamlRO
 from core.loop import Loop
 from core.processor import Processor
 from core.task import Task
+from mvp.presenter.event.PETPEvent import PETPEvent
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
@@ -80,11 +83,13 @@ class Execution(object):
 
             logging.info(f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
             logging.info(f'process start: {task.input}')
+            wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
 
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
             logging.info(f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""} Done \n')
+            wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
             # process end ----
 
             if is_loop_end:

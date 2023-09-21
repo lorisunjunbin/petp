@@ -374,7 +374,7 @@ class PETPPresenter():
         for executor in self.executors:
             if executor.is_alive():
                 executor.execution.should_be_stop = True
-                # executor.join()
+                logging.info(f'Execution: [ {executor.execution.execution} ] is manually stopping.')
 
         self.executors = []
 

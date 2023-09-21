@@ -7,7 +7,7 @@ class PETPEvent(wx.PyEvent):
     START = 88880003
     OPEN_INPUT_DIALOG = 88880004
 
-    def __init__(self, etype, data, handler=None):
+    def __init__(self, etype, data=None, handler=None):
         wx.PyEvent.__init__(self)
         self.SetEventType(etype)
         self.data = data
