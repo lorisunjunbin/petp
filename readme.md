@@ -1,9 +1,9 @@
 # ![image](./image/petp_small.png) PET-P
 
-This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by python, friendly for
+This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by Python, friendly for
 DevOps, and automation tests.
 
-**PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, pipeline may combine multiple
+**PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, the pipeline may combine multiple
 executions,
 and each one contains various tasks. The last **P** means processor, which handles the specific task one-to-one.
 
@@ -13,19 +13,19 @@ and each one contains various tasks. The last **P** means processor, which handl
 
 ## What-Can-Do:
 
-    Orchestrate below available task(s) as Execution, dataset based loop and time based loop. 
-    Combine Execution(s) as Pipline, run once or as cron.
+    Orchestrate below available task(s) as Execution, dataset-based loop and time-based loop. 
+    Combine Execution(s) as pipeline, run once, or as cron.
 
     - Browser-related tasks by selenium, able to covert selenium IDE recording to PETP tasks.
     - SSH/SFTP tasks(paramiko)
     - HTML/XML parser(beautiful soup)
     - File-related tasks, open/write/move/delete/etc.
-    - Read records from csv/excel
+    - Read records from CSV/Excel
     - Send email
-    - Send http request
+    - Send HTTP request
     - Input dialog / Show message
     - Mouse click/scroll(pyautogui)
-    - Database CRUD, mysql supported(Hana/postgresql is coming soon)
+    - Database CRUD for MySQL, Hana, Postgres
 
 MacOS
 
@@ -47,7 +47,7 @@ Windows
     2, Install dependencies
     > pip install -r requirements.txt
     OR 
-    2,Install dependencies one by one 
+    2, Install dependencies one by one 
     > pip install selenium
     > pip install wxpython
     > pip install ...other listed in requirements.txt, install without cache:  --no-cache-dir 
@@ -55,19 +55,21 @@ Windows
     3, Run: 
     > python PETP.py
 
-    4, Still not running? most of the issue is missing dependiceis xxx, pls install xxx accordingly.
+    4, Still not running? most of the issue is missing dependencies xxx, pls install xxx accordingly.
     > pip install xxx
 
 ## TO-DO:
 
 - Create more [processors](./core/processors)
-    - processor of: chatGPT - https://platform.openai.com/docs/api-reference/introduction
-    - processor of: Pillow - https://pillow.readthedocs.io/en/stable/
+    - processor of chatGPT - https://platform.openai.com/docs/api-reference/introduction
+    - processor of Pillow - https://pillow.readthedocs.io/en/stable/
 
 - Able to easily create customized processors.
 
 
 ## DONE:
+
+2023-09: DB_ACCESSProcessor supports databases: Mysql, Postgres, Hana
 
 2023-04: PYTUBEProcessor, download youtube videos.
 
@@ -85,9 +87,9 @@ Windows
 
 2022-07: Update to Selenium 4.3.0
 
-2022-06: Update to python 3.10 and wxpython 4.1.2.
+2022-06: Update to Python 3.10 and wxpython 4.1.2.
 
-2022-05: Mac m1 cpu, fix wxpython install issue, pack and build wheel locally.
+2022-05: Mac m1 CPU, fix wxpython install issue, pack and build wheel locally.
 
 2022-04-06: ZIPProcessor, verified under Windows.
 
@@ -105,12 +107,12 @@ Windows
 
 ## tips:
 
-- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) if got error of mismatched version (selenium task
-  only).  Deprecated web-site: https://chromedriver.chromium.org/downloads/version-selection
+- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) if you get an error of mismatched version (selenium task
+  only).  Deprecated website: https://chromedriver.chromium.org/downloads/version-selection
 
 - Install Wxpython snapshot
 
-> Downloan from https://wxpython.org/Phoenix/snapshot-builds/
+> Download from https://wxpython.org/Phoenix/snapshot-builds/
 
 > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-win_amd64.whl
 
