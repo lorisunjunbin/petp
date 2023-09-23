@@ -12,6 +12,16 @@ import psycopg
  https://www.psycopg.org/psycopg3/docs/api/connections.html#the-connection-class
  https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-PARAMKEYWORDS
  https://www.psycopg.org/psycopg3/docs/basic/params.html#query-parameters
+ 
+ > .\psql.exe -d postgres -U postgres
+ > \l
+ > \c lorisunjunbin
+ > \dt
+ > \d+ userstore
+
+
+create database lorisunjunbin;
+create table userstore (id serial primary key, name varchar(100));
 
 '''
 
