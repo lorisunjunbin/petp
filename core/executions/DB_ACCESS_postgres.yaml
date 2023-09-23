@@ -1,0 +1,13 @@
+!!python/object:core.execution.Execution
+execution: DB_ACCESS_postgres
+list:
+- !!python/object:core.task.Task
+  input: '{"host": "127.0.0.1", "port": "5432", "database": "lorisunjunbin", "user":
+    "postgres", "pwd": "{self.decrypt(\"4JxyVSuaq10=*TQvvnHAJtN6hwwg5sVhYDQ==*1Ak4xCNDgpINJlJFTEjbwA==*5DnLtgfkYRzfxMuB5bRcLg==\")}",
+    "sql": "select * from userstore where id > %s", "data_key": "dataset1", "param":
+    "1", "type": "Postgres"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset1\")}"}'
+  type: SHOW_RESULT
+loops: []

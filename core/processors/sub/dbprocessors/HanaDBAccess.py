@@ -8,16 +8,11 @@ from hdbcli import dbapi
 
 '''
 pip install hdbcli
-    
-    type: com.zaxxer.hikari.HikariDataSource
-    jdbcUrl: jdbc:sap://10.1.19.205:30015?databaseName=HAD&currentschema=ARIBA_EXT_D&reconnect=true
-    username: ARIBA_EXT_D
-    password: Min12#Ext5@
-    driverClassName: com.sap.db.jdbc.Driver
      
 refer to: 
 https://pypi.org/project/hdbcli/
 https://help.sap.com/docs/SAP_HANA_CLIENT/f1b440ded6144a54ada97ff95dac7adf/39eca89d94ca464ca52385ad50fc7dea.html?locale=en-US
+https://help.sap.com/docs/SAP_HANA_CLIENT/f1b440ded6144a54ada97ff95dac7adf/3b89755ceec042e5919313b40acf8794.html?locale=en-US
 '''
 
 
@@ -26,11 +21,15 @@ class HanaDBAccess(BaseDBAccess):
 
     def connect(self, host, port, database, user, pwd):
         try:
-            self.cnx =dbapi.connect(address = host, port = port, user = user, password = pwd)
+            self.cnx = dbapi.connect(address=host, port=port, user=user, password=pwd)
         finally:
             logging.info("Hana database connected.")
 
     def execute(self, sql, param):
+        if not hasattr(self, 'cnx'):
+            logging.error("Hana database is not connected, can NOT run sql: " + sql)
+            return
+
         cur = self.cnx.cursor(dictionary=True)
         dataset = []
         try:
@@ -51,5 +50,7 @@ class HanaDBAccess(BaseDBAccess):
         return dataset
 
     def disconnect(self):
-        if self.cnx is not None and self.cnx.is_connected():
+        if (hasattr(self, 'cnx')
+                and self.cnx is not None
+                and self.cnx.is_connected()):
             self.cnx.close()
