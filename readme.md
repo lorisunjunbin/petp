@@ -45,7 +45,9 @@ Windows
     https://www.python.org/downloads/
 
     2, Install dependencies
-    > pip install -r requirements.txt
+```bash
+    pip3 install -r requirements.txt
+```
     OR 
     2, Install dependencies one by one 
     > pip install selenium
@@ -67,7 +69,9 @@ Windows
 - Able to easily create customized processors.
 
 
-## DONE:
+## DONE
+
+2023-10: Update to python3.12.
 
 2023-09: DB_ACCESSProcessor supports databases: Mysql, Postgres, Hana
 
@@ -126,6 +130,8 @@ Windows
 
 > pip install --force-reinstall wxPython-4.2.2a1.dev5622+e4fd9a3e-cp311-cp311-macosx_10_10_universal2.whl
 
+> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
+ 
 - Link python 3
 
 > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
@@ -134,6 +140,20 @@ Windows
 
 - Update all lib on macOS
 
-> pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+``` bash 
+pip3 list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip3 install -U
+```  
   
-  
+## remove previous version of python:
+https://www.ianmaddaus.com/post/manage-multiple-versions-python-mac/
+
+``` bash
+sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.9
+sudo rm -rf '/Applications/Python 3.9'
+
+sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.10
+sudo rm -rf '/Applications/Python 3.10'
+
+sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.11
+sudo rm -rf '/Applications/Python 3.11'
+```
