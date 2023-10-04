@@ -1,0 +1,17 @@
+!!python/object:core.execution.Execution
+execution: ootb_reset_hybris_dev
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "\u8bf7\u8f93\u5165", "msg": "\u7528\u6237\u540d", "value_key":
+    "input_user", "default_value": "root"}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"title": "\u8bf7\u8f93\u5165", "msg": "\u5bc6\u7801", "value_key": "input_pwd",
+    "default_value": "mysql8root"}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"type": "Mysql", "host": "localhost", "port": "3306", "database": "hisense",
+    "user": "{self.get_data(\"input_user\")}", "pwd": "{self.get_data(\"input_pwd\")}",
+    "sql": "UPDATE users SET createdTS=current_timestamp()"}'
+  type: DB_ACCESS
+loops: []
