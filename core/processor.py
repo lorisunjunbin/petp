@@ -223,7 +223,12 @@ class Processor(object):
     @staticmethod
     def get_processors():
         processors = OSUtils.get_file_list(os.path.realpath('core') + '/processors')
-        result = list(map(lambda f: f.replace('Processor.py', ''), processors))
+        result = list(
+            map(
+                lambda p: p.replace('Processor.py', ''),
+                filter(lambda p: 'Processor.py' in p, processors)
+            )
+        )
         result.sort()
         return result
 

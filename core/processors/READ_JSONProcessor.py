@@ -1,8 +1,8 @@
 import json
-import logging
+
+from jsonpath import JSONPath
 
 from core.processor import Processor
-from jsonpath import JSONPath
 
 
 class READ_JSONProcessor(Processor):

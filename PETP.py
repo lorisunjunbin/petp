@@ -11,7 +11,6 @@ from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.SystemConfig import SystemConfig
 
-
 def init_log():
     Logger.init('petp')
     logging.info("----system starting---->>>\n"

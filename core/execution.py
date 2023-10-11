@@ -15,7 +15,6 @@ from utils.OSUtils import OSUtils
 Execution 1:n Task
 """
 
-
 class Execution(object):
     execution: str
     list: list
@@ -157,7 +156,14 @@ class Execution(object):
     @staticmethod
     def get_available_executions():
         executions = OSUtils.get_file_list(os.path.realpath('core') + '/executions')
-        result = list(map(lambda f: f.replace('.yaml', ''), executions))
+        result = list(
+            map(
+                lambda f: f.replace('.yaml', ''),
+                filter(
+                    lambda f: '.yaml' in f,
+                    executions
+                )
+            )
+        )
         result.sort()
-
         return result
