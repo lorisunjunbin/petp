@@ -1,0 +1,19 @@
+!!python/object:core.execution.Execution
+execution: DB_ACCESS_Sqlite
+list:
+- !!python/object:core.task.Task
+  input: '{"database": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TcodeNEWstore.db",
+    "sql": "select * from tcode where TCODE like ?", "data_key": "dataset_sqlite",
+    "param": "%SPRO%", "type": "Sqlite"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"database": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TcodeNEWstore.db",
+    "sql": "select count(*) from tcode", "data_key": "dataset_count", "type": "Sqlite"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_count\")}"}'
+  type: SHOW_RESULT
+loops: []

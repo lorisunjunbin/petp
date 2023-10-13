@@ -6,7 +6,7 @@ from core.processors.sub.dbprocessors.BaseDBAccess import BaseDBAccess
 
 class DB_ACCESSProcessor(Processor):
 
-    TPL: str = '{"type":"Mysql|Hana|Postgres", "host":"192.168.8.8", "port":"3306", "database":"customdb", "user":"admin", "pwd":"nimda","sql":"select * from user where username=%s and id=%s","param":"admin, id","data_key":"dataset", "param_key":"sql_param"}'
+    TPL: str = '{"type":"Mysql|Hana|Postgres|Sqlite", "host":"192.168.8.8", "port":"3306", "database":"customdb", "user":"admin", "pwd":"nimda","sql":"select * from user where username=%s and id=%s","param":"admin, id","data_key":"dataset", "param_key":"sql_param"}'
 
     DESC: str = f''' 
         - Provide generic Database access capacity, python db connector/driver is required as: 
@@ -14,6 +14,7 @@ class DB_ACCESSProcessor(Processor):
         Mysql > pip install mysql-connector-python
         Hana  > pip install hdbcli
         Postgres  > pip install psycopg
+        Sqlite  > only "database" is required.
         
        {TPL}       
 
