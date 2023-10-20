@@ -21,18 +21,6 @@ class YamlRO:
             raise e
 
     @staticmethod
-    def modify(yml, keys, value):
-        if len(keys) == 1:
-            yml[keys[0]] = value
-        elif len(keys) == 2:
-            yml[keys[0]][keys[1]] = value
-        elif len(keys) == 3:
-            yml[keys[0]][keys[1]][keys[2]] = value
-        else:
-            raise KeyError(f'invalid keys ! {str(keys)}')
-        return yml
-
-    @staticmethod
     def write(target, yml):
         with open(target, 'w', encoding='utf8') as f:
             dump(yml, f, default_flow_style=False, Dumper=Dumper)

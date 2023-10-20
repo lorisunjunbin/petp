@@ -3,12 +3,12 @@ import threading
 import time
 from datetime import datetime, timedelta
 from croniter import croniter
-from core.cron.runnableascron import RunnAbleAsCron
+from core.cron.runnableascron import RunnableAsCron
 
 from threading import Condition, Thread
 
 class Cron:
-    runnableAsCron: [RunnAbleAsCron] = []
+    runnableAsCron: [RunnableAsCron] = []
     runningCron: {str} = set()
     view: None
     cond: Condition
@@ -17,10 +17,10 @@ class Cron:
         self.view = view
         Thread(target=self._loop_worker, daemon=True).start()
 
-    def add_one(self, cron: RunnAbleAsCron):
+    def add_one(self, cron: RunnableAsCron):
         self.runnableAsCron.append(cron)
 
-    def stop_one(self, cron: RunnAbleAsCron):
+    def stop_one(self, cron: RunnableAsCron):
         key = cron.get_key()
         if key in self.runningCron:
             self.runningCron.remove(key)
@@ -35,7 +35,7 @@ class Cron:
         self.cond = Condition()
         while True:
             if len(self.runnableAsCron) > 0:
-                c: RunnAbleAsCron = self.runnableAsCron.pop(0)
+                c: RunnableAsCron = self.runnableAsCron.pop(0)
                 key = c.get_key()
 
                 if not key in self.runningCron:
@@ -45,10 +45,10 @@ class Cron:
             else:
                 time.sleep(5)
 
-    def _get_running_key(self, pipeline: RunnAbleAsCron):
+    def _get_running_key(self, pipeline: RunnableAsCron):
         return f'{pipeline.pipeline}_{pipeline.cronExp}'
 
-    def _check_and_run(self, cron: RunnAbleAsCron):
+    def _check_and_run(self, cron: RunnableAsCron):
 
         schedule = cron.get_cron()
         key = cron.get_key()

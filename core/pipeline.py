@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from core.cron.runnableascron import RunnAbleAsCron
+from core.cron.runnableascron import RunnableAsCron
 from core.definition.yamlro import YamlRO
 from core.execution import Execution
 from utils.DateUtil import DateUtil
@@ -15,7 +15,7 @@ Pipeline 1-n Execution
 """
 
 
-class Pipeline(RunnAbleAsCron):
+class Pipeline(RunnableAsCron):
     pipeline: str
     cronExp: str
     cronEnabled: bool

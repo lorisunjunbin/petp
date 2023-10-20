@@ -147,7 +147,6 @@ class Execution(object):
     def get_execution(filename):
         file_absolute_path = f'{os.path.realpath(".")}/core/executions/{filename}.yaml'
         if OSUtils.is_file_existed(file_absolute_path):
-            # logging.info(f'Load execution from {file_absolute_path}')
             return YamlRO.get_yaml_from_file(file_absolute_path)
         else:
             logging.warning(f'File not existed: {file_absolute_path}')

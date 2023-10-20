@@ -1,4 +1,4 @@
-class RunnAbleAsCron(object):
+class RunnableAsCron(object):
 
     def get_name(self):
         pass
