@@ -148,12 +148,6 @@ pip3 list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip3 install -
 https://www.ianmaddaus.com/post/manage-multiple-versions-python-mac/
 
 ``` bash
-sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.9
-sudo rm -rf '/Applications/Python 3.9'
-
-sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.10
-sudo rm -rf '/Applications/Python 3.10'
-
 sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.11
 sudo rm -rf '/Applications/Python 3.11'
 ```
