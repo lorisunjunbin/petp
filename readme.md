@@ -41,23 +41,23 @@ Windows
 
 ## Install & Run
 
-    1, Install Chrome and python3
-    https://www.python.org/downloads/
+1, Download & Install [python3.x](https://www.python.org/downloads/)
 
-    2, Install dependencies
+2, Install UI widgets, download wxpython for certain python version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
+
+    > pip install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
+3, Install dependencies
 ```bash
-    pip3 install -r requirements.txt
+    pip install -r requirements.txt
 ```
-    OR 
-    2, Install dependencies one by one 
-    > pip install selenium
-    > pip install wxpython
-    > pip install ...other listed in requirements.txt, install without cache:  --no-cache-dir 
 
-    3, Run: 
-    > python PETP.py
+4, Run:
+```bash
+    python PETP.py
+```
 
-    4, Still not running? most of the issue is missing dependencies xxx, pls install xxx accordingly.
+5, Still not running? most of the issue is missing dependencies xxx, pls install xxx accordingly.
+
     > pip install xxx
 
 ## TO-DO:
