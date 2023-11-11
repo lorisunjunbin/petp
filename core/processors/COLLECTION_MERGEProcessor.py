@@ -1,7 +1,6 @@
 import logging
-from core.processor import Processor
-from concurrent.futures import ThreadPoolExecutor
 
+from core.processor import Processor
 from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
@@ -23,12 +22,12 @@ class COLLECTION_MERGEProcessor(Processor):
         logging.info(f'The size of "{c_two_name}": {len(c_two)}')
 
         lambda_finder = self.get_param('lambda_finder')
-        lambda_finder_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_lambda_finder', '(rowc1, rowc2)',
+        lambda_finder_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_finder', '(rowc1, rowc2)',
                                                             'return ' + lambda_finder)
 
         lambda_merge = self.get_param('lambda_merge_matched')
-        lambda_merge_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_lambda_merge', '(rowc1, rowc2)',
-                                                           'return ' +lambda_merge)
+        lambda_merge_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_merge', '(rowc1, rowc2)',
+                                                           'return ' + lambda_merge)
         c_result = []
 
         for idxc1, rowc1 in enumerate(c_one):
