@@ -30,6 +30,11 @@ class SqliteDBAccess(BaseDBAccess):
             else:
                 cur.execute(sql)
 
+            if sql.startswith("update") or sql.startswith("delete") or sql.startswith("insert") \
+                    or sql.startswith("UPDATE") or sql.startswith("DELETE") or sql.startswith("INSERT"):
+                self.conn.commit()
+                logging.info(f" {cur.rowcount} affected. - {sql}")
+
             for data in cur:
                 dataset.append(data)
 

@@ -1,0 +1,28 @@
+!!python/object:core.execution.Execution
+execution: Merge_TCODE_TO_Excel
+list:
+- !!python/object:core.task.Task
+  input: '{"file_path": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TCode_ZH_EXPORT.XLSX",
+    "fields": "", "sheet_index": 0, "end_at": "3", "skip_first": "yes", "data_key":
+    "TCode_DESC_In_Chinese"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"database": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TcodeLiteStore.db",
+    "sql": "select * from tcode", "data_key": "tcode_collection_sqlite", "param":
+    "", "type": "Sqlite"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"given_collection": "TCode_DESC_In_Chinese", "lambda": "len(row) > 0 and
+    len(row[2]) > 0 and  not row[1].startswith(''Z'') and not row[1].startswith(''Y'')",
+    "filtered_collection": ""}'
+  type: DATA_FILTER
+- !!python/object:core.task.Task
+  input: '{"c_one_name": "TCode_DESC_In_Chinese", "c_two_name": "tcode_collection_sqlite",
+    "c_result_name": "merged_collection", "lambda_finder": "rowc1[1] == rowc2[0]",
+    "lambda_merge_matched": "[*rowc1, *rowc2]"}'
+  type: COLLECTION_MERGE
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/merged.xlsx", "value_key": "merged_collection",
+    "data_key": "final_file_path"}'
+  type: WRITE_TO_EXCEL
+loops: []

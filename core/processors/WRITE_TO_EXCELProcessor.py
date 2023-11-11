@@ -12,7 +12,10 @@ class WRITE_TO_EXCELProcessor(Processor):
     def process(self):
         file_path = self.expression2str(self.get_param('file_path'))
 
-        sheetname2list: dict[str:[]] = self.get_data(self.get_param('value_key'))
+        data = self.get_data(self.get_param('value_key'))
+
+        sheetname2list: dict[str:[]] = data if type(data) == dict \
+            else {'sheet0': data} if type(data) == list else {}
 
         ExcelUtil.write_dict_to_excel(file_path, sheetname2list)
 

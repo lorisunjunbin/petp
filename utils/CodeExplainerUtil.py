@@ -9,3 +9,9 @@ class CodeExplainerUtil:
         func = 'def ' + func_name + func_args + ':\n\t\t' + func_body
         exec(func)
         return locals()[func_name](args)
+
+    @staticmethod
+    def func_wrapper(func_name, func_args, func_body):
+        func = 'def ' + func_name + func_args + ':\n\t\t' + func_body
+        exec(func)
+        return locals()[func_name]

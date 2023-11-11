@@ -32,16 +32,16 @@ class DB_ACCESSProcessor(Processor):
         sql = self.expression2str(self.get_param('sql'))
 
         param_str = self.get_data(self.get_param('param_key')) if self.has_param('param_key') \
-            else self.get_param('param')
+            else self.expression2str(self.get_param('param'))
 
         data_set = []
         try:
             dbAccess: BaseDBAccess = BaseDBAccess.get_dbaccess_by_type(type)
             dbAccess.connect(host, port, database, user, pwd)
-            data_set = dbAccess.execute(sql, tuple(map(str, param_str.split(', '))) if param_str is not None and len(param_str) >0 else '')
+            data_set = dbAccess.execute(sql, tuple(map(str, param_str.split(','))) if param_str is not None and len(param_str) >0 else '')
         finally:
             dbAccess.disconnect()
 
-        logging.info(str(data_set))
+        logging.info(f'The size of "{data_key}" after db access: {len(data_set)}')
 
         self.populate_data(data_key, data_set)

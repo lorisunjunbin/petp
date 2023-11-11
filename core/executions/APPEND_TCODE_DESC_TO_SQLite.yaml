@@ -1,0 +1,18 @@
+!!python/object:core.execution.Execution
+execution: APPEND_TCODE_DESC_TO_SQLite
+list:
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/merged.xlsx", "fields": "", "sheet_index":
+    0, "end_at": "5", "skip_first": "no", "data_key": "TCode_DESC_In_Chinese"}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"database": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TcodeLiteStore.db",
+    "sql": "update tcode set comments=\"{self.get_data(\"loop_item\")[2]}\" where
+    TCODE=\"{self.get_data(\"loop_item\")[1]}\"", "data_key": "tcode_collection_sqlite",
+    "type": "Sqlite"}'
+  type: DB_ACCESS
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":2, "task_end":2, "loop_key":"TCode_DESC_In_Chinese",
+    "loop_index_key":"loop_idx", "item_key":"loop_item", "loop_times":"0"}'
+  loop_code: loop-20231112005419

@@ -78,6 +78,10 @@ class ExcelUtil:
 
     @staticmethod
     def write_dict_to_excel(full_file_path: str, data_as_dict: dict[str:[]]):
+        if len(data_as_dict) == 0:
+            logging.info(f'not data to write: {full_file_path}')
+            return
+
         wb = Workbook()
         # remove the default active sheet.
         wb.remove(wb.active)

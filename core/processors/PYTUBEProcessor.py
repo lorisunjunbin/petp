@@ -63,7 +63,7 @@ class PYTUBEProcessor(Processor):
     def _handle_progress(self, stream, chunk, bytes_remaining):
         percentage = (stream.filesize - bytes_remaining) / stream.filesize
         percentage = round(percentage * 100, 2)
-        logging.info(str(percentage) + '% download complete')
+        logging.info(str(percentage) + '% downloaded.')
 
     def _handle_complete(self, stream, msg):
         logging.info(f'Download completed, ' + msg)
