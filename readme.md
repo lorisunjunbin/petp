@@ -25,7 +25,7 @@ and each one contains various tasks. The last **P** means processor, which handl
     - Send HTTP request
     - Input dialog / Show message
     - Mouse click/scroll(pyautogui)
-    - Database CRUD for MySQL, Hana, Postgres
+    - Database CRUD for MySQL, Hana, Postgres, Sqlite
 
 MacOS
 
@@ -77,7 +77,7 @@ Windows
 
 2023-10: Update to python3.12.
 
-2023-09: DB_ACCESSProcessor supports databases: Mysql, Postgres, Hana
+2023-09: DB_ACCESSProcessor supports databases: Mysql, Postgres, Hana, Sqlite
 
 2023-04: PYTUBEProcessor, download youtube videos.
 
