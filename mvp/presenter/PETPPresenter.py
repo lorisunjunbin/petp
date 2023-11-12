@@ -633,7 +633,7 @@ class PETPPresenter():
         try:
             return str(ExpressionDescriptor(cron))
         except Exception as e:
-            logging.warning(f"{self.CRON_INVALID}: [ " + cron + " ] just try [ 0 * * * * ]")
+            logging.error(f"{self.CRON_INVALID}: [ " + cron + " ] just try [ 0 * * * * ]")
             return self.CRON_INVALID
 
     @reload_log_after

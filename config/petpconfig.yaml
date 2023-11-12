@@ -3,6 +3,6 @@ application:
   author: lorisunjunbin@DalianChina
   cell: +86-13478653323
   email: 6099012@qq.com
-  log_level: WARNING #  FATAL | CRITICAL | ERROR | WARNING | INFO | DEBUG
+  log_level: INFO #  FATAL | CRITICAL | ERROR | WARNING | INFO | DEBUG
   last_run: ootb_download_youtube_video_then_play
   version: 1.0.2

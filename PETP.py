@@ -22,7 +22,7 @@ def init_log():
 def set_log_level(m: PETPModel) -> None:
     log_level_str = getattr(m, 'log_level')
     logging.getLogger().setLevel(logging.getLevelName(log_level_str))
-    logging.warning('Set log level to <' + log_level_str + '> successfully.z')
+    logging.warning('Set log level to <' + log_level_str + '> successfully.')
 
 
 def build_model():
