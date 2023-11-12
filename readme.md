@@ -71,6 +71,10 @@ Windows
 
 ## DONE
 
+2023-11: Optimized logging feature, provide setting for log level,  support rotating. 
+
+2023-11: [DATA_FILTERProcessor](./core/processors/DATA_FILTERProcessor.py) & [COLLECTION_MERGEProcessor](./core/processors/COLLECTION_MERGEProcessor.py)
+
 2023-10: Update to python3.12.
 
 2023-09: DB_ACCESSProcessor supports databases: Mysql, Postgres, Hana
