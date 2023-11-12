@@ -44,7 +44,9 @@ class HanaDBAccess(BaseDBAccess):
 
             logging.info("Mysql execute successfully.")
         finally:
-            self.cnx.commit()
+            if self.require_commit(sql):
+                self.cnx.commit()
+                logging.info(f" {cur.rowcount} affected. - {sql}")
             cur.close()
 
         return dataset
