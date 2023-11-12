@@ -42,6 +42,6 @@ class DB_ACCESSProcessor(Processor):
         finally:
             dbAccess.disconnect()
 
-        logging.info(f'The size of "{data_key}" after db access: {len(data_set)}')
+        logging.debug(f'The size of "{data_key}" after db access: {len(data_set)}')
 
         self.populate_data(data_key, data_set)

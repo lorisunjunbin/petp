@@ -14,11 +14,11 @@ class SqliteDBAccess(BaseDBAccess):
 
     def connect(self, host, port, database, user, pwd):
         self.conn = sqlite3.connect(database)
-        logging.info("Sqlite database: " + database)
+        logging.debug("Sqlite database: " + database)
 
     def execute(self, sql, param):
         if not hasattr(self, 'conn'):
-            logging.info("Sqlite database is not connected, can NOT run sql: " + sql)
+            logging.debug("Sqlite database is not connected, can NOT run sql: " + sql)
             return []
 
         cur: sqlite3.Cursor = self.conn.cursor()
@@ -37,7 +37,7 @@ class SqliteDBAccess(BaseDBAccess):
         finally:
             if self.require_commit(sql):
                 self.conn.commit()
-                logging.info(f" {cur.rowcount} affected. - {sql}")
+                logging.debug(f" {cur.rowcount} affected. - {sql}")
             cur.close()
 
         return dataset

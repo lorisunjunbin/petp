@@ -24,7 +24,7 @@ class FIND_THEN_CLICKProcessor(Processor):
 
         try:
             ele.click()
-            logging.info('click: ' + identity)
+            logging.debug('click: ' + identity)
         except Exception as ex:
-            logging.info('move to click: ' + identity)
+            logging.debug('move to click: ' + identity)
             SeleniumUtil.move_to_ele_then_click(chrome, ele)

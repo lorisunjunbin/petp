@@ -23,7 +23,7 @@ class GET_COOKIEProcessor(Processor):
                 get_all = self.get_param("get_all")
                 if 'yes' == get_all:
                     all_cookies = chrome.get_cookies()
-                    logging.info('all cookies' + str(all_cookies))
+                    logging.debug('all cookies' + str(all_cookies))
 
                     all_cookies_str:str = ''
                     for c in all_cookies:
@@ -31,7 +31,7 @@ class GET_COOKIEProcessor(Processor):
 
                     if len(all_cookies_str) > 0:
                         self.populate_data(value_key, all_cookies_str)
-                        logging.info(f'populate {value_key} -> all_cookies_str -> {all_cookies_str}')
+                        logging.debug(f'populate {value_key} -> all_cookies_str -> {all_cookies_str}')
 
                 else:
                     cookie_name = self.expression2str(self.get_param("cookie_name"))
@@ -39,5 +39,5 @@ class GET_COOKIEProcessor(Processor):
                     if len(cookie_value) > 0:
 
                         self.populate_data(value_key, cookie_value)
-                        logging.info(f'populate {value_key} -> {cookie_name} = {cookie_value}')
+                        logging.debug(f'populate {value_key} -> {cookie_name} = {cookie_value}')
 

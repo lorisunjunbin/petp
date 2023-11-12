@@ -2,29 +2,29 @@ import logging
 import sys
 import threading
 
+from logging.handlers import RotatingFileHandler
+from logging import StreamHandler
 from utils.DateUtil import DateUtil
 from utils.ExcelUtil import ExcelUtil
 
 
 def init(app):
-
-    fmt = '<%(levelname)s>[ %(threadName)s ] - %(message)s'
-
     logging.basicConfig(
-        filename=ExcelUtil.get_log_file_path(app),
         level=logging.INFO,
         encoding='utf-8',
         datefmt='%m/%d/%Y %I:%M:%S',
-        format=fmt
+        format='<%(levelname)s>[ %(threadName)s ] - %(message)s',
+        handlers=[StreamHandler(), create_rotating_file_handler(app)]
     )
-
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    console.setFormatter(logging.Formatter(fmt))
-    logging.getLogger('').addHandler(console)
-
     patch_threading_excepthook()
     sys.excepthook = handle_unhandled_exception
+
+
+def create_rotating_file_handler(app):
+    return RotatingFileHandler(filename=(ExcelUtil.get_log_file_path(app)), mode='a',
+                               maxBytes=10 * 1024 * 1024, backupCount=2,
+                               encoding='utf-8', delay=0)
+
 
 def handle_unhandled_exception(exc_type, exc_value, exc_traceback):
     """Handler for unhandled exceptions that will write to the logs"""
@@ -42,9 +42,11 @@ def patch_threading_excepthook():
     Inspired by https://bugs.python.org/issue1230540
     """
     old_init = threading.Thread.__init__
+
     def new_init(self, *args, **kwargs):
         old_init(self, *args, **kwargs)
         old_run = self.run
+
         def run_with_our_excepthook(*args, **kwargs):
             try:
                 old_run(*args, **kwargs)
@@ -52,6 +54,7 @@ def patch_threading_excepthook():
                 raise
             except:
                 sys.excepthook(*sys.exc_info())
-        self.run = run_with_our_excepthook
-    threading.Thread.__init__ = new_init
 
+        self.run = run_with_our_excepthook
+
+    threading.Thread.__init__ = new_init

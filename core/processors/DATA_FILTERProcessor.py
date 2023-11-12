@@ -17,7 +17,7 @@ class DATA_FILTERProcessor(Processor):
     def process(self):
         given_collection_name = self.get_param('given_collection')
         given_collection = self.get_data(given_collection_name)
-        logging.info(f'The size of "{given_collection_name}" before filtering: {len(given_collection)}')
+        logging.debug(f'The size of "{given_collection_name}" before filtering: {len(given_collection)}')
 
         lambda_expression = lambda row: eval(self.get_param('lambda'))
 
@@ -25,6 +25,6 @@ class DATA_FILTERProcessor(Processor):
             else given_collection_name
 
         filtered_collection = list(filter(lambda_expression, given_collection))
-        logging.info(f'The size of "{filtered_collection_name}" after filtering: {len(filtered_collection)}')
+        logging.debug(f'The size of "{filtered_collection_name}" after filtering: {len(filtered_collection)}')
 
         self.populate_data(filtered_collection_name, filtered_collection)

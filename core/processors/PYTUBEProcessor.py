@@ -38,7 +38,7 @@ class PYTUBEProcessor(Processor):
 
         high_quality = True if 'HIGH' in quality else False
 
-        logging.info('start downloding from' + video_url)
+        logging.debug('start downloding from' + video_url)
 
         ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -63,10 +63,10 @@ class PYTUBEProcessor(Processor):
     def _handle_progress(self, stream, chunk, bytes_remaining):
         percentage = (stream.filesize - bytes_remaining) / stream.filesize
         percentage = round(percentage * 100, 2)
-        logging.info(str(percentage) + '% downloaded.')
+        logging.debug(str(percentage) + '% downloaded.')
 
     def _handle_complete(self, stream, msg):
-        logging.info(f'Download completed, ' + msg)
+        logging.debug(f'Download completed, ' + msg)
         path_video_download = self.expression2str(self.get_param('file_download_path_key')) if self.has_param(
             'file_download_path_key') else None
 

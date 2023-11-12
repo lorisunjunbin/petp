@@ -31,7 +31,7 @@ class INPUT_DIALOGProcessor(Processor):
         with cond:
             cond.wait()
 
-        logging.info(f'=========\n{self.get_data(value_key)}\n=============================')
+        logging.debug(f'=========\n{self.get_data(value_key)}\n=============================')
 
     def handle_ui_thread_callback(self, given):
         value_key = self.expression2str(self.get_param('value_key'))

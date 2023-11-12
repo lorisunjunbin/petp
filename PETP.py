@@ -11,11 +11,18 @@ from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.SystemConfig import SystemConfig
 
+
 def init_log():
     Logger.init('petp')
     logging.info("----system starting---->>>\n"
                  + "|       " + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + "     |\n"
                  + "----------------------------------<<<")
+
+
+def set_log_level(m: PETPModel) -> None:
+    log_level_str = getattr(m, 'log_level')
+    logging.getLogger().setLevel(logging.getLevelName(log_level_str))
+    logging.warning('Set log level to <' + log_level_str + '> successfully.z')
 
 
 def build_model():
@@ -40,13 +47,15 @@ def start_app():
     presenter: PETPPresenter = build_presenter(model, view)
 
     view.Show()
+
     logging.info('PETP is running as ' + platform.architecture()[0])
 
+    set_log_level(model)
     presenter.on_load_log()
 
     app.MainLoop()
 
-    logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + '\n')
+    logging.warning('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + '\n')
 
 
 if __name__ == '__main__':

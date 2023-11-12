@@ -38,7 +38,7 @@ class MysqlDBAccess(BaseDBAccess):
             else:
                 logging.error(err.msg)
         else:
-            logging.info("Mysql database connected.")
+            logging.debug("Mysql database connected.")
 
     def execute(self, sql, param):
         if not hasattr(self, 'cnx'):
@@ -63,11 +63,11 @@ class MysqlDBAccess(BaseDBAccess):
             else:
                 logging.error(err.msg)
         else:
-            logging.info("Mysql execute successfully.")
+            logging.debug("Mysql execute successfully.")
         finally:
             if self.require_commit(sql):
                 self.cnx.commit()
-                logging.info(f" {cur.rowcount} affected. - {sql}")
+                logging.debug(f" {cur.rowcount} affected. - {sql}")
             cur.close()
 
         return dataset

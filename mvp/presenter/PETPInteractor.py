@@ -40,7 +40,7 @@ class PETPInteractor():
         # Log console
         self.bind_view_event_4_log_panel()
 
-        logging.info('PETPInteractor installed.')
+        logging.info('PETPInteractor installed')
 
     def bind_view_event_4_log_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_load_log, self.v.loadLog)

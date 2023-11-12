@@ -22,7 +22,7 @@ class FIND_LATEST_FILEProcessor(Processor):
         file_type = self.expression2str(self.get_param('file_type'))
         found_file_key = self.expression2str(self.get_param('found_file_key'))
 
-        logging.info(f'Searching for the latest {file_type} in {path_to_find}')
+        logging.debug(f'Searching for the latest {file_type} in {path_to_find}')
 
         files = [
             (f, os.path.getmtime(os.path.join(path_to_find, f)))
@@ -34,6 +34,6 @@ class FIND_LATEST_FILEProcessor(Processor):
 
         file_path_found = os.path.join(path_to_find, files[0][0]) if len(files) > 0 else 'FILE_NOT_FOUND'
 
-        logging.info(f'Found newest {file_type} file in {path_to_find} is {file_path_found}')
+        logging.debug(f'Found newest {file_type} file in {path_to_find} is {file_path_found}')
 
         self.populate_data(found_file_key, file_path_found)

@@ -38,7 +38,7 @@ class FIND_THEN_KEYINProcessor(Processor):
         # above is doing something like:
         KEY_NULL = Keys.NULL
 
-#        logging.info(f"available keys: ${str(avaliable_keys.keys())}")
+#        logging.debug(f"available keys: ${str(avaliable_keys.keys())}")
 
         if not ele is None:
             v: any
@@ -52,7 +52,7 @@ class FIND_THEN_KEYINProcessor(Processor):
                 if "yes" == self.get_param("clearb4keyin"):
                     ele.clear()
 
-            logging.info(f"send_key: {v}")
+            logging.debug(f"send_key: {v}")
 
             ele.send_keys(v)
 

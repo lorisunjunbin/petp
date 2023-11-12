@@ -15,11 +15,11 @@ class COLLECTION_MERGEProcessor(Processor):
     def process(self):
         c_one_name = self.get_param('c_one_name')
         c_one = self.get_data(c_one_name)
-        logging.info(f'The size of "{c_one_name}": {len(c_one)}')
+        logging.debug(f'The size of "{c_one_name}": {len(c_one)}')
 
         c_two_name = self.get_param('c_two_name')
         c_two = self.get_data(c_two_name)
-        logging.info(f'The size of "{c_two_name}": {len(c_two)}')
+        logging.debug(f'The size of "{c_two_name}": {len(c_two)}')
 
         lambda_finder = self.get_param('lambda_finder')
         lambda_finder_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_finder', '(rowc1, rowc2)',
@@ -35,9 +35,9 @@ class COLLECTION_MERGEProcessor(Processor):
                 if lambda_finder_func(rowc1, rowc2):
                     merged_row = lambda_merge_func(rowc1, rowc2)
                     c_result.append(merged_row)
-                    # logging.info(f'Found matched row then merge [{idxc1}:{idxc2}] -> {str(merged_row)}')
+                    # logging.debug(f'Found matched row then merge [{idxc1}:{idxc2}] -> {str(merged_row)}')
 
         c_result_name = self.get_param('c_result_name')
-        logging.info(f'The size of "{c_result_name}" after merged: {len(c_result)}')
+        logging.debug(f'The size of "{c_result_name}" after merged: {len(c_result)}')
 
         self.populate_data(c_result_name, c_result)

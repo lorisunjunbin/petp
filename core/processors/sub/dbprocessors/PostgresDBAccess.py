@@ -62,7 +62,7 @@ class PostgresDBAccess(BaseDBAccess):
         finally:
             if self.require_commit(sql):
                 self.cnx.commit()
-                logging.info(f" {cur.rowcount} affected. - {sql}")
+                logging.debug(f" {cur.rowcount} affected. - {sql}")
             cur.close()
 
         return dataset

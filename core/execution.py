@@ -15,6 +15,7 @@ from utils.OSUtils import OSUtils
 Execution 1:n Task
 """
 
+
 class Execution(object):
     execution: str
     list: list
@@ -82,13 +83,15 @@ class Execution(object):
 
             logging.info(f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
             logging.info(f'process start: {task.input}')
-            wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
+            if not is_loop_execution:
+                wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
 
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
             logging.info(f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""} Done \n')
-            wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
+            if not is_loop_execution:
+                wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
             # process end ----
 
             if is_loop_end:

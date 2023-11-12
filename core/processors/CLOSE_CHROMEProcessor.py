@@ -17,7 +17,7 @@ class CLOSE_CHROMEProcessor(Processor):
 
     def process(self):
         if super().need_skip():
-            logging.info('skipped this task: CLOSE_CHROME.')
+            logging.debug('skipped this task: CLOSE_CHROME.')
             return
 
         if (self.has_data(self.get_param('chrome_name'))):

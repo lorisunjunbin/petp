@@ -29,7 +29,7 @@ class CMDProcessor(Processor):
 
         _timeout = self.get_param("timeout") if self.has_param("timeout") else None
 
-        logging.info(f'>{cmdstr}, in folder {_cwd}')
+        logging.debug(f'>{cmdstr}, in folder {_cwd}')
 
         stdout = subprocess.check_output(cmdstr, stderr=subprocess.STDOUT, shell=True, timeout=_timeout, cwd=_cwd)
 
@@ -38,6 +38,6 @@ class CMDProcessor(Processor):
         elif type(stdout) is bytes:
             output_str = stdout.decode(_encoding).strip('\n')
 
-        logging.info(f'>{cmdstr} -> {output_str}')
+        logging.debug(f'>{cmdstr} -> {output_str}')
         if not data_key is None:
             self.populate_data(data_key, output_str)

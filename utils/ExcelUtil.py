@@ -217,8 +217,8 @@ class ExcelUtil:
             os.makedirs(filePath)
 
     @staticmethod
-    def get_log_file_path(app):
-        return os.path.realpath('log') + "/" + app + ".log"
+    def get_log_file_path(app) -> str:
+        return f'{os.path.realpath('log')}/{app}.log'
 
     @staticmethod
     def get_email_template_path(fileName):

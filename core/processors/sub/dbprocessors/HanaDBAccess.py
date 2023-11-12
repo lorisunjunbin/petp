@@ -23,7 +23,7 @@ class HanaDBAccess(BaseDBAccess):
         try:
             self.cnx = dbapi.connect(address=host, port=port, user=user, password=pwd)
         finally:
-            logging.info("Hana database connected.")
+            logging.debug("Hana database connected.")
 
     def execute(self, sql, param):
         if not hasattr(self, 'cnx'):
@@ -42,11 +42,11 @@ class HanaDBAccess(BaseDBAccess):
             for data in cur:
                 dataset.append(data)
 
-            logging.info("Mysql execute successfully.")
+            logging.debug("Mysql execute successfully.")
         finally:
             if self.require_commit(sql):
                 self.cnx.commit()
-                logging.info(f" {cur.rowcount} affected. - {sql}")
+                logging.debug(f" {cur.rowcount} affected. - {sql}")
             cur.close()
 
         return dataset

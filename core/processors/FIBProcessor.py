@@ -18,12 +18,12 @@ class FIBProcessor(Processor):
         use_cache = True if "yes" == self.get_param('useCache') else False
         if use_cache: 
             for i in range(seed):
-                logging.info(f"{i} -> {self.fib(i)}")    
+                logging.debug(f"{i} -> {self.fib(i)}")    
         else:
             for i in range(seed):
-                logging.info(f"{i} -> {self.fib_slow(i)}")    
+                logging.debug(f"{i} -> {self.fib_slow(i)}")    
                 
-        logging.info('DONE')   
+        logging.debug('DONE')   
         
     
     @cache    

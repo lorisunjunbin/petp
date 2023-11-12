@@ -35,4 +35,4 @@ class MOUSE_POSITIONProcessor(Processor):
 
         self.populate_data(data_key_x, position.x)
         self.populate_data(data_key_y, position.y)
-        logging.info(f'current mouse at [{position.x},{position.y}]')
+        logging.debug(f'current mouse at [{position.x},{position.y}]')

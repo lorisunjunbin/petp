@@ -16,7 +16,7 @@ class GO_TO_PAGEProcessor(Processor):
     def process(self):
 
         if super().need_skip():
-            logging.info('skipped this task: GO_TO_PAGE')
+            logging.debug('skipped this task: GO_TO_PAGE')
             return
 
         url = self.get_data_by_param_default_param("url_key", "url")

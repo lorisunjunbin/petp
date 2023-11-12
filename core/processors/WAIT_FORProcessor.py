@@ -20,4 +20,4 @@ class WAIT_FORProcessor(Processor):
 
         ele = SeleniumUtil.get_element_by(chrome, waitfor, identity, timeout)
         super().extra_wait()
-        logging.info('wait for ele: ' + str(ele))
+        logging.debug('wait for ele: ' + str(ele))

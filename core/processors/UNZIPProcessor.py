@@ -35,6 +35,6 @@ class UNZIPProcessor(Processor):
 
         final_path = os.path.join(directory_to_extract, name_appended)
 
-        logging.info(f'{path_after_extract_key} is {final_path}')
+        logging.debug(f'{path_after_extract_key} is {final_path}')
 
         self.populate_data(path_after_extract_key, final_path)
