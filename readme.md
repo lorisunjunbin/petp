@@ -3,7 +3,8 @@
 This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by Python, friendly for
 DevOps, and automation tests.
 
-**PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, the pipeline may combine multiple
+**PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, the pipeline may combine
+multiple
 executions,
 and each one contains various tasks. The last **P** means processor, which handles the specific task one-to-one.
 
@@ -43,15 +44,19 @@ Windows
 
 1, Download & Install [python3.x](https://www.python.org/downloads/)
 
-2, Install UI widgets, download wxpython for certain python version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
+2, Install UI widgets, download wxpython for certain python
+version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
     > pip install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
+
 3, Install dependencies
+
 ```bash
     pip install -r requirements.txt
 ```
 
 4, Run:
+
 ```bash
     python PETP.py
 ```
@@ -68,10 +73,12 @@ Windows
 
 - Able to easily create customized processors.
 
-
 ## DONE
 
-2023-11: Optimized logging feature, provide setting for log level,  support rotating. 
+2023-11: [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py) & [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py)  ,
+execution: ootb_encode_decode_hash_str
+
+2023-11: Optimized logging feature, provide setting for log level, support rotating.
 
 2023-11: [DATA_FILTERProcessor](./core/processors/DATA_FILTERProcessor.py) & [COLLECTION_MERGEProcessor](./core/processors/COLLECTION_MERGEProcessor.py)
 
@@ -115,8 +122,9 @@ Windows
 
 ## tips:
 
-- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) if you get an error of mismatched version (selenium task
-  only).  Deprecated website: https://chromedriver.chromium.org/downloads/version-selection
+- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) if you get an error of mismatched
+  version (selenium task
+  only). Deprecated website: https://chromedriver.chromium.org/downloads/version-selection
 
 - Install Wxpython snapshot
 
@@ -135,7 +143,9 @@ Windows
 > pip install --force-reinstall wxPython-4.2.2a1.dev5622+e4fd9a3e-cp311-cp311-macosx_10_10_universal2.whl
 
 > pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
- 
+
+> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5633+11c4a777-cp312-cp312-macosx_10_10_universal2.whl
+
 - Link python 3
 
 > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
@@ -147,8 +157,9 @@ Windows
 ``` bash 
 pip3 list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip3 install -U
 ```  
-  
+
 ## remove previous version of python:
+
 https://www.ianmaddaus.com/post/manage-multiple-versions-python-mac/
 
 ``` bash
