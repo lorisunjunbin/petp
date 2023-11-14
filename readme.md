@@ -27,6 +27,7 @@ and each one contains various tasks. The last **P** means processor, which handl
     - Input dialog / Show message
     - Mouse click/scroll(pyautogui)
     - Database CRUD for MySQL, Hana, Postgres, Sqlite
+    - String encode/decode and hash
 
 MacOS
 
