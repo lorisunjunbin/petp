@@ -1,0 +1,33 @@
+!!python/object:core.execution.Execution
+execution: ootb_encode_decode_hash_str
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "Input", "msg": "Pls input the STR to do base64", "value_key":
+    "input_base64", "default_value": "codingcat"}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"type": "ENCODE", "inbound": "{self.get_data(\"input_base64\")}", "outbound_key":
+    "output_base64", "algorithms": "base64"}'
+  type: ENCODE_DECODE_STR
+- !!python/object:core.task.Task
+  input: '{"title": "Base64 encoded", "msg": "{self.get_data(\"input_base64\")} -->  {self.get_data(\"output_base64\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"type": "DECODE", "inbound": "{self.get_data(\"output_base64\")}", "outbound_key":
+    "output_convert_back", "algorithms": "base64"}'
+  type: ENCODE_DECODE_STR
+- !!python/object:core.task.Task
+  input: '{"title": "Base64 decoded", "msg": "{self.get_data(\"output_base64\")} -->  {self.get_data(\"output_convert_back\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"title": "Input", "msg": "Pls input the STR to HASH - sha256", "value_key":
+    "input_hash", "default_value": "yabangdouer", "algorithms": "sha256"}'
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"inbound": "{self.get_data(\"input_hash\")}", "outbound_key": "output_sha256",
+    "algorithms": "sha256"}'
+  type: HASH_STR
+- !!python/object:core.task.Task
+  input: '{"title": "Hash sha256", "msg": "{self.get_data(\"input_hash\")} -->  {self.get_data(\"output_sha256\")}"}'
+  type: SHOW_RESULT
+loops: []
