@@ -173,6 +173,15 @@ class PETPPresenter():
             self._init_executiongrid_choice_editor()
 
     @reload_log_after
+    def on_log_level_changed(self):
+        combo = self.v.logLevelChooser
+        logLevel = combo.GetValue()
+        if 'DEFAULT' == logLevel:
+            logLevel = getattr(self.m, 'log_level')
+        logging.getLogger().setLevel(logging.getLevelName(logLevel))
+        getattr(logging, logLevel.lower())('Set log level to <' + logLevel + '> successfully.')
+
+    @reload_log_after
     def on_execution_pipeline_changed(self):
         combo = self.v.pipelineChooser
         grid = self.v.executionGrid

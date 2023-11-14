@@ -45,6 +45,8 @@ class PETPInteractor():
     def bind_view_event_4_log_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_load_log, self.v.loadLog)
         self.v.Bind(wx.EVT_BUTTON, self.on_clean_log, self.v.cleanLog)
+        self.v.Bind(wx.EVT_COMBOBOX, self.on_log_level_changed, self.v.logLevelChooser)
+
         self.v.logContents.Bind(wx.EVT_SET_FOCUS, self.on_logcontents_focused)
         self.v.logContents.Bind(wx.EVT_KILL_FOCUS, self.on_logcontents_unfocused)
 
@@ -178,6 +180,10 @@ class PETPInteractor():
     def on_execution_pipeline_changed(self, evt):
         evt.Skip()
         self.p.on_execution_pipeline_changed()
+
+    def on_log_level_changed(self, evt):
+        evt.Skip()
+        self.p.on_log_level_changed()
 
     def on_save_execution(self, evt):
         evt.Skip()
