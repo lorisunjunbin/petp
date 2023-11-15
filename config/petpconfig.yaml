@@ -5,4 +5,4 @@ application:
   email: 6099012@qq.com
   last_run: ootb_encode_decode_hash_str
   log_level: INFO #  FATAL | CRITICAL | ERROR | WARNING | INFO | DEBUG
-  version: 1.0.2
+  version: 1.0.3
