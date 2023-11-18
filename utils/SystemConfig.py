@@ -40,4 +40,4 @@ class SystemConfig():
             for k, v in configSet.items():
                 if k not in excludeKeys:
                     setattr(model, k, v)
-                    logging.debug(f'bindmodel: {key}  [ {k} = {v} ]')
+                    logging.info(f'bindmodel: {key}  [ {k} = {v} ]')
