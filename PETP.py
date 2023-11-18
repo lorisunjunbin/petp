@@ -14,15 +14,15 @@ from utils.SystemConfig import SystemConfig
 
 def init_log():
     Logger.init('petp')
-    logging.info("----system starting---->>>\n"
-                 + "|       " + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + "     |\n"
-                 + "----------------------------------<<<")
+    logging.info("\n\n")
+    logging.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    logging.info("PETP starting @ " + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))
 
 
 def set_log_level(m: PETPModel) -> None:
     log_level_str = getattr(m, 'log_level')
     logging.getLogger().setLevel(logging.getLevelName(log_level_str))
-    logging.warning('Set log level to <' + log_level_str + '> successfully.')
+    getattr(logging, log_level_str.lower())('Default log level is <' + log_level_str + '>')
 
 
 def build_model():
@@ -31,7 +31,7 @@ def build_model():
 
 
 def build_view():
-    logging.info('Init PETPView')
+    logging.debug('Init PETPView')
     return PETPView(None, wx.ID_ANY, "")
 
 
@@ -48,14 +48,12 @@ def start_app():
 
     view.Show()
 
-    logging.info('PETP is running as ' + platform.architecture()[0])
-
+    logging.debug('PETP is running as ' + platform.architecture()[0])
     set_log_level(model)
     presenter.on_load_log()
 
     app.MainLoop()
-
-    logging.warning('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + '\n')
+    logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + '\n')
 
 
 if __name__ == '__main__':

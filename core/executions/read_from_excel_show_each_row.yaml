@@ -2,8 +2,8 @@
 execution: read_from_excel_show_each_row
 list:
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/translate.xlsx", "skip_first": "no", "data_key":
-    "loop_list", "end_at": "1"}'
+  input: '{"file_path": "{self.get_rdir()}/test.xlsx", "skip_first": "no", "data_key":
+    "loop_list", "end_at": "1", "sheet_index": 0}'
   type: READ_EXCEL
 - !!python/object:core.task.Task
   input: '{"param_not_empty": "loop_list"}'

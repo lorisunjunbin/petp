@@ -4,8 +4,10 @@ import threading
 
 from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
+
+
 from utils.DateUtil import DateUtil
-from utils.ExcelUtil import ExcelUtil
+from utils.OSUtils import OSUtils
 
 
 def init(app):
@@ -21,7 +23,7 @@ def init(app):
 
 
 def create_rotating_file_handler(app):
-    return RotatingFileHandler(filename=(ExcelUtil.get_log_file_path(app)), mode='a',
+    return RotatingFileHandler(filename=(OSUtils.get_log_file_path(app)), mode='a',
                                maxBytes=10 * 1024 * 1024, backupCount=2,
                                encoding='utf-8', delay=0)
 

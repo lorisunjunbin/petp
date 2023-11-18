@@ -21,7 +21,6 @@ from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
-from utils.ExcelUtil import ExcelUtil
 from utils.OSUtils import OSUtils
 
 
@@ -52,7 +51,7 @@ class PETPPresenter():
         self.i = interactor
         self.i.install(self, view)
 
-        logging.info('Init PETPPresenter')
+        logging.debug('Init PETPPresenter')
 
         self._load_available_executions()
         self._load_available_pipelines()
@@ -118,7 +117,7 @@ class PETPPresenter():
             self.v.taskGrid.GetCellValue(self.selected_row_2_copied_paste, 0),
             self.v.taskGrid.GetCellValue(self.selected_row_2_copied_paste, 1)
         ]
-        logging.info("selected_row_copied" + str(self.row_copied))
+        logging.debug("selected_row_copied" + str(self.row_copied))
 
     def _on_grid_row_paste(self, evt):
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 0, self.row_copied[0])
@@ -157,10 +156,12 @@ class PETPPresenter():
         self._delete_selected_property_from_page(page)
 
     def on_convert_get_deep_data_4loop(self):
-        logging.info('convert get deep data')
+        """ NOT IMPLEMENTED YET """
+        pass
 
     def on_convert_get_data_4loop(self):
-        logging.info('convert get data')
+        """ NOT IMPLEMENTED YET """
+        pass
 
     def on_close_window(self):
         self.logger_thread = None
@@ -732,7 +733,7 @@ class PETPPresenter():
             return
 
         self.isLoading = True
-        with open(ExcelUtil.get_log_file_path(self.m.app_name), 'r', encoding='utf8') as file:
+        with open(OSUtils.get_log_file_path(self.m.app_name), 'r', encoding='utf8') as file:
             self.v.logContents.SetValue(file.read())
             self.v.logContents.AppendText('')
             self.v.logContents.ScrollLines(-1)
@@ -741,7 +742,7 @@ class PETPPresenter():
 
     @reload_log_after
     def on_clean_log(self):
-        with open(ExcelUtil.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
+        with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
             file.write(f'Clean {self.m.app_name} log@' + DateUtil.get_now_in_str() + '\n')
         self.isLogContentFocused = False
 

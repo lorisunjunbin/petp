@@ -79,3 +79,13 @@ class OSUtils:
     def create_folder(folder):
         os.makedirs(folder)
         logging.info(f'create_folder {folder}')
+
+    @staticmethod
+    def create_folder_if_not_existed(filePath):
+        os.makedirs(filePath, exist_ok=True)
+
+    @staticmethod
+    def get_log_file_path(app) -> str:
+        log_folder = os.path.realpath('log')
+        OSUtils.create_folder_if_not_existed(log_folder)
+        return f'{log_folder}/{app}.log'

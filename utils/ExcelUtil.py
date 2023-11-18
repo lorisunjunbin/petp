@@ -102,13 +102,3 @@ class ExcelUtil:
                     break
         logging.info(f'Loaded {len(result)} records from file: {fileName}')
         return result
-
-    @staticmethod
-    def create_folder_if_not_existed(filePath):
-        os.makedirs(filePath, exist_ok=True)
-
-    @staticmethod
-    def get_log_file_path(app) -> str:
-        log_folder = os.path.realpath('log')
-        ExcelUtil.create_folder_if_not_existed(log_folder)
-        return f'{log_folder}/{app}.log'
