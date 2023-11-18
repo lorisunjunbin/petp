@@ -13,6 +13,9 @@ class FIBProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) ->str:
+        return 'math'
+
     def process(self):
         seed: int = int(self.get_param('seed'))
         use_cache = True if "yes" == self.get_param('useCache') else False
