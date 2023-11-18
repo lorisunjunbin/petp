@@ -35,9 +35,14 @@ class Processor(object):
     condition: Condition
     view: PETPView
 
+    category: str = 'default'
+
     def process(self):
         # implemented in subclass
         pass
+
+    def get_category(self)->str:
+        return self.category
 
     def do_process(self):
         self.process()
