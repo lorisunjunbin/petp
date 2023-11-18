@@ -31,7 +31,7 @@ def build_model():
 
 
 def build_view():
-    logging.debug('Init PETPView')
+    logging.info('Init PETPView')
     return PETPView(None, wx.ID_ANY, "")
 
 
@@ -48,12 +48,14 @@ def start_app():
 
     view.Show()
 
-    logging.debug('PETP is running as ' + platform.architecture()[0])
+    logging.info(f'PETP is running on {platform.architecture()[0]} platform')
     set_log_level(model)
     presenter.on_load_log()
 
     app.MainLoop()
-    logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S") + '\n')
+
+    logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))
+    logging.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
 
 if __name__ == '__main__':

@@ -51,7 +51,7 @@ class PETPPresenter():
         self.i = interactor
         self.i.install(self, view)
 
-        logging.debug('Init PETPPresenter')
+        logging.info('Init PETPPresenter')
 
         self._load_available_executions()
         self._load_available_pipelines()
@@ -61,6 +61,11 @@ class PETPPresenter():
         self._init_cron()
         self._init_property_grid()
         self._load_last_run()
+        self._load_log_level()
+
+    def _load_log_level(self):
+        if self.m.log_level is not None:
+            self.v.logLevelChooser.SetValue(self.m.log_level)
 
     def _load_last_run(self):
         if self.m.last_run is not None:
@@ -177,8 +182,12 @@ class PETPPresenter():
     def on_log_level_changed(self):
         combo = self.v.logLevelChooser
         logLevel = combo.GetValue()
-        if 'DEFAULT' == logLevel:
-            logLevel = getattr(self.m, 'log_level')
+
+        # record log_level
+        if self.m.log_level != combo.GetValue():
+            self.m.log_level = combo.GetValue()
+            self.m.set_config('log_level', self.m.log_level)
+
         logging.getLogger().setLevel(logging.getLevelName(logLevel))
         getattr(logging, logLevel.lower())('Set log level to <' + logLevel + '> successfully.')
 
