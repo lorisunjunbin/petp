@@ -12,11 +12,10 @@ from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
-class Processor(object):
+
+class Processor:
     SEPARATOR: str = '|'
-
     ITEM_SEPARATOR: str = '->'
-
     SALT: str = 'petpisawesome'
 
     TPL: str
@@ -37,11 +36,11 @@ class Processor(object):
 
     category: str = 'default'
 
-    def process(self):
-        # implemented in subclass
+    def process(self) -> None:
+        # must be implemented in subclass
         pass
 
-    def get_category(self)->str:
+    def get_category(self) -> str:
         return self.category
 
     def do_process(self):

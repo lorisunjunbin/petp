@@ -1,7 +1,7 @@
-
 """
 Task, will be processed by the Processor.
 """
+
 
 class Task:
     type: str

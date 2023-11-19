@@ -16,7 +16,7 @@ Execution 1:n Task
 """
 
 
-class Execution(object):
+class Execution:
     execution: str
     list: list
     loops: []

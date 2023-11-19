@@ -14,8 +14,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from utils.OSUtils import OSUtils
 
 
-
-
 class SeleniumUtil:
     """
 

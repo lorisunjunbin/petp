@@ -59,6 +59,6 @@ class ZIPProcessor(Processor):
             if filename not in sourcelist and os.path.isfile(filename):
                 sourcelist.append(filename)
 
-        print(str(sourcelist))
+        logging.debug(str(sourcelist))
 
         return self.zipList(sourcelist, zipname, targetfolder, pathbereplaced, pathinzip)
