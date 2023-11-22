@@ -12,6 +12,8 @@ class GET_COOKIEProcessor(Processor):
         {TPL}
         
     '''
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
 
     def process(self):
 

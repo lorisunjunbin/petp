@@ -46,6 +46,9 @@ class ENCODE_DECODE_STRProcessor(Processor):
         "hexlify": unhexlify,
     }
 
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
+
     def process(self):
         inbound = self.expression2str(self.get_param('inbound'))
         type = self.get_param("type")

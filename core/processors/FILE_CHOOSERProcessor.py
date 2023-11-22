@@ -23,6 +23,8 @@ class FILE_CHOOSERProcessor(Processor):
         To select the file which will be uploaded.
         {TPL}
     '''
+    def get_category(self) -> str:
+        return super().CATE_FILE
 
     def process(self):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')

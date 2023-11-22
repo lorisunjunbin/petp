@@ -10,6 +10,8 @@ class CREATE_SFTP_CLIENTProcessor(Processor):
         {TPL}
          
     '''
+    def get_category(self) -> str:
+        return super().CATE_PARAMIKO
 
     def process(self):
         ip = self.expression2str(self.get_param("sftp_ip"))

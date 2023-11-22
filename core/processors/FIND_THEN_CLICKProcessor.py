@@ -7,8 +7,14 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_THEN_CLICKProcessor(Processor):
     TPL: str = '{"clickby":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5}'
     DESC: str = f'''
+        Find the element via selenium and click it.
+        
         {TPL}
+        
     '''
+
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
 
     def process(self):
 

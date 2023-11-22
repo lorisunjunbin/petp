@@ -5,6 +5,16 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_THEN_COLLECTProcessor(Processor):
     TPL: str = '{"collectby":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect"}'
 
+    DESC = f'''
+    get single text/property/attribute from given element via selenium 
+
+    {TPL}
+
+
+    '''
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
 
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')

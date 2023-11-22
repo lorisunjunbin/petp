@@ -24,6 +24,9 @@ class BEAUTIFUL_SOUPProcessor(Processor):
         
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_HTTP
+    
     def process(self):
         parser = self.get_param("parser")
         inbound_data = self.get_data_by_param_default_param('inbound_data_key', 'inbound_data')

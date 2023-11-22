@@ -21,6 +21,9 @@ class MOUSE_CLICKProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_MOUSE
+
     def process(self):
 
         x = self.get_param('x')

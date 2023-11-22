@@ -19,6 +19,8 @@ class DB_ACCESSProcessor(Processor):
        {TPL}       
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_DATABASE
 
     def process(self):
         type = self.expression2str(self.get_param('type'))

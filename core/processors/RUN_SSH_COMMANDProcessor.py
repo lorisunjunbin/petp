@@ -13,6 +13,9 @@ class RUN_SSH_COMMANDProcessor(Processor):
         {TPL}
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_PARAMIKO
+
     def process(self):
 
         ssh_client: SSHClient = self.get_data(self.get_param("ssh_client_key"))

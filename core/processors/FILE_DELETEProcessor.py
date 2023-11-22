@@ -10,6 +10,8 @@ class FILE_DELETEProcessor(Processor):
         {TPL}
         
     '''
+    def get_category(self) -> str:
+        return super().CATE_FILE
 
     def process(self):
         OSUtils.delete_file_if_existed(

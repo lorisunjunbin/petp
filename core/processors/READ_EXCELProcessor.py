@@ -13,6 +13,8 @@ class READ_EXCELProcessor(Processor):
         {TPL}
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_EXCEL
 
     def process(self):
         skipFirst = True if self.get_param('skip_first') == 'yes' else False

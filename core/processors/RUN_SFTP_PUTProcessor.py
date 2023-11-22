@@ -17,6 +17,10 @@ class RUN_SFTP_PUTProcessor(Processor):
         {TPL}
 
     '''
+
+    def get_category(self) -> str:
+        return super().CATE_PARAMIKO
+
     def process(self):
 
         sftp_client: SFTPClient = self.get_data(self.get_param("sftp_client_key"))

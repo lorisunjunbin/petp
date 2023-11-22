@@ -21,6 +21,9 @@ class UNZIPProcessor(Processor):
          
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_ZIP
+
     def process(self):
         path_to_zip_file = self.expression2str(self.get_param('path_to_zip_file'))
 

@@ -23,6 +23,9 @@ class PYTUBEProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_YUTUBE
+
     def process(self):
         video_url = self.expression2str(self.get_param('video_url')) if self.has_param('video_url') else None
         file_extension = self.expression2str(self.get_param('file_extension')) if self.has_param(

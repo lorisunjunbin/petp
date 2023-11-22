@@ -26,6 +26,23 @@ class Processor:
         - give example
     '''
 
+    # Available categories:
+    CATE_DEFAULT: str = 'Default'
+    CATE_FILE: str = 'File'
+    CATE_ZIP: str = 'Zip'
+    CATE_SELENIUM: str = 'Selenium'
+    CATE_MOUSE: str = 'Mouse'
+    CATE_GUI: str = 'GUI'
+    CATE_EMAIL: str = 'Email'
+    CATE_DATABASE: str = 'Database'
+    CATE_PARAMIKO: str = 'Paramiko'
+    CATE_JSON: str = 'JSON'
+    CATE_EXCEL: str = 'Excel'
+    CATE_GENERAL: str = 'General'
+    CATE_YUTUBE: str = 'Youtube'
+    CATE_DATA_PROCESSING: str = 'DataProcessing'
+    CATE_HTTP: str = 'HTTP'
+
     is_in_loop: False
     current_loop: Loop
 

@@ -16,6 +16,9 @@ class CMDProcessor(Processor):
          
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_GENERAL
+
     def process(self):
         data_key = self.expression2str(self.get_param('data_key'))
         cmdstr = self.expression2str(self.get_param('cmdstr'))

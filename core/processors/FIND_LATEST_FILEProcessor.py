@@ -16,6 +16,8 @@ class FIND_LATEST_FILEProcessor(Processor):
         {TPL}
          
     '''
+    def get_category(self) -> str:
+        return super().CATE_FILE
 
     def process(self):
         path_to_find = self.expression2str(self.get_param('path_to_find'))

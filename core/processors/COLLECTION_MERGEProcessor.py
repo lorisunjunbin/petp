@@ -12,6 +12,9 @@ class COLLECTION_MERGEProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
+
     def process(self):
         c_one_name = self.get_param('c_one_name')
         c_one = self.get_data(c_one_name)

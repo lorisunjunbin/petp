@@ -13,6 +13,10 @@ class SEND_EMAILProcessor(Processor):
        {TPL}
        
     '''
+
+    def get_category(self) -> str:
+        return super().CATE_EMAIL
+
     def process(self):
         smtp = self.expression2str(self.get_param("smtp"))
         port = self.get_param("port")

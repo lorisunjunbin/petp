@@ -14,6 +14,9 @@ class OPEN_FILEProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_FILE
+
     def process(self):
         file_path = self.expression2str(self.get_param('file_path'))
         if file_path is None or not len(file_path) > 0:

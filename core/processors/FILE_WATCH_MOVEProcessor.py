@@ -11,6 +11,9 @@ class FILE_WATCH_MOVEProcessor(Processor):
         {TPL}
         
     '''
+    def get_category(self) -> str:
+        return super().CATE_FILE
+
     def process(self):
         source = self.expression2str(self.get_param('filename'))
         targetfolder = self.expression2str(self.get_param('movetofolder'))

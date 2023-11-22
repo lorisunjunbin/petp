@@ -11,6 +11,9 @@ class ENTER_FULLSCREENProcessor(Processor):
        
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
         if (self.has_data(self.get_param('chrome_name'))):
             chrome = self.get_data(self.get_param('chrome_name'))

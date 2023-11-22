@@ -16,6 +16,8 @@ class INPUT_DIALOGProcessor(Processor):
         {TPL}
         
     '''
+    def get_category(self) -> str:
+        return super().CATE_GUI
 
     def process(self):
         title = self.expression2str(self.get_param('title'))

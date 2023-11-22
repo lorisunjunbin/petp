@@ -13,6 +13,9 @@ class SHOW_RESULTProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_GUI
+
     def process(self):
         title = self.expression2str(self.get_param('title'))
         msg = self.expression2str(self.get_param('msg'))

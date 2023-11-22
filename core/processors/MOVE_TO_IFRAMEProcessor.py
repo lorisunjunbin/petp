@@ -10,6 +10,10 @@ class MOVE_TO_IFRAMEProcessor(Processor):
         {TPL}
 
     '''
+
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
         SeleniumUtil.move_to_target_frame(chrome, self.get_param('frame_ids'))

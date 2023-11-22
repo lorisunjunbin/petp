@@ -13,8 +13,8 @@ class FIBProcessor(Processor):
         {TPL}
     '''
 
-    def get_category(self) ->str:
-        return 'math'
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
 
     def process(self):
         seed: int = int(self.get_param('seed'))

@@ -15,6 +15,9 @@ class INITIAL_PARAMSProcessor(Processor):
         {TPL}
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
+
     def process(self):
         allParams = self.get_all_params()
         for key in allParams:

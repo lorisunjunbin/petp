@@ -15,6 +15,9 @@ class ZIPProcessor(Processor):
          
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_ZIP
+
     def process(self):
 
         data_key = self.expression2str(self.get_param('data_key'))

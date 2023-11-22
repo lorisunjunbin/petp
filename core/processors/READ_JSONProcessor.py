@@ -16,6 +16,8 @@ class READ_JSONProcessor(Processor):
         {TPL}
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_JSON
 
     def process(self):
         file_path = self.get_data(self.get_param('file_path_key')) if self.has_param('file_path_key') \

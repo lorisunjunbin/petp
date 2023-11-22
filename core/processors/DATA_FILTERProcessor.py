@@ -14,6 +14,9 @@ class DATA_FILTERProcessor(Processor):
 
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
+
     def process(self):
         given_collection_name = self.get_param('given_collection')
         given_collection = self.get_data(given_collection_name)

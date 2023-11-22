@@ -23,6 +23,9 @@ class MOUSE_POSITIONProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_MOUSE
+
     def process(self):
         wait = self.get_param('wait')
         if not wait is None and wait > 0:

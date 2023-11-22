@@ -8,6 +8,9 @@ class CHECK_PARAMProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_GUI
+
     def process(self):
         paramnames = self.get_param('param_not_empty')
         data = self.get_deep_data(paramnames.split(self.SEPARATOR))

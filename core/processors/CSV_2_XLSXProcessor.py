@@ -8,6 +8,9 @@ class CSV_2_XLSXProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_EXCEL
+
     def process(self):
         csv_file_path = self.expression2str(self.get_param('csv_file_path'))
         xlsx_file_path = self.expression2str(self.get_param('xlsx_file_path'))

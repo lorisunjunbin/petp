@@ -13,6 +13,9 @@ class GO_TO_PAGEProcessor(Processor):
         {TPL}
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
 
         if super().need_skip():

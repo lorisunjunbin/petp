@@ -12,5 +12,8 @@ class UNKNOWN_TASKProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
         logging.warning('UNKNOWN_TASK!!! ' + self.get_param("msg"))

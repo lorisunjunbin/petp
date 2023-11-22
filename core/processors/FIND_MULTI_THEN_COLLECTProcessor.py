@@ -5,6 +5,16 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_MULTI_THEN_COLLECTProcessor(Processor):
     TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value", "value_key":"name_of_collecttion"}'
 
+    DESC = f'''
+    get muti-text/property/attribute from given elements via selenium 
+
+    {TPL}
+
+
+    '''
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
 
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')

@@ -10,6 +10,8 @@ class NESTED_TO_FLAT_CONVERTORProcessor(Processor):
        {TPL}       
        
     '''
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
 
     def process(self):
 

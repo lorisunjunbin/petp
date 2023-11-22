@@ -14,6 +14,9 @@ class HTTP_REQUESTProcessor(Processor):
 
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_HTTP
+
     def process(self):
 
         request_url = self.expression2str(self.get_param('request_url'))

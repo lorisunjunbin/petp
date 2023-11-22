@@ -9,6 +9,9 @@ class WRITE_TO_EXCELProcessor(Processor):
         {TPL}
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_EXCEL
+
     def process(self):
         file_path = self.expression2str(self.get_param('file_path'))
 

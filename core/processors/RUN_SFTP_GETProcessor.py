@@ -17,6 +17,8 @@ class RUN_SFTP_GETProcessor(Processor):
         {TPL}
 
     '''
+    def get_category(self) -> str:
+        return super().CATE_PARAMIKO
 
     def process(self):
 

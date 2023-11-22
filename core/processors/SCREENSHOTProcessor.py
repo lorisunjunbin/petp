@@ -10,6 +10,10 @@ class SCREENSHOTProcessor(Processor):
         {TPL}
 
     '''
+
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
         format = 'png' if not self.has_param('format') else self.get_param('format')

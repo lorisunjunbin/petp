@@ -15,6 +15,9 @@ class CLOSE_CHROMEProcessor(Processor):
         "skip_in_pipeline" is the flag to decide whether skip this task when in pipeline, "skip_in_pipeline":"yes" means skip.
     '''
 
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
     def process(self):
         if super().need_skip():
             logging.debug('skipped this task: CLOSE_CHROME.')
