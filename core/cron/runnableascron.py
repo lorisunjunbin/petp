@@ -9,5 +9,5 @@ class RunnableAsCron(object):
     def get_cron(self):
         pass
 
-    def runsync(self, init_param, view):
+    def run_sync(self, init_param, view):
         pass

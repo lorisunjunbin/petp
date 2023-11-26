@@ -62,7 +62,7 @@ class Cron:
             roundedDownTime = self._round_down_time()
             if (roundedDownTime == nextRunTime):
                 logging.info(f'Cron - running_as_cron [ {schedule} ] start : {cron.get_name()}')
-                cron.runsync({'running_as_cron': schedule}, self.view, self.cond)
+                cron.run_sync({'running_as_cron': schedule}, self.view, self.cond)
                 logging.info(f'Cron - running_as_cron [ {schedule} ] done: {cron.get_name()}')
                 nextRunTime = self._get_next_cron_run_time(schedule)
             elif (roundedDownTime > nextRunTime):

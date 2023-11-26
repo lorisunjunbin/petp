@@ -34,7 +34,7 @@ class Pipeline(RunnableAsCron):
         self.cond = Condition()
         self._run(initdata, self.cond, view)
 
-    def runsync(self, initdata, view, cond):
+    def run_sync(self, initdata, view, cond):
         self._run(initdata, cond, view)
 
     def get_name(self):
