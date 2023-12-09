@@ -21,7 +21,7 @@ class HanaDBAccess(BaseDBAccess):
 
     def connect(self, host, port, database, user, pwd):
         try:
-            self.cnx = dbapi.connect(address=host, port=port, user=user, password=pwd)
+            self.cnx = dbapi.connect(address=host, port=port, user=user, password=pwd, encrypt=True, sslValidateCertificate=False)
         finally:
             logging.debug("Hana database connected.")
 
@@ -30,7 +30,7 @@ class HanaDBAccess(BaseDBAccess):
             logging.error("Hana database is not connected, can NOT run sql: " + sql)
             return
 
-        cur = self.cnx.cursor(dictionary=True)
+        cur = self.cnx.cursor()
         dataset = []
         try:
 
@@ -54,5 +54,5 @@ class HanaDBAccess(BaseDBAccess):
     def disconnect(self):
         if (hasattr(self, 'cnx')
                 and self.cnx is not None
-                and self.cnx.is_connected()):
+                and self.cnx.isconnected()):
             self.cnx.close()

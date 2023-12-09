@@ -75,6 +75,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 - Able to easily create customized processors.
 
 ## DONE
+
 2023-11: On-demand change log level
 
 2023-11: [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py) & [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py)  ,
@@ -147,6 +148,8 @@ execution: ootb_encode_decode_hash_str
 > pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
 
 > pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5633+11c4a777-cp312-cp312-macosx_10_10_universal2.whl
+
+> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5644+87674de9-cp312-cp312-macosx_10_10_universal2.whl
 
 - Link python 3
 

@@ -1,0 +1,21 @@
+!!python/object:core.execution.Execution
+execution: DB_ACCESS_Hana_D
+list:
+- !!python/object:core.task.Task
+  input: '{"host": "10.1.19.205", "port": "30015", "database": "HAD", "user": "ARIBA_EXT_D",
+    "pwd": "{self.decrypt(\"IFJy8LKjFrrxRK8=*khEUNLFW43iqKQH7yVYTBg==*rTQxi0o78OYhY+3xS+49gg==*82IaRClakpO/66yR4rfhJg==\")}",
+    "sql": "SELECT * FROM USER WHERE USERNAME=? and id > ?", "data_key": "dataset1",
+    "type": "Hana", "param": "50000366, 1"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u4eceHANA\u8bfb\u53d6\u6570\u636e", "msg": "{self.get_data(\"dataset1\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"host": "10.1.19.205", "port": "30015", "database": "HAD", "user": "ARIBA_EXT_D",
+    "pwd": "{self.decrypt(\"IFJy8LKjFrrxRK8=*khEUNLFW43iqKQH7yVYTBg==*rTQxi0o78OYhY+3xS+49gg==*82IaRClakpO/66yR4rfhJg==\")}",
+    "sql": "SELECT * FROM USER limit 10", "data_key": "dataset2", "type": "Hana"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u4eceHANA\u8bfb\u53d6\u6570\u636e", "msg": "{self.get_data(\"dataset2\")}"}'
+  type: SHOW_RESULT
+loops: []
