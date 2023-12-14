@@ -49,7 +49,7 @@ class OSUtils:
 
     @staticmethod
     def get_file_list(file_path):
-        return [f for f in listdir(file_path) if isfile(join(file_path, f)) and not f.startswith('.') and not f.endswith('.crdownload')]
+        return [f for f in listdir(file_path) if isfile(join(file_path, f)) and not f.startswith('.') and not f.endswith('.crdownload') and not f.endswith('.tmp')]
 
     @staticmethod
     def is_file_existed(file_path):
