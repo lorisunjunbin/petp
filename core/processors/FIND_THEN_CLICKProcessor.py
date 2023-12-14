@@ -23,10 +23,11 @@ class FIND_THEN_CLICKProcessor(Processor):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
         clickby = self.get_param('clickby')
         identity = self.get_data(self.get_param('identity_key')) if self.has_param('identity_key') \
-            else self.get_param('identity')
-        ele = SeleniumUtil.get_element_by(chrome, clickby, identity)
+            else self.expression2str(self.get_param('identity'))
 
         super().extra_wait()
+
+        ele = SeleniumUtil.get_element_by(chrome, clickby, identity)
 
         try:
             ele.click()

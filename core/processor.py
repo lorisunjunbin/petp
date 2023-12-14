@@ -165,6 +165,14 @@ class Processor:
         if not l.get_item_key() in d[loop_code][current_idx]:
             d[loop_code][current_idx][l.get_item_key()] = d[l.get_item_key()]
 
+    def get_data_by_loop(self, k):
+        d = self.task.data_chain
+        l = self.get_current_loop()
+        loop_code = l.get_loop_code()
+        loop_index_key = l.get_loop_index_key()
+        current_idx = d[loop_index_key]
+        return d[loop_code][current_idx][k]
+
     def populate_data(self, k, v):
         d = self.task.data_chain
         if k in d:

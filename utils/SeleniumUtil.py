@@ -17,7 +17,7 @@ from utils.OSUtils import OSUtils
 class SeleniumUtil:
     """
 
-    TODO: clean up and refine this method.
+    TODO: clean up and refine this class.
 
     """
 
@@ -93,8 +93,7 @@ class SeleniumUtil:
         ActionChains(chrome).move_to_element(ele).perform()
 
     @staticmethod
-    def find_elements_by_css(chrome, cssSelector=".sapMTableTBody .sapMListTblNavCol .sapMLIBImgNav",
-                             ):
+    def find_elements_by_css(chrome, cssSelector=".sapMTableTBody .sapMListTblNavCol .sapMLIBImgNav"):
         logging.info('findElements- by cssSelector:' + cssSelector)
         return chrome.find_elements(By.CSS_SELECTOR, cssSelector)
 
@@ -352,7 +351,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_id_visible:" + eleId)
             return chrome
         except:
-            logging.error(
+            logging.warning(
                 f"wait_for_element_id_visible - fail to wait within {to} seconds, associated with eleId:" + eleId)
             return None
 
@@ -364,7 +363,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_id_presence:" + eleId)
             return chrome
         except:
-            logging.error(
+            logging.warning(
                 f"wait_for_element_id_presence - fail to wait within {to} seconds, associated with eleId:" + eleId)
             return None
 
@@ -376,7 +375,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_css_visible:" + cssSelector)
             return chrome
         except:
-            logging.error(
+            logging.warning(
                 f"wait_for_element_css_visible - fail to wait within {to} seconds, associated with css:" + cssSelector)
             return None
 
@@ -388,7 +387,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_css_presence:" + cssSelector)
             return chrome
         except:
-            logging.error(
+            logging.warning(
                 f"wait_for_element_css_presence - fail to wait within {to} seconds, associated with css:" + cssSelector)
             return None
 
@@ -400,7 +399,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_xpath_visible:" + xpath)
             return chrome
         except:
-            logging.error("wait_for_element_xpath_visible - fail to wait associated with xpath:" + xpath)
+            logging.warning("wait_for_element_xpath_visible - fail to wait associated with xpath:" + xpath)
             return None
 
     @staticmethod
@@ -411,7 +410,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_xpath_presence:" + xpath)
             return chrome
         except:
-            logging.error("wait_for_element_xpath_presence - fail to wait associated with xpath:" + xpath)
+            logging.warning("wait_for_element_xpath_presence - fail to wait associated with xpath:" + xpath)
             return None
 
     @staticmethod
@@ -423,7 +422,7 @@ class SeleniumUtil:
             SeleniumUtil.move_to_ele(chrome, SeleniumUtil.find_element_by_x_path(chrome, xpath))
             return chrome
         except:
-            logging.error("wait_for_element_xpath_presence - fail to wait associated with xpath:" + xpath)
+            logging.warning("wait_for_element_xpath_presence - fail to wait associated with xpath:" + xpath)
             return None
 
     @staticmethod
@@ -434,7 +433,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_link_visible:" + link)
             return chrome
         except:
-            logging.error("wait_for_element_link_visible - fail to wait associated with link:" + link)
+            logging.warning("wait_for_element_link_visible - fail to wait associated with link:" + link)
             return None
 
     @staticmethod
@@ -445,7 +444,7 @@ class SeleniumUtil:
             logging.info("done waiting wait_for_element_link_presence:" + link)
             return chrome
         except:
-            logging.error("wait_for_element_link_presence - fail to wait associated with link:" + link)
+            logging.warning("wait_for_element_link_presence - fail to wait associated with link:" + link)
             return None
 
     @staticmethod
@@ -472,11 +471,15 @@ class SeleniumUtil:
     def get_elements_by(chrome, xpath=None, css=None, timeout=200):
 
         if not xpath == None:
-            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            c = SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            if c is None:
+                return []
             return SeleniumUtil.find_elements_by_x_path(chrome, xpath)
 
         if not css == None:
-            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            c = SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            if c is None:
+                return []
             return SeleniumUtil.find_elements_by_css(chrome, css)
 
     @staticmethod
@@ -498,26 +501,34 @@ class SeleniumUtil:
             SeleniumUtil.wait_for_element_id_presence(chrome, id, timeout)
             ele = SeleniumUtil.find_element_by_id(chrome, id)
             SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_id_visible(chrome, id, timeout)
+            c = SeleniumUtil.wait_for_element_id_visible(chrome, id, timeout)
+            if c is None:
+                return None
             return SeleniumUtil.find_element_by_id(chrome, id)
 
         if not xpath == None:
             SeleniumUtil.wait_for_element_xpath_presence(chrome, xpath, timeout)
             ele = SeleniumUtil.find_element_by_x_path(chrome, xpath)
             SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            c = SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
+            if c is None:
+                return None
             return SeleniumUtil.find_element_by_x_path(chrome, xpath)
 
         if not link == None:
             SeleniumUtil.wait_for_element_link_presence(chrome, link, timeout)
             ele = SeleniumUtil.find_element_by_link(chrome, link)
             SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_link_visible(chrome, link, timeout)
+            c = SeleniumUtil.wait_for_element_link_visible(chrome, link, timeout)
+            if c is None:
+                return None
             return SeleniumUtil.find_element_by_link(chrome, link)
 
         if not css == None:
             SeleniumUtil.wait_for_element_css_presence(chrome, css, timeout)
             ele = SeleniumUtil.find_element_by_css(chrome, css)
             SeleniumUtil.move_to_ele(chrome, ele)
-            SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            c = SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
+            if c is None:
+                return None
             return SeleniumUtil.find_element_by_css(chrome, css)

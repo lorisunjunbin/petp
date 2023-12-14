@@ -35,9 +35,21 @@ class OSUtils:
             return False
 
     @staticmethod
+    def wait_for_folder_reach_expectcount_within_seconds(source_folder, expect_count, timeout):
+        logging.info(f'waiting {timeout} seconds for file:{source_folder}')
+        wait = 0
+        while len(OSUtils.get_file_list(source_folder)) < expect_count and wait < timeout:
+            time.sleep(1)
+            wait += 1
+
+        source_files = OSUtils.get_file_list(source_folder)
+        result = len(source_files)
+        logging.info(f" {result} file(s) downloaded , {str(source_files)}")
+        return result
+
+    @staticmethod
     def get_file_list(file_path):
-        onlyfiles = [f for f in listdir(file_path) if isfile(join(file_path, f))]
-        return onlyfiles
+        return [f for f in listdir(file_path) if isfile(join(file_path, f)) and not f.startswith('.') and not f.endswith('.crdownload')]
 
     @staticmethod
     def is_file_existed(file_path):
