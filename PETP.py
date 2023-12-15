@@ -26,7 +26,7 @@ def set_log_level(m: PETPModel) -> None:
 
 
 def build_model():
-    config = SystemConfig("/petpconfig.yaml")
+    config = SystemConfig("petpconfig.yaml")
     return PETPModel(config)
 
 

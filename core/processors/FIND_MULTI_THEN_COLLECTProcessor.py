@@ -46,7 +46,7 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
                 new_value = ele
 
             if new_value is None and value_type is not None:
-                new_value = self.get_property_or_attribute(ele, value_type)
+                new_value = SeleniumUtil.get_property_or_attribute(ele, value_type)
             if new_value is not None:
                 valueCollection.append(new_value)
 

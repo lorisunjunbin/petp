@@ -40,7 +40,7 @@ class FIND_THEN_COLLECTProcessor(Processor):
             valueCollected = ele.get_property('value')
 
         if valueCollected is None and value_type is not None and ele is not None:
-            valueCollected = self.get_property_or_attribute(ele, value_type)
+            valueCollected = SeleniumUtil.get_property_or_attribute(ele, value_type)
 
         logging.info(f'collecting "{value_key}" : {str(valueCollected)}')
 

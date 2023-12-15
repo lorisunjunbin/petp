@@ -25,11 +25,11 @@ class COLLECTION_MERGEProcessor(Processor):
         logging.debug(f'The size of "{c_two_name}": {len(c_two)}')
 
         lambda_finder = self.get_param('lambda_finder')
-        lambda_finder_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_finder', '(rowc1, rowc2)',
+        lambda_finder_func = CodeExplainerUtil.create_and_execute_func('COLLECTION_MERGEProcessor_finder', '(rowc1, rowc2)',
                                                             'return ' + lambda_finder)
 
         lambda_merge = self.get_param('lambda_merge_matched')
-        lambda_merge_func = CodeExplainerUtil.func_wrapper('COLLECTION_MERGEProcessor_merge', '(rowc1, rowc2)',
+        lambda_merge_func = CodeExplainerUtil.create_and_execute_func('COLLECTION_MERGEProcessor_merge', '(rowc1, rowc2)',
                                                            'return ' + lambda_merge)
         c_result = []
 

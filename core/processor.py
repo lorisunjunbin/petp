@@ -189,6 +189,9 @@ class Processor:
     def get_data(self, k):
         return self._get_data(self.task.data_chain, k)
 
+    def get_data_chain_str(self):
+        return str(self.task.data_chain)
+
     def has_data(self, k):
         try:
             return k in self.task.data_chain
@@ -217,12 +220,6 @@ class Processor:
             result = self._get_data(result, key)
 
         return result
-
-    def get_property_or_attribute(self, ele, key):
-        try:
-            return ele.get_property(key)
-        except:
-            return ele.get_attribute(key)
 
     def expression2str(self, expression):
         if not expression is None and len(expression) > 0:

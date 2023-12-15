@@ -1,17 +1,17 @@
-# Provide a way to execute a given code as string.
-# suppose all exec(), evil(), should be in this file in PETP.
-
-
 class CodeExplainerUtil:
 
     @staticmethod
-    def func_wrapper_call(func_name, func_args, func_body, args):
+    def create_and_execute_func(func_name, func_args, func_body, args=None):
+        """
+        Create a function and execute it if args is not None
+        :param func_name: function name
+        :param func_args: function arguments
+        :param func_body: function body
+        :param args: arguments, if None, the function will not be executed, just created
+        """
         func = 'def ' + func_name + func_args + ':\n\t\t' + func_body
         exec(func)
-        return locals()[func_name](args)
-
-    @staticmethod
-    def func_wrapper(func_name, func_args, func_body):
-        func = 'def ' + func_name + func_args + ':\n\t\t' + func_body
-        exec(func)
-        return locals()[func_name]
+        if args:
+            return locals()[func_name](args)
+        else:
+            return locals()[func_name]

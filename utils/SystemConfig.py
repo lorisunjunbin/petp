@@ -6,10 +6,9 @@ import yaml
 
 class SystemConfig():
 
-    def __init__(self, fileName):
-
-        self.config_path = os.path.realpath('config') + fileName
-        logging.debug('load config file from: ' + self.config_path)
+    def __init__(self, file_name):
+        self.config_path = os.path.join(os.path.realpath('config'), file_name)
+        logging.info(f'load config file from: {self.config_path}')
 
         with open(self.config_path, 'r', encoding='utf8') as f:
             self.yamldoc = yaml.safe_load(f)
@@ -34,10 +33,10 @@ class SystemConfig():
             yaml.dump(self.yamldoc, f, default_flow_style=False)
         logging.debug('set_config -' + str(keys) + '= ' + value)
 
-    def bind_model(self, model, keys=[], excludeKeys=[]):
+    def bind_model(self, model, keys=[], exclude_keys=[]):
         for idx, key in enumerate(keys):
-            configSet = self.yamldoc[key]
-            for k, v in configSet.items():
-                if k not in excludeKeys:
+            config_set = self.yamldoc[key]
+            for k, v in config_set.items():
+                if k not in exclude_keys:
                     setattr(model, k, v)
                     logging.info(f'bindmodel: {key}  [ {k} = {v} ]')

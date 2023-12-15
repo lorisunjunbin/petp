@@ -6,9 +6,9 @@ class WRITE_TO_EXCELProcessor(Processor):
     TPL: str = '{"file_path":"", "value_key":"sheetname2list", "data_key":""}'
     DESC: str = f'''
         value_key point to the dict[str:[]] of data_chain, sheet title is key of the dict , sheet content list is value of dict.
+        data_key is the key of data_chain to store the file_path.
         {TPL}
     '''
-
     def get_category(self) -> str:
         return super().CATE_EXCEL
 
@@ -18,7 +18,7 @@ class WRITE_TO_EXCELProcessor(Processor):
         data = self.get_data(self.get_param('value_key'))
 
         sheetname2list: dict[str:[]] = data if type(data) == dict \
-            else {'sheet0': data} if type(data) == list else {}
+            else {self.get_param('value_key'): data} if type(data) == list else {}
 
         ExcelUtil.write_dict_to_excel(file_path, sheetname2list)
 

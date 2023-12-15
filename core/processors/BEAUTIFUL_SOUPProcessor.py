@@ -32,7 +32,7 @@ class BEAUTIFUL_SOUPProcessor(Processor):
         inbound_data = self.get_data_by_param_default_param('inbound_data_key', 'inbound_data')
         outbound_data_key = self.get_param("outbound_data_key")
         soup = BeautifulSoup(inbound_data, parser)
-        resp = CodeExplainerUtil.func_wrapper_call('BEAUTIFUL_SOUPProcessor_process', '(soup)',
+        resp = CodeExplainerUtil.create_and_execute_func('BEAUTIFUL_SOUPProcessor_process', '(soup)',
                                                    self.get_param("func_body"), soup)
 
         self.populate_data(outbound_data_key, resp)
