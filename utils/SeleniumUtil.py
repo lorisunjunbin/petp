@@ -189,12 +189,14 @@ class SeleniumUtil:
                       + ", rows:" + str(rows))
 
         return rows
+
     @staticmethod
-    def get_property_or_attribute( ele, key):
+    def get_property_or_attribute(ele, key):
         try:
             return ele.get_property(key)
         except:
             return ele.get_attribute(key)
+
     @staticmethod
     def move_to_crm_target_frame(crmurl):
 
@@ -311,7 +313,7 @@ class SeleniumUtil:
         width = location['x'] + size['width']
         height = location['y'] + size['height']
 
-        SeleniumUtil.image_crop(filepath, x, y, width, height)
+        SeleniumUtil.image_crop(tmppic_path, filepath, x, y, width, height)
 
     @staticmethod
     def screenshot_with_crop(chrome, left, top, right, bottom, filepath, tmppic_path, show=False, format=None):
@@ -320,14 +322,15 @@ class SeleniumUtil:
 
     @staticmethod
     def image_crop(filepath, targetpath, x, y, x2, y2, show=False, format=None):
-        im = Image.open(filepath)
-        im = im.crop((x, y, x2, y2))
-        logging.debug('image_crop file:' + filepath + ' [left:' + str(x) + ', top:' + str(y) + ', right:' + str(
-            x2) + ', lower:' + str(y2) + ']')
-        if show:
-            im.show()
+        if os.path.isfile(filepath):
 
-        im.save(targetpath, format=format, quality=95, subsampling=0)
+            im = Image.open(filepath)
+            im = im.crop((x, y, x2, y2))
+            im.save(targetpath, format=format, quality=95, subsampling=0)
+            logging.debug('image_crop file:' + filepath + ' [left:' + str(x) + ', top:' + str(y) + ', right:' + str(
+                x2) + ', lower:' + str(y2) + ']')
+            if show:
+                im.show()
 
     @staticmethod
     def wait_then_return(chrome, xpath, timeoutInSeconds):
