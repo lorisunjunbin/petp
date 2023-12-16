@@ -1,0 +1,18 @@
+!!python/object:core.execution.Execution
+execution: test_unzip_latest_then_open_via_idea
+list:
+- !!python/object:core.task.Task
+  input: '{"path_to_find": "{self.get_tdir()}/testunzip/", "file_type": ".zip", "found_file_key":
+    "found_file"}'
+  type: FIND_LATEST_FILE
+- !!python/object:core.task.Task
+  input: '{"path_to_zip_file": "{self.get_data(\"found_file\")}", "directory_to_extract":
+    "{self.get_tdir()}/testunzip", "path_after_extract_key": "path_after_extract",
+    "name_appended": "{os.path.basename(self.get_data(\"found_file\")).replace(\".zip\",
+    \"\")}"}'
+  type: UNZIP
+- !!python/object:core.task.Task
+  input: '{"cmdstr": "idea {self.get_data(\"path_after_extract\")}", "data_key": "cmd_out_put",
+    "timeout": 30}'
+  type: CMD
+loops: []

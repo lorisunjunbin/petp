@@ -767,5 +767,5 @@ class PETPPresenter():
         if dlg.ShowModal() == wx.ID_OK:
             evt.handler(dlg.GetValue())
         else:
-            evt.handler('')
+            evt.handler(None)
         dlg.Destroy()

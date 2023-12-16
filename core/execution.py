@@ -74,6 +74,7 @@ class Execution:
             task.run_sequence = sequence
 
             processor: Processor = Processor.get_processor_by_type(task.type)
+            processor.set_execution(self)
             processor.set_task(task)
             processor.set_condition(condition)
             processor.set_view(view)

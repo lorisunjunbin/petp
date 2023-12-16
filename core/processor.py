@@ -50,7 +50,7 @@ class Processor:
     input_param: dict
     condition: Condition
     view: PETPView
-
+    execution: any
     category: str = 'default'
 
     def process(self) -> None:
@@ -77,6 +77,9 @@ class Processor:
 
     def set_view(self, view):
         self.view = view
+
+    def set_execution(self, execution):
+        self.execution = execution
 
     def get_view(self):
         return self.view

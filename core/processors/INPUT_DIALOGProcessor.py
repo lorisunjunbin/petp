@@ -7,7 +7,7 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 
 
 class INPUT_DIALOGProcessor(Processor):
-    TPL: str = '{"title":" Message Input","msg":"","value_key":"","default_value":""}'
+    TPL: str = '{"title":" Message Input","msg":"","value_key":"","default_value":"","stop_on_cancel":"yes"}'
 
     DESC: str = f''' 
         DOES NOT WORKS, due to run execution in a new thread, try to figure out later.
@@ -16,6 +16,7 @@ class INPUT_DIALOGProcessor(Processor):
         {TPL}
         
     '''
+
     def get_category(self) -> str:
         return super().CATE_GUI
 
@@ -36,8 +37,12 @@ class INPUT_DIALOGProcessor(Processor):
         logging.debug(f'=========\n{self.get_data(value_key)}\n=============================')
 
     def handle_ui_thread_callback(self, given):
-        value_key = self.expression2str(self.get_param('value_key'))
-        self.populate_data(value_key, given)
+        stop_on_cancel = True if self.get_param('stop_on_cancel') == 'yes' else False
+        if given is None and stop_on_cancel:
+            self.execution.should_be_stop = True
+        else:
+            value_key = self.expression2str(self.get_param('value_key'))
+            self.populate_data(value_key, given)
         # 通知当前线程继续执行
         cond = self.get_condition()
         with cond:

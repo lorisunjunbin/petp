@@ -31,13 +31,13 @@ class UNZIPProcessor(Processor):
         path_after_extract_key = self.expression2str(self.get_param('path_after_extract_key'))
 
         name_appended = self.expression2str(self.get_param('name_appended')) if self.has_param("name_appended") else ''
-        pwd = self.expression2str(self.get_param('pwd'))
+        pwd = bytes(str(self.expression2str(self.get_param('pwd'))), 'utf-8') if self.has_param("pwd") else None
 
-        with zipfile.ZipFile(path_to_zip_file, 'r') as zip_file_ref:
-            zip_file_ref.extractall(directory_to_extract, pwd=pwd)
+        with zipfile.ZipFile(path_to_zip_file, 'r') as zf:
+            zf.extractall(directory_to_extract, None, pwd)
 
         final_path = os.path.join(directory_to_extract, name_appended)
 
-        logging.debug(f'{path_after_extract_key} is {final_path}')
+        logging.info(f'{path_after_extract_key} is {final_path}')
 
         self.populate_data(path_after_extract_key, final_path)

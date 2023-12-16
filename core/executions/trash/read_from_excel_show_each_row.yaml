@@ -1,0 +1,22 @@
+!!python/object:core.execution.Execution
+execution: read_from_excel_show_each_row
+list:
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}/test.xlsx", "skip_first": "no", "data_key":
+    "loop_list", "end_at": "1", "sheet_index": 0}'
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"param_not_empty": "loop_list"}'
+  type: CHECK_PARAM
+- !!python/object:core.task.Task
+  input: '{"title": "Data From test.xlsx row - {self.get_data(\"loop_idx\")}", "msg":
+    "{str(self.get_data(\"loop_item\"))}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"title": "Loop feature is DONE", "msg": "PETP is growing."}'
+  type: SHOW_RESULT
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":2, "task_end":3, "loop_key":"loop_list","loop_index_key":"loop_idx",
+    "item_key":"loop_item","loop_times":"0"}'
+  loop_code: loop-20210906003623
