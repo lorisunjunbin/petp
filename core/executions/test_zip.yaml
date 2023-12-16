@@ -2,13 +2,19 @@
 execution: test_zip
 list:
 - !!python/object:core.task.Task
-  input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "|", "zipname":
-    "testzipa", "data_key": "test_zip_path", "targetfolder": "D:\\LoriDownload\\",
-    "pathinzip": "html\\", "pathbereplaced": "D:\\LoriDownload\\testzip\\"}'
+  input: '{"sourcefolder": "{self.get_tdir()}/testzip", "sourcelist": "{self.get_tdir()}/testzip/PETP_overview.png|{self.get_tdir()}/testzip/user_manual.png",
+    "zipname": "testzip1", "data_key": "test_zip_path1", "targetfolder": "{self.get_tdir()}/testzip1_result/",
+    "pathinzip": "images", "pathbereplaced": "{self.get_tdir()}/testzip"}'
   type: ZIP
 - !!python/object:core.task.Task
-  input: '{"sourcefolder": "D:\\LoriDownload\\testzip\\", "sourcelist": "D:\\LoriDownload\\testzip\\abc.txt|D:\\LoriDownload\\testzip\\dddd.ppt|D:\\LoriDownload\\testzip\\yabangdouer\\woqu.doc",
-    "zipname": "testzipb", "data_key": "test_zip_path", "targetfolder": "D:\\LoriDownload\\",
-    "pathinzip": "", "pathbereplaced": "D:\\LoriDownload\\testzip\\"}'
+  input: '{"title": "test_zip_path1 - specific files", "msg": "{self.get_data(\"test_zip_path1\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"sourcefolder": "{self.get_tdir()}/testzip/", "sourcelist": "", "zipname":
+    "testzip2", "data_key": "test_zip_path2", "targetfolder": "{self.get_tdir()}/testzip2_result/",
+    "pathinzip": "", "pathbereplaced": "{self.get_tdir()}/"}'
   type: ZIP
+- !!python/object:core.task.Task
+  input: '{"title": "test_zip_path2 - entire folder", "msg": "{self.get_data(\"test_zip_path2\")}"}'
+  type: SHOW_RESULT
 loops: []

@@ -119,6 +119,9 @@ class Processor:
     def get_rdir(self):
         return os.path.realpath('./resources')
 
+    def get_tdir(self):
+        return os.path.realpath('./testcoverage')
+
     def set_task(self, task: Task):
         self.task = task
         self.input_param = json.loads(self.task.input)
