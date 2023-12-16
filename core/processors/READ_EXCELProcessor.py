@@ -23,7 +23,7 @@ class READ_EXCELProcessor(Processor):
         fp = self.get_data(self.get_param('file_path_key')) if self.has_param('file_path_key') \
             else self.expression2str(self.get_param('file_path'))
 
-        sheet_index = self.get_param("sheet_index")
+        sheet_index = self.get_param("sheet_index") if self.has_param("sheet_index") else 0
 
         end_at = int(self.expression2str(self.get_param('end_at'))) if self.has_param('end_at') else 10
 
