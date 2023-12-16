@@ -76,6 +76,8 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2023-12: DATA_COLLECTProcessor, DATA_MAPPINGProcessor, FIND_MULTI_THEN_CLICKProcessor, FOLDER_WATCH_MOVEProcessor
+
 2023-11: On-demand change log level
 
 2023-11: [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py) & [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py)  ,

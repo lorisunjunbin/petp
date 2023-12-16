@@ -1,4 +1,3 @@
-
 import paramiko
 import logging
 
@@ -8,22 +7,17 @@ from datetime import datetime
 class ParamikoUtil:
     """
         # Esperanto: Paranoid + Friend
-        install latest python: https://www.python.org/downloads/
 
         pip install paramiko
-
-        https://bbs.huaweicloud.com/blogs/151871
-        https://www.jianshu.com/p/486dd9993125
-
     """
 
     @staticmethod
     def get_ssh_client(ip, uname, pwd):
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(ip, username=uname, password=pwd)
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(ip, username=uname, password=pwd)
         logging.info(f'----- SSH - {ip} {uname}:*{pwd[1:3]}****----->')
-        return client
+        return ssh_client
 
     @staticmethod
     def close_ssh_client(ssh_client):
@@ -53,11 +47,11 @@ class ParamikoUtil:
 
     @staticmethod
     def get_sftp_client(ip, uname, pwd, port=22):
-        trans = paramiko.Transport((ip, port))
-        trans.connect(username=uname, password=pwd)
-        sftpClient = paramiko.SFTPClient.from_transport(trans)
+        transport = paramiko.Transport((ip, port))
+        transport.connect(username=uname, password=pwd)
+        sftp_client = paramiko.SFTPClient.from_transport(transport)
         logging.info(f'===== SFTP - {ip} {uname}:*{pwd[1:3]}***** =====>')
-        return sftpClient
+        return sftp_client
 
     @staticmethod
     def run_sftp_get(sftp_client, from_remote, to_local):

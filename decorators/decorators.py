@@ -1,14 +1,10 @@
 import asyncio
 
+
 def reload_log_after(func):
-    def wrapper(*args, **kwargs):
-        val = func(*args, **kwargs)
-
-        asyncio.run(
-            args[0].on_load_log_async()
-        )
-
-        return val
+    def wrapper(instance, *args, **kwargs):
+        result = func(instance, *args, **kwargs)
+        asyncio.run(instance.on_load_log_async())
+        return result
 
     return wrapper
-# end of reload_log_after
