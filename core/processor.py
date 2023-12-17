@@ -198,6 +198,12 @@ class Processor:
     def get_data_chain_str(self):
         return str(self.task.data_chain)
 
+    def get_data_chain_json(self):
+        return json.dumps(self.task.data_chain, default=lambda o: f"<not-serializable: {type(o).__qualname__}>")
+
+    def get_data_chain(self):
+        return self.task.data_chain
+
     def has_data(self, k):
         try:
             return k in self.task.data_chain

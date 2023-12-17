@@ -24,29 +24,38 @@ class FOLDER_WATCH_MOVEProcessor(Processor):
 
         source_folder = self.expression2str(self.get_param('sourcefolder'))
         target_folder = self.expression2str(self.get_param('targetfolder'))
-        expect_count = int(self.expression2str(self.get_param('expectcount')))
+        expect_count = int(self.expression2str(self.get_param('expectcount'))) if self.has_param('expectcount') else 0
         target_filespath_key = self.expression2str(self.get_param('targetfilespath_key'))
-        timeout = self.get_param('timeout') if self.has_param('timeout') else 30
+        timeout = self.get_param('timeout') if self.has_param('timeout') else 2
 
-        actual_file_count = OSUtils.wait_for_folder_reach_expectcount_within_seconds(source_folder, expect_count,
-                                                                                     timeout)
         targetfiles_path = []
+
         if expect_count > 0:
+            actual_file_count = OSUtils.wait_for_folder_reach_expectcount_within_seconds(source_folder, expect_count,
+                                                                                         timeout)
+            # move files if count matched with expected
             if actual_file_count == expect_count:
-                for f in os.listdir(source_folder):
-                    sourcefile_path = os.path.join(source_folder, f)
-                    targetfile_path = os.path.join(target_folder, f)
-                    # create target folder if not existed
-                    OSUtils.create_folder_if_not_existed(target_folder)
-                    # move file
-                    OSUtils.copy_file(sourcefile_path, targetfile_path)
-                    OSUtils.delete_file_if_existed(sourcefile_path)
-                    # append target file path to list
-                    targetfiles_path.append(targetfile_path)
-                    logging.debug(f'moving {f} to {targetfile_path}')
+                targetfiles_path = self.move_files_only(source_folder, target_folder)
             else:
                 logging.warning(f'expect {expect_count} files in {source_folder}, found {actual_file_count}')
+        # move all files if no expected count
         else:
-            logging.warning(f'No file will be moved from {source_folder}')
+            targetfiles_path = self.move_files_only(source_folder, target_folder)
 
         self.populate_data(target_filespath_key, targetfiles_path)
+
+    def move_files_only(self, source_folder, target_folder):
+        resut = []
+        for f in os.listdir(source_folder):
+            sourcefile_path = os.path.join(source_folder, f)
+            if os.path.isfile(sourcefile_path):
+                targetfile_path = os.path.join(target_folder, f)
+                # create target folder if not existed
+                OSUtils.create_folder_if_not_existed(target_folder)
+                # move file
+                OSUtils.copy_file(sourcefile_path, targetfile_path)
+                OSUtils.delete_file_if_existed(sourcefile_path)
+                logging.debug(f'moving {f} to {targetfile_path}')
+                resut.append(targetfile_path)
+
+        return resut

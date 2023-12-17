@@ -1,0 +1,28 @@
+!!python/object:core.execution.Execution
+execution: test_data_convert
+list:
+- !!python/object:core.task.Task
+  input: '{ "key1":"value1","key2":"123321" }'
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"given_key": "", "convertor_func": "return [p.get_now_str(), given]", "target_key":
+    "key2_result"}'
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"title": "convert without given_key", "msg": "{self.get_data(\"key2_result\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"given_key": "key1", "convertor_func": "return [p.get_now_str(), given]",
+    "target_key": "key1_result"}'
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"title": "convert value1 of key1", "msg": "{self.get_data(\"key1_result\")}"}'
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"convertor_func": "return dict(filter(lambda itm: not itm[0].startswith(\"__\"),
+    p.get_data_chain().items()))", "target_key": "current_data_chain"}'
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"title": "current data chain", "msg": "{json.dumps(self.get_data(\"current_data_chain\"))}"}'
+  type: SHOW_RESULT
+loops: []
