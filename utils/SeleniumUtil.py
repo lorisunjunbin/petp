@@ -26,9 +26,12 @@ class SeleniumUtil:
         return isinstance(chrome, WebDriver)
 
     @staticmethod
-    def get_webdriver4_chrome() -> WebDriver:
+    def get_webdriver4_chrome(download_folder=None) -> WebDriver:
         wdpath = os.path.realpath('webdriver') + '/' + OSUtils.get_sytem() + '/chromedriver'
-        down_path = os.path.realpath('download')
+        down_path = os.path.join(os.path.realpath('download'), download_folder) \
+            if download_folder is not None else os.path.realpath('download')
+
+        OSUtils.create_folder_if_not_existed(down_path)
 
         logging.info(f'Loading webdriver from: ${wdpath}, Download folder: ${down_path}')
 
@@ -241,8 +244,8 @@ class SeleniumUtil:
         return chrome
 
     @staticmethod
-    def get_page_from_url(crmurl):
-        chrome = SeleniumUtil.get_webdriver4_chrome()
+    def get_page_from_url(crmurl, download_folder=None):
+        chrome = SeleniumUtil.get_webdriver4_chrome(download_folder)
         chrome.get(crmurl)
 
         return chrome
@@ -504,7 +507,9 @@ class SeleniumUtil:
             raise Exception('unsupported by: ' + by)
 
     def get_element_by_id_with_wait(chrome, id, timeout=200):
-        SeleniumUtil.wait_for_element_id_presence(chrome, id, timeout)
+        c = SeleniumUtil.wait_for_element_id_presence(chrome, id, timeout)
+        if c is None:
+            return None
         ele = SeleniumUtil.find_element_by_id(chrome, id)
         SeleniumUtil.move_to_ele(chrome, ele)
         c = SeleniumUtil.wait_for_element_id_visible(chrome, id, timeout)
@@ -513,7 +518,9 @@ class SeleniumUtil:
         return SeleniumUtil.find_element_by_id(chrome, id)
 
     def get_element_by_xpath_with_wait(chrome, xpath, timeout=200):
-        SeleniumUtil.wait_for_element_xpath_presence(chrome, xpath, timeout)
+        c = SeleniumUtil.wait_for_element_xpath_presence(chrome, xpath, timeout)
+        if c is None:
+            return None
         ele = SeleniumUtil.find_element_by_x_path(chrome, xpath)
         SeleniumUtil.move_to_ele(chrome, ele)
         c = SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath, timeout)
@@ -522,7 +529,9 @@ class SeleniumUtil:
         return SeleniumUtil.find_element_by_x_path(chrome, xpath)
 
     def get_element_by_link_with_wait(chrome, link, timeout=200):
-        SeleniumUtil.wait_for_element_link_presence(chrome, link, timeout)
+        c = SeleniumUtil.wait_for_element_link_presence(chrome, link, timeout)
+        if c is None:
+            return None
         ele = SeleniumUtil.find_element_by_link(chrome, link)
         SeleniumUtil.move_to_ele(chrome, ele)
         c = SeleniumUtil.wait_for_element_link_visible(chrome, link, timeout)
@@ -531,7 +540,9 @@ class SeleniumUtil:
         return SeleniumUtil.find_element_by_link(chrome, link)
 
     def get_element_by_css_with_wait(chrome, css, timeout=200):
-        SeleniumUtil.wait_for_element_css_presence(chrome, css, timeout)
+        c = SeleniumUtil.wait_for_element_css_presence(chrome, css, timeout)
+        if c is None:
+            return None
         ele = SeleniumUtil.find_element_by_css(chrome, css)
         SeleniumUtil.move_to_ele(chrome, ele)
         c = SeleniumUtil.wait_for_element_css_visible(chrome, css, timeout)
