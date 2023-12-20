@@ -84,9 +84,11 @@ class PETPPresenter():
         page = propgrid_manager.GetPage(self.single_page)
         page.Append(wx.propgrid.PropertyCategory(category_name))
 
-    def _reset_task_pgrid(self):
+    def _reset_task_pgrid(self, task_number=0):
         self.v.taskProperty.ClearPage(self.v.taskProperty.GetPageByName(self.single_page))
-        self._append_property_category(self.v.taskProperty, "Input Editor")
+        self._append_property_category(self.v.taskProperty,
+                                       "Input Editor - " + str(
+                                           task_number) if task_number > 0 else "Input Editor")
 
     def _reset_loop_pgrid(self):
         self.v.loopProperty.ClearPage(self.v.loopProperty.GetPageByName(self.single_page))
@@ -490,7 +492,7 @@ class PETPPresenter():
 
             inputDict = json.loads(current_input)
             page = self.v.taskProperty.GetPage(self.single_page)
-            self._reset_task_pgrid()
+            self._reset_task_pgrid(current_row + 1)
 
             for k in inputDict:
                 v = inputDict[k]
