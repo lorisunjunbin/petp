@@ -87,7 +87,7 @@ class PETPPresenter():
     def _reset_task_pgrid(self, task_number=0):
         self.v.taskProperty.ClearPage(self.v.taskProperty.GetPageByName(self.single_page))
         self._append_property_category(self.v.taskProperty,
-                                       "Input Editor - " + str(
+                                       "Input Editor of T" + str(
                                            task_number) if task_number > 0 else "Input Editor")
 
     def _reset_loop_pgrid(self):

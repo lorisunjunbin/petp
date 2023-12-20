@@ -109,3 +109,17 @@ class OSUtils:
         log_folder = os.path.realpath('log')
         OSUtils.create_folder_if_not_existed(log_folder)
         return f'{log_folder}/{app}.log'
+
+    @staticmethod
+    def collect_files(start_path, depth_lambda=lambda depth: True, file_name_lambda=lambda file_name: True):
+        """
+        Collect files from start_path with depth and file_name filter
+        """
+        result = []
+        for current_folder, sub_dirs, files in os.walk(start_path):
+            depth = current_folder.replace(start_path, '').count(os.sep)
+            if depth_lambda(depth):
+                for file_name in files:
+                    if file_name_lambda(file_name):
+                        result.append(os.path.join(current_folder, file_name))
+        return result
