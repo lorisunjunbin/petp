@@ -5,11 +5,7 @@ from utils.OSUtils import OSUtils
 
 
 class FIND_FILESProcessor(Processor):
-    TPL: str = '{"path_to_find":"", ' \
-               '"file_name_lambda":" "\".\" in file_name",' \
-               '"depth_lambda":"depth == 1",' \
-               '"found_file_key":"found_file" ' \
-               '}'
+    TPL: str = '{"path_to_find":"", "file_name_lambda":"len(file_name) > 1", "depth_lambda":"depth == 1", "found_file_key":"found_file"}'
 
     DESC: str = f''' 
         Collect files from path_to_find with depth and file_name filter
