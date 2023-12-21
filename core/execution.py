@@ -133,10 +133,10 @@ class Execution:
                 return None
 
     def _get_file_path(self):
-        return f'{os.path.realpath(".")}/core/executions/{self.execution}.yaml'
+        return f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{self.execution}.yaml'
 
     def delete(self):
-        OSUtils.copy2(self._get_file_path(), os.path.realpath('core') + '/executions/trash/')
+        OSUtils.copy2(self._get_file_path(), os.path.realpath('core') + f'{os.sep}executions{os.sep}trash{os.sep}')
         OSUtils.delete_file_if_existed(self._get_file_path())
 
     def save(self):
@@ -149,7 +149,7 @@ class Execution:
 
     @staticmethod
     def get_execution(filename):
-        file_absolute_path = f'{os.path.realpath(".")}/core/executions/{filename}.yaml'
+        file_absolute_path = f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{filename}.yaml'
         if OSUtils.is_file_existed(file_absolute_path):
             return YamlRO.get_yaml_from_file(file_absolute_path)
         else:
@@ -158,7 +158,7 @@ class Execution:
 
     @staticmethod
     def get_available_executions():
-        executions = OSUtils.get_file_list(os.path.realpath('core') + '/executions')
+        executions = OSUtils.get_file_list(os.path.realpath('core') + os.sep + 'executions')
         result = list(
             map(
                 lambda f: f.replace('.yaml', ''),

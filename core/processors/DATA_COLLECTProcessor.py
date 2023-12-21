@@ -19,7 +19,7 @@ class DATA_COLLECTProcessor(Processor):
         return super().CATE_DATA_PROCESSING
 
     def process(self):
-        target_name = self.get_param('target')
+        target_name = self.expression2str(self.get_param('target'))
         target_type = self.get_param('type')
 
         if target_type == 'list':

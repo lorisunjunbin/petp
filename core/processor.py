@@ -117,13 +117,13 @@ class Processor:
         return DateUtil.get_now_in_str()
 
     def get_ddir(self):
-        return os.path.realpath('./download')
+        return os.path.realpath(f'.{os.sep}download')
 
     def get_rdir(self):
-        return os.path.realpath('./resources')
+        return os.path.realpath(f'.{os.sep}resources')
 
     def get_tdir(self):
-        return os.path.realpath('./testcoverage')
+        return os.path.realpath(f'.{os.sep}testcoverage')
 
     def set_task(self, task: Task):
         self.task = task
@@ -261,7 +261,7 @@ class Processor:
 
     @staticmethod
     def get_processors():
-        processors = OSUtils.get_file_list(os.path.realpath('core') + '/processors')
+        processors = OSUtils.get_file_list(os.path.realpath('core') + os.sep + 'processors')
         result = list(
             map(
                 lambda p: p.replace('Processor.py', ''),
