@@ -1,5 +1,6 @@
 import json
 import logging
+import os.path
 
 from core.task import Task
 
@@ -20,7 +21,8 @@ class SeleniumIDERecordingConverter(object):
     def __init__(self, file_path: str, test_name: str = ''):
         self.file_path = file_path
         self.test_name = test_name
-        logging.info(f'SeleniumIDERecordingConverter will load tasks from recording: {self.test_name}, {self.file_path}')
+        logging.info(
+            f'SeleniumIDERecordingConverter will load tasks from recording: {self.test_name}, {self.file_path}')
 
     def set_test_name(self, test_name):
         self.test_name = test_name
@@ -32,7 +34,7 @@ class SeleniumIDERecordingConverter(object):
 
     def is_initialized(self):
         return not self.file_path is None \
-               and not self.test_name is None
+            and not self.test_name is None
 
     def convert_from_selenium_ide_recording(self) -> list:
         tasks = []
@@ -42,11 +44,13 @@ class SeleniumIDERecordingConverter(object):
             commends = self.find_commands_by_test_name(data, self.test_name)
 
             for command in commends:
-                tasks.append(self.convert(command, base_url))
+                task = self.convert(command, base_url)
+                if not task is None:
+                    tasks.append(task)
 
         return tasks
 
-    def convert(self, command, baseUrl) -> Task:
+    def convert(self, command, baseUrl) -> Task | None:
         cmd = command['command']
 
         if cmd == 'open':
@@ -59,12 +63,12 @@ class SeleniumIDERecordingConverter(object):
             return self.buildFIND_THEN_KEYINTask(command)
 
         if cmd == 'sendKeys':
-            return self.buildFIND_THEN_KEYINTask(command, lambda v:v.replace('$',''))
+            return self.buildFIND_THEN_KEYINTask(command, lambda v: v.replace('$', ''))
 
         if cmd == 'doubleClick':
             return self.buildFIND_THEN_COLLECTTask(command)
 
-        return Task('UNKNOWN_TASK', json.dumps({'msg': 'unsupported command: ' + str(command)}))
+        return None
 
     def buildGO_TO_PAGETask(self, baseUrl, targetUrl):
         return Task('GO_TO_PAGE', json.dumps({"url": f"{baseUrl}{targetUrl}"}))
@@ -72,28 +76,36 @@ class SeleniumIDERecordingConverter(object):
     def buildFIND_THEN_CLICKTask(self, command):
         by0id1 = self.find_proper_locator(command)
         if len(by0id1) == 0:
-            return Task('UNKNOWN_TASK', json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
+            logging.info(json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
+            return None
 
         return Task('FIND_THEN_CLICK', json.dumps({'clickby': by0id1[0], 'identity': by0id1[1]}))
 
-    def buildFIND_THEN_KEYINTask(self, command, fn=lambda v:v):
+    def buildFIND_THEN_KEYINTask(self, command, fn=lambda v: v):
         by0id1 = self.find_proper_locator(command)
         if len(by0id1) == 0:
-            return Task('UNKNOWN_TASK', json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
+            logging.info(json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
+            return None
 
         return Task('FIND_THEN_KEYIN',
                     json.dumps({'keyinby': by0id1[0], 'identity': by0id1[1], 'value': fn(command['value'])}))
 
     def buildFIND_THEN_COLLECTTask(self, command):
         by0id1 = self.find_proper_locator(command)
+
         if len(by0id1) == 0:
-            return Task('UNKNOWN_TASK', json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
+            logging.info(json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
+            return None
 
         value_key = command['comment'] if len(command['comment']) > 0 else command['id']
         return Task('FIND_THEN_COLLECT', json.dumps({'collectby': by0id1[0], 'identity': by0id1[1],
                                                      'value_type': 'any', 'value_key': value_key}))
 
-    def find_proper_locator(self, command) -> str:
+    def find_proper_locator(self, command) -> list[str]:
+
+        xpathlocator = self.find_first_by_prefix('xpath=', command)
+        if not xpathlocator == None:
+            return ['xpath', xpathlocator]
 
         idlocator = self.find_first_by_prefix('id=', command)
         if not idlocator == None:
@@ -103,11 +115,7 @@ class SeleniumIDERecordingConverter(object):
         if not csslocator == None:
             return ['css', csslocator]
 
-        xpathlocator = self.find_first_by_prefix('xpath=', command)
-        if not xpathlocator == None:
-            return ['xpath', xpathlocator]
-
-    def find_first_by_prefix(self, prefix, command) -> str:
+    def find_first_by_prefix(self, prefix, command) -> str | None:
 
         default_target = command['target']
 
@@ -132,7 +140,16 @@ class SeleniumIDERecordingConverter(object):
 
 
 if __name__ == '__main__':
-    c = SeleniumIDERecordingConverter('C:/Users/Admin/Downloads/LOCAL_TEST_Other.side', 'TEST111')
+    # customerserveroverview.side
+    given = os.path.realpath('../../testcoverage/selenium/customerserveroverview.side')
+    c = SeleniumIDERecordingConverter(given, 'Testcustomerserviewoverview')
+    tasks = c.convert_from_selenium_ide_recording()
+    for t in tasks:
+        print(str(t))
+
+    # GC-phoenix.side
+    given = os.path.realpath('../../testcoverage/selenium/GC-phoenix.side')
+    c = SeleniumIDERecordingConverter(given, 'gc-phoenix')
     tasks = c.convert_from_selenium_ide_recording()
     for t in tasks:
         print(str(t))

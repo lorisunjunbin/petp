@@ -9,7 +9,8 @@ TODO:
 
 
 class INITIAL_PARAMSProcessor(Processor):
-    TPL: str = '{ "key":"value" }'
+    TPL: str = '{"key":"value"}'
+
     DESC: str = f''' 
         - Initial key-value pairs, save to data_chain  
 
