@@ -27,7 +27,7 @@ class OPEN_FILEProcessor(Processor):
         found = OSUtils.wait_for_file_within_seconds(file_path, timeout)
         if found:
             logging.debug(f'=========\n going to open file: \n{file_path}\n===========================')
-            if OSUtils.get_sytem() == 'darwin':
+            if OSUtils.get_system() == 'darwin':
                 subprocess.call(["open", file_path])
             else:
                 os.startfile(file_path)

@@ -27,7 +27,7 @@ class SeleniumUtil:
 
     @staticmethod
     def get_webdriver4_chrome(download_folder=None) -> WebDriver:
-        wdpath = os.path.realpath('webdriver') + '/' + OSUtils.get_sytem() + '/chromedriver'
+        wdpath = os.path.realpath('webdriver') + '/' + OSUtils.get_system() + '/chromedriver'
         down_path = os.path.join(os.path.realpath('download'), download_folder) \
             if download_folder is not None else os.path.realpath('download')
 

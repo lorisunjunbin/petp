@@ -10,7 +10,7 @@ from shutil import copy2, copyfile
 class OSUtils:
 
     @staticmethod
-    def get_sytem():
+    def get_system():
         """
         AIX  -> 'aix'
         Linux -> 'linux'

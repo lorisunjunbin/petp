@@ -449,7 +449,7 @@ class PETPPresenter():
             wx.grid.GridCellChoiceEditor(choices, allowOthers=False)
         )
         # this cell editor is not working for mac so,
-        if not OSUtils.get_sytem() == "darwin":
+        if not OSUtils.get_system() == "darwin":
             grid.SetCellEditor(
                 rowAt, 1,
                 wx.grid.GridCellAutoWrapStringEditor()
