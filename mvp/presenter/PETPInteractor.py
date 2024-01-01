@@ -9,8 +9,13 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 
 
 class PETPInteractor():
+    """
+    PETPInteractor is in charge of binding events from view to presenter.
+    """
 
     def __init__(self):
+        self.v = None
+        self.p = None
         logging.info("Init PETPInteractor")
 
     def install(self, presenter, view):
@@ -72,6 +77,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_stop_execution, self.v.stopExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_run_execution, self.v.runExection)
+        self.v.Bind(wx.EVT_CHECKBOX, self.on_executeonstartup_changed, self.v.checkbox_executeonstartup)
 
     def bind_view_event_4e_input_editor(self):
         # input editor
@@ -196,6 +202,10 @@ class PETPInteractor():
     def on_run_execution(self, evt):
         evt.Skip()
         self.p.on_run_execution()
+
+    def on_executeonstartup_changed(self, evt):
+        evt.Skip()
+        self.p.on_executeonstartup_changed(evt)
 
     def on_stop_execution(self, evt):
         evt.Skip()

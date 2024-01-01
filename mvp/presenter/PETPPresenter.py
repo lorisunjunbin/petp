@@ -60,14 +60,26 @@ class PETPPresenter():
         self._init_executiongrid_choice_editor()
         self._init_cron()
         self._init_property_grid()
-        self._load_last_run()
-        self._load_log_level()
 
-    def _load_log_level(self):
+        self._load_config()
+
+        self._handle_execute_on_startup()
+
+    def _handle_execute_on_startup(self):
+        if self.m.execute_on_startup:
+            logging.info(f"execute on startup is enabled, will run execution: {self.m.last_run}")
+            self.on_run_execution()
+
+    def _load_config(self):
+        # load_executeonstartup
+        if self.m.execute_on_startup is not None:
+            self.v.checkbox_executeonstartup.SetValue(self.m.execute_on_startup)
+
+        # load_log_level
         if self.m.log_level is not None:
             self.v.logLevelChooser.SetValue(self.m.log_level)
 
-    def _load_last_run(self):
+        # load_last_run
         if self.m.last_run is not None:
             logging.info("loading last run: " + self.m.last_run)
             self.v.executionChooser.SetValue(self.m.last_run)
@@ -388,6 +400,11 @@ class PETPPresenter():
         executor = Executor(self.execution, {"__m": self.m, "__p": self}, self.v)
         self.executors.append(executor)
         executor.start()
+
+    @reload_log_after
+    def on_executeonstartup_changed(self, evt: wx.EVT_CHECKBOX):
+        self.m.execute_on_startup = evt.IsChecked()
+        self.m.set_config('execute_on_startup', self.m.execute_on_startup)
 
     @reload_log_after
     def on_stop_execution(self):

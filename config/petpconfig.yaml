@@ -3,6 +3,7 @@ application:
   author: lorisunjunbin@DalianChina
   cell: +86-13478653323
   email: 6099012@qq.com
-  last_run: ootb_encode_decode_hash_str
-  log_level: INFO #  FATAL | CRITICAL | ERROR | WARNING | INFO | DEBUG
+  execute_on_startup: false
+  last_run: ootb_keep_screen_unlocked
+  log_level: INFO
   version: 1.0.3
