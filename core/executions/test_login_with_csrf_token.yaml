@@ -1,0 +1,51 @@
+!!python/object:core.execution.Execution
+execution: test_login_with_csrf_token
+list:
+- !!python/object:core.task.Task
+  input: '{"hac_url": "{self.decrypt(\"FVOVM/dJjzz1wQnNpPo/oDl1R3ZUoYzHXSee5hEr5022geIuAfUnauwEn44XMPvsJldDWdwkyfP1ug4Atxh0uwnBZ9Exw5qvMlo36BEbFQKY1i/gJkBGPIFFUvUl*XA81NCew4DX2uvAHRblmKw==*w8+GfDN4Q9JxZh+1paxXDw==*5z5R4veCzaZgu4QACAgy3w==\")}",
+    "usr": "{self.decrypt(\"vmDRHPI=*1K3Wfqan37cjvVaw3X4i0w==*5vMQpz1hNtXm5OBaWhTriw==*n/5zBFB61DwDgIMumnDG/w==\")}",
+    "pwd": "{self.decrypt(\"e85+PcBGWA==*sqXjyYpllIEcQC2CIfwyNg==*I7z1uPOGdSC85FDHTNvqaA==*nVI8uKMf2Me+p7TX/GGarg==\")}",
+    "timeout": "100"}'
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"request_url": "{self.get_data(\"hac_url\")}/login", "method": "get", "value_key":
+    "login_resp", "session_key": "__session_key", "resp_func_body": "return response.text
+    if response.status_code == 200 else response.status_code", "timeout": 60}'
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"outbound_data_key": "csrf_token", "func_body": "return soup.find(''input'',
+    {''name'': ''_csrf''}).get(''value'')", "parser": "html.parser", "inbound_data_key":
+    "login_resp"}'
+  type: BEAUTIFUL_SOUP
+- !!python/object:core.task.Task
+  input: '{"request_url": "{self.get_data(\"hac_url\")}/j_spring_security_check",
+    "method": "post", "value_key": "login_success_resp", "session_key": "__session_key",
+    "resp_func_body": "return response.text if response.status_code == 200 else response.status_code",
+    "timeout": 60, "data": "j_username->{self.get_data(\"usr\")}|j_password->{self.get_data(\"pwd\")}|_csrf->{self.get_data(\"csrf_token\")}"}'
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"outbound_data_key": "csrf_token", "func_body": "return soup.find(''meta'',
+    {''name'': ''_csrf''}).get(''content'')", "parser": "html.parser", "inbound_data_key":
+    "login_success_resp"}'
+  type: BEAUTIFUL_SOUP
+- !!python/object:core.task.Task
+  input: '{"outbound_data_key": "csrf_token_header", "func_body": "return soup.find(''meta'',
+    {''name'': ''_csrf_header''}).get(''content'')", "parser": "html.parser", "inbound_data_key":
+    "login_success_resp"}'
+  type: BEAUTIFUL_SOUP
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_tdir()}/groovyscripts/audited-types.groovy", "data_key":
+    "groovy_script"}'
+  type: READ_TEXT_FROM_FILE
+- !!python/object:core.task.Task
+  input: '{"request_url": "{self.get_data(\"hac_url\")}/console/scripting/execute",
+    "method": "post", "value_key": "execute_groovy_resp", "session_key": "__session_key",
+    "resp_func_body": "return response.text if response.status_code == 200 else response.status_code",
+    "timeout": 60, "data": "scriptType->groovy|commit->False|script->{self.get_data(\"groovy_script\")}",
+    "headers": "Accept->application/json|{self.get_data(\"csrf_token_header\")}->{self.get_data(\"csrf_token\")}"}'
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"title": "{self.get_data(\"csrf_token_header\")} --> {self.get_data(\"csrf_token\")}",
+    "msg": "{self.get_data(\"execute_groovy_resp\")}"}'
+  type: SHOW_RESULT
+loops: []
