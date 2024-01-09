@@ -26,13 +26,13 @@ class BEAUTIFUL_SOUPProcessor(Processor):
 
     def get_category(self) -> str:
         return super().CATE_HTTP
-    
+
     def process(self):
         parser = self.get_param("parser")
         inbound_data = self.get_data_by_param_default_param('inbound_data_key', 'inbound_data')
         outbound_data_key = self.get_param("outbound_data_key")
         soup = BeautifulSoup(inbound_data, parser)
         resp = CodeExplainerUtil.create_and_execute_func('BEAUTIFUL_SOUPProcessor_process', '(soup)',
-                                                   self.get_param("func_body"), soup)
+                                                         self.get_param("func_body"), soup)
 
         self.populate_data(outbound_data_key, resp)

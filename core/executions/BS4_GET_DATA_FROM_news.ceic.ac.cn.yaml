@@ -3,7 +3,8 @@ execution: BS4_GET_DATA_FROM_news.ceic.ac.cn
 list:
 - !!python/object:core.task.Task
   input: '{"request_url": "https://news.ceic.ac.cn/index.html", "method": "get", "value_key":
-    "news"}'
+    "news", "session_key": "__session_key", "resp_func_body": "return response.text
+    if response.status_code == 200 else response.status_code", "timeout": 60}'
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
   input: '{"outbound_data_key": "soup_outbound", "func_body": "return list(map(lambda

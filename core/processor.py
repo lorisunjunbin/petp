@@ -182,9 +182,9 @@ class Processor:
     def populate_data(self, k, v):
         d = self.task.data_chain
         if k in d:
-            logging.debug(f"key [ {k} ] occupied and overwritten!")
+            logging.warning(f"key [ {k} ] occupied and overwritten!")
         d[k] = v
-        logging.info(f"[ {k} --> {v} ]")
+        logging.debug(f"[ {k} --> {v} ]")
 
     def get_data_by_param_default_data(self, param, default_data_name):
         return self.get_data(self.get_param(param)) if self.has_param(param) else self.get_data(default_data_name)
