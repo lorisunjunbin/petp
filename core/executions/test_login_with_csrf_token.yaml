@@ -21,7 +21,7 @@ list:
   input: '{"request_url": "{self.get_data(\"hac_url\")}/j_spring_security_check",
     "method": "post", "value_key": "login_success_resp", "session_key": "__session_key",
     "resp_func_body": "return response.text if response.status_code == 200 else response.status_code",
-    "timeout": 60, "data": "j_username->{self.get_data(\"usr\")}|j_password->{self.get_data(\"pwd\")}|_csrf->{self.get_data(\"csrf_token\")}"}'
+    "timeout": 60, "data": "j_username{self.ITEM_SEPARATOR}{self.get_data(\"usr\")}|j_password{self.ITEM_SEPARATOR}{self.get_data(\"pwd\")}|_csrf{self.ITEM_SEPARATOR}{self.get_data(\"csrf_token\")}"}'
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
   input: '{"outbound_data_key": "csrf_token", "func_body": "return soup.find(''meta'',
@@ -41,8 +41,8 @@ list:
   input: '{"request_url": "{self.get_data(\"hac_url\")}/console/scripting/execute",
     "method": "post", "value_key": "execute_groovy_resp", "session_key": "__session_key",
     "resp_func_body": "return response.text if response.status_code == 200 else response.status_code",
-    "timeout": 60, "data": "scriptType->groovy|commit->False|script->{self.get_data(\"groovy_script\")}",
-    "headers": "Accept->application/json|{self.get_data(\"csrf_token_header\")}->{self.get_data(\"csrf_token\")}"}'
+    "timeout": 60, "data": "scriptType{self.ITEM_SEPARATOR}groovy|commit{self.ITEM_SEPARATOR}False|script{self.ITEM_SEPARATOR}{self.get_data(\"groovy_script\")}",
+    "headers": "Accept{self.ITEM_SEPARATOR}application/json|{self.get_data(\"csrf_token_header\")}{self.ITEM_SEPARATOR}{self.get_data(\"csrf_token\")}"}'
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
   input: '{"title": "{self.get_data(\"csrf_token_header\")} --> {self.get_data(\"csrf_token\")}",

@@ -15,7 +15,7 @@ from utils.OSUtils import OSUtils
 
 class Processor:
     SEPARATOR: str = '|'
-    ITEM_SEPARATOR: str = '->'
+    ITEM_SEPARATOR: str = '[>'
     SALT: str = 'petpisawesome'
 
     TPL: str
