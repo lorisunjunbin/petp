@@ -1,16 +1,21 @@
-import de.hybris.platform.servicelayer.search.FlexibleSearchQuery
 import groovy.json.JsonOutput
+import org.apache.commons.configuration.Configuration
 
-def query = new FlexibleSearchQuery('SELECT {passwordEncoding}, COUNT(0) FROM {User} GROUP BY {passwordEncoding}')
-query.setResultClassList([String.class, Long.class])
+def config = configurationService.getConfiguration()
+println config
+def auditingEnabled = config.getProperty('auditing.enabled')
 
-def result = flexibleSearchService.search(query)
+auditedItems = []
+if (auditingEnabled) {
+    def auditKeys = config.getKeys('audit')
+    auditKeys.each { key ->
 
-results = []
-
-result.result.each { r ->
-  results << [ encoding: r[0], count: r[1] ]
+      if (key.startsWith('audit.') && key.endsWith('.enabled')) {
+        def itemName = (key =~ 'audit\\.(.*)\\.enabled')[0][1]      
+        auditedItems << itemName
+      }
+    }
 }
 
-
-JsonOutput.prettyPrint(JsonOutput.toJson(results))
+def result = ['auditingEnabled': auditingEnabled, auditedItems: auditedItems]
+JsonOutput.prettyPrint(JsonOutput.toJson(result))

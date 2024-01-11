@@ -55,22 +55,26 @@ class HTTP_REQUESTProcessor(Processor):
         method = self.get_param('method') if self.has_param('method') else 'get'
 
         logging.info('\n')
-        logging.info('----------------------------------------------')
-        logging.info('request.url - ' + request_url)
-        logging.info('request.headers - ' + str(headers))
-        logging.info('request.data - ' + str(data))
-        logging.info('request.params - ' + str(params))
-        logging.info('request.method - ' + method)
-        logging.info('request.timeout - ' + str(timeout))
+        logging.info('===============================================')
 
         response = getattr(session, method)(request_url, timeout=(5, timeout), data=data, params=params,
                                             headers=headers)
         response.encoding = 'utf-8'
 
-        logging.info('response.status_code - ' + str(response.status_code))
-        logging.info('response.headers - ' + str(response.headers))
-        logging.debug('response.text - ' + response.text)
-        logging.info('----------------------------------------------\n')
+        logging.info('<----------------------------------------------<')
+        # response
+        logging.info('resp.text - ' + response.text)
+        logging.info('resp.status_code - ' + str(response.status_code))
+        logging.info('resp.headers - ' + str(response.headers))
+        logging.info('>---------------------------------------------->')
+        # request
+        logging.info('req.url - ' + request_url)
+        logging.info('req.headers - ' + str(headers))
+        logging.info('req.data - ' + str(data))
+        logging.info('req.params - ' + str(params))
+        logging.info('req.method - ' + method)
+        logging.info('req.timeout - ' + str(timeout))
+        logging.info('===============================================\n')
 
         data_in_resp = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response)',
                                                                  self.get_param("resp_func_body"), args=response)

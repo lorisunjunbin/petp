@@ -2,7 +2,7 @@
 execution: test_zip
 list:
 - !!python/object:core.task.Task
-  input: '{"sourcefolder": "{self.get_tdir()}/testzip", "sourcelist": "{self.get_tdir()}/testzip/PETP_overview.png|{self.get_tdir()}/testzip/user_manual.png",
+  input: '{"sourcefolder": "{self.get_tdir()}/testzip", "sourcelist": "{self.get_tdir()}/testzip/PETP_overview.png|>{self.get_tdir()}/testzip/user_manual.png",
     "zipname": "testzip1", "data_key": "test_zip_path1", "targetfolder": "{self.get_tdir()}/testzip1_result/",
     "pathinzip": "images", "pathbereplaced": "{self.get_tdir()}/testzip"}'
   type: ZIP

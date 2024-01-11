@@ -13,7 +13,7 @@ list:
     "format": "png", "wait": 3}'
   type: SCREENSHOT
 - !!python/object:core.task.Task
-  input: '{"crop": "800|100|3000|800", "show": "yes", "data_key": "screeshot_crop",
+  input: '{"crop": "800|>100|>3000|>800", "show": "yes", "data_key": "screeshot_crop",
     "filepath": "{self.get_tdir()}/test_screenshot/screenshotbaidu_crop.png", "format":
     "png", "wait": 3}'
   type: SCREENSHOT
