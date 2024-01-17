@@ -155,6 +155,8 @@ execution: ootb_encode_decode_hash_str
 
 > pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5644+87674de9-cp312-cp312-macosx_10_10_universal2.whl
 
+> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5654+0c545000-cp312-cp312-macosx_10_10_universal2.whl
+
 - Link python 3
 
 > ln -s -f /usr/local/bin/python3 /usr/local/bin/python
