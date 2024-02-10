@@ -29,6 +29,7 @@ and each one contains various tasks. The last **P** means processor, which handl
     - Database CRUD for MySQL, Hana, Postgres, Sqlite
     - String encode/decode and hash
 
+
 MacOS
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview.png)
@@ -69,6 +70,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 ## TO-DO:
 
 - Create more [processors](./core/processors)
+    - provide the ability to access from web perspective.
     - processor of chatGPT - https://platform.openai.com/docs/api-reference/introduction
     - processor of Pillow - https://pillow.readthedocs.io/en/stable/
 
@@ -76,7 +78,9 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2024-01: new feature: execute on startup. 
+2024-02: add webapp for PETP, powered by Flask web framework, supporting basic authentication.
+
+2024-01: new feature: execute on startup.
 
 2023-12: DATA_COLLECTProcessor, DATA_MAPPINGProcessor, FIND_MULTI_THEN_CLICKProcessor, FOLDER_WATCH_MOVEProcessor
 
