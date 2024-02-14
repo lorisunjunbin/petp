@@ -3,7 +3,7 @@ from flask import Flask, send_from_directory, render_template, redirect, request
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import users, port, shared_folder
-from webapp.utils import Utils
+from utils import Utils
 
 app = Flask(__name__)
 auth = HTTPBasicAuth()
