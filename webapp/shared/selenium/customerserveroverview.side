@@ -1,0 +1,139 @@
+{
+  "id": "37698c76-4d33-48ef-a2f2-766ec2f4862e",
+  "version": "2.0",
+  "name": "customerserveroverview",
+  "url": "https://reporting.ondemand.com",
+  "tests": [{
+    "id": "b488e4a3-3a4b-4b90-a285-fc744334aeb1",
+    "name": "Testcustomerserviewoverview",
+    "commands": [{
+      "id": "a86f07c9-9d87-4a34-97c3-223456c1c248",
+      "comment": "",
+      "command": "open",
+      "target": "/sap/crp/cdo?type=CRP_DED_SYS&list=tic_cc&db_id=---empty-dashboard---&hec_customer_id=AIN",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4a07f0b1-41c1-473a-a642-b80bc6d3c8c8",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1536x816",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "fcb7fc74-8499-4e71-89a9-d6e68f0db029",
+      "comment": "",
+      "command": "click",
+      "target": "id=CR_BTN_XLSX",
+      "targets": [
+        ["id=CR_BTN_XLSX", "id"],
+        ["linkText=Excel", "linkText"],
+        ["css=#CR_BTN_XLSX", "css:finder"],
+        ["xpath=//a[contains(text(),'Excel')]", "xpath:link"],
+        ["xpath=//a[@id='CR_BTN_XLSX']", "xpath:attributes"],
+        ["xpath=//div[@id='main_container']/div[4]/span/a[2]", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, '?type=CRP_DED_SYS&list=tic_cc&csv=X&csv_id=crp_ded_sys_tic_cc&hec_customer_id=AIN&type=crp_ded_sys&db_id=---empty-dashboard---')]", "xpath:href"],
+        ["xpath=//span/a[2]", "xpath:position"],
+        ["xpath=//a[contains(.,' Excel')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "d0987913-0a7c-4fd3-b1a7-a591fe41d2c9",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.fa-columns",
+      "targets": [
+        ["css=.fa-columns", "css:finder"],
+        ["xpath=//div[@id='main_container']/div[4]/span/button/i", "xpath:idRelative"],
+        ["xpath=//span/button/i", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "efedc247-900b-44b2-96e5-0e8b07da4b41",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.fa-columns",
+      "targets": [
+        ["css=.fa-columns", "css:finder"],
+        ["xpath=//div[@id='main_container']/div[4]/span/button/i", "xpath:idRelative"],
+        ["xpath=//span/button/i", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "a577064e-b77b-458f-9b6a-99c02371019f",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.btn:nth-child(14)",
+      "targets": [
+        ["css=.btn:nth-child(14)", "css:finder"],
+        ["xpath=(//button[@type='button'])[90]", "xpath:attributes"],
+        ["xpath=//div[@id='main_container']/div[4]/span/button[2]", "xpath:idRelative"],
+        ["xpath=//span/button[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "650ad100-5001-4a88-9f53-7346386037b1",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.btn:nth-child(13)",
+      "targets": [
+        ["css=.btn:nth-child(13)", "css:finder"],
+        ["xpath=(//button[@type='button'])[90]", "xpath:attributes"],
+        ["xpath=//div[@id='main_container']/div[4]/span/button[2]", "xpath:idRelative"],
+        ["xpath=//span/button[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "4a6f46e4-1a20-43f6-8819-3563b3354e72",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.btn:nth-child(12)",
+      "targets": [
+        ["css=.btn:nth-child(12)", "css:finder"],
+        ["xpath=(//button[@type='button'])[89]", "xpath:attributes"],
+        ["xpath=//div[@id='main_container']/div[4]/span/button", "xpath:idRelative"],
+        ["xpath=//span/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0fb4f4e6-0b9c-4d9e-ad86-7aad6f03503a",
+      "comment": "",
+      "command": "mouseOut",
+      "target": "css=.btn:nth-child(12)",
+      "targets": [
+        ["css=.btn:nth-child(12)", "css:finder"],
+        ["xpath=(//button[@type='button'])[89]", "xpath:attributes"],
+        ["xpath=//div[@id='main_container']/div[4]/span/button", "xpath:idRelative"],
+        ["xpath=//span/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "4424d501-4336-463e-ba43-1965bf1aebad",
+      "comment": "",
+      "command": "click",
+      "target": "id=CR_BTN_XLSX",
+      "targets": [
+        ["id=CR_BTN_XLSX", "id"],
+        ["linkText=Excel", "linkText"],
+        ["css=#CR_BTN_XLSX", "css:finder"],
+        ["xpath=//a[contains(text(),'Excel')]", "xpath:link"],
+        ["xpath=//a[@id='CR_BTN_XLSX']", "xpath:attributes"],
+        ["xpath=//div[@id='main_container']/div[4]/span/a[2]", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, '?type=CRP_DED_SYS&list=tic_cc&csv=X&csv_id=crp_ded_sys_tic_cc&hec_customer_id=AIN&type=crp_ded_sys&db_id=---empty-dashboard---')]", "xpath:href"],
+        ["xpath=//span/a[2]", "xpath:position"],
+        ["xpath=//a[contains(.,' Excel')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }],
+  "suites": [{
+    "id": "aaf84e9f-32ea-4a5c-9c64-f12b8beaa812",
+    "name": "Default Suite",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["b488e4a3-3a4b-4b90-a285-fc744334aeb1"]
+  }],
+  "urls": ["https://reporting.ondemand.com/"],
+  "plugins": []
+}
