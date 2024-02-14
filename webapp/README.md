@@ -1,15 +1,15 @@
 ## PETP WEB
 
-Lightweight web application for PETP, powered by Flask web framework, supporting basic authentication.
+Lightweight web application, powered by Flask web framework, supporting basic authentication, a file viewer can view/search/download the files shared by PETP.
 
-### install and Run
+### Install and Run
 
     1, > pip install -r requirements.txt
 
     2, > flask run
     
-    3, Open browser and visit http://localhost:5555
+    3, Open the browser and visit http://localhost:5555
     
     4, login with username: petp, password: petp 
 
-    5, fileviewer - http://localhost:5555/fileviewer?q=xlsx
+    5, file viewer - http://localhost:5555/fileviewer?q=xlsx
