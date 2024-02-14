@@ -124,6 +124,9 @@ class Processor:
 
     def get_tdir(self):
         return os.path.realpath(f'.{os.sep}testcoverage')
+    
+    def get_sdir(self):
+        return os.path.realpath(f'.{os.sep}webapp{os.sep}shared')
 
     def set_task(self, task: Task):
         self.task = task
