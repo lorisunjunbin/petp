@@ -10,6 +10,8 @@ Lightweight web application, powered by Flask web framework, supporting basic au
     
     3, Open the browser and visit http://localhost:5555
     
-    4, login with username: petp, password: petp 
+    4, file viewer - http://localhost:5555/fileviewer?q=xlsx
+    
+    5, login with username: petp, password: petp 
 
-    5, file viewer - http://localhost:5555/fileviewer?q=xlsx
+    6, click the hyperlink of the file to download.
