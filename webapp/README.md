@@ -4,9 +4,9 @@ Lightweight web application, powered by Flask web framework, supporting basic au
 
 ### Install and Run
 
-    1, > pip install -r requirements.txt
+    1, > pip3 install -r requirements.txt
 
-    2, > flask run
+    2, > python3 app.py 
     
     3, Open the browser and visit http://localhost:5555
     
