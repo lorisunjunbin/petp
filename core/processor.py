@@ -6,6 +6,7 @@ from threading import Condition
 
 import cryptocode
 
+from importlib import import_module
 from core.loop import Loop
 from core.task import Task
 from mvp.view.PETPView import PETPView
@@ -277,7 +278,6 @@ class Processor:
     @staticmethod
     def get_processor_by_type(prefix: str):
         class_name = prefix + 'Processor'
-        module_name = 'core.processors.' + class_name
-        module = __import__(module_name, fromlist=[module_name])
+        module = import_module(f'core.processors.{class_name}')
         processor: Processor = getattr(module, class_name)()
         return processor

@@ -8,9 +8,9 @@ list:
   input: '{"clickby": "css", "identity": ".i8-text-input__input", "wait": 3}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "RPA robot"}'
+  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "robot"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"identity": ".main-hero-section__search-btn", "clickby": "css"}'
-  type: FIND_THEN_CLICK
+  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "{KEY_ENTER}"}'
+  type: FIND_THEN_KEYIN
 loops: []
