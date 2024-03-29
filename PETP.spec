@@ -1,12 +1,11 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
     ['PETP.py'],
     pathex=[],
     binaries=[],
-    datas=[('config/*.*', 'config') ],
-    hiddenimports=['core.processors', 'core.processors.READ_EXCELProcessor','core.processors.SHOW_RESULTProcessor'],
+    datas=[],
+    hiddenimports= $hidden_imports$,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

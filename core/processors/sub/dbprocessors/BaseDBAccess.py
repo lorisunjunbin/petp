@@ -1,5 +1,7 @@
 import logging
 
+from importlib import import_module
+
 
 class BaseDBAccess:
 
@@ -18,6 +20,6 @@ class BaseDBAccess:
     @staticmethod
     def get_dbaccess_by_type(prefix):
         class_name = prefix + 'DBAccess'
-        module_name = 'core.processors.sub.dbprocessors.' + class_name
-        module = __import__(module_name, fromlist=[module_name])
-        return getattr(module, class_name)()
+        module = import_module('core.processors.sub.dbprocessors.' + class_name)
+        dbAccess: BaseDBAccess = getattr(module, class_name)()
+        return dbAccess
