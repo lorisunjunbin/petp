@@ -77,7 +77,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2024-03: Build PETP as .exe for Windows by [PETP_build.py](./PETP_build.py) 
+2024-03: Build PETP executable for both MacOS & Windows by [PETP_build.py](./PETP_build.py) 
 
 2024-02: provide [PETP File Viewer](./webapp/README.md) - #5
 
