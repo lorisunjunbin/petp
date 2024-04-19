@@ -66,6 +66,12 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
     > pip install xxx
 
+6, Build executable for MacOS & Windows, the executable is under dist folder.
+
+```bash
+    python PETP_build.py
+```
+
 ## TO-DO:
 
 - Create more [processors](./core/processors)
@@ -77,7 +83,9 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2024-03: Build PETP executable for both MacOS & Windows by [PETP_build.py](./PETP_build.py) 
+2024-04: on-demand loading processors from ./core/processors folder.
+
+2024-03: Build PETP executable for both MacOS & Windows by [PETP_build.py](./PETP_build.py)
 
 2024-02: provide [PETP File Viewer](./webapp/README.md) - #5
 

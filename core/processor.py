@@ -5,6 +5,7 @@ import time
 from threading import Condition
 
 import cryptocode
+import importlib.util
 
 from importlib import import_module
 from core.loop import Loop
@@ -53,6 +54,10 @@ class Processor:
     view: PETPView
     execution: any
     category: str = 'default'
+
+    # cached_processor_classes = {}
+    global _cached_processor_classes
+    _cached_processor_classes = {}
 
     def process(self) -> None:
         # must be implemented in subclass
@@ -125,7 +130,7 @@ class Processor:
 
     def get_tdir(self):
         return os.path.realpath(f'.{os.sep}testcoverage')
-    
+
     def get_sdir(self):
         return os.path.realpath(f'.{os.sep}webapp{os.sep}shared')
 
@@ -277,7 +282,20 @@ class Processor:
 
     @staticmethod
     def get_processor_by_type(prefix: str):
+        file_path = os.path.realpath('core') + os.sep + 'processors' + os.sep + prefix + 'Processor.py'
         class_name = prefix + 'Processor'
-        module = import_module(f'core.processors.{class_name}')
-        processor: Processor = getattr(module, class_name)()
-        return processor
+        class_cache_key = f'{file_path}::{class_name}'
+
+        if class_cache_key not in _cached_processor_classes:
+            processor_clazz = Processor.load_class_from_file(file_path, class_name)
+            _cached_processor_classes[class_cache_key] = processor_clazz
+
+        return _cached_processor_classes[class_cache_key]()
+
+    @staticmethod
+    def load_class_from_file(file_path, class_name):
+        spec = importlib.util.spec_from_file_location(class_name, file_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        clazz = getattr(module, class_name)
+        return clazz
