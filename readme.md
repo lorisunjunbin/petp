@@ -83,7 +83,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2024-04: on-demand loading processors from ./core/processors folder.
+2024-04: after building via pyinstall, support on-demand loading processors from ./core/processors folder.
 
 2024-03: Build PETP executable for both MacOS & Windows by [PETP_build.py](./PETP_build.py)
 
