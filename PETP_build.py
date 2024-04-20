@@ -4,11 +4,14 @@ import shutil
 import psutil
 import subprocess
 
+from utils.OSUtils import OSUtils
+
 
 def kill_chromedriver_process_if_existed():
     for proc in psutil.process_iter():
         if proc.name() == "chromedriver" or proc.name() == "chromedriver.exe":
             proc.kill()
+
 
 def replace_words_in_file(file_path, old_word, new_word):
     with open(file_path, 'r') as file:
@@ -58,7 +61,8 @@ if __name__ == '__main__':
          'image',
          'resources',
          'testcoverage',
-         'webdriver']
+         'webdriver' + os.sep + OSUtils.get_system()
+         ]
     )
 
     # run pyinstaller
