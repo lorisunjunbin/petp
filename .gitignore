@@ -116,4 +116,4 @@ dmypy.json
 .idea/
 /wxpython_local/
 /log/
-.PETP.spec
+PETP.spec
