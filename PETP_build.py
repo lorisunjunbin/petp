@@ -1,8 +1,14 @@
 import os
 import glob
 import shutil
+import psutil
 import subprocess
 
+
+def kill_chromedriver_process_if_existed():
+    for proc in psutil.process_iter():
+        if proc.name() == "chromedriver" or proc.name() == "chromedriver.exe":
+            proc.kill()
 
 def replace_words_in_file(file_path, old_word, new_word):
     with open(file_path, 'r') as file:
@@ -36,6 +42,9 @@ def collect_hidden_imports():
 
 
 if __name__ == '__main__':
+    # kill chromedriver process if existed
+    kill_chromedriver_process_if_existed()
+
     # clean dist folder
     clean_dist()
 
@@ -44,7 +53,12 @@ if __name__ == '__main__':
 
     # move config,core, image, testcoverage to dist folder.
     copy_folder_to_dist(
-        ['config', 'core/executions', 'core/processors', 'core/pipelines', 'image', 'resources', 'testcoverage']
+        ['config',
+         'core/executions', 'core/processors', 'core/pipelines',
+         'image',
+         'resources',
+         'testcoverage',
+         'webdriver']
     )
 
     # run pyinstaller

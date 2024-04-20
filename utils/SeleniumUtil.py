@@ -3,6 +3,7 @@ import os
 
 from PIL import Image
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -27,13 +28,15 @@ class SeleniumUtil:
 
     @staticmethod
     def get_webdriver4_chrome(download_folder=None) -> WebDriver:
-        wdpath = os.path.realpath('webdriver') + '/' + OSUtils.get_system() + '/chromedriver'
+        wdpath: str = os.path.realpath('webdriver') + os.sep + OSUtils.get_system() + os.sep + 'chromedriver' + (
+            '.exe' if OSUtils.get_system() == 'win32' else '')
+        
         down_path = os.path.join(os.path.realpath('download'), download_folder) \
             if download_folder is not None else os.path.realpath('download')
 
         OSUtils.create_folder_if_not_existed(down_path)
 
-        logging.info(f'Loading webdriver from: ${wdpath}, Download folder: ${down_path}')
+        logging.info(f'Loading webdriver from: {wdpath}, Download folder: {down_path}')
 
         options = webdriver.ChromeOptions()
         options.add_argument("--start-maximized")
@@ -44,7 +47,9 @@ class SeleniumUtil:
 
         options.add_experimental_option("prefs", prefs)
 
-        return webdriver.Chrome(options=options)
+        service = Service(executable_path=wdpath)
+
+        return webdriver.Chrome(options=options, service=service)
 
     """ UI 5 specific"""
 

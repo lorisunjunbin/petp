@@ -16,3 +16,4 @@ pyperclip
 python-dateutil
 pytube
 pandas
+psutil

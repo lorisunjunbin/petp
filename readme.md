@@ -144,13 +144,12 @@ execution: ootb_encode_decode_hash_str
 
 ## tips:
 
-- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) if you get an error of mismatched
-  version (selenium task
-  only). Deprecated website: https://chromedriver.chromium.org/downloads/version-selection
+- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) ,[and more](https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json) if you get an error of mismatched
+  version (selenium task only). 
 
-- Install Wxpython snapshot
+- Download [Wxpython snapshot](https://wxpython.org/Phoenix/snapshot-builds/) 
 
-> Download from https://wxpython.org/Phoenix/snapshot-builds/
+- Install wxpython for certain python version:
 
 > pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-win_amd64.whl
 
