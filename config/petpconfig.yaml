@@ -6,4 +6,4 @@ application:
   execute_on_startup: false
   last_run: test_read_excel_loop_each_row_show
   log_level: INFO
-  version: 1.0.3
+  version: 1.0.4
