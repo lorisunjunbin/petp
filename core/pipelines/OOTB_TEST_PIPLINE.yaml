@@ -1,0 +1,19 @@
+!!python/object:core.pipeline.Pipeline
+cronEnabled: false
+cronExp: 0 * * * *
+list:
+- execution: test_zip
+  input: '{"Pipline","YES"}'
+- execution: test_wait_for_seconds
+  input: ''
+- execution: test_read_from_excel
+  input: ''
+- execution: test_read_excel_loop_each_row_show
+  input: ''
+- execution: test_data_convert
+  input: ''
+- execution: ootb_find_icons
+  input: ''
+- execution: loop_time
+  input: ''
+pipeline: OOTB_TEST_PIPLINE
