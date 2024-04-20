@@ -31,7 +31,7 @@ exe = EXE(
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    icon='./image/favicon-32x32.png',
+    icon='./image/petp.png',
     codesign_identity=None,
     entitlements_file=None,
 )
