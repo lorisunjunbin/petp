@@ -27,10 +27,11 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
+    icon='./image/favicon-32x32.png',
     codesign_identity=None,
     entitlements_file=None,
 )

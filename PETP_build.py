@@ -21,8 +21,11 @@ def copy_folder_to_dist(directories):
 
 
 if __name__ == '__main__':
+    # clean dist folder
+    shutil.rmtree('dist', ignore_errors=True)
+    os.makedirs('dist', exist_ok=True)
 
-    # step1 figure out all the necessary python files,  make them as hidden imports
+    # figure out all the necessary python files,  make them as hidden imports
     loaded_files = glob.glob(os.path.join('utils', '**/*.py'), recursive=True)
     loaded_imports = [f.replace('\\', '.').replace('/', '.').rstrip('.py') for f in loaded_files]
     _hiddenimports = ['utils']
@@ -31,9 +34,9 @@ if __name__ == '__main__':
 
     replace_words_in_file('PETP.spec', '$hidden_imports$', str(_hiddenimports))
 
-    # step2 move config,core, image, testcoverage to dist folder.
+    # move config,core, image, testcoverage to dist folder.
     copy_folder_to_dist(
         ['config', 'core/executions', 'core/processors', 'core/pipelines', 'image', 'resources', 'testcoverage'])
 
-    # step3 run pyinstaller
+    # run pyinstaller
     subprocess.run(['pyinstaller', './PETP.spec'], check=True)
