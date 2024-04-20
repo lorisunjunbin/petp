@@ -34,10 +34,22 @@ def clean_dist():
     os.makedirs('dist', exist_ok=True)
 
 
+def clean_build():
+    shutil.rmtree('build' + os.sep + 'PETP', ignore_errors=True)
+
+
 def collect_hidden_imports():
+    # delete PETP.spec if existed
+    if os.path.exists('PETP.spec'):
+        os.remove('PETP.spec')
+
+    # copy PETP_build.spec to PETP.spec
+    shutil.copy('PETP_build.spec', 'PETP.spec')
     loaded_files = glob.glob(os.path.join('utils', '**/*.py'), recursive=True)
     loaded_imports = [f.replace('\\', '.').replace('/', '.').rstrip('.py') for f in loaded_files]
-    _hiddenimports = ['utils']
+
+    _hiddenimports = ['pyautogui', 'utils']  # any more required hidden imports can be added here.
+
     for hidden_import in loaded_imports:
         _hiddenimports.append(hidden_import)
 
@@ -49,6 +61,7 @@ if __name__ == '__main__':
     kill_chromedriver_process_if_existed()
 
     # clean dist folder
+    clean_build()
     clean_dist()
 
     # figure out all the necessary python files,  make them as hidden imports
