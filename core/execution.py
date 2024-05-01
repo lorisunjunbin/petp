@@ -5,6 +5,7 @@ import wx
 from threading import Condition
 from core.definition.yamlro import YamlRO
 from core.loop import Loop
+from core.loopparam import LoopParam
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -29,97 +30,60 @@ class Execution:
 
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
-        list_size = len(self.list)
 
-        # loop for collection
-        current_loop_collection: []
-        current_loop_idx = 0
-
-        # loop for times
-        loop_times = 0
-        loop_times_cur = 0
+        lp: LoopParam = LoopParam(self.list)
         self.set_should_be_stop(False)
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
 
-        idx = 0
-        while idx < list_size:
-
-            sequence: int = idx + 1
+        while lp.has_next():
 
             if self.should_be_stop:
-                logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {sequence}')
+                logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {lp.get_sequence()}')
                 return data_chain
 
-            current_loop: Loop = self.find_current_loop(sequence)
-            is_loop_execution: bool = current_loop is not None
-            is_times_loop: bool = is_loop_execution and current_loop.is_loop_for_times()
-            is_loop_start: bool = is_loop_execution and sequence == current_loop.get_task_start()
-            is_loop_end: bool = is_loop_execution and sequence == current_loop.get_task_end()
+            current_loop: Loop = self.find_current_loop(lp.get_sequence())
+            lp.init_loop(current_loop)
 
-            if is_loop_start:
-                if is_times_loop:
-                    loop_times = current_loop.get_loop_times()
-                    data_chain[current_loop.get_loop_index_key()] = loop_times_cur
-                else:  # is_collection_loop
-                    current_loop_collection = data_chain[current_loop.get_loop_key()]
-                    if len(current_loop_collection) > current_loop_idx:
-                        data_chain[current_loop.get_item_key()] = current_loop_collection[current_loop_idx]
-                        data_chain[current_loop.get_loop_index_key()] = current_loop_idx
+            if lp.is_loop_start:
+                lp.setup_loop_start(data_chain)
 
             # process start -----
-            task: Task = self.initTask(data_chain, idx, sequence)
-            processor: Processor = self.initiProcessor(task, view, current_loop, is_loop_execution, condition)
+            task: Task = self.initTask(data_chain, lp.current_index, lp.get_sequence())
+            processor: Processor = self.initiProcessor(task, view, current_loop, lp.is_loop_execution, condition)
 
-            self.log_start_process(current_loop, loop_times_cur, processor, sequence, task)
+            self.log_start_process(current_loop, lp, processor, task, view)
 
-            if not is_loop_execution:
-                wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
-
+            # * main process *
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-            self.log_end_process(current_loop, loop_times_cur, processor, sequence, task)
 
-            if not is_loop_execution:
-                wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
+            self.log_end_process(current_loop, lp, processor, task, view)
             # process end ----
 
-            if is_loop_end:
-                if is_times_loop:
-                    loop_times_cur += 1
-                    if loop_times > loop_times_cur:
-                        idx = current_loop.get_task_start() - 1
-                        data_chain[current_loop.get_loop_index_key()] = loop_times_cur
-                        continue
-                    else:  # is_collection_loop
-                        loop_times_cur = 0
-                        loop_times = 0
-                        data_chain[current_loop.get_loop_index_key()] = 0
-                else:
-                    current_loop_idx += 1
-                    if len(current_loop_collection) > current_loop_idx:
-                        idx = current_loop.get_task_start() - 1
-                        data_chain[current_loop.get_loop_index_key()] = current_loop_idx
-                        continue
-                    else:
-                        current_loop_idx = 0
-                        data_chain[current_loop.get_item_key()] = None
-                        data_chain[current_loop.get_loop_index_key()] = 0
+            if lp.is_loop_end:
+                lp.setup_loop_end(data_chain)
 
-            idx += 1
+            lp.move_to_next()
 
         return data_chain
 
-    def log_end_process(self, current_loop, loop_times_cur, processor, sequence, task):
-        logging.info(
-            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""} Done \n')
+    def post_log_reload(self, lp, view):
+        if not lp.is_loop_execution:
+            wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
 
-    def log_start_process(self, current_loop, loop_times_cur, processor, sequence, task):
+    def log_end_process(self, current_loop, loopParam, processor, task, view):
         logging.info(
-            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
+            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {loopParam.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loopParam.loop_times_cur)) if current_loop is not None else ""} Done \n')
+        self.post_log_reload(loopParam, view)
+
+    def log_start_process(self, current_loop, loopParam, processor, task, view):
+        logging.info(
+            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {loopParam.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loopParam.loop_times_cur)) if current_loop is not None else ""}')
         logging.info(f'process start: {task.input}')
+        self.post_log_reload(loopParam, view)
 
     def initTask(self, data_chain, idx, sequence) -> Task:
         task: Task = self.list[idx]
