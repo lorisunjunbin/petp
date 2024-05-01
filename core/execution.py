@@ -2,12 +2,13 @@ import logging
 import os
 
 import wx
-
+from threading import Condition
 from core.definition.yamlro import YamlRO
 from core.loop import Loop
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
+from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
@@ -17,19 +18,19 @@ Execution 1:n Task
 
 
 class Execution:
-    execution: str
-    list: list
-    loops: []
-    should_be_stop: bool
 
-    def __init__(self, execution, lt, lps):
+    def __init__(self, execution: str, lt: list, lps: list = []):
         self.execution = execution
         self.list = lt
         self.loops = lps
 
-    def run(self, initial_data, condition, view) -> dict:
+    def set_should_be_stop(self, stopOrNot: bool):
+        self.should_be_stop = stopOrNot
+
+    def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
         list_size = len(self.list)
+
         # loop for collection
         current_loop_collection: []
         current_loop_idx = 0
@@ -37,7 +38,7 @@ class Execution:
         # loop for times
         loop_times = 0
         loop_times_cur = 0
-        self.should_be_stop = False
+        self.set_should_be_stop(False)
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
@@ -68,29 +69,19 @@ class Execution:
                         data_chain[current_loop.get_loop_index_key()] = current_loop_idx
 
             # process start -----
-            task: Task = self.list[idx]
-            task.data_chain = data_chain
-            task.start = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-            task.run_sequence = sequence
+            task: Task = self.initTask(data_chain, idx, sequence)
+            processor: Processor = self.initiProcessor(task, view, current_loop, is_loop_execution, condition)
 
-            processor: Processor = Processor.get_processor_by_type(task.type)
-            processor.set_execution(self)
-            processor.set_task(task)
-            processor.set_condition(condition)
-            processor.set_view(view)
+            self.log_start_process(current_loop, loop_times_cur, processor, sequence, task)
 
-            processor.set_in_loop(is_loop_execution)
-            processor.set_current_loop(current_loop)
-
-            logging.info(f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
-            logging.info(f'process start: {task.input}')
             if not is_loop_execution:
                 wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
 
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-            logging.info(f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""} Done \n')
+            self.log_end_process(current_loop, loop_times_cur, processor, sequence, task)
+
             if not is_loop_execution:
                 wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
             # process end ----
@@ -121,7 +112,33 @@ class Execution:
 
         return data_chain
 
-    def find_current_loop(self, sequence):
+    def log_end_process(self, current_loop, loop_times_cur, processor, sequence, task):
+        logging.info(
+            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""} Done \n')
+
+    def log_start_process(self, current_loop, loop_times_cur, processor, sequence, task):
+        logging.info(
+            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {sequence} {(current_loop.get_loop_code() + "#" + str(loop_times_cur)) if current_loop is not None else ""}')
+        logging.info(f'process start: {task.input}')
+
+    def initTask(self, data_chain, idx, sequence) -> Task:
+        task: Task = self.list[idx]
+        task.data_chain = data_chain
+        task.start = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
+        task.run_sequence = sequence
+        return task
+
+    def initiProcessor(self, task, view, current_loop, is_loop_execution, condition) -> Processor:
+        processor: Processor = Processor.get_processor_by_type(task.type)
+        processor.set_execution(self)
+        processor.set_task(task)
+        processor.set_condition(condition)
+        processor.set_view(view)
+        processor.set_in_loop(is_loop_execution)
+        processor.set_current_loop(current_loop)
+        return processor
+
+    def find_current_loop(self, sequence) -> Loop:
         if not hasattr(self, 'loops'):
             return None
 

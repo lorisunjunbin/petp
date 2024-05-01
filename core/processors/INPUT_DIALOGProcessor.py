@@ -39,7 +39,7 @@ class INPUT_DIALOGProcessor(Processor):
     def handle_ui_thread_callback(self, given):
         stop_on_cancel = True if self.get_param('stop_on_cancel') == 'yes' else False
         if given is None and stop_on_cancel:
-            self.execution.should_be_stop = True
+            self.execution.set_should_be_stop(True)
         else:
             value_key = self.expression2str(self.get_param('value_key'))
             self.populate_data(value_key, given)
