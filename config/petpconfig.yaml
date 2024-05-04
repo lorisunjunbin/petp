@@ -4,6 +4,6 @@ application:
   cell: +86-13478653323
   email: 6099012@qq.com
   execute_on_startup: false
-  last_run: test_read_excel_loop_each_row_show
-  log_level: INFO
+  last_run: test_DB_ACCESS_Sqlite
+  log_level: DEBUG
   version: 1.0.4
