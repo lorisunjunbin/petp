@@ -1,0 +1,11 @@
+!!python/object:core.execution.Execution
+execution: test_DB_ACCESS_Sqlite
+list:
+- !!python/object:core.task.Task
+  input: '{"database": "{self.get_tdir()}/sqlite/test_sqlite.db", "sql": "select *
+    from user where id > ?", "data_key": "dataset_sqlite", "param": "0", "type": "Sqlite"}'
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}"}'
+  type: SHOW_RESULT
+loops: []
