@@ -175,19 +175,32 @@ execution: ootb_encode_decode_hash_str
 
 - Link python 3
 
-> ln -s -f /usr/local/bin/python3 /usr/local/bin/python
+``` zsh
+sudo unlink /usr/local/bin/python
+sudo ln -s -f /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 /usr/local/bin/python
 
-> ln -s -f /usr/local/bin/pip3 /usr/local/bin/pip
+sudo unlink /usr/local/bin/pip
+sudo ln -s -f /Library/Frameworks/Python.framework/Versions/3.12/bin/pip3 /usr/local/bin/pip
+```
+
+Link back to python 2.7
+
+``` zsh
+sudo ln -s -f /Library/Frameworks/Python.framework/Versions/2.7/bin/python /usr/local/bin/python
+sudo ln -s -f /Library/Frameworks/Python.framework/Versions/2.7/bin/pip /usr/local/bin/pip
+```
 
 - Update all lib on macOS
 
 ``` bash 
 pip3 list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip3 install -U
+
+# or
+
+pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 ```  
 
 ## remove previous version of python:
-
-https://www.ianmaddaus.com/post/manage-multiple-versions-python-mac/
 
 ``` bash
 sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.11
