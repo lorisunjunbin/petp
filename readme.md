@@ -177,17 +177,17 @@ execution: ootb_encode_decode_hash_str
 
 ``` zsh
 sudo unlink /usr/local/bin/python
-sudo ln -s -f /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 /usr/local/bin/python
+sudo ln -s -f ../../../Library/Frameworks/Python.framework/Versions/3.12/bin/python3 /usr/local/bin/python
 
 sudo unlink /usr/local/bin/pip
-sudo ln -s -f /Library/Frameworks/Python.framework/Versions/3.12/bin/pip3 /usr/local/bin/pip
+sudo ln -s -f ../../../Library/Frameworks/Python.framework/Versions/3.12/bin/pip3 /usr/local/bin/pip
 ```
 
 Link back to python 2.7
 
 ``` zsh
-sudo ln -s -f /Library/Frameworks/Python.framework/Versions/2.7/bin/python /usr/local/bin/python
-sudo ln -s -f /Library/Frameworks/Python.framework/Versions/2.7/bin/pip /usr/local/bin/pip
+sudo ln -s -f ../../../Library/Frameworks/Python.framework/Versions/2.7/bin/python /usr/local/bin/python
+sudo ln -s -f ../../../Library/Frameworks/Python.framework/Versions/2.7/bin/pip /usr/local/bin/pip
 ```
 
 - Update all lib on macOS
