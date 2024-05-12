@@ -27,6 +27,7 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.DONE, self.on_handle_done)
         PETPEvent.bind_to(self.v, PETPEvent.START, self.on_handle_start)
         PETPEvent.bind_to(self.v, PETPEvent.OPEN_INPUT_DIALOG, self.on_handle_open_input_dialog)
+        PETPEvent.bind_to(self.v, PETPEvent.HTTP_CALLBACK, self.on_handle_http_callback)
 
         # UI event binding
         self.v.Bind(wx.EVT_CLOSE, self.on_close_window)
@@ -112,7 +113,8 @@ class PETPInteractor():
 
     def on_handle_open_input_dialog(self, evt: PETPEvent):
         self.p.on_handle_open_input_dialog(evt)
-
+    def on_handle_http_callback(self, evt: PETPEvent):
+        self.p.on_handle_http_callback(evt)
     def on_handle_start(self, evt: PETPEvent):
         logging.info(evt.data)
         self.on_load_log(evt)

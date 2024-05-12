@@ -4,6 +4,7 @@ application:
   cell: +86-13478653323
   email: 6099012@qq.com
   execute_on_startup: false
+  http_port: 8866
   last_run: test_DB_ACCESS_Sqlite
   log_level: DEBUG
   version: 1.0.4

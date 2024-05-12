@@ -9,6 +9,7 @@ from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.PETPPresenter import PETPPresenter
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
+from utils.HttpServer import HttpServer
 from utils.SystemConfig import SystemConfig
 
 
@@ -50,6 +51,9 @@ def start_app():
 
     logging.info(f'PETP is running on {platform.architecture()[0]} platform')
     set_log_level(model)
+
+    HttpServer(presenter).start()
+
     presenter.on_load_log()
 
     app.MainLoop()

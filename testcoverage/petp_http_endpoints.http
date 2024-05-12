@@ -1,0 +1,25 @@
+GET http://localhost:8866/
+
+###
+POST  http://localhost:8866/
+Content-Type: application/json
+
+{
+  "generated-in": "PyCharm",
+  "message": "Hello, World!"
+}
+
+###
+POST  http://localhost:8866/petp
+Content-Type: application/json
+
+{
+  "action": "execution",
+  "params": {
+    "execution": "test_DB_ACCESS_Sqlite",
+    "user": "sunjunbin",
+    "table": "user"
+  }
+}
+
+

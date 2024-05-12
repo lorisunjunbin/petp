@@ -388,7 +388,7 @@ class PETPPresenter():
             Thread(target=self.pipeline.run, args=({"__m": self.m, "__p": self}, self.v), daemon=True).start()
 
     @reload_log_after
-    def on_run_execution(self):
+    def on_run_execution(self, init_param: dict = {}):
         combo = self.v.executionChooser
         self.execution = Execution.get_execution(combo.GetValue())
 
@@ -397,7 +397,8 @@ class PETPPresenter():
             self.m.last_run = combo.GetValue()
             self.m.set_config('last_run', self.m.last_run)
 
-        executor = Executor(self.execution, {"__m": self.m, "__p": self}, self.v)
+        init_param.update({"__m": self.m, "__p": self})
+        executor = Executor(self.execution, init_param, self.v)
         self.executors.append(executor)
         executor.start()
 
@@ -788,3 +789,15 @@ class PETPPresenter():
         else:
             evt.handler(None)
         dlg.Destroy()
+
+    @reload_log_after
+    def on_handle_http_callback(self, evt: PETPEvent):
+        action = evt.data['action']
+
+        if action == 'execution':
+            params = evt.data['params']
+            self.v.executionChooser.SetValue(params['execution'])
+            self.on_task_execution_changed()
+            self.on_run_execution(params)
+
+            logging.info(f'\nHTTP request be handled - action: execution, params: {params}\n')
