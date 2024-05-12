@@ -75,13 +75,14 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 ## TO-DO:
 
 - Create more [processors](./core/processors)
-    - provide the ability to access from web perspective.
     - processor of chatGPT - https://platform.openai.com/docs/api-reference/introduction
     - processor of Pillow - https://pillow.readthedocs.io/en/stable/
 
 - Able to easily create customized processors.
 
 ## DONE
+
+2024-05: Add HttpServer, provide http service for PETP, support GET/POST request, and return JSON response. 8866 port by default.
 
 2024-04: after building via pyinstall, support on-demand loading processors from ./core/processors folder.
 
