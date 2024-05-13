@@ -16,4 +16,6 @@ list:
   input: ''
 - execution: loop_time
   input: ''
+- execution: test_petp_http_service
+  input: ''
 pipeline: OOTB_TEST_PIPLINE
