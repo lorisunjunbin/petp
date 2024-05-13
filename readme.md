@@ -82,7 +82,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2024-05: Add HttpServer, provide http service for PETP, support GET/POST request, and return JSON response. 8866 port by default.
+2024-05: Introduced HttpServer(python3.12), provide http service for PETP, support GET/POST request, and return JSON response. port 8866 by default.
 
 2024-04: after building via pyinstall, support on-demand loading processors from ./core/processors folder.
 
