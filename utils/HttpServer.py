@@ -27,7 +27,7 @@ class HttpServer():
 
 class HttpRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        self.send_success_json({
+        self.send_success_json(data={
             "available_post_endpoints": [
                 {
                     "description": "Send a POST request to this endpoint to trigger a PETP event.",
@@ -51,10 +51,20 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
             result = 'Event sent to PETP.'
 
         # Send JSON response
-        self.send_success_json({'message': result})
+        self.send_success_json(msg=result)
 
-    def send_success_json(self, data):
-        self.send_response(200)
+    def send_failure_response(self, code=500, data={}, msg="Failure"):
+        self.send_json_response(code, data, msg)
+
+    def send_success_json(self, code=200, data={}, msg="Success"):
+        self.send_json_response(code, data, msg)
+
+    def send_json_response(self, code=-1, data={}, msg=""):
+        self.send_response(code)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode('utf-8'))
+        self.wfile.write(json.dumps({
+            "code": code,
+            "data": data,
+            "msg": msg
+        }).encode('utf-8'))
