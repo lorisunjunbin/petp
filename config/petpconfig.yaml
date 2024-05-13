@@ -5,6 +5,6 @@ application:
   email: 6099012@qq.com
   execute_on_startup: false
   http_port: 8866
-  last_run: test_DB_ACCESS_Sqlite
-  log_level: DEBUG
+  last_run: test_petp_http_service
+  log_level: INFO
   version: 1.0.4
