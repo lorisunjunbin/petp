@@ -9,8 +9,4 @@ list:
 - !!python/object:core.task.Task
   input: '{"title": "HTTP\u670d\u52a1\u7aef\u8fd4\u56de", "msg": "{self.get_data(\"resp\")}"}'
   type: SHOW_RESULT
-loops:
-- !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start":8, "task_end":10, "loop_key":"found_groovy_scripts",
-    "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
-  loop_code: loop-20240111130856
+loops: []
