@@ -1,7 +1,8 @@
-GET http://localhost:8866/
+###
+GET {{baseURL}}
 
 ###
-POST  http://localhost:8866/
+POST  {{baseURL}}
 Content-Type: application/json
 
 {
@@ -10,7 +11,7 @@ Content-Type: application/json
 }
 
 ###
-POST  http://localhost:8866/petp
+POST  {{baseURL}}petp
 Content-Type: application/json
 
 {
