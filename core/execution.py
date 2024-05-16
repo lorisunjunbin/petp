@@ -51,7 +51,7 @@ class Execution:
 
             # process start -----
             task: Task = self.initTask(data_chain, state.get_current_index(), state.get_sequence())
-            processor: Processor = self.initiProcessor(task, view, current_loop, state.is_loop_execution, condition)
+            processor: Processor = self.initProcessor(task, view, current_loop, state.is_loop_execution, condition)
 
             self.log_start_process(current_loop, state, processor, task, view)
 
@@ -93,7 +93,7 @@ class Execution:
         task.run_sequence = sequence
         return task
 
-    def initiProcessor(self, task, view, current_loop, is_loop_execution, condition) -> Processor:
+    def initProcessor(self, task, view, current_loop, is_loop_execution, condition) -> Processor:
         processor: Processor = Processor.get_processor_by_type(task.type)
         processor.set_execution(self)
         processor.set_task(task)
