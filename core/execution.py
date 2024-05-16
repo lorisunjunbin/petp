@@ -5,7 +5,7 @@ import wx
 from threading import Condition
 from core.definition.yamlro import YamlRO
 from core.loop import Loop
-from core.loopparam import LoopParam
+from core.executionstate import ExecutionState
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -20,10 +20,10 @@ Execution 1:n Task
 
 class Execution:
 
-    def __init__(self, execution: str, lt: list, lps: list = []):
+    def __init__(self, execution: str, list: list, loops: list = []):
         self.execution = execution
-        self.list = lt
-        self.loops = lps
+        self.list = list
+        self.loops = loops
 
     def set_should_be_stop(self, stopOrNot: bool):
         self.should_be_stop = stopOrNot
@@ -31,42 +31,43 @@ class Execution:
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
 
-        lp: LoopParam = LoopParam(self.list)
+        state: ExecutionState = ExecutionState(self.list)
         self.set_should_be_stop(False)
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
 
-        while lp.has_next():
+        while state.has_next():
 
             if self.should_be_stop:
-                logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {lp.get_sequence()}')
+                logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {state.get_sequence()}')
                 return data_chain
 
-            current_loop: Loop = self.find_current_loop(lp.get_sequence())
-            lp.init_loop(current_loop)
+            current_loop: Loop = self.find_current_loop(state.get_sequence())
+            state.init_loop(current_loop)
 
-            if lp.is_loop_start:
-                lp.setup_loop_start(data_chain)
+            if state.is_loop_start:
+                state.setup_loop_start(data_chain)
 
             # process start -----
-            task: Task = self.initTask(data_chain, lp.current_index, lp.get_sequence())
-            processor: Processor = self.initiProcessor(task, view, current_loop, lp.is_loop_execution, condition)
+            task: Task = self.initTask(data_chain, state.get_current_index(), state.get_sequence())
+            processor: Processor = self.initiProcessor(task, view, current_loop, state.is_loop_execution, condition)
 
-            self.log_start_process(current_loop, lp, processor, task, view)
+            self.log_start_process(current_loop, state, processor, task, view)
 
             # * main process *
             processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
 
-            self.log_end_process(current_loop, lp, processor, task, view)
+            self.log_end_process(current_loop, state, processor, task, view)
             # process end ----
 
-            if lp.is_loop_end:
-                lp.setup_loop_end(data_chain)
+            if state.is_loop_end:
+                if state.setup_loop_end_then_continue(data_chain):
+                    continue
 
-            lp.move_to_next()
+            state.move_to_next()
 
         return data_chain
 

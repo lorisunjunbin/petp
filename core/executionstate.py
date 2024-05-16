@@ -1,7 +1,7 @@
 from core.loop import Loop
 
 
-class LoopParam:
+class ExecutionState:
 
     def __init__(self, l: list):
 
@@ -24,12 +24,13 @@ class LoopParam:
         self.is_loop_start = None
         self.is_loop_end = None
 
-    def setup_loop_end(self, data_chain: dict):
+    def setup_loop_end_then_continue(self, data_chain: dict) -> bool | None:
         if self.is_times_loop:
             self.loop_times_cur += 1
             if self.loop_times > self.loop_times_cur:
                 self.current_index = self.current_loop.get_task_start() - 1
                 data_chain[self.current_loop.get_loop_index_key()] = self.loop_times_cur
+                return True
             else:
                 self.loop_times_cur = 0
                 self.loop_times = 0
@@ -39,6 +40,7 @@ class LoopParam:
             if len(self.current_loop_collection) > self.current_loop_idx:
                 self.current_index = self.current_loop.get_task_start() - 1
                 data_chain[self.current_loop.get_loop_index_key()] = self.current_loop_idx
+                return True
             else:
                 self.current_loop_idx = 0
                 data_chain[self.current_loop.get_item_key()] = None
@@ -68,7 +70,10 @@ class LoopParam:
         self.current_index += 1
 
     def get_sequence(self) -> int:
-        return self.current_index + 1
+        return self.get_current_index() + 1
+
+    def get_current_index(self) -> int:
+        return self.current_index
 
     def __str__(self):
         return str(self.__dict__)
