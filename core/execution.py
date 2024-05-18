@@ -19,6 +19,10 @@ Execution 1:n Task
 
 
 class Execution:
+    """
+    Execution class that contains a list of tasks and loops. This class is responsible for running the tasks in order.
+    the instance could be serialized to yaml file and deserialized from yaml file.
+    """
 
     def __init__(self, execution: str, list: list, loops: list = []):
         self.execution = execution
@@ -26,11 +30,13 @@ class Execution:
         self.loops = loops
 
     def set_should_be_stop(self, stopOrNot: bool):
+        """
+        Call from outside to stop the execution
+        """
         self.should_be_stop = stopOrNot
 
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
-
         state: ExecutionState = ExecutionState(self.list)
         self.set_should_be_stop(False)
 
@@ -50,22 +56,18 @@ class Execution:
                 state.setup_loop_start(data_chain)
 
             # process start -----
-            task: Task = self.initTask(data_chain, state.get_current_index(), state.get_sequence())
-            processor: Processor = self.initProcessor(task, view, current_loop, state.is_loop_execution, condition)
+            task: Task = self.init_task(data_chain, state.get_current_index(), state.get_sequence())
+            processor: Processor = self.init_processor(task, view, current_loop, state.is_loop_execution, condition)
 
             self.log_start_process(current_loop, state, processor, task, view)
-
             # * main process *
             processor.do_process()
-
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-
             self.log_end_process(current_loop, state, processor, task, view)
             # process end ----
 
-            if state.is_loop_end:
-                if state.setup_loop_end_then_continue(data_chain):
-                    continue
+            if state.is_loop_end and state.setup_loop_end_then_continue(data_chain):
+                continue
 
             state.move_to_next()
 
@@ -86,14 +88,14 @@ class Execution:
         logging.info(f'process start: {task.input}')
         self.post_log_reload(loopParam, view)
 
-    def initTask(self, data_chain, idx, sequence) -> Task:
+    def init_task(self, data_chain, idx, sequence) -> Task:
         task: Task = self.list[idx]
         task.data_chain = data_chain
         task.start = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
         task.run_sequence = sequence
         return task
 
-    def initProcessor(self, task, view, current_loop, is_loop_execution, condition) -> Processor:
+    def init_processor(self, task, view, current_loop, is_loop_execution, condition) -> Processor:
         processor: Processor = Processor.get_processor_by_type(task.type)
         processor.set_execution(self)
         processor.set_task(task)
@@ -103,7 +105,7 @@ class Execution:
         processor.set_current_loop(current_loop)
         return processor
 
-    def find_current_loop(self, sequence) -> Loop:
+    def find_current_loop(self, sequence) -> Loop | None:
         if not hasattr(self, 'loops'):
             return None
 
@@ -111,8 +113,8 @@ class Execution:
             if loop.get_task_start() <= sequence <= loop.get_task_end():
                 loop.verify_loop()
                 return loop
-            else:
-                return None
+
+        return None
 
     def _get_file_path(self):
         return f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{self.execution}.yaml'
@@ -141,14 +143,5 @@ class Execution:
     @staticmethod
     def get_available_executions():
         executions = OSUtils.get_file_list(os.path.realpath('core') + os.sep + 'executions')
-        result = list(
-            map(
-                lambda f: f.replace('.yaml', ''),
-                filter(
-                    lambda f: '.yaml' in f,
-                    executions
-                )
-            )
-        )
-        result.sort()
+        result = sorted([f.replace('.yaml', '') for f in executions if '.yaml' in f])
         return result
