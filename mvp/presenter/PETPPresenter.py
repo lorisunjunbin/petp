@@ -3,8 +3,6 @@ import logging
 from threading import Thread
 
 import wx
-import wx.dataview
-import wx.lib.colourutils
 from cron_descriptor import ExpressionDescriptor
 
 from core.cron.cron import Cron

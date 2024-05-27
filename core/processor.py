@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import logging
 import os
@@ -5,9 +6,7 @@ import time
 from threading import Condition
 
 import cryptocode
-import importlib.util
 
-from importlib import import_module
 from core.loop import Loop
 from core.task import Task
 from mvp.view.PETPView import PETPView
@@ -224,16 +223,13 @@ class Processor:
         if (self.has_data(k)):
             del self.task.data_chain[k]
 
-    def _get_data(self, obj, k):
-        result = obj
+    def _get_data(self, obj, key):
+        if not obj or not key:
+            return None
         try:
-            return result[k]
+            return obj[key]
         except:
-            pass
-        try:
-            return getattr(result, k)
-        except:
-            pass
+            return getattr(obj, key, None)
 
     def get_deep_data(self, keys):
         result: any = self.task.data_chain
