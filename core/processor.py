@@ -241,7 +241,10 @@ class Processor:
 
     def expression2str(self, expression):
         if not expression is None and len(expression) > 0:
-            return eval("f'" + expression + "'")
+            try:
+                return eval("f'" + expression + "'")
+            except:
+                return eval("f" + expression)
 
     def str2dict(self, str) -> dict:
         result = {}
