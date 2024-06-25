@@ -1,5 +1,5 @@
 !!python/object:core.execution.Execution
-execution: LLM_RAG_DATA_PREPARE_VECTORSTORE
+execution: LLM_RAG_DATA_PREPARE_VECTORSTORE_Flat
 list:
 - !!python/object:core.task.Task
   input: '{"capacityMapXlsx": "{self.get_rdir()}/capacitymap/\u80fd\u529b\u5730\u56fe-without-comments.xlsx"}'
@@ -39,25 +39,24 @@ list:
     "[rowc2[2],rowc2[3],rowc1[1],rowc1[2],rowc1[3],rowc1[4],rowc1[5],rowc1[6],rowc1[7]]"}'
   type: COLLECTION_MERGE
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_map_final", "group_by_func": "return  ''\u4f9b\u5e94\u5546\u540d\u79f0:
-    '' + row[7] + '',  \u4f9b\u5e94\u5546\u7f16\u7801\u4e3a'' + row[6]", "mapping_func":
-    "return ''\u54c1\u7c7b\u7f16\u7801\u4e3a \"''+ row[0] +''\" \u54c1\u7c7b\u540d\u79f0\u4e3a\"''
-    + row[1] +''\" \u4e00\u7ea7\u80fd\u529b\u4e3a\"'' +row[3]+''\" \u4e8c\u7ea7\u80fd\u529b\u4e3a\"''
-    +row[4]+''\" \u4e09\u7ea7\u80fd\u529b\u4e3a\"'' +row[5] + ''\" \u7684\u5f97\u5206\u4e3a
-    \"'' +row[8] +''\"''", "target_dict_key": "capacity_map_rag_data", "collect_func":
-    "return key +''  \u7684\u80fd\u529b\u4fe1\u606f\u4e3a '' + ''; ''.join(rows)"}'
-  type: DATA_GROUPBY
-- !!python/object:core.task.Task
   input: '{"file_path": "{self.get_ddir()}/capacity_map_final.xlsx", "value_key":
     "capacity_map_final", "data_key": "capacity_map_final_path"}'
   type: WRITE_TO_EXCEL
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/capacity_map_rag_data.json", "content":
-    "{json.dumps(self.get_data(\"capacity_map_rag_data\"), ensure_ascii=False)}",
-    "data_key": "capacity_map_rag_data_path"}'
+  input: '{"given_key": "capacity_map_final", "convertor_func": "return [''''.join([''\u4f9b\u5e94\u5546\u540d\u79f0:'',
+    row[7], '', \u4f9b\u5e94\u5546\u7f16\u7801:'', row[6], '', \u8be5\u4f9b\u5e94\u5546\u9488\u5bf9\u54c1\u7c7b\u4ee3\u7801:'',
+    row[0], '' \u54c1\u7c7b\u540d\u79f0:'', row[1],'', \u4e00\u7ea7\u80fd\u529b\u4e3a:'',
+    row[3], '', \u4e8c\u7ea7\u80fd\u529b\u4e3a:'', row[4], '', \u4e09\u7ea7\u80fd\u529b\u4e3a:'',
+    row[5], '' \u5f97\u5206\u6570\u4e3a:'', row[8]]) for row in list(given)]", "target_key":
+    "capacity_map_rag_flat_data"}'
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_ddir()}/capacity_map_rag_data_flat.json", "content":
+    "{json.dumps(self.get_data(\"capacity_map_rag_flat_data\"), ensure_ascii=False)}",
+    "data_key": "capacity_map_rag_flat_data_path"}'
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task
-  input: '{"file_path": "", "file_path_key": "capacity_map_rag_data_path", "timeout":
+  input: '{"file_path": "", "file_path_key": "capacity_map_rag_flat_data_path", "timeout":
     10}'
   type: OPEN_FILE
 - !!python/object:core.task.Task

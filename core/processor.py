@@ -244,7 +244,10 @@ class Processor:
             try:
                 return eval("f'" + expression + "'")
             except:
-                return eval("f" + expression)
+                try:
+                    return eval("f" + expression)
+                except:
+                    return expression
 
     def str2dict(self, str) -> dict:
         result = {}

@@ -33,5 +33,3 @@ class DATA_CONVERTProcessor(Processor):
 
         self.populate_data(target_key, target_value)
 
-    def test(self):
-        return dict(filter(lambda itm: itm[0].startswith("__"), self.get_data_chain().items()))
