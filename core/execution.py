@@ -60,8 +60,13 @@ class Execution:
             processor: Processor = self.init_processor(task, view, current_loop, state.is_loop_execution, condition)
 
             self.log_start_process(current_loop, state, processor, task, view)
-            # * main process *
-            processor.do_process()
+
+            if hasattr(task, 'skipped') and task.skipped:
+                self.log_skipped_process(current_loop, state, processor, task, view)
+            else:
+                # * main process *
+                processor.do_process()
+
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
             self.log_end_process(current_loop, state, processor, task, view)
             # process end ----
@@ -86,6 +91,10 @@ class Execution:
         logging.info(
             f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {loopParam.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loopParam.loop_times_cur)) if current_loop is not None else ""}')
         logging.info(f'process start: {task.input}')
+        self.post_log_reload(loopParam, view)
+
+    def log_skipped_process(self, current_loop, loopParam, processor, task, view):
+        logging.info(f'process *** skipped *** : {task.input}')
         self.post_log_reload(loopParam, view)
 
     def init_task(self, data_chain, idx, sequence) -> Task:

@@ -4,9 +4,11 @@ list:
 - !!python/object:core.task.Task
   input: '{"title": "loop for times", "msg": "loop index - {self.get_data(\"loop_idx\")}",
     "param_not_empty": "loop_times"}'
+  skipped: false
   type: SHOW_RESULT
 - !!python/object:core.task.Task
   input: '{"title": "Loop feature is DONE", "msg": "PETP is growing."}'
+  skipped: false
   type: SHOW_RESULT
 loops:
 - !!python/object:core.loop.Loop

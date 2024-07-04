@@ -4,7 +4,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class DATA_MASKINGProcessor(Processor):
-    TPL: str = '{"given_collection":"", "masking_func":"return \'Supplier-\' + str(colnum) + str(rownum) ", "masking_columnnum":"0"}'
+    TPL: str = '{"given_collection":"", "masking_func":"return \'Supplier-\' + str(colnum) + str(rownum) ", "masking_columnnum":"0", "masking_dict_name":"", "masking_dict_inverted":"Yes"}'
 
     DESC: str = f''' 
 
@@ -27,6 +27,8 @@ class DATA_MASKINGProcessor(Processor):
         masking_dict = {}
 
         given_collection = self.get_data(self.get_param('given_collection'))
+        masking_dict_inverted = True if "Yes" == self.get_param('masking_dict_inverted') else False
+        masking_dict_name = self.get_param('masking_dict_name')
         masking_func_body = self.get_param('masking_func')
         masking_columnnum = int(self.get_param('masking_columnnum'))
 
@@ -43,4 +45,9 @@ class DATA_MASKINGProcessor(Processor):
 
             row[masking_columnnum] = masking_dict[masking_column_content]
 
-        masking_dict.clear()
+        if masking_dict_name:
+            if masking_dict_inverted:
+                masking_dict = {v: k for k, v in masking_dict.items()}
+            self.populate_data(masking_dict_name, masking_dict)
+        else:
+            masking_dict.clear()

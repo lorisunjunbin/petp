@@ -279,7 +279,8 @@ class PETPPresenter():
             if len(t_type) == 0 and len(t_input) == 0:
                 break
             logging.info(f'{t_type} -> {t_input}')
-            tasks.append(Task(t_type, t_input))
+
+            tasks.append(Task(t_type, t_input, self._check_task_skipped(t_input)))
 
         # prepare loops
         loops = []
@@ -293,6 +294,10 @@ class PETPPresenter():
 
         if len(tasks) > 0:
             Execution(name, tasks, loops).save()
+
+    def _check_task_skipped(self, task_input):
+        input_dict = json.loads(task_input)
+        return True if 'skipped' in input_dict and 'yes' == input_dict['skipped'] else False
 
     def _save_pipeline(self, name):
         grid = self.v.executionGrid
