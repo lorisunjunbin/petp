@@ -66,7 +66,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
     > pip install xxx
 
-6, Build executable for MacOS & Windows, the executable is under dist folder.
+6, Build executable for Mac & Windows, the executable is under dist folder.
 
 ```bash
     python PETP_build.py
@@ -81,6 +81,10 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 - Able to easily create customized processors.
 
 ## DONE
+
+2024-07: New feature of task skipping via {"skipped":"yes"}, upgrade chromedriver to 126, modify the width of chooser from 300 to 500
+
+2024-06: [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py) and [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py)
 
 2024-05: Introduced HttpServer(python3.12), provide http service for PETP, support GET/POST request, and return JSON response. port 8866 by default.
 

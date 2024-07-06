@@ -28,13 +28,13 @@ list:
   type: READ_EXCEL
 - !!python/object:core.task.Task
   input: '{"given_collection": "capacity_value_2_supplier", "masking_columnnum": "5",
-    "masking_func": "return ''SN_'' + str(colnum) + str(rownum).rjust(4, ''0'')",
+    "masking_func": "return ''SNA'' + str(colnum) + str(rownum).rjust(4, ''0'')",
     "masking_dict_name": "masking_dict_suppiler_name", "masking_dict_inverted": "Yes"}'
   skipped: false
   type: DATA_MASKING
 - !!python/object:core.task.Task
   input: '{"given_collection": "capacity_value_2_supplier", "masking_columnnum": "4",
-    "masking_func": "return ''SID_'' + str(colnum) + str(rownum).rjust(4, ''0'')",
+    "masking_func": "return ''SID'' + str(colnum) + str(rownum).rjust(4, ''0'')",
     "masking_dict_name": "masking_dict_suppiler_id", "masking_dict_inverted": "Yes"}'
   skipped: false
   type: DATA_MASKING
@@ -56,41 +56,41 @@ list:
   skipped: false
   type: WRITE_TO_EXCEL
 - !!python/object:core.task.Task
-  input: '{"given_key": "capacity_map_final", "convertor_func": "return [''''.join([''\u4f9b\u5e94\u5546\u540d:'',
-    row[7], '', \u4f9b\u5e94\u5546\u7801:'', row[6], '', \u9488\u5bf9\u54c1\u7c7b\u4ee3\u7801:'',
-    row[0], '' \u54c1\u7c7b\u540d\u79f0:'', row[1],'', \u4e00\u7ea7\u80fd\u529b\u4e3a:'',
-    row[3], '', \u4e8c\u7ea7\u80fd\u529b\u4e3a:'', row[4], '', \u4e09\u7ea7\u80fd\u529b\u4e3a:'',
-    row[5], '' \u5f97\u5206\u6570\u4e3a:'', row[8]]) for row in list(given)]", "target_key":
+  input: '{"given_key": "capacity_map_final", "convertor_func": "return [''''.join([''\u4f9b\u5e94\u5546\u540d
+    '', row[7], '', \u4f9b\u5e94\u5546\u7801 '', row[6], '', \u9488\u5bf9\u54c1\u7c7b\u7801
+    '', row[0], '' \u54c1\u7c7b\u540d '', row[1],'', \u4e00\u7ea7\u80fd\u529b '',
+    row[3], '', \u4e8c\u7ea7\u80fd\u529b '', row[4], '', \u4e09\u7ea7\u80fd\u529b
+    '', row[5], '' \u5f97\u5206 '', row[8]]) for row in list(given)]", "target_key":
     "capacity_map_rag_flat_data"}'
   skipped: false
   type: DATA_CONVERT
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/masking_dict_suppiler_id.json", "content":
-    "{json.dumps(self.get_data(\"masking_dict_suppiler_id\"), ensure_ascii=False)}",
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/masking_dict_supplier_id.json",
+    "content": "{json.dumps(self.get_data(\"masking_dict_suppiler_id\"), ensure_ascii=False)}",
     "data_key": "masking_dict_suppiler_id"}'
   skipped: false
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/masking_dict_suppiler_name.json", "content":
-    "{json.dumps(self.get_data(\"masking_dict_suppiler_name\"), ensure_ascii=False)}",
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/masking_dict_supplier_name.json",
+    "content": "{json.dumps(self.get_data(\"masking_dict_suppiler_name\"), ensure_ascii=False)}",
     "data_key": "masking_dict_suppiler_name"}'
   skipped: false
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/capacity_map_rag_data_flat.json", "content":
-    "{json.dumps(self.get_data(\"capacity_map_rag_flat_data\"), ensure_ascii=False)}",
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/capacity_map_rag_data_flat.json",
+    "content": "{json.dumps(self.get_data(\"capacity_map_rag_flat_data\"), ensure_ascii=False)}",
     "data_key": "capacity_map_rag_flat_data_path"}'
   skipped: false
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task
-  input: '{"file_path": "", "file_path_key": "capacity_map_rag_flat_data_path", "timeout":
-    10}'
-  skipped: false
+  input: '{"skipped":"yes","file_path": "", "file_path_key": "capacity_map_rag_flat_data_path",
+    "timeout": 10}'
+  skipped: true
   type: OPEN_FILE
 - !!python/object:core.task.Task
-  input: '{"title": "\u4e3a AI-RAG \u51c6\u5907\u6570\u636e", "msg": "{self.get_data(\"capacity_map\")}
-    \\n\\n {self.get_data(\"capacity_map_info\")} \\n\\n {self.get_data(\"capacity_map_2_supplier\")}
-    \\n\\n {self.get_data(\"capacity_value_2_supplier\")}"}'
-  skipped: false
+  input: '{"skipped":"yes","title": "\u4e3a AI-RAG \u51c6\u5907\u6570\u636e", "msg":
+    "{self.get_data(\"capacity_map\")} \\n\\n {self.get_data(\"capacity_map_info\")}
+    \\n\\n {self.get_data(\"capacity_map_2_supplier\")} \\n\\n {self.get_data(\"capacity_value_2_supplier\")}"}'
+  skipped: true
   type: SHOW_RESULT
 loops: []

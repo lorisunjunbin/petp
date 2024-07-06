@@ -82,20 +82,20 @@ class Execution:
         if not lp.is_loop_execution:
             wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
 
-    def log_end_process(self, current_loop, loopParam, processor, task, view):
+    def log_end_process(self, current_loop, loop_state, processor, task, view):
         logging.info(
-            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {loopParam.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loopParam.loop_times_cur)) if current_loop is not None else ""} Done \n')
-        self.post_log_reload(loopParam, view)
+            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {loop_state.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loop_state.loop_times_cur)) if current_loop is not None else ""} Done \n')
+        self.post_log_reload(loop_state, view)
 
-    def log_start_process(self, current_loop, loopParam, processor, task, view):
+    def log_start_process(self, current_loop, loop_state, processor, task, view):
         logging.info(
-            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {loopParam.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loopParam.loop_times_cur)) if current_loop is not None else ""}')
+            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {loop_state.get_sequence()} {(current_loop.get_loop_code() + "#" + str(loop_state.loop_times_cur)) if current_loop is not None else ""}')
         logging.info(f'process start: {task.input}')
-        self.post_log_reload(loopParam, view)
+        self.post_log_reload(loop_state, view)
 
-    def log_skipped_process(self, current_loop, loopParam, processor, task, view):
+    def log_skipped_process(self, current_loop, loop_state, processor, task, view):
         logging.info(f'process *** skipped *** : {task.input}')
-        self.post_log_reload(loopParam, view)
+        self.post_log_reload(loop_state, view)
 
     def init_task(self, data_chain, idx, sequence) -> Task:
         task: Task = self.list[idx]

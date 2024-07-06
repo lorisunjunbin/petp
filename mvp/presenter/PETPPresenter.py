@@ -24,6 +24,7 @@ from utils.OSUtils import OSUtils
 
 class PETPPresenter():
     CRON_INVALID: str = "Invalid CRON"
+
     cron: Cron
     execution: Execution
     executors: list = []
@@ -33,11 +34,8 @@ class PETPPresenter():
     available_processors: list = []
     available_executions: list = []
 
-    cellChoiceEditorInEditting4E = None
-    cellChoiceEditorInEditting4P = None
-
-    currentSelectedRow: int = -1
-    isLogContentFocused: bool = False
+    current_selected_row: int = -1
+    is_log_content_focused: bool = False
     single_page: str = "petp"
     logger_thread = None
     keep_running = True
@@ -151,15 +149,15 @@ class PETPPresenter():
 
     def _init_executiongrid_choice_editor(self):
         self.available_executions = Execution.get_available_executions()
-        executionGrid = self.v.executionGrid
-        for row in range(executionGrid.GetNumberRows()):
-            self._bind_grid_cell_choice_editor(row, executionGrid, self.available_executions)
+        execution_grid = self.v.executionGrid
+        for row in range(execution_grid.GetNumberRows()):
+            self._bind_grid_cell_choice_editor(row, execution_grid, self.available_executions)
 
     def _init_taskgrid_choice_editor(self):
         self.available_processors = Processor.get_processors()
-        taskGrid = self.v.taskGrid
-        for row in range(taskGrid.GetNumberRows()):
-            self._bind_grid_cell_choice_editor(row, taskGrid, self.available_processors)
+        task_grid = self.v.taskGrid
+        for row in range(task_grid.GetNumberRows()):
+            self._bind_grid_cell_choice_editor(row, task_grid, self.available_processors)
 
     def on_add_loop(self):
         loop_code = 'loop-' + DateUtil.get_now_in_str()
@@ -193,15 +191,15 @@ class PETPPresenter():
     @reload_log_after
     def on_log_level_changed(self):
         combo = self.v.logLevelChooser
-        logLevel = combo.GetValue()
+        log_level = combo.GetValue()
 
         # record log_level
         if self.m.log_level != combo.GetValue():
             self.m.log_level = combo.GetValue()
             self.m.set_config('log_level', self.m.log_level)
 
-        logging.getLogger().setLevel(logging.getLevelName(logLevel))
-        getattr(logging, logLevel.lower())('Set log level to <' + logLevel + '> successfully.')
+        logging.getLogger().setLevel(logging.getLevelName(log_level))
+        getattr(logging, log_level.lower())('Set log level to <' + log_level + '> successfully.')
 
     @reload_log_after
     def on_execution_pipeline_changed(self):
@@ -213,15 +211,15 @@ class PETPPresenter():
         if self.pipeline is None:
             return
         else:
-            currentNumberRows = grid.GetNumberRows()
-            executionNumber = len(self.pipeline.list)
+            current_number_rows = grid.GetNumberRows()
+            execution_number = len(self.pipeline.list)
 
             self.v.asCronChecbox.SetValue(self.pipeline.cronEnabled)
             self.v.cronInput.SetValue(self.pipeline.cronExp)
             self._update_cron_setting(self.pipeline.cronEnabled)
 
-            if executionNumber > currentNumberRows:
-                for _ in range(executionNumber - currentNumberRows):
+            if execution_number > current_number_rows:
+                for _ in range(execution_number - current_number_rows):
                     self._insert_row(grid, self.available_executions)
 
             for idx, itm in enumerate(self.pipeline.list):
@@ -243,11 +241,11 @@ class PETPPresenter():
         if self.execution is None:
             return
         else:
-            currentNumberRows = grid.GetNumberRows()
-            taskNumber = len(self.execution.list)
+            current_number_rows = grid.GetNumberRows()
+            task_number = len(self.execution.list)
 
-            if taskNumber > currentNumberRows:
-                for _ in range(taskNumber - currentNumberRows):
+            if task_number > current_number_rows:
+                for _ in range(task_number - current_number_rows):
                     self._insert_row(grid, self.available_processors)
 
             for idx, itm in enumerate(self.execution.list):
@@ -269,7 +267,7 @@ class PETPPresenter():
 
     def _save_execcution(self, name):
         grid = self.v.taskGrid
-        loopProperty = self.v.loopProperty
+        loop_property = self.v.loopProperty
 
         # prepare tasks
         tasks = []
@@ -284,7 +282,7 @@ class PETPPresenter():
 
         # prepare loops
         loops = []
-        itr = loopProperty.GetPage(self.single_page).GetPyIterator(wx.propgrid.PG_ITERATE_ALL)
+        itr = loop_property.GetPage(self.single_page).GetPyIterator(wx.propgrid.PG_ITERATE_ALL)
 
         for prop in itr:
             if isinstance(prop, wx.propgrid.PropertyCategory):
@@ -427,9 +425,9 @@ class PETPPresenter():
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
 
-            pathname = fileDialog.GetPath()
-            self.v.recordingLocation.SetLabel(pathname)
-            self.converter = SeleniumIDERecordingConverter(pathname)
+            path_name = fileDialog.GetPath()
+            self.v.recordingLocation.SetLabel(path_name)
+            self.converter = SeleniumIDERecordingConverter(path_name)
             available_tests = self.converter.get_test_names()
 
             if len(available_tests) > 0:
@@ -446,17 +444,17 @@ class PETPPresenter():
         if hasattr(self, 'converter') and self.converter.is_initialized():
             tasks = self.converter.convert_from_selenium_ide_recording()
 
-            taskGrid = self.v.taskGrid
-            selectedRows = taskGrid.GetSelectedRows()
-            tasks = tasks if len(selectedRows) > 0 else reversed(tasks)
+            task_grid = self.v.taskGrid
+            selected_rows = task_grid.GetSelectedRows()
+            tasks = tasks if len(selected_rows) > 0 else reversed(tasks)
 
             for t in tasks:
-                selectedRows = taskGrid.GetSelectedRows()
-                insertAt = selectedRows[0] if len(selectedRows) > 0 else 0
-                self._insert_row(taskGrid, self.available_processors)
-                taskGrid.SetCellValue(insertAt, 0, t.type)
+                selected_rows = task_grid.GetSelectedRows()
+                insert_at = selected_rows[0] if len(selected_rows) > 0 else 0
+                self._insert_row(task_grid, self.available_processors)
+                task_grid.SetCellValue(insert_at, 0, t.type)
                 if (hasattr(t, 'input')):
-                    taskGrid.SetCellValue(insertAt, 1, t.input)
+                    task_grid.SetCellValue(insert_at, 1, t.input)
 
             logging.info(
                 f'Successfully convert from Selenium IDE recording: {self.converter.file_path}, {self.converter.test_name}')
@@ -507,29 +505,29 @@ class PETPPresenter():
 
     def _load_input_taskproperty(self, current_row):
         grid = self.v.taskGrid
-        self.currentSelectedRow = current_row
+        self.current_selected_row = current_row
         current_input = grid.GetCellValue(current_row, 1)
         if len(current_input) > 5:
 
-            inputDict = json.loads(current_input)
+            input_dict = json.loads(current_input)
             page = self.v.taskProperty.GetPage(self.single_page)
             self._reset_task_pgrid(current_row + 1)
 
-            for k in inputDict:
-                v = inputDict[k]
+            for k in input_dict:
+                v = input_dict[k]
                 self._append_or_update_property_to_page(k, v, page)
 
             page.FitColumns()
 
             current_processor = grid.GetCellValue(current_row, 0)
-            self._fill_available_properties(current_processor, inputDict)
+            self._fill_available_properties(current_processor, input_dict)
         else:
             self._reset_task_pgrid()
 
-    def _fill_available_properties(self, processor, inputDict):
+    def _fill_available_properties(self, processor, input_dict):
         self.v.avaibleProperties.Clear()
-        tplDict = json.loads(Processor.get_processor_by_type(processor).get_tpl())
-        available_processors = [k for k in tplDict.keys() if not k in inputDict]
+        tpl_dict = json.loads(Processor.get_processor_by_type(processor).get_tpl())
+        available_processors = [k for k in tpl_dict.keys() if not k in input_dict]
         self.v.avaibleProperties.AppendItems(available_processors)
 
     def _append_or_update_property_to_page(self, k, v, page):
@@ -558,12 +556,12 @@ class PETPPresenter():
 
     @reload_log_after
     def on_datepicker_changed(self, evt):
-        dateStr = evt.GetDate().Format("%Y-%m-%d")
+        date_str = evt.GetDate().Format("%Y-%m-%d")
         evt.Skip()
         tp = self.v.taskProperty
         prop = tp.GetSelection()
         if prop is not None:
-            prop.SetValue(prop.GetValue() + dateStr)
+            prop.SetValue(prop.GetValue() + date_str)
             self._modify_property(prop)
 
     def on_convert_get_data(self):
@@ -624,19 +622,19 @@ class PETPPresenter():
             return
 
         grid = self.v.taskGrid
-        processor = grid.GetCellValue(self.currentSelectedRow, 0)
-        tplDict = json.loads(Processor.get_processor_by_type(processor).get_tpl())
+        processor = grid.GetCellValue(self.current_selected_row, 0)
+        tpl_dict = json.loads(Processor.get_processor_by_type(processor).get_tpl())
 
-        if not k in tplDict:
+        if not k in tpl_dict:
             v = ''
         else:
-            v = tplDict[k]
+            v = tpl_dict[k]
 
         self._append_or_update_property_to_page(k, v, self.v.taskProperty.GetPage(self.single_page))
         self._add_property(k, v)
 
-        inputDict = json.loads(grid.GetCellValue(self.currentSelectedRow, 1))
-        self._fill_available_properties(processor, inputDict)
+        input_dict = json.loads(grid.GetCellValue(self.current_selected_row, 1))
+        self._fill_available_properties(processor, input_dict)
 
     @reload_log_after
     def on_delete_property(self):
@@ -651,9 +649,9 @@ class PETPPresenter():
 
         grid = self.v.taskGrid
 
-        inputDict = json.loads(grid.GetCellValue(self.currentSelectedRow, 1))
-        processor = grid.GetCellValue(self.currentSelectedRow, 0)
-        self._fill_available_properties(processor, inputDict)
+        input_dict = json.loads(grid.GetCellValue(self.current_selected_row, 1))
+        processor = grid.GetCellValue(self.current_selected_row, 0)
+        self._fill_available_properties(processor, input_dict)
 
     def _delete_selected_property_from_page(self, pgm):
         prop = pgm.GetSelection()
@@ -686,31 +684,31 @@ class PETPPresenter():
 
     def _add_property(self, propName, propValue):
         self._op_taskgrid_property(propName, propValue, lambda inputDict, key, value: inputDict | {key: value})
-        logging.info(f'Input property added @Task{self.currentSelectedRow + 1} - [ {propName} = {propValue} ]')
+        logging.info(f'Input property added @Task{self.current_selected_row + 1} - [ {propName} = {propValue} ]')
 
     def _delete_property(self, prop):
         self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
                                    lambda inputDict, key, value: {k: v for k, v in inputDict.items() if not k == key})
-        logging.info(f'Input property deleted @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} ]')
+        logging.info(f'Input property deleted @Task{self.current_selected_row + 1} - [ {prop.GetName()} ]')
 
     def _modify_property(self, prop):
         self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
                                    lambda inputDict, key, value: inputDict | {key: value})
         logging.info(
-            f'Input property modified @Task{self.currentSelectedRow + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
+            f'Input property modified @Task{self.current_selected_row + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
 
     def _op_taskgrid_property(self, key, value, func):
-        taskGrid = self.v.taskGrid
-        inputCol = 1
+        task_grid = self.v.taskGrid
+        input_col = 1
 
-        if self.currentSelectedRow is None or key is None or value is None:
+        if self.current_selected_row is None or key is None or value is None:
             return
 
-        input = taskGrid.GetCellValue(self.currentSelectedRow, inputCol)
-        inputDict = json.loads(input)
-        inputDict = func(inputDict, key, value)
-        input = json.dumps(inputDict)
-        taskGrid.SetCellValue(self.currentSelectedRow, inputCol, input)
+        input = task_grid.GetCellValue(self.current_selected_row, input_col)
+        input_dict = json.loads(input)
+        input_dict = func(input_dict, key, value)
+        input = json.dumps(input_dict)
+        task_grid.SetCellValue(self.current_selected_row, input_col, input)
 
     def on_grid_cell_change4p(self, evt):
         grid = self.v.executionGrid
@@ -719,24 +717,24 @@ class PETPPresenter():
         evt.Skip()
 
     def _insert_row(self, grid, choices):
-        selectedRows = grid.GetSelectedRows()
-        totalRows = grid.GetNumberRows()
-        insertAtRow = selectedRows[0] if len(selectedRows) > 0 else 0
+        selected_rows = grid.GetSelectedRows()
+        total_rows = grid.GetNumberRows()
+        insert_at_row = selected_rows[0] if len(selected_rows) > 0 else 0
 
         # if select on last row, then append.
-        if insertAtRow + 1 == totalRows:
-            insertAtRow = totalRows
+        if insert_at_row + 1 == total_rows:
+            insert_at_row = total_rows
 
-        grid.InsertRows(insertAtRow, 1, True)
-        self._bind_grid_cell_choice_editor(insertAtRow, grid, choices)
+        grid.InsertRows(insert_at_row, 1, True)
+        self._bind_grid_cell_choice_editor(insert_at_row, grid, choices)
 
     def on_add_row4e(self):
-        taskGrid = self.v.taskGrid
-        self._insert_row(taskGrid, self.available_processors)
+        task_grid = self.v.taskGrid
+        self._insert_row(task_grid, self.available_processors)
 
     def on_add_row4p(self):
-        executionGrid = self.v.executionGrid
-        self._insert_row(executionGrid, self.available_executions)
+        execution_grid = self.v.executionGrid
+        self._insert_row(execution_grid, self.available_executions)
 
     def on_delete_rows4e(self):
         self._on_delete_rows(self.v.taskGrid)
@@ -761,7 +759,7 @@ class PETPPresenter():
         if hasattr(self, 'isLoading') and self.isLoading:
             return
 
-        if self.isLogContentFocused:
+        if self.is_log_content_focused:
             return
 
         self.isLoading = True
@@ -776,13 +774,13 @@ class PETPPresenter():
     def on_clean_log(self):
         with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
             file.write(f'Clean {self.m.app_name} log@' + DateUtil.get_now_in_str() + '\n')
-        self.isLogContentFocused = False
+        self.is_log_content_focused = False
 
     def on_logcontents_focused(self):
-        self.isLogContentFocused = True
+        self.is_log_content_focused = True
 
     def on_logcontents_unfocused(self):
-        self.isLogContentFocused = False
+        self.is_log_content_focused = False
 
     def on_handle_open_input_dialog(self, evt: PETPEvent):
         dlg = wx.TextEntryDialog(None, evt.data['msg'], evt.data['title'])
