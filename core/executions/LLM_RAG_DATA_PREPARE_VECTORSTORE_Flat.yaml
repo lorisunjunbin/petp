@@ -29,13 +29,15 @@ list:
 - !!python/object:core.task.Task
   input: '{"given_collection": "capacity_value_2_supplier", "masking_columnnum": "5",
     "masking_func": "return ''SNA'' + str(colnum) + str(rownum).rjust(4, ''0'')",
-    "masking_dict_name": "masking_dict_suppiler_name", "masking_dict_inverted": "Yes"}'
+    "masking_dict_name": "masking_dict_suppiler_name", "masking_dict_inverted": "Yes",
+    "content_clean_func": "return content.replace(\"\\n\",\"\") "}'
   skipped: false
   type: DATA_MASKING
 - !!python/object:core.task.Task
   input: '{"given_collection": "capacity_value_2_supplier", "masking_columnnum": "4",
     "masking_func": "return ''SID'' + str(colnum) + str(rownum).rjust(4, ''0'')",
-    "masking_dict_name": "masking_dict_suppiler_id", "masking_dict_inverted": "Yes"}'
+    "masking_dict_name": "masking_dict_suppiler_id", "masking_dict_inverted": "Yes",
+    "content_clean_func": "return content.replace(\"\\n\",\"\")"}'
   skipped: false
   type: DATA_MASKING
 - !!python/object:core.task.Task
