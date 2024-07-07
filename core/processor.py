@@ -28,6 +28,7 @@ class Processor:
     '''
 
     # Available categories:
+    CATE_AI_LLM: str = 'AI_LLM'
     CATE_DEFAULT: str = 'Default'
     CATE_FILE: str = 'File'
     CATE_ZIP: str = 'Zip'
