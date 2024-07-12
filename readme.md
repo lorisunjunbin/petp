@@ -75,18 +75,25 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 ## TO-DO:
 
 - Create more [processors](./core/processors)
-    - processor of chatGPT - https://platform.openai.com/docs/api-reference/introduction
     - processor of Pillow - https://pillow.readthedocs.io/en/stable/
 
 - Able to easily create customized processors.
 
 ## DONE
 
-2024-07: New feature of task skipping via {"skipped":"yes"}, upgrade chromedriver to 126, modify the width of chooser from 300 to 500
+2024-07: [DATA_MULTI_MASKINGProcessor](./core/processors/DATA_MULTI_MASKINGProcessor.py)
 
-2024-06: [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py) and [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py)
+2024-07:
+AI-LLM [AI_LLM_GEMINI_SETUPProcessor](./core/processors/AI_LLM_GEMINI_SETUPProcessor.py) & [AI_LLM_GEMINI_QANDAProcessor](./core/processors/AI_LLM_GEMINI_QANDAProcessor.py)
 
-2024-05: Introduced HttpServer(python3.12), provide http service for PETP, support GET/POST request, and return JSON response. port 8866 by default.
+2024-07: New feature of task skipping via {"skipped":"yes"}, upgrade chromedriver to 126, modify the width of chooser
+from 300 to 500
+
+2024-06: [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py)
+& [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py)
+
+2024-05: Introduced HttpServer(python3.12), provide http service for PETP, support GET/POST request, and return JSON
+response. port 8866 by default.
 
 2024-04: after building via pyinstall, support on-demand loading processors from ./core/processors folder.
 
@@ -149,12 +156,15 @@ execution: ootb_encode_decode_hash_str
 
 ## tips:
 
-- Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) ,[and more](https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json) if you get an error of mismatched
-  version (selenium task only). 
+-
 
-- Download [Wxpython snapshot for macOS](https://wxpython.org/Phoenix/snapshot-builds/) 
+Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) ,[and more](https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json)
+if you get an error of mismatched
+version (selenium task only).
 
-- Download [Wxpython latest version for Windows](https://extras.wxpython.org/wxPython4/extras/) 
+- Download [Wxpython snapshot for macOS](https://wxpython.org/Phoenix/snapshot-builds/)
+
+- Download [Wxpython latest version for Windows](https://extras.wxpython.org/wxPython4/extras/)
 
 - Install wxpython for certain python version:
 

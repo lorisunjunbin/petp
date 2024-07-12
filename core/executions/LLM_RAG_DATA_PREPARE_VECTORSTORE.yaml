@@ -3,7 +3,7 @@ execution: LLM_RAG_DATA_PREPARE_VECTORSTORE
 list:
 - !!python/object:core.task.Task
   input: '{"capacityMapXlsx": "{self.get_rdir()}/capacitymap/\u80fd\u529b\u5730\u56fe-without-comments.xlsx",
-    "output_folder": "/Users/i335607/LoriProject/ai-assistant-gemini/rag-data/new"}'
+    "output_folder": "/Users/i335607/LoriProject/ai-assistant-gemini/rag-data"}'
   skipped: false
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
