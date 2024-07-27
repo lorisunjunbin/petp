@@ -263,6 +263,12 @@ class Processor:
     def decrypt(self, str):
         return Processor.decrypt_pwd(str)
 
+    def split_into_2d_array(self, arr, size):
+        result = []
+        for i in range(0, len(arr), size):
+            result.append(arr[i:i + size])
+        return result
+
     @staticmethod
     def encrypt_pwd(str) -> str:
         return cryptocode.encrypt(str, Processor.SALT)

@@ -14,9 +14,8 @@ list:
   skipped: false
   type: BEAUTIFUL_SOUP
 - !!python/object:core.task.Task
-  input: '{"given_key": "soup_outbound", "convertor_func": "result =[[\"\u9707\u7ea7M\",\"\u53d1\u9707\u65f6\u523bUTC+8\",\"\u7eac\u5ea6\",\"\u7ecf\u5ea6\",\"\u6df1\u5ea6KM\",\"\u53c2\u8003\u4f4d\u7f6e\"]]\\n\\t\\tfor
-    i in range(0, len(given), 6):\\n\\t\\t\\t\\tresult.append(given[i:i+6])\\n\\t\\treturn
-    result", "target_key": "final_data"}'
+  input: '{"given_key": "soup_outbound", "convertor_func": "given=[\"\u9707\u7ea7M\",\"\u53d1\u9707\u65f6\u523bUTC+8\",\"\u7eac\u5ea6\",\"\u7ecf\u5ea6\",\"\u6df1\u5ea6KM\",\"\u53c2\u8003\u4f4d\u7f6e\"]
+    + given\\n\\t\\treturn p.split_into_2d_array(given, 6)", "target_key": "final_data"}'
   skipped: false
   type: DATA_CONVERT
 - !!python/object:core.task.Task
