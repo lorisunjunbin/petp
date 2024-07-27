@@ -1,0 +1,32 @@
+!!python/object:core.execution.Execution
+execution: OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn
+list:
+- !!python/object:core.task.Task
+  input: '{"request_url": "https://news.ceic.ac.cn/index.html", "method": "get", "value_key":
+    "news", "session_key": "__session_key", "resp_func_body": "return response.text
+    if response.status_code == 200 else response.status_code", "timeout": 60}'
+  skipped: false
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"outbound_data_key": "soup_outbound", "func_body": "return list(map(lambda
+    itm: itm.text , soup.find_all(''td'')))", "parser": "html.parser", "inbound_data_key":
+    "news"}'
+  skipped: false
+  type: BEAUTIFUL_SOUP
+- !!python/object:core.task.Task
+  input: '{"given_key": "soup_outbound", "convertor_func": "result =[[\"\u9707\u7ea7M\",\"\u53d1\u9707\u65f6\u523bUTC+8\",\"\u7eac\u5ea6\",\"\u7ecf\u5ea6\",\"\u6df1\u5ea6KM\",\"\u53c2\u8003\u4f4d\u7f6e\"]]\\n\\t\\tfor
+    i in range(0, len(given), 6):\\n\\t\\t\\t\\tresult.append(given[i:i+6])\\n\\t\\treturn
+    result", "target_key": "final_data"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
+    "msg": "{self.get_data(\"final_data\")}"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_ddir()}/earth_quake_info.xlsx", "value_key": "final_data",
+    "data_key": ""}'
+  skipped: false
+  type: WRITE_TO_EXCEL
+loops: []

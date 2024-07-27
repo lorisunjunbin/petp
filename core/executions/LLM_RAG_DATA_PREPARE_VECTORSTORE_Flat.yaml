@@ -53,11 +53,6 @@ list:
   skipped: false
   type: COLLECTION_MERGE
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/capacity_map_final.xlsx", "value_key":
-    "capacity_map_final", "data_key": "capacity_map_final_path"}'
-  skipped: false
-  type: WRITE_TO_EXCEL
-- !!python/object:core.task.Task
   input: '{"given_key": "capacity_map_final", "convertor_func": "return [''''.join([''\u4f9b\u5e94\u5546\u540d
     '', row[7], '', \u4f9b\u5e94\u5546\u7801 '', row[6], '', \u9488\u5bf9\u54c1\u7c7b\u7801
     '', row[0], '' \u54c1\u7c7b\u540d '', row[1],'', \u4e00\u7ea7\u80fd\u529b '',

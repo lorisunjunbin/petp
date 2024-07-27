@@ -39,6 +39,11 @@ list:
   skipped: false
   type: COLLECTION_MERGE
 - !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/capacity_map_final.xlsx",
+    "value_key": "capacity_map_final", "data_key": "capacity_map_final_path"}'
+  skipped: false
+  type: WRITE_TO_EXCEL
+- !!python/object:core.task.Task
   input: '{"given_collection": "capacity_map_final", "content_clean_func": "return
     content.replace(\"\\n\",\"\")", "masking_func": "return (''CC_'' if colnum ==
     0 else ''CN_'' if colnum == 1 else ''L1_'' if colnum == 3 else ''L2_'' if colnum
@@ -59,14 +64,24 @@ list:
   skipped: false
   type: DATA_GROUPBY
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/capacity_map_final.xlsx", "value_key":
-    "capacity_map_final", "data_key": "capacity_map_final_path"}'
+  input: '{"given_collection": "capacity_map_final", "group_by_func": "return  ''\u4f9b\u5e94\u5546\u540d
+    '' + row[7] + '', \u4f9b\u5e94\u5546\u7801 '' + row[6] + '', \u54c1\u7c7b\u7801
+    ''+ row[0] +'', \u54c1\u7c7b\u540d '' + row[1] ", "mapping_func": "return ''\u4e00\u7ea7\u80fd\u529b
+    '' +row[3]+'',  \u4e8c\u7ea7\u80fd\u529b '' +row[4]+'', \u4e09\u7ea7\u80fd\u529b
+    '' +row[5] + '', \u7684\u5f97\u5206\u4e3a '' +row[8]", "target_dict_key": "capacity_map_rag_data_sc",
+    "collect_func": "return key +''  \u54c1\u7c7b\u80fd\u529b\u4e3a '' + ''; ''.join(rows)"}'
   skipped: false
-  type: WRITE_TO_EXCEL
+  type: DATA_GROUPBY
 - !!python/object:core.task.Task
   input: '{"file_path": "{self.get_data(\"output_folder\")}/capacity_map_rag_data_multi_masking.json",
     "content": "{json.dumps(self.get_data(\"capacity_map_rag_data\"), ensure_ascii=False)}",
     "data_key": "capacity_map_rag_multi_masking_data_path"}'
+  skipped: false
+  type: WRITE_TO_FILE
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/capacity_map_rag_data_sc_multi_masking.json",
+    "content": "{json.dumps(self.get_data(\"capacity_map_rag_data_sc\"), ensure_ascii=False)}",
+    "data_key": "capacity_map_rag_sc_multi_masking_data_path"}'
   skipped: false
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task

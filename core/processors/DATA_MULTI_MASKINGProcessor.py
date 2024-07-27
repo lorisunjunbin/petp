@@ -27,7 +27,7 @@ class DATA_MULTI_MASKINGProcessor(Processor):
         masking_dict = {}
 
         given_collection = self.get_data(self.get_param('given_collection'))
-        masking_dict_inverted = True if "Yes" == self.get_param('masking_dict_inverted') else False
+        masking_dict_inverted = True if "yes" == str(self.get_param('masking_dict_inverted')).lower() else False
         masking_dict_name = self.get_param('masking_dict_name')
         masking_func_body = self.get_param('masking_func')
         content_clean_func = self.get_param('content_clean_func')

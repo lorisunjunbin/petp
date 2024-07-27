@@ -63,11 +63,6 @@ list:
   skipped: false
   type: DATA_GROUPBY
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_ddir()}/capacity_map_final.xlsx", "value_key":
-    "capacity_map_final", "data_key": "capacity_map_final_path"}'
-  skipped: false
-  type: WRITE_TO_EXCEL
-- !!python/object:core.task.Task
   input: '{"file_path": "{self.get_data(\"output_folder\")}/capacity_map_rag_data.json",
     "content": "{json.dumps(self.get_data(\"capacity_map_rag_data\"), ensure_ascii=False)}",
     "data_key": "capacity_map_rag_data_path"}'
