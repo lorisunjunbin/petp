@@ -1,0 +1,44 @@
+!!python/object:core.execution.Execution
+execution: LLM_RAG_DATA_COLLECT_CATEGORY
+list:
+- !!python/object:core.task.Task
+  input: '{"source_data": "{self.get_rdir()}/category-data", "Mairui_file_path": "{self.get_data(\"source_data\")}/GP\u91c7\u8d2d\u54c1\u7c7b  \u5df2\u7f16\u7801
+    0819.xlsx", "xiyu_file_path": "{self.get_data(\"source_data\")}/\u54c1\u7c7b\u8868
+    \u897f\u57df.xlsx", "jd_file_path": "{self.get_data(\"source_data\")}/\u54c1\u7c7b\u8868
+    \u4eac\u4e1c\u7c7b\u76ee\u886820220606.xlsx", "output_folder": "/Users/i335607/LoriProject/ai-assistant-gemini/rag-data/category"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"Mairui_file_path\")}", "skip_first": "yes",
+    "data_key": "mairui_gp_category", "end_at": "14", "sheet_index": 0}'
+  skipped: false
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"xiyu_file_path\")}", "skip_first": "yes",
+    "data_key": "xiyu_gp_category", "end_at": "8", "sheet_index": 0}'
+  skipped: false
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"jd_file_path\")}", "skip_first": "yes",
+    "data_key": "jd_gp_category", "end_at": "6", "sheet_index": 0}'
+  skipped: false
+  type: READ_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/mairui_category_rag_data.json",
+    "content": "{json.dumps(self.get_data(\"mairui_gp_category\"), ensure_ascii=False)}",
+    "data_key": "mairui_gp_category_data_path"}'
+  skipped: false
+  type: WRITE_TO_FILE
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/xiyu_category_rag_data.json",
+    "content": "{json.dumps(self.get_data(\"xiyu_gp_category\"), ensure_ascii=False)}",
+    "data_key": "xiyu_gp_category_data_path"}'
+  skipped: false
+  type: WRITE_TO_FILE
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_data(\"output_folder\")}/jd_category_rag_data.json",
+    "content": "{json.dumps(self.get_data(\"jd_gp_category\"), ensure_ascii=False)}",
+    "data_key": "jd_gp_category_data_path"}'
+  skipped: false
+  type: WRITE_TO_FILE
+loops: []
