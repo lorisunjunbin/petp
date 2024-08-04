@@ -9,7 +9,7 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 class RUN_EXECUTIONProcessor(Processor):
 	TPL: str = '{"execution":"EXECUTION_NAME", "params":"","if_stop":"no"}'
 	DESC: str = f'''
-        - Run a specific execution with params. 
+        - Run a specific execution with params. if_stop is set to yes, the execution will be skipped.
 
         {TPL}
     '''

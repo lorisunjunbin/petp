@@ -80,6 +80,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 - Able to easily create customized processors.
 
 ## DONE
+2024-08: [RUN_EXECUTIONProcessor](./core/processors/RUN_EXECUTIONProcessor.py)
 
 2024-07: [DATA_MULTI_MASKINGProcessor](./core/processors/DATA_MULTI_MASKINGProcessor.py)
 
