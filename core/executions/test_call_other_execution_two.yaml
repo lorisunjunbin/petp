@@ -1,0 +1,12 @@
+!!python/object:core.execution.Execution
+execution: test_call_other_execution_two
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "CALL from OTHER Execution", "msg": "{self.get_data(\"call_from\")}"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"execution": "test_call_other_execution", "params": "{\"justStop\":\"yes\"}"}'
+  skipped: false
+  type: RUN_EXECUTION
+loops: []

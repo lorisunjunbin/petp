@@ -5,6 +5,6 @@ application:
   email: 6099012@qq.com
   execute_on_startup: false
   http_port: 8866
-  last_run: OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn
+  last_run: test_call_other_execution
   log_level: INFO
   version: 1.0.4
