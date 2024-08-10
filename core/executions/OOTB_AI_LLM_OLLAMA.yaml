@@ -1,0 +1,9 @@
+!!python/object:core.execution.Execution
+execution: OOTB_AI_LLM_OLLAMA
+list:
+- !!python/object:core.task.Task
+  input: '{"model": "llama3.1", "prompt": "How old are you?", "role": "user", "show_in_popup":
+    "yes", "resp_content_key": "ollama_resp"}'
+  skipped: false
+  type: AI_LLM_OLLAMA_QANDA
+loops: []
