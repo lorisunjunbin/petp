@@ -76,7 +76,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 - Create more [processors](./core/processors)
     - processor of Pillow - https://pillow.readthedocs.io/en/stable/
-
+- Interactive Charts with wxPython and Matplotlib https://github.com/lszl84/py_wx_matplotlib_tutorial/blob/main/main.py
 - Able to easily create customized processors.
 
 ## DONE

@@ -5,7 +5,8 @@ import time
 from os import listdir
 from os.path import isfile, join
 from shutil import copy2, copyfile
-
+import platform
+import ctypes
 
 class OSUtils:
 
@@ -19,6 +20,11 @@ class OSUtils:
         macOS -> 'darwin'
         """
         return sys.platform
+
+    @staticmethod
+    def ensure_hdpi():
+        if platform.system() == "Windows":
+            ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
     @staticmethod
     def wait_for_file_within_seconds(file_path, timeout):

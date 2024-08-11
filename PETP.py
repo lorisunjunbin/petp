@@ -4,12 +4,14 @@ import platform
 import wx
 
 import utils.Logger as Logger
+
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.PETPPresenter import PETPPresenter
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.HttpServer import HttpServer
+from utils.OSUtils import OSUtils
 from utils.SystemConfig import SystemConfig
 
 
@@ -41,6 +43,8 @@ def build_presenter(model, view):
 
 
 def start_app():
+    # OSUtils.ensure_hdpi() # only run on windows & use autogui and canvas.
+
     app = wx.App(0)
 
     model: PETPModel = build_model()
