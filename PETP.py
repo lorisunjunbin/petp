@@ -32,6 +32,12 @@ def set_log_level(m: PETPModel) -> None:
 	getattr(logging, log_level_str.lower())('Default log level is <' + log_level_str + '>')
 
 
+def setup_windows_display(m: PETPModel):
+	enabled = True if getattr(m, 'enable_windows_hdpi') else False
+	if enabled:
+		OSUtils.ensure_hdpi()
+
+
 def build_model():
 	config = SystemConfig("petpconfig.yaml")
 	return PETPModel(config)
@@ -56,8 +62,11 @@ def start_app():
 	view.Show()
 
 	logging.info(f'PETP is running on {platform.architecture()[0]} platform')
-	set_log_level(model)
 
+	set_log_level(model)
+	setup_windows_display(model)
+
+	# start the http server
 	HttpServer(presenter).start()
 
 	presenter.on_load_log()
@@ -70,5 +79,4 @@ def start_app():
 
 if __name__ == '__main__':
 	init_log()
-	init_display()
 	start_app()

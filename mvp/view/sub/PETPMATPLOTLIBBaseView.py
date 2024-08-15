@@ -1,4 +1,5 @@
 import logging
+import os
 
 import wx
 import matplotlib.figure
@@ -42,13 +43,19 @@ class PETPMATPLOTLIBBaseView(wx.Frame):
 
 		self.SetSize(self.FromDIP((1200, 900)))
 		self.SetPosition(wx.Point(left, top))
+		self.setup_icon()
+
 		axes.clear()  # Clear existing plot
-
 		self.update_chart(axes, data['matplotlib_data'])
-
 		canvas.draw()
 		canvas.Refresh()
-		
+
+	def setup_icon(self):
+		_icon = wx.NullIcon
+		_logo_path = os.path.realpath('image') + "/petp.png"
+		_icon.CopyFromBitmap(wx.Bitmap(_logo_path, wx.BITMAP_TYPE_ANY))
+		self.SetIcon(_icon)
+
 	def update_chart(self, axes, data):
 		"""
 		# Override by sub-class

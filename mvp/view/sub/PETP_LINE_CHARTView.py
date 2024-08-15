@@ -1,12 +1,4 @@
-import numpy as np
-
 from mvp.view.sub.PETPMATPLOTLIBBaseView import PETPMATPLOTLIBBaseView
-
-"""
-
-	https://wiki.wxpython.org/How%20to%20use%20Matplotlib%20-%20Part%201%20%28Phoenix%29
-
-"""
 
 
 class PETP_LINE_CHARTView(PETPMATPLOTLIBBaseView):

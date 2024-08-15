@@ -4,6 +4,7 @@ application:
   cell: +86-13478653323
   email: 6099012@qq.com
   execute_on_startup: true
+  enable_windows_hdpi: false
   http_port: 8866
   last_run: OOTB_MATPLOTLIB_VIEW
   log_level: INFO
