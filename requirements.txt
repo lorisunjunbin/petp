@@ -18,3 +18,4 @@ pytube
 pandas
 psutil
 ollama
+matplotlib
