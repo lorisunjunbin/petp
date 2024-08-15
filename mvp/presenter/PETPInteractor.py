@@ -28,6 +28,7 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.START, self.on_handle_start)
         PETPEvent.bind_to(self.v, PETPEvent.OPEN_INPUT_DIALOG, self.on_handle_open_input_dialog)
         PETPEvent.bind_to(self.v, PETPEvent.HTTP_CALLBACK, self.on_handle_http_callback)
+        PETPEvent.bind_to(self.v, PETPEvent.MATPLOTLIB, self.on_handle_display_in_matplotlib_view)
 
         # UI event binding
         self.v.Bind(wx.EVT_CLOSE, self.on_close_window)
@@ -111,10 +112,16 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data_4loop, self.v.convertGetDeepData4Loop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data_4loop, self.v.convertGetData4Loop)
 
+
+    def on_handle_display_in_matplotlib_view(self, evt: PETPEvent):
+        self.p.on_handle_display_in_matplotlib_view(evt)
+
     def on_handle_open_input_dialog(self, evt: PETPEvent):
         self.p.on_handle_open_input_dialog(evt)
+
     def on_handle_http_callback(self, evt: PETPEvent):
         self.p.on_handle_http_callback(evt)
+
     def on_handle_start(self, evt: PETPEvent):
         logging.info(evt.data)
         self.on_load_log(evt)

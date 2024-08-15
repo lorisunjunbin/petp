@@ -3,8 +3,8 @@ application:
   author: lorisunjunbin@DalianChina
   cell: +86-13478653323
   email: 6099012@qq.com
-  execute_on_startup: false
+  execute_on_startup: true
   http_port: 8866
-  last_run: test_call_other_execution
+  last_run: OOTB_MATPLOTLIB_VIEW
   log_level: INFO
   version: 1.0.4

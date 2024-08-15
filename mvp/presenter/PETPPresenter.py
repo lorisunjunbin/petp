@@ -17,6 +17,9 @@ from decorators.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
+from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
+from mvp.view.sub.PETP_PIE_CHARTView import PETP_PIE_CHARTView
+from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
@@ -781,6 +784,18 @@ class PETPPresenter():
 
 	def on_logcontents_unfocused(self):
 		self.is_log_content_focused = False
+
+	def on_handle_display_in_matplotlib_view(self, evt: PETPEvent):
+		data = evt.data
+
+		if data['chart_type'] == 'PIE':
+			PETP_PIE_CHARTView(self.v, wx.ID_ANY, data=data).Show()
+		elif data['chart_type'] == 'BAR':
+			PETP_BAR_CHARTView(self.v, wx.ID_ANY, data=data).Show()
+		elif data['chart_type'] == 'LINE':
+			PETP_LINE_CHARTView(self.v, wx.ID_ANY, data=data).Show()
+		else:
+			logging.warning(f'Unsupported chart type: {data["chart_type"]}')
 
 	def on_handle_open_input_dialog(self, evt: PETPEvent):
 		dlg = wx.TextEntryDialog(None, evt.data['msg'], evt.data['title'])

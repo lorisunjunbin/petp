@@ -28,6 +28,8 @@ and each one contains various tasks. The last **P** means processor, which handl
     - Mouse click/scroll(pyautogui)
     - Database CRUD for MySQL, Hana, Postgres, Sqlite
     - String encode/decode and hash
+    - AI-LLM: GEMINI, OLLAMA
+    - Data Visualization: Matplotlib
 
 MacOS
 
@@ -76,10 +78,13 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 - Create more [processors](./core/processors)
     - processor of Pillow - https://pillow.readthedocs.io/en/stable/
-- Interactive Charts with wxPython and Matplotlib https://github.com/lszl84/py_wx_matplotlib_tutorial/blob/main/main.py
+
 - Able to easily create customized processors.
 
 ## DONE
+
+2024-08: [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py)
+
 2024-08: [AI_LLM_OLLAMA_QANDAProcessor](./core/processors/AI_LLM_OLLAMA_QANDAProcessor.py)
 
 2024-08: [RUN_EXECUTIONProcessor](./core/processors/RUN_EXECUTIONProcessor.py)

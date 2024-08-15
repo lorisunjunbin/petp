@@ -1,0 +1,30 @@
+!!python/object:core.execution.Execution
+execution: OOTB_MATPLOTLIB_VIEW
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "Display Data in BAR Chart", "msg": "\"2024-08-14\"", "data_json":
+    "{\"species\": [\"apple\", \"blueberry\", \"cherry\", \"orange\"],\"counts\":
+    [40, 100, 30, 66],\"bar_labels\": [\"red\", \"blue\", \"_red\", \"orange\"],\"bar_colors\":
+    [\"tab:red\", \"tab:blue\", \"tab:red\", \"tab:orange\"],\"x_label\": \"Fruit
+    Kind\",\"y_label\": \"Fruit supply\",\"bar_title\": \"Fruit supply by kind and
+    color\",\"legend_title\": \"Fruit color\"}", "show_toolbar": "True", "chart_type":
+    "BAR", "top": 100, "left": 100}'
+  skipped: false
+  type: MATPLOTLIB
+- !!python/object:core.task.Task
+  input: '{"title": "Display Data in PIE Chart", "msg": "\"2024-08-15\"", "data_json":
+    "{\"labels\": [\"Hog\", \"Frog\", \"Log\", \"Dog\"],\"sizes\": [10, 40, 60, 10],\"explode\":
+    [0, 0, 0.1, 0],\"text_size\": \"larger\",\"shadow\": false,\"radius\": 0.9}",
+    "show_toolbar": "True", "chart_type": "PIE", "top": 130, "left": 130}'
+  skipped: false
+  type: MATPLOTLIB
+- !!python/object:core.task.Task
+  input: '{"title": "Display Data in Line Chart", "msg": "\"2024-08-15\"", "data_json":
+    "{\"categories\":{\"Categorical\": {\"202408\": 10, \"202409\": 15, \"202410\":
+    5, \"202411\": 23},\"Plotting\": {\"202408\": 10, \"202409\": 25, \"202410\":
+    14, \"202411\": 23}},\"title\": \"Line chart\",\"x_label\": \"Months\",\"y_label\":
+    \"Count\",\"legend_loc\": \"upper right\"}", "show_toolbar": "True", "chart_type":
+    "LINE", "top": 160, "left": 160}'
+  skipped: false
+  type: MATPLOTLIB
+loops: []
