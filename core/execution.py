@@ -1,11 +1,12 @@
 import logging
 import os
+from threading import Condition
 
 import wx
-from threading import Condition
+
 from core.definition.yamlro import YamlRO
-from core.loop import Loop
 from core.executionstate import ExecutionState
+from core.loop import Loop
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
