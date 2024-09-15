@@ -158,7 +158,7 @@ execution: ootb_encode_decode_hash_str
 
 ## Appreciate for
 
-- [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
+- [wxpython](https://www.wxpython.org/) [4.2.2](https://discuss.wxpython.org/t/wxpython-4-2-2-released/37124) & [wxglade](https://wxglade.sourceforge.net/)
 
 - [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://chromedriver.chromium.org/downloads)
 
