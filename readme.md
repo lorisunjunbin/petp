@@ -164,37 +164,13 @@ execution: ootb_encode_decode_hash_str
 
 ## tips:
 
--
 
 Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) ,[and more](https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json)
-if you get an error of mismatched
-version (selenium task only).
+if you get an error of mismatched version (selenium task only).
 
-- Download [Wxpython snapshot for macOS](https://wxpython.org/Phoenix/snapshot-builds/)
-
-- Download [Wxpython latest version for Windows](https://extras.wxpython.org/wxPython4/extras/)
+- Download latest snapshot version  from [Wxpython snapshot](https://wxpython.org/Phoenix/snapshot-builds/)
 
 - Install wxpython for certain python version:
-
-> pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-win_amd64.whl
-
-> pip install --force-reinstall wxPython-4.2.1a1.dev5539+906adf71-cp310-cp310-macosx_10_10_universal2.whl
-
-> pip install --force-reinstall wxPython-4.2.1a1.dev5545+a3b6cfec-cp310-cp310-macosx_10_10_universal2.whl
-
-> pip install --force-reinstall wxPython-4.2.2a1.dev5590+a5bb3d9b-cp311-cp311-macosx_10_10_universal2.whl
-
-> pip install --force-reinstall wxPython-4.2.2a1.dev5613+83db65a2-cp311-cp311-macosx_10_10_universal2.whl
-
-> pip install --force-reinstall wxPython-4.2.2a1.dev5622+e4fd9a3e-cp311-cp311-macosx_10_10_universal2.whl
-
-> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
-
-> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5633+11c4a777-cp312-cp312-macosx_10_10_universal2.whl
-
-> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5644+87674de9-cp312-cp312-macosx_10_10_universal2.whl
-
-> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5654+0c545000-cp312-cp312-macosx_10_10_universal2.whl
 
 > pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5656+15fe9aaa-cp312-cp312-macosx_10_10_universal2.whl
 
