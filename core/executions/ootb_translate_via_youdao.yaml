@@ -4,28 +4,37 @@ list:
 - !!python/object:core.task.Task
   input: '{"title": "\u63d0\u793a", "msg": "\u8bf7\u8f93\u5165\u60a8\u60f3\u7ffb\u8bd1\u7684\u4e2d\u6587",
     "value_key": "input_value_param", "default_value": "PETP\u662f\u4e00\u4e2a\u7075\u6d3b\u7684\u673a\u5668\u4eba"}'
+  skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
-  input: '{"url": "https://fanyi.youdao.com/index.html#/"}'
+  input: '{"url": "https://translate.google.com/?sl=auto&tl=en&op=translate"}'
+  skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "id", "identity": "js_fanyi_input"}'
+  input: '{"clickby": "xpath", "identity": "//c-wiz/span/span/div/textarea"}'
+  skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "js_fanyi_input", "value": "{self.get_data(\"input_value_param\")}"}'
+  input: '{"keyinby": "xpath", "identity": "//c-wiz/span/span/div/textarea", "value":
+    "{self.get_data(\"input_value_param\")}"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": "p > span"}'
+  input: '{"clickby": "xpath", "identity": "//div[1]/span[1]/span/span"}'
+  skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"collectby": "xpath", "identity": "//p/span", "value_type": "text", "value_key":
-    "translated_value"}'
+  input: '{"collectby": "xpath", "identity": "//div[1]/span[1]/span/span", "value_type":
+    "text", "value_key": "translated_value"}'
+  skipped: false
   type: FIND_THEN_COLLECT
 - !!python/object:core.task.Task
   input: '{"title": "\u6709\u9053\u7ffb\u8bd1\u7ed3\u679c", "msg": "{self.get_data(\"input_value_param\")}
     -> {self.get_data(\"translated_value\")}"}'
+  skipped: false
   type: SHOW_RESULT
 - !!python/object:core.task.Task
   input: '{"chrome_name":"chrome", "skip_in_pipeline":"no"}'
+  skipped: false
   type: CLOSE_CHROME
 loops: []
