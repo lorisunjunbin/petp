@@ -83,7 +83,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2024-10: Upgrade to python 3.13, chromedriver 130, fix issue of pyinstaller build. 
+2024-10: Upgrade to python 3.13, chromedriver 130, fix issue of pyinstaller build.
 
 2024-08: [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py)
 
@@ -160,17 +160,16 @@ execution: ootb_encode_decode_hash_str
 
 ## Appreciate for
 
-- [wxpython](https://www.wxpython.org/) [4.2.2](https://discuss.wxpython.org/t/wxpython-4-2-2-released/37124) & [wxglade](https://wxglade.sourceforge.net/)
+- [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
 
 - [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://chromedriver.chromium.org/downloads)
 
 ## tips:
 
-
 Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) ,[and more](https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json)
 if you get an error of mismatched version (selenium task only).
 
-- Download latest snapshot version  from [Wxpython snapshot](https://wxpython.org/Phoenix/snapshot-builds/)
+- Download latest snapshot version from [Wxpython snapshot](https://wxpython.org/Phoenix/snapshot-builds/)
 
 - Install wxpython for certain python version:
 
