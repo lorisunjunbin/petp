@@ -162,7 +162,7 @@ execution: ootb_encode_decode_hash_str
 
 - [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
 
-- [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://chromedriver.chromium.org/downloads)
+- [selenium](https://selenium-python.readthedocs.io/) & [chromedriver]([https://chromedriver.chromium.org/downloads](https://googlechromelabs.github.io/chrome-for-testing/))
 
 ## tips:
 
