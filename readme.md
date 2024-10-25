@@ -83,6 +83,8 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2024-10: Upgrade to python 3.13, chromedriver 130, fix issue of pyinstaller build. 
+
 2024-08: [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py)
 
 2024-08: [AI_LLM_OLLAMA_QANDAProcessor](./core/processors/AI_LLM_OLLAMA_QANDAProcessor.py)
@@ -172,7 +174,7 @@ if you get an error of mismatched version (selenium task only).
 
 - Install wxpython for certain python version:
 
-> pip3.12 install --force-reinstall wxPython-4.2.2a1.dev5656+15fe9aaa-cp312-cp312-macosx_10_10_universal2.whl
+> pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5757+82b1c7aa-cp313-cp313-macosx_10_13_universal2.whl
 
 - Update all lib on macOS
 

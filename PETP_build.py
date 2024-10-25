@@ -75,6 +75,7 @@ if __name__ == '__main__':
 		 'core/executions', 'core/processors', 'core/pipelines',
 		 'image',
 		 'resources',
+		 'download',
 		 'testcoverage',
 		 'webdriver' + os.sep + OSUtils.get_system()
 		 ]
