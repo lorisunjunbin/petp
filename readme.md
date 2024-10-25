@@ -50,7 +50,7 @@ Windows
 2, Install UI widgets, download wxpython for certain python
 version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
-    > pip install --force-reinstall wxPython-4.2.2a1.dev5626+a1184286-cp312-cp312-macosx_10_10_universal2.whl
+    > pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5757+82b1c7aa-cp313-cp313-macosx_10_13_universal2.whl
 
 3, Install dependencies
 
