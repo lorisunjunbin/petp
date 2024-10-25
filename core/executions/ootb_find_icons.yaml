@@ -3,14 +3,18 @@ execution: ootb_find_icons
 list:
 - !!python/object:core.task.Task
   input: '{"url": "https://icons8.com/"}'
+  skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
   input: '{"clickby": "css", "identity": ".i8-text-input__input", "wait": 3}'
+  skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
   input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "robot"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "{KEY_ENTER}"}'
+  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "KEY_ENTER"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 loops: []

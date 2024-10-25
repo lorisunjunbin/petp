@@ -25,9 +25,7 @@ class MATPLOTLIBProcessor(Processor):
 		top = int(self.expression2str(self.get_param('top'))) if self.has_param('top') else 200
 
 		show_toolbar = True if 'True' == self.expression2str(self.get_param('show_toolbar')) else False
-
-		data_json = self.expression2str(self.get_param('data_json'))
-		data = json.loads(data_json) if data_json else {}
+		data = self.get_json_param('data_json')
 
 		wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.MATPLOTLIB, {
 			"title": title,

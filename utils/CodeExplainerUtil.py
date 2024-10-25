@@ -10,8 +10,8 @@ class CodeExplainerUtil:
         :param args: arguments, if None, the function will not be executed, just created
         """
         func = 'def ' + func_name + func_args + ':\n\t\t' + func_body
-        exec(func)
+        exec(func, globals())
         if args:
-            return locals()[func_name](args)
+            return globals()[func_name](args)
         else:
-            return locals()[func_name]
+            return globals()[func_name]

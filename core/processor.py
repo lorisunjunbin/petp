@@ -44,6 +44,7 @@ class Processor:
 	CATE_YUTUBE: str = 'Youtube'
 	CATE_DATA_PROCESSING: str = 'DataProcessing'
 	CATE_HTTP: str = 'HTTP'
+	CATE_JAVASCRIPT: str = 'JAVASCRIPT'
 
 	is_in_loop: False
 	current_loop: Loop
@@ -62,6 +63,10 @@ class Processor:
 	def process(self) -> None:
 		# must be implemented in subclass
 		pass
+
+	def get_json_param(self, param_key) -> dict:
+		data_json = self.expression2str(self.get_param(param_key))
+		return json.loads(data_json) if data_json else {}
 
 	def get_category(self) -> str:
 		return self.category
