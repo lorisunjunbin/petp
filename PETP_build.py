@@ -49,7 +49,7 @@ def collect_hidden_imports():
 	loaded_files = glob.glob(os.path.join('utils', '**/*.py'), recursive=True)
 	loaded_imports = [f.replace('\\', '.').replace('/', '.').rstrip('.py') for f in loaded_files]
 
-	_hiddenimports = ['pyautogui', 'utils', 'sqlite3',
+	_hiddenimports = ['pyautogui', 'utils', 'sqlite3','requests',
 					  'core.processors.sub.dbprocessors.BaseDBAccess']  # any more required hidden imports can be added here.
 
 	for hidden_import in loaded_imports:

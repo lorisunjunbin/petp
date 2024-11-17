@@ -27,8 +27,7 @@ class CMDProcessor(Processor):
 
         _shell = 'yes' == self.get_param('shell') if self.has_param("shell") else False
 
-        _encoding = self.expression2str(self.get_param("encoding")) if self.has_param(
-            "encoding") else sys.stdout.encoding
+        _encoding = self.expression2str(self.get_param("encoding")) if self.has_param("encoding") else 'utf-8'
 
         _timeout = self.get_param("timeout") if self.has_param("timeout") else None
 
