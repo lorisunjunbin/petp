@@ -3,16 +3,22 @@ execution: SEARCH_ME_ON_BAIDU_PETP
 list:
 - !!python/object:core.task.Task
   input: '{"url":"http://www.baidu.com"}'
+  skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"keyinby":"id", "identity":"kw", "value_key":"__m|author"}'
+  input: '{"keyinby": "id", "identity": "kw", "value_key": "__m|>author"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby":"id", "identity":"su", "value":"{KEY_ENTER}"}'
+  input: '{"keyinby": "id", "identity": "su", "value": "KEY_ENTER"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
   input: '{"chrome_name":"chrome"}'
+  skipped: false
   type: ENTER_FULLSCREEN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "su", "value": "{KEY_ENTER}", "wait": 1}'
+  input: '{"keyinby": "id", "identity": "su", "value": "KEY_ENTER", "wait": 1}'
+  skipped: false
   type: FIND_THEN_KEYIN
+loops: []
