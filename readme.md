@@ -82,6 +82,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 - Able to easily create customized processors.
 
 ## DONE
+2025-01: AI LLM support, Deepseek/ gemini/ ollama-local
 
 2024-10: Upgrade to python 3.13, chromedriver 130, fix issue of pyinstaller build.
 
