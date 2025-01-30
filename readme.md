@@ -174,10 +174,10 @@ if you get an error of mismatched version (selenium task only).
 - Install wxpython for certain python version:
 
 > pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5757+82b1c7aa-cp313-cp313-macosx_10_13_universal2.whl
+> pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5788+ce82caf4-cp313-cp313-macosx_10_13_universal2.whl
 
 - Update all lib on macOS
 
 ``` bash 
 pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 ```  
-

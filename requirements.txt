@@ -15,9 +15,12 @@ paramiko
 pyautogui
 pyperclip
 python-dateutil
-pytube
+pytube2
 pandas
 psutil
 ollama
 matplotlib
 pyinstaller
+langchain
+langchain-google-genai
+generativeai
