@@ -3,8 +3,7 @@ import logging
 import re
 
 import wx
-from langchain_google_genai import ChatGoogleGenerativeAI
-from openai import OpenAI
+from openai import OpenAI, APIError, APIStatusError
 
 from core.processor import Processor
 
@@ -54,28 +53,39 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 		temperature = float(self.get_param('temperature'))
 
 		logging.debug(f'prompt: {prompt}')
-		response = existed_llm.chat.completions.create(
-			model=model,
-			messages=[
-				{"role": "system", "content": "You are a helpful assistant"},
-				{"role": "user", "content": prompt},
-			],
-			temperature=temperature,
-			stream=False
-		)
-		answer = response.choices[0].message
-		logging.debug(f'answer: {answer}')
+		try:
+			response = existed_llm.chat.completions.create(
+				model=model,
+				messages=[
+					{"role": "system", "content": "你是一个资深的科学助手"},
+					{"role": "user", "content": prompt},
+				],
+				temperature=temperature,
+				stream=False
+			)
+			answer = response.choices[0].message
+			logging.debug(f'answer: {answer}')
 
-		content = self.read_json_from_markdown(answer.content) if convert_resp_2_json else answer.content
-		message = "Q:\n" + prompt + "\nA:\n" + content
-		logging.info(f'Q and A:\n {message}')
+			content = self.read_json_from_markdown(answer.content) if convert_resp_2_json else answer.content
+			message = "Q:\n" + prompt + "\nA:\n" + content
+			logging.info(f'Q and A:\n {message}')
 
-		if show_in_popup:
-			wx.MessageDialog(None, message, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
+			if show_in_popup:
+				wx.MessageDialog(None, message, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
 
-		self.populate_data(resp_content_key, content)
-
-
+			self.populate_data(resp_content_key, content)
+		except APIStatusError as e:
+			error_msg = f'API Status Error: {e.status_code} - {e.response.json()["error"]["message"]}'
+			logging.error(error_msg)
+			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
+		except APIError as e:
+			error_msg = f'API Error: {str(e)}'
+			logging.error(error_msg)
+			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
+		except Exception as e:
+			error_msg = f'Unexpected error: {str(e)}'
+			logging.error(error_msg)
+			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
 def read_json_from_markdown(markdown_content: str) -> dict[str, any]:
 	try:
 		json_match = re.search(r'```json\n([\s\S]*?)\n```', markdown_content)
