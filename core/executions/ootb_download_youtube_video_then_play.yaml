@@ -3,15 +3,18 @@ execution: ootb_download_youtube_video_then_play
 list:
 - !!python/object:core.task.Task
   input: '{"title": "\u8bf7\u8f93\u5165", "msg": "\u60a8\u8981\u4e0b\u8f7d\u7684\u89c6\u9891\u5730\u5740",
-    "value_key": "youtube_video_url", "default_value": "https://www.youtube.com/shorts/4wJBGDrQ77A"}'
+    "value_key": "youtube_video_url", "default_value": "https://www.youtube.com/watch?v=vMowPNqMPac"}'
+  skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"video_url": "{self.get_data(\"youtube_video_url\")}", "file_extension":
     "mp4", "download_folder": "", "specific_file_name": "", "file_prefix": "", "quality":
     "HIGH", "timeout": "", "file_download_path_key": "path_video_download", "max_retries":
     5}'
+  skipped: false
   type: PYTUBE
 - !!python/object:core.task.Task
   input: '{"file_path": "", "file_path_key": "path_video_download", "timeout": 5}'
+  skipped: false
   type: OPEN_FILE
 loops: []

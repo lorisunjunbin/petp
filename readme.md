@@ -76,12 +76,16 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## TO-DO:
 
-- Create more [processors](./core/processors)
-    - processor of Pillow - https://pillow.readthedocs.io/en/stable/
+- Introduced LLM MCP capability, can serve as an MCP server, providing a RESTful interface
 
 - Able to easily create customized processors.
 
 ## DONE
+
+2025-03: Upgrade chromedriver to 134.
+
+2025-03: upgrade [wxpython wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl](https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl) for python 3.13 and windows.
+
 2025-01: AI LLM support, Deepseek/ gemini/ ollama-local
 
 2024-10: Upgrade to python 3.13, chromedriver 130, fix issue of pyinstaller build.
@@ -174,8 +178,8 @@ if you get an error of mismatched version (selenium task only).
 
 - Install wxpython for certain python version:
 
-> pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5757+82b1c7aa-cp313-cp313-macosx_10_13_universal2.whl
 > pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5788+ce82caf4-cp313-cp313-macosx_10_13_universal2.whl
+> pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl
 
 - Update all lib on macOS
 

@@ -123,11 +123,11 @@ class PETPInteractor():
         self.p.on_handle_http_callback(evt)
 
     def on_handle_start(self, evt: PETPEvent):
-        logging.info(evt.data)
+        logging.info(f"{evt.data[0]} is START via new thread")
         self.on_load_log(evt)
 
     def on_handle_done(self, evt: PETPEvent):
-        logging.info(evt.data)
+        logging.info(f"{evt.data[0]} is DONE.")
         self.on_load_log(evt)
 
     def on_load_log(self, evt):
