@@ -3,13 +3,16 @@ execution: SEARCH_ON_GOOGLE
 list:
 - !!python/object:core.task.Task
   input: '{"url":"https://www.google.com/"}'
+  skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
   input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
     "\u4e2b\u68d2\u8c46\u513f"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
   input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
-    "{KEY_ENTER}"}'
+    "KEY_ENTER"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 loops: []
