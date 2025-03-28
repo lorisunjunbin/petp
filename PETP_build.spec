@@ -9,7 +9,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['botocore'],
     noarchive=False,
 )
 pyz = PYZ(a.pure)
