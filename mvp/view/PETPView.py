@@ -236,9 +236,9 @@ class PETPView(wx.Frame):
 
 								actionPanelSizer_e.Add((5, 30), 0, 0, 0)
 
-								self.runExection = wx.Button(self.nbFirstPage, wx.ID_ANY, "Run Execution")
-								self.runExection.SetMinSize((200, 28))
-								actionPanelSizer_e.Add(self.runExection, 0, 0, 0)
+								self.runExecution = wx.Button(self.nbFirstPage, wx.ID_ANY, "Run Execution")
+								self.runExecution.SetMinSize((200, 28))
+								actionPanelSizer_e.Add(self.runExecution, 0, 0, 0)
 
 								actionPanelSizer_e.Add((5, 30), 0, 0, 0)
 

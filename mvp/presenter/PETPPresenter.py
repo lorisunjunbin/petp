@@ -42,6 +42,7 @@ class PETPPresenter():
 	single_page: str = "petp"
 	logger_thread = None
 	keep_running = True
+	execution_dropdown_expanded = False
 
 	def __init__(self, model: PETPModel, view: PETPView, interactor: PETPInteractor):
 
@@ -267,6 +268,37 @@ class PETPPresenter():
 						itm.loop_attributes,
 						self.v.loopProperty.GetPage(self.single_page)
 					)
+
+	@reload_log_after
+	def on_execution_search(self, evt):
+		search_text = evt.String.lower()
+		all_executions = Execution.get_available_executions()
+
+		if evt.String in all_executions:
+			self._reload_executions(all_executions, evt.String)
+			self.v.executionChooser.Dismiss()
+			return
+
+		filtered_executions = [exec_name for exec_name in all_executions if search_text in exec_name.lower()]
+		exact_match = len(filtered_executions) == 1 and search_text == filtered_executions[0].lower()
+
+		if exact_match:
+			self._reload_executions(all_executions, filtered_executions[0])
+			self.v.executionChooser.Dismiss()
+		else:
+			self._reload_executions(filtered_executions or all_executions, evt.String)
+			self.v.executionChooser.Popup()
+
+	def _reload_executions(self, items, value):
+		self.v.executionChooser.Freeze()
+		self.v.executionChooser.Clear()
+		self.v.executionChooser.AppendItems(items)
+		self.v.executionChooser.SetValue(value)
+		self.v.executionChooser.Thaw()
+
+	@reload_log_after
+	def on_execution_dropdown(self, evt):
+		self.execution_dropdown_expanded = not self.execution_dropdown_expanded
 
 	def _save_execcution(self, name):
 		grid = self.v.taskGrid

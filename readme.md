@@ -82,6 +82,8 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2025-04: Add execution search and dropdown handling.
+
 2025-03: Upgrade chromedriver to 134.
 
 2025-03: upgrade [wxpython wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl](https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl) for python 3.13 and windows.

@@ -519,7 +519,7 @@
                                             <object class="sizeritem">
                                                 <option>0</option>
                                                 <border>0</border>
-                                                <object class="wxButton" name="runExection" base="EditButton">
+                                                <object class="wxButton" name="runExecution" base="EditButton">
                                                     <size>200, 28</size>
                                                     <label>Run Execution</label>
                                                 </object>
