@@ -294,6 +294,7 @@ class PETPPresenter():
 		self.v.executionChooser.Clear()
 		self.v.executionChooser.AppendItems(items)
 		self.v.executionChooser.SetValue(value)
+		self.v.executionChooser.SetInsertionPointEnd()
 		self.v.executionChooser.Thaw()
 
 	@reload_log_after
