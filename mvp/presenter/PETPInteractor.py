@@ -76,9 +76,6 @@ class PETPInteractor():
         # Execution action panel
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_execution, self.v.delExection)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_task_execution_changed, self.v.executionChooser)
-
-        self.v.Bind(wx.EVT_COMBOBOX_DROPDOWN, self.on_execution_dropdown, self.v.executionChooser)
-        self.v.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.on_execution_dropdown, self.v.executionChooser)
         self.v.Bind(wx.EVT_TEXT_ENTER, self.on_execution_search, self.v.executionChooser)
 
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
@@ -200,11 +197,6 @@ class PETPInteractor():
     def on_execution_search(self, evt):
         evt.Skip()
         self.p.on_execution_search(evt)
-
-    def on_execution_dropdown(self, evt):
-        evt.Skip()
-        self.p.on_execution_dropdown(evt)
-
 
     def on_execution_pipeline_changed(self, evt):
         evt.Skip()

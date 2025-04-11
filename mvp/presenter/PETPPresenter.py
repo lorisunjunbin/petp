@@ -42,7 +42,6 @@ class PETPPresenter():
 	single_page: str = "petp"
 	logger_thread = None
 	keep_running = True
-	execution_dropdown_expanded = False
 
 	def __init__(self, model: PETPModel, view: PETPView, interactor: PETPInteractor):
 
@@ -296,10 +295,6 @@ class PETPPresenter():
 		self.v.executionChooser.SetValue(value)
 		self.v.executionChooser.SetInsertionPointEnd()
 		self.v.executionChooser.Thaw()
-
-	@reload_log_after
-	def on_execution_dropdown(self, evt):
-		self.execution_dropdown_expanded = not self.execution_dropdown_expanded
 
 	def _save_execcution(self, name):
 		grid = self.v.taskGrid
