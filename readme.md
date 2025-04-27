@@ -39,6 +39,10 @@ Windows
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview_windows.png)
 
+HTTP Enabled
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/HTTP_SERVICE_ENABLED.png)
+
 ## Run first Execution within 4 steps:
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/user_manual.png)
