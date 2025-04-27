@@ -23,4 +23,14 @@ Content-Type: application/json
   }
 }
 
+###
+POST  {{baseURL}}petp
+Content-Type: application/json
 
+{
+    "action": "execution",
+    "params":{
+        "execution":"test_read_from_excel",
+        "fromHTTPservice":true
+    }
+}

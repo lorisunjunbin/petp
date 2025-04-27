@@ -28,7 +28,7 @@ class RUN_EXECUTIONProcessor(Processor):
 
 			logging.debug(f'RUN_EXECUTIONProcessor - {execution} - {params}')
 
-			wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.HTTP_CALLBACK, {
+			wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, {
 				"action": "execution",
 				"params": params
 			}))

@@ -7,7 +7,6 @@ import wx.lib.colourutils
 
 from mvp.presenter.event.PETPEvent import PETPEvent
 
-
 class PETPInteractor():
     """
     PETPInteractor is in charge of binding events from view to presenter.
@@ -27,7 +26,7 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.DONE, self.on_handle_done)
         PETPEvent.bind_to(self.v, PETPEvent.START, self.on_handle_start)
         PETPEvent.bind_to(self.v, PETPEvent.OPEN_INPUT_DIALOG, self.on_handle_open_input_dialog)
-        PETPEvent.bind_to(self.v, PETPEvent.HTTP_CALLBACK, self.on_handle_http_callback)
+        PETPEvent.bind_to(self.v, PETPEvent.HTTP_REQUEST, self.on_handle_http_request)
         PETPEvent.bind_to(self.v, PETPEvent.MATPLOTLIB, self.on_handle_display_in_matplotlib_view)
 
         # UI event binding
@@ -121,16 +120,31 @@ class PETPInteractor():
     def on_handle_open_input_dialog(self, evt: PETPEvent):
         self.p.on_handle_open_input_dialog(evt)
 
-    def on_handle_http_callback(self, evt: PETPEvent):
-        self.p.on_handle_http_callback(evt)
+    def on_handle_http_request(self, evt: PETPEvent):
+        self.p.on_handle_http_request(evt)
 
     def on_handle_start(self, evt: PETPEvent):
         logging.info(f"{evt.data[0]} is START via new thread")
         self.on_load_log(evt)
 
     def on_handle_done(self, evt: PETPEvent):
-        logging.info(f"{evt.data[0]} is DONE.")
+        execution = evt.data[0]
+        logging.info(f"{execution} is DONE.")
         self.on_load_log(evt)
+
+        data_chain = evt.data[1]
+        from utils.HttpServer import HttpRequestHandler
+
+        request_id_key = HttpRequestHandler.get_request_id_key()
+        response_key = HttpRequestHandler.get_response_key()
+
+        # Safely check if request_id exists in the dictionary
+        if request_id_key in data_chain and response_key in data_chain:
+
+            current_request_id = data_chain[request_id_key]
+            server = HttpRequestHandler.get_server()
+            if current_request_id and server:
+                server.store_result(current_request_id, data_chain[data_chain[response_key]])
 
     def on_load_log(self, evt):
         evt.Skip()

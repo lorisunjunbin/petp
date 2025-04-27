@@ -7,7 +7,7 @@ class PETPEvent(wx.PyEvent):
     DONE = 88880002
     START = 88880003
     OPEN_INPUT_DIALOG = 88880004
-    HTTP_CALLBACK = 88880005
+    HTTP_REQUEST = 88880005
     MATPLOTLIB = 88880006
 
     def __init__(self, etype, data=None, handler=None):

@@ -835,16 +835,13 @@ class PETPPresenter():
 		dlg.Destroy()
 
 	@reload_log_after
-	def on_handle_http_callback(self, evt: PETPEvent):
+	def on_handle_http_request(self, evt: PETPEvent):
 		action = evt.data['action']
 
 		if action == 'execution':
 			params = evt.data['params']
-			self.handle_cmd_run_execution(params['execution'], params)
+			self.v.executionChooser.SetValue(params['execution'])
+			self.on_task_execution_changed()
+			self.on_run_execution(params)
 
 		logging.info(f'\nHTTP request be handled - action: {action}, params: {params}\n')
-
-	def handle_cmd_run_execution(self, execution_name, params: dict):
-		self.v.executionChooser.SetValue(execution_name)
-		self.on_task_execution_changed()
-		self.on_run_execution(params)

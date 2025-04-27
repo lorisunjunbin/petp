@@ -82,6 +82,8 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2025-05: Enable http service for PETP, the execution result as http response, port 8866 by default.
+
 2025-04: Add execution search and dropdown handling.
 
 2025-03: Upgrade chromedriver to 134.
@@ -178,10 +180,12 @@ if you get an error of mismatched version (selenium task only).
 
 - Download latest snapshot version from [Wxpython snapshot](https://wxpython.org/Phoenix/snapshot-builds/)
 
+
 - Install wxpython for certain python version:
 
 > pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5788+ce82caf4-cp313-cp313-macosx_10_13_universal2.whl
-> pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl
+
+> pip3.13 install --force-reinstall wxpython-4.2.4a15946+920a2bde-cp313-cp313-macosx_11_0_arm64.whl
 
 - Update all lib on macOS
 

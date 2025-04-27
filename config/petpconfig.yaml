@@ -6,6 +6,7 @@ application:
   enable_windows_hdpi: false
   execute_on_startup: false
   http_port: 8866
-  last_run: SEARCH_ON_GOOGLE
+  http_request_timeout: 60 #seconds
+  last_run: test_read_from_excel
   log_level: INFO
   version: 1.0.4
