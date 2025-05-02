@@ -102,20 +102,16 @@ class HttpServer:
 		wx.PostEvent(HttpRequestHandler.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, payload))
 
 		# Wait for the result with timeout
-		result = self.get_and_remove_result(request_id, timeout=self.http_request_timeout)
+		result = self._get_and_remove_result(request_id, timeout=self.http_request_timeout)
 
 		if result is None:
 			return {"error": "Request timed out"}, 408
 
 		return result
 
-	def _generate_request_id(self):
-		"""Generate a unique request ID for tracking async operations"""
-		return str(uuid.uuid4())
-
 	def store_result(self, request_id, result):
 		"""Store a result for an asynchronous operation
-		
+
 		Args:
 			request_id: The unique ID of the request
 			result: The result to store
@@ -124,8 +120,12 @@ class HttpServer:
 			self._result_store[request_id] = result
 			if request_id in self._result_events:
 				self._result_events[request_id].set()
+				
+	def _generate_request_id(self):
+		"""Generate a unique request ID for tracking async operations"""
+		return str(uuid.uuid4())
 
-	def get_and_remove_result(self, request_id, timeout=10):
+	def _get_and_remove_result(self, request_id, timeout=10):
 		"""Get and remove a result for the specified request ID
 		
 		Args:
