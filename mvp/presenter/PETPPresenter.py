@@ -240,6 +240,9 @@ class PETPPresenter():
 		combo = self.v.executionChooser
 		grid = self.v.taskGrid
 		grid.ClearGrid()
+		execution_desc = self.v.execution_desc
+		execution_desc.Clear()
+
 		self.execution = Execution.get_execution(combo.GetValue())
 		if self.execution is None:
 			return
@@ -267,6 +270,9 @@ class PETPPresenter():
 						itm.loop_attributes,
 						self.v.loopProperty.GetPage(self.single_page)
 					)
+
+			if hasattr(self.execution, 'mcp_desc') and self.execution.mcp_desc is not None:
+				execution_desc.SetValue(self.execution.mcp_desc)
 
 	@reload_log_after
 	def on_execution_search(self, evt):
@@ -321,8 +327,9 @@ class PETPPresenter():
 
 			loops.append(Loop(prop.GetName(), prop.GetValue()))
 
+		execution_desc = self.v.execution_desc.GetValue() or ''
 		if len(tasks) > 0:
-			Execution(name, tasks, loops).save()
+			Execution(name, tasks, execution_desc, loops).save()
 
 	def _check_task_skipped(self, task_input):
 		input_dict = json.loads(task_input)

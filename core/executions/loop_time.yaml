@@ -15,3 +15,4 @@ loops:
   loop_attributes: '{"task_start":1, "task_end":1, "loop_key":"", "loop_times":5,
     "loop_index_key":"loop_idx", "item_key":"loop_item"}'
   loop_code: loop-20210906003623
+mcp_desc: "\u8FD9\u662F\u6D4B\u8BD5\u7528\u7684desc"
