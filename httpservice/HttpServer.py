@@ -46,6 +46,69 @@ class HttpServer:
 			'POST:/petp/exec': self._handle_petp_event
 		})
 
+	def _handle_index(self, handler, params=None):
+		"""Default handler for the index route"""
+		return {
+			"server": "PETP HTTP Server",
+			"available_endpoints": [
+				{
+					"description": "Check server status",
+					"uri": "/health",
+					"method": "GET"
+				},
+				{
+					"description": "Trigger a PETP event - run test_read_from_excel",
+					"uri": "/petp/exec",
+					"method": "POST",
+					"payload": {
+						"action": "execution",
+						"params": {
+							"execution": "test_read_from_excel",
+							"fromHTTPService": "true"
+						}
+					}
+				},
+				{
+					"description": "To find available tools.",
+					"uri": "/petp/tools",
+					"method": "GET"
+				}
+			]
+		}
+
+	def _handle_health(self, handler, params=None):
+		"""Health check endpoint"""
+		return {
+			"status": "ok",
+			"timestamp": time.time()
+		}
+
+	def _handle_petp_tools(self, handler, payload) -> dict:
+		"""Handle PETP event requests"""
+		return self.p.get_tools()
+
+	def _handle_petp_event(self, handler, payload):
+		"""Handle PETP event requests"""
+		if not payload or 'action' not in payload or 'params' not in payload:
+			return {"error": "Missing required 'action' or 'params' parameter"}, 400
+
+		# Generate a unique request ID
+		request_id = self._generate_request_id()
+
+		# Add request ID to params
+		payload['params'][HttpRequestHandler.get_request_id_key()] = request_id
+
+		# Post event to the view (asynchronously)
+		wx.PostEvent(HttpRequestHandler.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, payload))
+
+		# Wait for the result with timeout
+		result = self.get_and_remove_result(request_id, timeout=self.http_request_timeout)
+
+		if result is None:
+			return {"error": "Request timed out"}, 408
+
+		return result
+
 	def _generate_request_id(self):
 		"""Generate a unique request ID for tracking async operations"""
 		return str(uuid.uuid4())
@@ -95,87 +158,6 @@ class HttpServer:
 
 			return result
 
-	def _handle_index(self, handler, params=None):
-		"""Default handler for the index route"""
-		return {
-			"server": "PETP HTTP Server",
-			"available_endpoints": [
-				{
-					"description": "Check server status",
-					"uri": "/health",
-					"method": "GET"
-				},
-				{
-					"description": "Trigger a PETP event - run test_read_from_excel",
-					"uri": "/petp/exec",
-					"method": "POST",
-					"payload": {
-						"action": "execution",
-						"params": {
-							"execution": "test_read_from_excel",
-							"fromHTTPService": "true"
-						}
-					}
-				},
-				{
-					"description": "To find available tools.",
-					"uri": "/petp/tools",
-					"method": "GET"
-				}
-			]
-		}
-
-	def _handle_health(self, handler, params=None):
-		"""Health check endpoint"""
-		return {
-			"status": "ok",
-			"timestamp": time.time()
-		}
-
-	def _handle_petp_tools(self, handler, payload):
-		"""Handle PETP event requests"""
-		if not payload or 'action' not in payload or 'params' not in payload:
-			return {"error": "Missing required 'action' or 'params' parameter"}, 400
-
-		# Generate a unique request ID
-		request_id = self._generate_request_id()
-
-		# Add request ID to params
-		payload['params'][HttpRequestHandler.get_request_id_key()] = request_id
-
-		# Post event to the view (asynchronously)
-		wx.PostEvent(HttpRequestHandler.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, payload))
-
-		# Wait for the result with timeout
-		result = HttpRequestHandler.get_server().get_and_remove_result(request_id, timeout=self.http_request_timeout)
-
-		if result is None:
-			return {"error": "Request timed out"}, 408
-
-		return result
-
-	def _handle_petp_event(self, handler, payload):
-		"""Handle PETP event requests"""
-		if not payload or 'action' not in payload or 'params' not in payload:
-			return {"error": "Missing required 'action' or 'params' parameter"}, 400
-
-		# Generate a unique request ID
-		request_id = self._generate_request_id()
-
-		# Add request ID to params
-		payload['params'][HttpRequestHandler.get_request_id_key()] = request_id
-
-		# Post event to the view (asynchronously)
-		wx.PostEvent(HttpRequestHandler.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, payload))
-
-		# Wait for the result with timeout
-		result = self.get_and_remove_result(request_id, timeout=self.http_request_timeout)
-
-		if result is None:
-			return {"error": "Request timed out"}, 408
-
-		return result
-
 	def start(self):
 		"""Start the HTTP server in a daemon thread"""
 		if self._running:
@@ -198,5 +180,3 @@ class HttpServer:
 			self.httpd.shutdown()
 			self._running = False
 			logging.info("HTTP Server has been stopped")
-
-

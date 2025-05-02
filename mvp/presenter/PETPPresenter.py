@@ -852,3 +852,12 @@ class PETPPresenter():
 			self.on_run_execution(params)
 
 		logging.info(f'\nHTTP request be handled - action: {action}, params: {params}\n')
+		
+	def get_tools(self):
+		tools = {}
+		for execution_name in self.available_executions:
+			execution = Execution.get_execution(execution_name)
+			if hasattr(execution, 'mcp_desc') and execution.mcp_desc:
+				tools[execution_name] = execution.mcp_desc
+		return tools
+
