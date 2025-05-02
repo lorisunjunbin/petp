@@ -7,6 +7,16 @@ import subprocess
 
 from utils.OSUtils import OSUtils
 
+executions_released = [
+	'test_zip.yaml',
+	'test_wait_for_seconds.yaml',
+	'test_read_from_excel.yaml',
+	'test_read_excel_loop_each_row_show.yaml',
+	'test_data_convert.yaml',
+	'ootb_find_icons.yaml',
+	'loop_time.yaml',
+	'test_petp_http_service.yaml'
+]
 
 def kill_chromedriver_process_if_existed():
 	for proc in psutil.process_iter():
@@ -57,6 +67,24 @@ def collect_hidden_imports():
 	replace_words_in_file('PETP.spec', '$hidden_imports$', str(_hiddenimports))
 
 
+def keey_released_execution_only():
+
+	executions_path = os.path.join('dist', 'core', 'executions')
+	
+	if os.path.exists(executions_path) and os.path.isdir(executions_path):
+		all_executions = os.listdir(executions_path)
+		
+		for execution in all_executions:
+
+			if execution not in executions_released and execution.endswith('.yaml'):
+				file_path = os.path.join(executions_path, execution)
+				print(f"Removing execution file: {file_path}")
+				os.remove(file_path)
+
+	else:
+		print(f"Warning: Executions directory not found at {executions_path}")
+
+
 if __name__ == '__main__':
 	# kill chromedriver process if existed
 	kill_chromedriver_process_if_existed()
@@ -80,5 +108,8 @@ if __name__ == '__main__':
 		 ]
 	)
 
+	keey_released_execution_only()
+
 	# run pyinstaller
 	subprocess.run(['pyinstaller', './PETP.spec'], check=True)
+
