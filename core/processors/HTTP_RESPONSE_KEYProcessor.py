@@ -1,5 +1,5 @@
 from core.processor import Processor
-from utils.HttpServer import HttpRequestHandler
+from httpservice.HttpServer import HttpRequestHandler
 
 
 class HTTP_RESPONSE_KEYProcessor(Processor):

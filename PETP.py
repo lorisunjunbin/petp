@@ -10,7 +10,7 @@ from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.PETPPresenter import PETPPresenter
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
-from utils.HttpServer import HttpServer
+from httpservice.HttpServer import HttpServer
 from utils.OSUtils import OSUtils
 from utils.SystemConfig import SystemConfig
 

@@ -133,7 +133,7 @@ class PETPInteractor():
         self.on_load_log(evt)
 
         data_chain = evt.data[1]
-        from utils.HttpServer import HttpRequestHandler
+        from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
 
         request_id_key = HttpRequestHandler.get_request_id_key()
         response_key = HttpRequestHandler.get_response_key()
