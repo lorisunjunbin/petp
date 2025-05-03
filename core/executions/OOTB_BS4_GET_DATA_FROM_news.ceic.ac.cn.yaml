@@ -28,5 +28,10 @@ list:
     "data_key": ""}'
   skipped: false
   type: WRITE_TO_EXCEL
+- !!python/object:core.task.Task
+  input: '{"http_response_key": "final_data"}'
+  skipped: false
+  type: HTTP_RESPONSE_KEY
 loops: []
-mcp_desc: ''
+mcp_desc: "{\n\u201Cdesc\u201D:\u201Dinquire about the information of recent earthquakes
+  that have occurred.\u201D\uFF0C\n\u201Cparams\u201D\uFF1A[\u201C\u201D]\n}"

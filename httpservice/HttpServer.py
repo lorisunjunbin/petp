@@ -57,13 +57,13 @@ class HttpServer:
 					"method": "GET"
 				},
 				{
-					"description": "Trigger a PETP event - run test_read_from_excel",
+					"description": "Trigger a PETP event - run get recent data from news.ceic.ac.cn",
 					"uri": "/petp/exec",
 					"method": "POST",
 					"payload": {
 						"action": "execution",
 						"params": {
-							"execution": "test_read_from_excel",
+							"execution": "OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn",
 							"fromHTTPService": "true"
 						}
 					}
