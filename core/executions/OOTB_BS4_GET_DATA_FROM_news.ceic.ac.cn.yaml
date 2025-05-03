@@ -19,7 +19,7 @@ list:
   skipped: false
   type: DATA_CONVERT
 - !!python/object:core.task.Task
-  input: '{"title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
+  input: '{"skipped":"Yes", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
     "msg": "{self.get_data(\"final_data\")}"}'
   skipped: false
   type: SHOW_RESULT
@@ -29,3 +29,4 @@ list:
   skipped: false
   type: WRITE_TO_EXCEL
 loops: []
+mcp_desc: ''

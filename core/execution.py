@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from threading import Condition
@@ -64,7 +65,7 @@ class Execution:
 
             self.log_start_process(current_loop, state, processor, task, view)
 
-            if hasattr(task, 'skipped') and task.skipped:
+            if hasattr(task, 'input') and (self.is_skipped(task.input)):
                 self.log_skipped_process(current_loop, state, processor, task, view)
             else:
                 # * main process *
@@ -80,6 +81,23 @@ class Execution:
             state.move_to_next()
 
         return data_chain
+
+    def is_skipped(self, json_string):
+        try:
+            if "skipped" not in json_string:
+                return False
+
+            data = json.loads(json_string)
+
+            if "skipped" not in data:
+                return False
+
+            skipped_value = str(data["skipped"]).lower()
+
+            return skipped_value in ["yes", "y", "true", "t"]
+
+        except Exception as e:
+            return False
 
     def post_log_reload(self, lp, view):
         if not lp.is_loop_execution:
