@@ -6,6 +6,7 @@ from http.server import HTTPServer
 
 import wx
 
+from decorators.decorators import reload_http_log_after
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
 from mvp.presenter import PETPPresenter
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -47,6 +48,7 @@ class HttpServer:
 		})
 
 	def _handle_index(self, handler, params=None):
+		logging.debug(f"_handle_index params: {params}")
 		"""Default handler for the index route"""
 		return {
 			"server": "PETP HTTP Server",
@@ -77,17 +79,24 @@ class HttpServer:
 		}
 
 	def _handle_health(self, handler, params=None):
+		logging.debug(f"_handle_health params: {params}")
 		"""Health check endpoint"""
 		return {
 			"status": "ok",
 			"timestamp": time.time()
 		}
 
+	@reload_http_log_after
 	def _handle_petp_tools(self, handler, payload) -> dict:
+		logging.debug(f"_handle_petp_tools payload: {payload}")
 		"""Handle PETP event requests"""
 		return self.p.get_tools()
 
+	@reload_http_log_after
 	def _handle_petp_event(self, handler, payload):
+
+		logging.debug(f"_handle_petp_event payload: {payload}")
+
 		"""Handle PETP event requests"""
 		if not payload or 'action' not in payload or 'params' not in payload:
 			return {"error": "Missing required 'action' or 'params' parameter"}, 400
@@ -156,6 +165,8 @@ class HttpServer:
 			if request_id in self._result_events:
 				del self._result_events[request_id]
 
+			logging.info(f"Http Response for request ID: {request_id} :-> {result}")
+
 			return result
 
 	def start(self):
@@ -179,4 +190,4 @@ class HttpServer:
 		if self.httpd and self._running:
 			self.httpd.shutdown()
 			self._running = False
-			logging.info("HTTP Server has been stopped")
+			logging.info("HTTP Server has been stopped.")

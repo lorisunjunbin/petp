@@ -67,12 +67,14 @@ def start_app():
 	setup_windows_display(model)
 
 	# start the http server
-	HttpServer(presenter).start()
+	httpServer = HttpServer(presenter)
+	httpServer.start()
 
 	presenter.on_load_log()
 
 	app.MainLoop()
 
+	httpServer.stop()
 	logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))
 	logging.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
 
