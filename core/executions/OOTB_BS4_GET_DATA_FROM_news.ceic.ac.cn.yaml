@@ -19,9 +19,9 @@ list:
   skipped: false
   type: DATA_CONVERT
 - !!python/object:core.task.Task
-  input: '{"skipped":"Yes", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
+  input: '{"skipped": "Y", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
     "msg": "{self.get_data(\"final_data\")}"}'
-  skipped: false
+  skipped: true
   type: SHOW_RESULT
 - !!python/object:core.task.Task
   input: '{"file_path": "{self.get_ddir()}/earth_quake_info.xlsx", "value_key": "final_data",
@@ -33,5 +33,5 @@ list:
   skipped: false
   type: HTTP_RESPONSE_KEY
 loops: []
-mcp_desc: "{\n\u201Cdesc\u201D:\u201Dinquire about the information of recent earthquakes
-  that have occurred.\u201D\uFF0C\n\u201Cparams\u201D\uFF1A[\u201C\u201D]\n}"
+mcp_desc: "{\n\"desc\":\"inquire about the information of recent earthquakes that
+  have occurred.\",\n\"params\"\uFF1A[\"\"]\n}"

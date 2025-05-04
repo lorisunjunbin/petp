@@ -331,10 +331,22 @@ class PETPPresenter():
 		if len(tasks) > 0:
 			Execution(name, tasks, execution_desc, loops).save()
 
-	def _check_task_skipped(self, task_input):
-		input_dict = json.loads(task_input)
-		return True if 'skipped' in input_dict and 'yes' == input_dict['skipped'] else False
+	def _check_task_skipped(self, input_json):
+		try:
+			if "skipped" not in input_json:
+				return False
 
+			data = json.loads(input_json)
+
+			if "skipped" not in data:
+				return False
+
+			skipped_value = str(data["skipped"]).lower()
+
+			return skipped_value in {"yes", "y", "true", "t"}
+
+		except Exception as e:
+			return False
 	def _save_pipeline(self, name):
 		grid = self.v.executionGrid
 		list = []
