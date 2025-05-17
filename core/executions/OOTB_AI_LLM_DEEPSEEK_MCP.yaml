@@ -1,0 +1,21 @@
+!!python/object:core.execution.Execution
+execution: OOTB_AI_LLM_DEEPSEEK_MCP
+list:
+- !!python/object:core.task.Task
+  input: '{"api_key_name":"DEEPSEEK_API_KEY", "api_key":"", "base_url":"https://api.deepseek.com",
+    "llm_data_key":"llmdeepseek"}'
+  skipped: false
+  type: AI_LLM_DEEPSEEK_SETUP
+- !!python/object:core.task.Task
+  input: '{"title": "LLM DEEPSEEK", "msg": "Prompt", "value_key": "given_prompt",
+    "default_value": "tell a joke in chinese", "stop_on_cancel": "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"llm_data_key": "llmdeepseek", "prompt": "{self.get_data(\"given_prompt\")}",
+    "model": "deepseek-chat", "temperature": "0.8", "resp_content_key": "llm_respone_json_content",
+    "convert_resp_2_json": "no", "show_in_popup": "yes"}'
+  skipped: false
+  type: AI_LLM_DEEPSEEK_QANDA_MCP
+loops: []
+mcp_desc: ''

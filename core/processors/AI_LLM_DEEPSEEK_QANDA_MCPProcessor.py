@@ -3,7 +3,7 @@ import logging
 import re
 
 import wx
-from openai import OpenAI, APIError, APIStatusError
+from openai import OpenAI
 
 from core.processor import Processor
 
@@ -12,15 +12,20 @@ REQUIREMENTS:
 
 pip install openai
 
+reference: https://github.com/modelcontextprotocol/python-sdk
+
 """
 
 
-class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
+class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 	TPL: str = '{"llm_data_key":"llmdeepseek", "prompt":"prompt", "model":"deepseek-chat","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
 	DESC: str = f'''
         this task depends on the task AI_LLM_DEEPSEEK_SETUPProcessor, which is to setup LLM DeepSeek, then save the llm instance to llm_data_key.
-        Ask llm deepseek a question associated with prompt get the response, parse the response to json if needed, and show the response in popup dialog if needed.
+        
+        PETP as mcp server, http endpoint: http://localhost:8866
+        
+        Ask llm deepseek a question associated with available tools, if tool is available, call tool then give the response accordingly.
         
         USE CASE TEMPERATURE
         
@@ -37,6 +42,7 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 		return super().CATE_AI_LLM
 
 	def process(self):
+
 		llm_data_key = self.get_param('llm_data_key')
 		existed_llm: OpenAI = self.get_data(llm_data_key)
 		prompt = self.expression2str(self.get_param('prompt'))
@@ -75,14 +81,6 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 				wx.MessageDialog(None, message, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
 
 			self.populate_data(resp_content_key, content)
-		except APIStatusError as e:
-			error_msg = f'API Status Error: {e.status_code} - {e.response.json()["error"]["message"]}'
-			logging.error(error_msg)
-			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
-		except APIError as e:
-			error_msg = f'API Error: {str(e)}'
-			logging.error(error_msg)
-			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
 		except Exception as e:
 			error_msg = f'Unexpected error: {str(e)}'
 			logging.error(error_msg)
@@ -101,3 +99,7 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 		except json.JSONDecodeError:
 			logging.warning("Failed to parse JSON.")
 			return None
+
+	def list_tools(self)-> str:
+
+		pass
