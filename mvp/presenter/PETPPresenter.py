@@ -78,6 +78,9 @@ class PETPPresenter():
 		if self.m.log_level is not None:
 			self.v.logLevelChooser.SetValue(self.m.log_level)
 
+		# load http_port, as part of title
+		self.v.SetTitle(self.v.GetTitle()+" [ "+str(self.m.http_port) +" ]")
+
 		# load_last_run
 		if self.m.last_run is not None:
 			logging.info("loading last run: " + self.m.last_run)

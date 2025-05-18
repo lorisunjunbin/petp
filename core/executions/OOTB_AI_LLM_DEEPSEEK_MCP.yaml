@@ -8,13 +8,14 @@ list:
   type: AI_LLM_DEEPSEEK_SETUP
 - !!python/object:core.task.Task
   input: '{"title": "LLM DEEPSEEK", "msg": "Prompt", "value_key": "given_prompt",
-    "default_value": "tell a joke in chinese", "stop_on_cancel": "yes"}'
+    "default_value": "\u627e\u4e00\u4e0b\u6700\u8fd1\u5730\u9707\u4fe1\u606f", "stop_on_cancel":
+    "yes"}'
   skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"llm_data_key": "llmdeepseek", "prompt": "{self.get_data(\"given_prompt\")}",
     "model": "deepseek-chat", "temperature": "0.8", "resp_content_key": "llm_respone_json_content",
-    "convert_resp_2_json": "no", "show_in_popup": "yes"}'
+    "convert_resp_2_json": "no", "show_in_popup": "yes", "petp_mcp_url": "http://localhost:8888"}'
   skipped: false
   type: AI_LLM_DEEPSEEK_QANDA_MCP
 loops: []

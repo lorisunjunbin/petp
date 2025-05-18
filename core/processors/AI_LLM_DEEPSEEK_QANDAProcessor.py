@@ -88,7 +88,7 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 			logging.error(error_msg)
 			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA").ShowModal()
 
-	def read_json_from_markdown(markdown_content: str) -> dict[str, any]:
+	def read_json_from_markdown(self, markdown_content: str) -> dict[str, any]:
 		try:
 			json_match = re.search(r'```json\n([\s\S]*?)\n```', markdown_content)
 			if json_match:

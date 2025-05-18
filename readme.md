@@ -28,8 +28,9 @@ and each one contains various tasks. The last **P** means processor, which handl
     - Mouse click/scroll(pyautogui)
     - Database CRUD for MySQL, Hana, Postgres, Sqlite
     - String encode/decode and hash
-    - AI-LLM: GEMINI, OLLAMA
+    - AI-LLM: DEEPSEEK, GEMINI, OLLAMA
     - Data Visualization: Matplotlib
+    - LLM MCP support
 
 MacOS
 
@@ -46,6 +47,11 @@ HTTP Enabled
 ## Run first Execution within 4 steps:
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/user_manual.png)
+
+## LLM MCP Server, Clent & host:
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/DEEPSEEK-MCP.png)
+
 
 ## Install & Run
 
@@ -85,6 +91,8 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 - Able to easily create customized processors.
 
 ## DONE
+
+2025-05: OOTB_AI_LLM_DEEPSEEK_MCP， two PETP instances, one as MCP server, another as client.
 
 2025-05: Enable http service for PETP, the execution result as http response, port 8866 by default.
 
