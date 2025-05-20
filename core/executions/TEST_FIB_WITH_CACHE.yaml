@@ -2,5 +2,13 @@
 execution: TEST_FIB_WITH_CACHE
 list:
 - !!python/object:core.task.Task
-  input: '{"seed": "200", "useCache": "yes"}'
+  input: '{"seed": "10", "useCache": "yes", "data_key": "fib_arr"}'
+  skipped: false
   type: FIB
+- !!python/object:core.task.Task
+  input: '{"http_response_key": "fib_arr"}'
+  skipped: false
+  type: HTTP_RESPONSE_KEY
+loops: []
+mcp_desc: "{\n\u201Cdesc\u201D:\u201DBased on the input seed, it can output the Fibonacci
+  sequence.\u201D,\n\u201Cparams\u201D\uFF1A[\u201Cseed\u201D]\n}"

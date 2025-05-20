@@ -76,6 +76,7 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 		logging.debug(f'available_tools: {available_tools_prompt}')
 
 		try:
+			logging.info(f'Calling LLM with messages: {messages}')
 			response = existed_llm.chat.completions.create(
 				model=model,
 				messages=messages,
@@ -92,7 +93,10 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 
 			if new_answer != answer:
 				messages.append({"role": "assistant", "content": answer})
-				messages.append({"role": "system", "content": new_answer})
+				messages.append({"role": "system",
+								 "content": f' Please answer strictly based on the result [ {new_answer} ], prefer to use Chinese'})
+
+				logging.info(f'Calling LLM after tool call with messages: {messages}')
 				final_response = existed_llm.chat.completions.create(
 					model=model,
 					messages=messages,
@@ -185,15 +189,21 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 				logging.info(f"Executing tool: {tool_name}")
 				logging.info(f"With arguments: {tool_args}")
 
+				params = {"execution": tool_name, "fromHTTPService": True}
+
+				for key, value in tool_args.items():
+					if isinstance(value, str):
+						params[key] = value
+					elif isinstance(value, list):
+						params[key] = ",".join(value)
+					else:
+						params[key] = value
+
 				if tool_name in available_tools:
 					try:
 						payload = {
 							"action": "execution",
-							"params": {
-								"execution": tool_name,
-								"params": tool_args,
-								"fromHTTPService": True
-							}
+							"params": params
 						}
 
 						result = requests.post(
@@ -211,7 +221,6 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 						return f"Failed to execute tool: {error_msg}"
 			return answer
 		except json.JSONDecodeError:
-			# 修复了未定义变量e的引用
 			logging.error("JSON decode error in LLM response")
 			return answer
 		except Exception as e:
