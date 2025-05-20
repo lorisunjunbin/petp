@@ -16,7 +16,8 @@ executions_released = [
 	'ootb_find_icons.yaml',
 	'loop_time.yaml',
 	'test_petp_http_service.yaml',
-	'OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn.yaml'
+	'OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn.yaml',
+	'TEST_FIB_WITH_CACHE.yaml'
 ]
 
 def kill_chromedriver_process_if_existed():
