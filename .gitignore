@@ -74,4 +74,4 @@ venv/
 
 # Pyre type checker
 .pyre/
-.idea/
+.idea/!/runtime_debug.log
