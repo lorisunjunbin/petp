@@ -141,7 +141,9 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 		try:
 			response = requests.get(f"{petp_mcp_url}/petp/tools")
 			if response.status_code == 200:
-				return response.json()['data']
+				resp_json = response.json()
+				logging.debug(f" get_available_tools - : {resp_json}")
+				return resp_json['data']
 			else:
 				logging.error(f"Failed to list tools: {response.status_code}")
 				return None

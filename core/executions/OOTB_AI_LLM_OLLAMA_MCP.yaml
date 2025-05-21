@@ -1,0 +1,12 @@
+!!python/object:core.execution.Execution
+execution: OOTB_AI_LLM_OLLAMA_MCP
+list:
+- !!python/object:core.task.Task
+  input: '{"model": "qwen3:latest", "prompt": "\u641c\u7d22\u8fd1\u671f\u53d1\u751f\u7684\u5730\u9707\u4fe1\u606f,
+    \u5217\u51fa\u53d1\u751f\u5730\uff0c\u9707\u7ea7\uff0c\u548c\u6df1\u5ea6", "petp_mcp_url":
+    "http://localhost:8888", "resp_content_key": "answer_by_mcp", "convert_resp_2_json":
+    "yes", "show_in_popup": "yes", "show_thinking": "no"}'
+  skipped: false
+  type: AI_LLM_OLLAMA_QANDA_MCP
+loops: []
+mcp_desc: ''
