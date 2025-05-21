@@ -1,8 +1,10 @@
 import json
 import logging
+import concurrent.futures
 from threading import Thread
 
 import wx
+import os
 from cron_descriptor import ExpressionDescriptor
 
 from core.cron.cron import Cron
@@ -804,25 +806,48 @@ class PETPPresenter():
 			deleteNumber = len(rows_be_deleted) if len(rows_be_deleted) > 0 else 1
 			grid.DeleteRows(pos=deleteStartRow, numRows=deleteNumber, updateLabels=True)
 
-	async def on_load_log_async(self):
-		self.on_load_log()
-
+	def on_load_log_async(self):
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			executor.submit(self.on_load_log)
+			
 	def on_load_log(self):
-
 		if hasattr(self, 'isLoading') and self.isLoading:
 			return
 
 		if self.is_log_content_focused:
 			return
 
-		self.isLoading = True
-		with open(OSUtils.get_log_file_path(self.m.app_name), 'r', encoding='utf8') as file:
-			self.v.logContents.SetValue(file.read())
-			self.v.logContents.AppendText('')
-			self.v.logContents.ScrollLines(-1)
+		log_path = OSUtils.get_log_file_path(self.m.app_name)
+		
+		try:
+			self.isLoading = True
 
-		self.isLoading = False
-
+			file_size = os.path.getsize(log_path)
+			max_size = 5 * 1024 * 1024  # 5MB
+			with open(log_path, 'r', encoding='utf8', errors='replace') as file:
+				if file_size > max_size:
+					truncate_message = f"[log is too big，only show {max_size/1024/1024:.1f}MB content.]\n\n"
+					file.seek(file_size - max_size)
+					file.readline()
+					log_content = truncate_message + file.read()
+				else:
+					log_content = file.read()
+				wx.CallAfter(self._update_log_content, log_content)
+		except Exception as e:
+			logging.error(f"Fail to load log: {str(e)}")
+		finally:
+			self.isLoading = False
+	
+	def _update_log_content(self, content):
+		try:
+			self.v.logContents.Freeze()
+			self.v.logContents.SetValue(content)
+			self.v.logContents.ShowPosition(self.v.logContents.GetLastPosition())
+		except Exception as e:
+			logging.error(f"Update log error from UI: {str(e)}")
+		finally:
+			self.v.logContents.Thaw()
+	
 	@reload_log_after
 	def on_clean_log(self):
 		with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
@@ -875,4 +900,3 @@ class PETPPresenter():
 			if hasattr(execution, 'mcp_desc') and execution.mcp_desc:
 				tools[execution_name] = execution.mcp_desc
 		return tools
-

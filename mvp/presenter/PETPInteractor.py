@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import wx
@@ -149,9 +148,7 @@ class PETPInteractor():
     def on_load_log(self, evt):
         evt.Skip()
         self.p.on_logcontents_unfocused()
-        asyncio.run(
-            self.p.on_load_log_async()
-        )
+        self.p.on_load_log_async()
 
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
