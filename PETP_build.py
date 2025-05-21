@@ -19,6 +19,7 @@ executions_released = [
 	'loop_time.yaml',
 	'test_petp_http_service.yaml',
 	'OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn.yaml',
+	'OOTB_AI_LLM_OLLAMA_MCP.yaml',
 	'TEST_FIB_WITH_CACHE.yaml'
 ]
 

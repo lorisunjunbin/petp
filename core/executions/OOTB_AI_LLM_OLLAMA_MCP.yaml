@@ -2,11 +2,12 @@
 execution: OOTB_AI_LLM_OLLAMA_MCP
 list:
 - !!python/object:core.task.Task
-  input: '{"model": "qwen3:latest", "prompt": "\u641c\u7d22\u8fd1\u671f\u53d1\u751f\u7684\u5730\u9707\u4fe1\u606f,
-    \u5217\u51fa\u53d1\u751f\u5730\uff0c\u9707\u7ea7\uff0c\u548c\u6df1\u5ea6", "petp_mcp_url":
-    "http://localhost:8888", "resp_content_key": "answer_by_mcp", "convert_resp_2_json":
-    "yes", "show_in_popup": "yes", "show_thinking": "no"}'
+  input: '{"model": "qwen3:latest", "prompt": "\u67e5\u627e\u8fd1\u671f\u7684\u5730\u9707\u4fe1\u606f\uff0c\u5217\u51fa\u6700\u8fd1\u53d1\u751f\u76845\u4e2a\uff0c\u5916\u56fd\u4f18\u5148",
+    "petp_mcp_url": "http://localhost:8888", "resp_content_key": "answer_by_mcp",
+    "convert_resp_2_json": "yes", "show_in_popup": "yes", "show_thinking": "no"}'
   skipped: false
   type: AI_LLM_OLLAMA_QANDA_MCP
 loops: []
-mcp_desc: ''
+mcp_desc: "Q: \u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u6570\u5217  7\uFF0C \u5217\u51FA\u5168\u90E8\u5185\u5BB9
+  -call tool>  TEST_FIB_WITH_CACHE\nQ: \u67E5\u627E\u8FD1\u671F\u7684\u5730\u9707\u4FE1\u606F\uFF0C\u5217\u51FA\u6700\u8FD1\u53D1\u751F\u76845\u4E2A\uFF0C\u5916\u56FD\u4F18\u5148\uFF0C-call
+  tool>  OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn\n"
