@@ -1,4 +1,5 @@
 !!python/object:core.execution.Execution
+astool: true
 execution: TEST_FIB_WITH_CACHE
 list:
 - !!python/object:core.task.Task

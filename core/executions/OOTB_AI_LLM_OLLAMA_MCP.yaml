@@ -1,4 +1,5 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: OOTB_AI_LLM_OLLAMA_MCP
 list:
 - !!python/object:core.task.Task

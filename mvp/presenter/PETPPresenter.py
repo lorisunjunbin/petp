@@ -81,7 +81,7 @@ class PETPPresenter():
 			self.v.logLevelChooser.SetValue(self.m.log_level)
 
 		# load http_port, as part of title
-		self.v.SetTitle(self.v.GetTitle()+" [ "+str(self.m.http_port) +" ]")
+		self.v.SetTitle(self.v.GetTitle() + " [ " + str(self.m.http_port) + " ]")
 
 		# load_last_run
 		if self.m.last_run is not None:
@@ -246,6 +246,7 @@ class PETPPresenter():
 		grid = self.v.taskGrid
 		grid.ClearGrid()
 		execution_desc = self.v.execution_desc
+		cb_astool = self.v.cb_astool
 		execution_desc.Clear()
 
 		self.execution = Execution.get_execution(combo.GetValue())
@@ -278,6 +279,11 @@ class PETPPresenter():
 
 			if hasattr(self.execution, 'mcp_desc') and self.execution.mcp_desc is not None:
 				execution_desc.SetValue(self.execution.mcp_desc)
+
+			if hasattr(self.execution, 'astool') and self.execution.astool is not None:
+				cb_astool.SetValue(self.execution.astool)
+			else:
+				cb_astool.SetValue(False)
 
 	@reload_log_after
 	def on_execution_search(self, evt):
@@ -333,8 +339,9 @@ class PETPPresenter():
 			loops.append(Loop(prop.GetName(), prop.GetValue()))
 
 		execution_desc = self.v.execution_desc.GetValue() or ''
+		as_tool = self.v.cb_astool.IsChecked()
 		if len(tasks) > 0:
-			Execution(name, tasks, execution_desc, loops).save()
+			Execution(name, tasks, execution_desc, as_tool, loops).save()
 
 	def _check_task_skipped(self, input_json):
 		try:
@@ -352,6 +359,7 @@ class PETPPresenter():
 
 		except Exception as e:
 			return False
+
 	def _save_pipeline(self, name):
 		grid = self.v.executionGrid
 		list = []
@@ -809,7 +817,7 @@ class PETPPresenter():
 	def on_load_log_async(self):
 		with concurrent.futures.ThreadPoolExecutor() as executor:
 			executor.submit(self.on_load_log)
-			
+
 	def on_load_log(self):
 		if hasattr(self, 'isLoading') and self.isLoading:
 			return
@@ -818,7 +826,7 @@ class PETPPresenter():
 			return
 
 		log_path = OSUtils.get_log_file_path(self.m.app_name)
-		
+
 		try:
 			self.isLoading = True
 
@@ -826,7 +834,7 @@ class PETPPresenter():
 			max_size = 5 * 1024 * 1024  # 5MB
 			with open(log_path, 'r', encoding='utf8', errors='replace') as file:
 				if file_size > max_size:
-					truncate_message = f"[log is too big，only show {max_size/1024/1024:.1f}MB content.]\n\n"
+					truncate_message = f"[log is too big，only show {max_size / 1024 / 1024:.1f}MB content.]\n\n"
 					file.seek(file_size - max_size)
 					file.readline()
 					log_content = truncate_message + file.read()
@@ -837,7 +845,7 @@ class PETPPresenter():
 			logging.error(f"Fail to load log: {str(e)}")
 		finally:
 			self.isLoading = False
-	
+
 	def _update_log_content(self, content):
 		try:
 			self.v.logContents.Freeze()
@@ -847,7 +855,7 @@ class PETPPresenter():
 			logging.error(f"Update log error from UI: {str(e)}")
 		finally:
 			self.v.logContents.Thaw()
-	
+
 	@reload_log_after
 	def on_clean_log(self):
 		with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
@@ -892,11 +900,12 @@ class PETPPresenter():
 			self.on_run_execution(params)
 
 		logging.info(f'\nHTTP request be handled - action: {action}, params: {params}\n')
-		
+
 	def get_tools(self):
 		tools = {}
 		for execution_name in self.available_executions:
 			execution = Execution.get_execution(execution_name)
-			if hasattr(execution, 'mcp_desc') and execution.mcp_desc:
+			if (hasattr(execution, 'astool') and execution.astool
+					and hasattr(execution, 'mcp_desc') and execution.mcp_desc):
 				tools[execution_name] = execution.mcp_desc
 		return tools

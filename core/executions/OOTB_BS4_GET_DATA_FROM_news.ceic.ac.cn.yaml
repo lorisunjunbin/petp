@@ -1,4 +1,5 @@
 !!python/object:core.execution.Execution
+astool: true
 execution: OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn
 list:
 - !!python/object:core.task.Task
@@ -33,5 +34,5 @@ list:
   skipped: false
   type: HTTP_RESPONSE_KEY
 loops: []
-mcp_desc: "{\n\"desc\":\"inquire about the information of recent earthquakes that
-  have occurred.\",\n\"params\"\uFF1A[\"\"]\n}"
+mcp_desc: "{\n\u201Cdesc\u201D:\u201Dinquire about the information of recent earthquakes
+  that have occurred.\u201D,\n\u201Cparams\u201D\uFF1A[\u201C\u201D]\n}"
