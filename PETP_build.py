@@ -121,9 +121,23 @@ def find_imported_modules():
 	installed_modules = set()
 	for module in modules:
 		try:
+			# 跳过相对导入（以点开头的模块名）
+			if module.startswith('.'):
+				print(f"Skipping relative import: {module}")
+				continue
+				
 			importlib.import_module(module)
 			installed_modules.add(module)
 		except ImportError:
+			print(f"Module not found: {module} - skipping")
+			pass
+		except TypeError as e:
+			if "relative import" in str(e):
+				print(f"Skipping relative import module: {module}")
+			else:
+				print(f"TypeError when importing {module}: {e}")
+		except Exception as e:
+			print(f"Error importing module {module}: {e}")
 			pass
 
 	return installed_modules
