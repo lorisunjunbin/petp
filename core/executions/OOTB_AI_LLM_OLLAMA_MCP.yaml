@@ -2,7 +2,13 @@
 execution: OOTB_AI_LLM_OLLAMA_MCP
 list:
 - !!python/object:core.task.Task
-  input: '{"model": "qwen3:latest", "prompt": "\u67e5\u627e\u8fd1\u671f\u7684\u5730\u9707\u4fe1\u606f\uff0c\u5217\u51fa\u6700\u8fd1\u53d1\u751f\u76845\u4e2a\uff0c\u5916\u56fd\u4f18\u5148",
+  input: '{"title": "OOTB_AI_LLM_OLLAMA_MCP", "msg": "\u8bf7\u8f93\u5165\u60f3\u95ee\u7684\u95ee\u9898\uff0c\u56de\u8f66\u6267\u884c",
+    "value_key": "input_prompt", "default_value": "\u8f93\u51fa\u6590\u6ce2\u90a3\u5951\u6570\u5217  8\uff0c
+    \u5217\u51fa\u5168\u90e8\u5185\u5bb9", "stop_on_cancel": "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"model": "qwen3:latest", "prompt": "{self.get_data(\"input_prompt\")}",
     "petp_mcp_url": "http://localhost:8888", "resp_content_key": "answer_by_mcp",
     "convert_resp_2_json": "yes", "show_in_popup": "yes", "show_thinking": "no"}'
   skipped: false
