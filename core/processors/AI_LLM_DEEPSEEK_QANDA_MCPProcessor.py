@@ -213,9 +213,11 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 							json=payload,
 							headers={"Content-Type": "application/json"}
 						)
-
+						logging.info(f"call tool request payload: {payload}")
 						result.raise_for_status()
 						response_content = result.json() if result.content else result.text
+						logging.info(f"call tool response: {response_content}")
+
 						return f"Tool execution result: {response_content}"
 					except requests.exceptions.RequestException as e:
 						error_msg = f"Error executing tool: {str(e)}"

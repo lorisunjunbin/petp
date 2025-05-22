@@ -7,6 +7,7 @@ import re
 import psutil
 import subprocess
 
+from core.definition.yamlro import YamlRO
 from utils.OSUtils import OSUtils
 
 executions_released = [
@@ -20,6 +21,7 @@ executions_released = [
 	'test_petp_http_service.yaml',
 	'OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn.yaml',
 	'OOTB_AI_LLM_OLLAMA_MCP.yaml',
+	'ENDECODER.yaml',
 	'TEST_FIB_WITH_CACHE.yaml'
 ]
 
@@ -243,6 +245,31 @@ def create_debug_version():
 		print(f"Debug build failed: {e}")
 		sys.exit(1)
 
+def change_http_port(port):
+    """
+    Update the HTTP port in the petpconfig.yaml file
+    """
+    config_path = os.path.join('dist', 'PETP', 'config', 'petpconfig.yaml')
+    
+    if not os.path.exists(config_path):
+        print(f"Warning: Config file not found at {config_path}")
+        return
+        
+    try:
+        # Read the YAML file
+        yaml_content = YamlRO.get_yaml_from_file(config_path)
+        
+        # Update the port value
+        if 'application' in yaml_content and 'http_port' in yaml_content['application']:
+            yaml_content['application']['http_port'] = port
+            print(f"Updating HTTP port to: {port}")
+            
+            # Write the modified YAML back to the file
+            YamlRO.write(config_path, yaml_content)
+        else:
+            print("Warning: Could not find 'application.http_port' in the config file")
+    except Exception as e:
+        print(f"Error updating HTTP port: {e}")
 
 if __name__ == '__main__':
 	# kill chromedriver process if existed
@@ -295,3 +322,4 @@ if __name__ == '__main__':
 	)
 
 	keep_released_execution_only()
+	change_http_port(8888)
