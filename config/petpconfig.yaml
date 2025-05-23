@@ -9,4 +9,4 @@ application:
   http_request_timeout: 60 #seconds
   last_run: test_read_from_excel
   log_level: INFO
-  version: 1.0.5
+  version: 1.1.0
