@@ -5,6 +5,7 @@ import re
 from urllib.parse import parse_qs, urlparse
 from http.server import SimpleHTTPRequestHandler
 
+
 class HttpRequestHandler(SimpleHTTPRequestHandler):
 	"""Enhanced HTTP request handler with routing capabilities"""
 
@@ -66,6 +67,7 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 	def parse_request_params(self):
 		"""Parse parameters from request based on method and content type"""
 		params = {}
+		path_for_routing = self.path  # Store original path for routing
 
 		# Parse query parameters for all requests
 		if '?' in self.path:
@@ -75,7 +77,9 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 			params.update({k: v[0] if len(v) == 1 else v for k, v in query_params.items()})
 
 			# Update path to remove query string for routing
-			self.path = url_parts.path
+			path_for_routing = url_parts.path
+		else:
+			path_for_routing = self.path
 
 		# Handle form data and JSON for POST, PUT
 		if self.command in ['POST', 'PUT']:
@@ -97,30 +101,75 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 					form_params = parse_qs(post_data.decode('utf-8'))
 					params.update({k: v[0] if len(v) == 1 else v for k, v in form_params.items()})
 
-		return params
+		return params, path_for_routing
 
-	def find_handler(self):
-		"""Find the appropriate handler for the current request"""
-		route_key = f"{self.command}:{self.path}"
+	def find_handler(self, current_path):
+		"""Find the appropriate handler for the current request with dynamic parameter support.
 
-		# Check for exact match first
-		if route_key in self._routes:
-			return self._routes[route_key]
+		Args:
+			current_path: The path part of the URL, without query string.
+
+		Returns:
+			A tuple (handler_function, path_parameters_dict) or (None, {}).
+		"""
+		# Check for exact match first (most efficient)
+		exact_route_key = f"{self.command}:{current_path}"
+		if exact_route_key in self._routes:
+			logging.debug(f"Exact route matched: {exact_route_key}")
+			return self._routes[exact_route_key], {}
 
 		# Then check for pattern matches
-		for pattern, handler in self._routes.items():
-			method, path_pattern = pattern.split(':', 1)
+		for pattern_route_key, handler in self._routes.items():
+			try:
+				method, path_pattern = pattern_route_key.split(':', 1)
+			except ValueError:
+				logging.warning(f"Invalid route pattern format: {pattern_route_key}. Skipping.")
+				continue
+
 			if method != self.command:
 				continue
 
-			# Convert route patterns to regex patterns
-			regex_pattern = "^" + path_pattern.replace("{id}", "([^/]+)") + "$"
-			match = re.match(regex_pattern, self.path)
+			# Convert path_pattern with placeholders like {param_name} to a regex
+			# 1. Escape any special regex characters in the path_pattern itself.
+			regex_pattern_str = re.escape(path_pattern)
+
+			# 2. Find all parameter names (e.g., 'id', 'name')
+			param_names = re.findall(r'\\\{([^\\}]+)\\\}', regex_pattern_str)
+
+			# 3. Replace the escaped placeholders (e.g., '\\{id\\}') with regex capture groups '([^/]+)'
+			#    ([^/]+) matches one or more characters that are not a slash.
+			for param_name in param_names:
+				# Ensure we replace the fully escaped placeholder
+				escaped_placeholder = re.escape(f"{{{param_name}}}")
+				regex_pattern_str = regex_pattern_str.replace(escaped_placeholder, r'([^/]+)', 1)
+
+			regex_pattern_str = f"^{regex_pattern_str}$"
+
+			try:
+				compiled_regex = re.compile(regex_pattern_str)
+			except re.error as e:
+				logging.error(f"Invalid regex generated from pattern '{path_pattern}': {regex_pattern_str}. Error: {e}")
+				continue
+
+			match = compiled_regex.match(current_path)
 
 			if match:
-				return handler
+				# Extract captured parameters
+				path_params = {}
+				captured_values = match.groups()
+				if len(param_names) == len(captured_values):
+					path_params = dict(zip(param_names, captured_values))
+					logging.debug(
+						f"Pattern route matched: {pattern_route_key} on path {current_path} with params: {path_params}")
+					return handler, path_params
+				else:
+					logging.warning(
+						f"Parameter name/value mismatch for route {pattern_route_key} and path {current_path}. "
+						f"Expected {len(param_names)} params, got {len(captured_values)} values."
+					)
 
-		return None
+		logging.debug(f"No handler found for {self.command}:{current_path}")
+		return None, {}
 
 	def send_cors_headers(self):
 		"""Add CORS headers to response"""
@@ -144,17 +193,22 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 
 	def process_request(self):
 		"""Process incoming requests with appropriate handler"""
-		# Find the handler for this route
-		handler = self.find_handler()
+		# Parse parameters and get the path for routing (without query string)
+		params, path_for_routing = self.parse_request_params()
+		if params is None:  # Parse error occurred in parse_request_params
+			return
+
+		# Find the handler for this route using the path_for_routing
+		handler, path_params = self.find_handler(path_for_routing)
 
 		if not handler:
 			self.send_failure_response(404, msg="Endpoint not found")
 			return
 
-		# Parse parameters
-		params = self.parse_request_params()
-		if params is None:  # Parse error occurred
-			return
+		# Merge path parameters into the main params dictionary.
+		# Path parameters can override query/body parameters if names conflict.
+		if path_params:
+			params.update(path_params)
 
 		try:
 			# Execute handler

@@ -2,7 +2,7 @@ import logging
 import threading
 import time
 import uuid
-from http.server import HTTPServer
+from http.server import ThreadingHTTPServer
 import weakref
 from collections import OrderedDict
 
@@ -15,8 +15,6 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 
 
 class HttpServer:
-	"""Enhanced HTTP Server for PETP with better routing and error handling"""
-
 	# Maximum number of results to store in memory
 	MAX_RESULTS_CACHE = 1000
 	# Default cleanup interval in seconds
@@ -57,12 +55,13 @@ class HttpServer:
 			'GET:/': self._handle_index,
 			'GET:/health': self._handle_health,
 			'GET:/petp/tools': self._handle_petp_tools,
-			'POST:/petp/exec': self._handle_petp_event
+			'POST:/petp/exec': self._handle_petp_event,
+			'GET:/petp/result': self._handle_result_check
 		})
 
 	def _handle_index(self, handler, params=None):
 		logging.debug(f"_handle_index params: {params}")
-		"""Default handler for the index route"""
+
 		return {
 			"server": "PETP HTTP Server",
 			"available_endpoints": [
@@ -108,23 +107,32 @@ class HttpServer:
 
 	@reload_http_log_after
 	def _handle_petp_event(self, handler, payload):
-
 		logging.debug(f"_handle_petp_event payload: {payload}")
 
 		"""Handle PETP event requests"""
 		if not payload or 'action' not in payload or 'params' not in payload:
 			return {"error": "Missing required 'action' or 'params' parameter"}, 400
 
-		# Generate a unique request ID
-		request_id = self._generate_request_id()
+		# Extract wait_for_result parameter (default: True for backward compatibility)
+		wait_for_result = payload.get('wait_for_result', True)
+		if not isinstance(wait_for_result, bool):
+			wait_for_result = str(wait_for_result).lower() == 'true'
 
-		# Add request ID to params
+		request_id = self._generate_request_id()
 		payload['params'][HttpRequestHandler.get_request_id_key()] = request_id
 
 		# Post event to the view (asynchronously)
 		wx.PostEvent(HttpRequestHandler.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, payload))
 
-		# Wait for the result with timeout
+		# If client doesn't want to wait, return the request ID immediately
+		if not wait_for_result:
+			return {
+				"status": "pending",
+				"request_id": request_id,
+				"message": "Request is being processed. Use GET /petp/result/{request_id} to check status."
+			}
+
+		# Wait for the result with timeout (backward compatibility)
 		result = self._get_and_remove_result(request_id, timeout=self.http_request_timeout)
 
 		if result is None:
@@ -133,12 +141,6 @@ class HttpServer:
 		return result
 
 	def store_result(self, request_id, result):
-		"""Store a result for an asynchronous operation with safeguards
-
-		Args:
-			request_id: The unique ID of the request
-			result: The result to store
-		"""
 		if not request_id:
 			logging.warning("Attempted to store result with empty request_id")
 			return
@@ -170,15 +172,6 @@ class HttpServer:
 		return str(uuid.uuid4())
 
 	def _get_and_remove_result(self, request_id, timeout=10):
-		"""Get and remove a result with optimized resource management and error handling
-
-		Args:
-			request_id: The unique ID of the request
-			timeout: Maximum time to wait for the result in seconds
-
-		Returns:
-			The result or None if timed out or error occurred
-		"""
 		if not request_id:
 			logging.error("Invalid request_id provided to _get_and_remove_result")
 			return None
@@ -253,13 +246,12 @@ class HttpServer:
 				logging.error(f"Error in cleanup thread: {str(e)}")
 
 	def start(self):
-		"""Start the HTTP server in a daemon thread"""
 		if self._running:
 			logging.warning("HTTP Server is already running")
 			return
 		try:
 			handler = HttpRequestHandler
-			self.httpd = HTTPServer((self.host, self.port), handler)
+			self.httpd = ThreadingHTTPServer((self.host, self.port), handler)
 			server_thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
 			server_thread.start()
 			self._running = True
@@ -269,8 +261,7 @@ class HttpServer:
 			self._running = False
 
 	def stop(self):
-		"""Stop the HTTP server if it's running and perform cleanup"""
-		# Stop the cleanup thread
+
 		self._stop_cleanup.set()
 		if self._cleanup_thread.is_alive():
 			self._cleanup_thread.join(0.5)  # Wait briefly for the thread to exit
@@ -279,9 +270,56 @@ class HttpServer:
 		with self._result_lock:
 			self._result_store.clear()
 			self._result_timestamps.clear()
-			# Events will be cleared by GC due to WeakValueDictionary
+		# Events will be cleared by GC due to WeakValueDictionary
 
 		if self.httpd and self._running:
 			self.httpd.shutdown()
 			self._running = False
 			logging.info("HTTP Server has been stopped.")
+
+	def get_result(self, request_id, remove=True):
+
+		if not request_id:
+			return None
+
+		try:
+			with self._result_lock:
+				if request_id not in self._result_store:
+					return None
+
+				result = self._result_store[request_id]
+
+				if remove:
+					del self._result_store[request_id]
+					if request_id in self._result_timestamps:
+						del self._result_timestamps[request_id]
+
+				return result
+		except Exception as e:
+			logging.error(f"Error retrieving result for request {request_id}: {str(e)}")
+			return None
+
+	@reload_http_log_after
+	def _handle_result_check(self, handler, params=None):
+		"""Handle result check requests"""
+		logging.debug(f"_handle_result_check params: {params}")
+
+		if not params or 'request_id' not in params:
+			return {"error": "Missing request_id parameter"}, 400
+
+		request_id = params['request_id']
+		result = self.get_result(request_id)
+
+		if result is None:
+			# Check if this is a known request that's still processing
+			with self._result_lock:
+				if request_id in self._result_events:
+					return {
+						"status": "pending",
+						"request_id": request_id,
+						"message": "Request is still being processed"
+					}
+
+			return {"error": "Request not found or expired"}, 404
+
+		return result
