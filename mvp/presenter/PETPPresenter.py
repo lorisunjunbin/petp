@@ -19,6 +19,7 @@ from decorators.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
+from mvp.view.common.AdvancedInputDialog import AdvancedInputDialog
 from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
 from mvp.view.sub.PETP_PIE_CHARTView import PETP_PIE_CHARTView
 from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
@@ -881,13 +882,17 @@ class PETPPresenter():
 			logging.warning(f'Unsupported chart type: {data["chart_type"]}')
 
 	def on_handle_open_input_dialog(self, evt: PETPEvent):
-		dlg = wx.TextEntryDialog(None, evt.data['msg'], evt.data['title'])
-		dlg.SetValue(evt.data['default_value'])
-		if dlg.ShowModal() == wx.ID_OK:
-			evt.handler(dlg.GetValue())
-		else:
-			evt.handler(None)
-		dlg.Destroy()
+		advance_dialog = AdvancedInputDialog(self.v, evt.data['title'], evt.data['msg'], evt.data['default_value'])
+		result_value = None
+
+		if advance_dialog.ShowModal() == wx.ID_OK:
+			result_value = advance_dialog.GetValue()
+
+		advance_dialog.Destroy()
+
+		if evt.handler:
+			evt.handler(result_value)
+
 
 	@reload_log_after
 	def on_handle_http_request(self, evt: PETPEvent):
