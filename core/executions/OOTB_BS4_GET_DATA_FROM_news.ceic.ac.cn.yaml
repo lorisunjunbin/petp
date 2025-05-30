@@ -20,6 +20,13 @@ list:
   skipped: false
   type: DATA_CONVERT
 - !!python/object:core.task.Task
+  input: '{"skipped": "N", "title": "\u4fe1\u606f\u5c55\u793a\u548c\u6536\u53d6",
+    "msg": "\u53d6\u81ea\u56fd\u5bb6\u5730\u9707\u53f0\u7684\u6570\u636e", "value_key":
+    "final_data", "default_value": "{self.get_data(\"final_data\")}", "stop_on_cancel":
+    "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
   input: '{"skipped": "Y", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
     "msg": "{self.get_data(\"final_data\")}"}'
   skipped: true

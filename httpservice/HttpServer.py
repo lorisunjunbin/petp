@@ -75,6 +75,7 @@ class HttpServer:
 					"uri": "/petp/exec",
 					"method": "POST",
 					"payload": {
+						"wait_for_result":"true | false",
 						"action": "execution",
 						"params": {
 							"execution": "OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn",
@@ -85,6 +86,11 @@ class HttpServer:
 				{
 					"description": "To find available tools.",
 					"uri": "/petp/tools",
+					"method": "GET"
+				},
+				{
+					"description": "To find available tools.",
+					"uri": "/petp/result?request_id={request_id return from /exec with wait_for_result=false}",
 					"method": "GET"
 				}
 			]
