@@ -92,6 +92,8 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2025-06: Execution: OOTB_AI_LLM_GEMINI_MCP， [AI_LLM_GEMINI_QANDA_MCPProcessor](./core/processors/AI_LLM_GEMINI_QANDA_MCPProcessor.py)
+
 2025-05: Execution: Using ThreadingHTTPServer and build AdvancedInputDialog.
 
 2025-05: Execution: OOTB_AI_LLM_OLLAMA_MCP， [AI_LLM_OLLAMA_QANDA_MCPProcessor](./core/processors/AI_LLM_OLLAMA_QANDA_MCPProcessor.py)

@@ -1,9 +1,10 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: OOTB_AI_LLM_GEMINI
 list:
 - !!python/object:core.task.Task
-  input: '{"key_name_gemini":"GOOGLE_API_KEY", "model":"gemini-1.5-pro", "llm_data_key":"llmgemini","top_p":"0.85",
-    "temperature":"0.8"}'
+  input: '{"key_name_gemini": "GOOGLE_API_KEY", "model": "gemini-2.5-flash-preview-05-20",
+    "llm_data_key": "llmgemini", "top_p": "0.85", "temperature": "0.8"}'
   skipped: false
   type: AI_LLM_GEMINI_SETUP
 - !!python/object:core.task.Task
@@ -18,3 +19,4 @@ list:
   skipped: false
   type: AI_LLM_GEMINI_QANDA
 loops: []
+mcp_desc: ''

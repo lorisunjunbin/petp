@@ -1,0 +1,27 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: OOTB_AI_LLM_GEMINI_MCP
+list:
+- !!python/object:core.task.Task
+  input: '{"key_name_gemini": "GOOGLE_API_KEY", "model": "gemini-2.5-flash-preview-05-20",
+    "llm_data_key": "llmgemini", "top_p": "0.85", "temperature": "0.8"}'
+  skipped: false
+  type: AI_LLM_GEMINI_SETUP
+- !!python/object:core.task.Task
+  input: '{"title": "LLM GEMINI", "msg": "Prompt", "value_key": "given_prompt", "default_value":
+    "\u67e5\u627e\u8fd1\u671f\u7684\u5730\u9707\u4fe1\u606f\uff0c\u5217\u51fa\u6700\u8fd1\u53d1\u751f\u76845\u4e2a\uff0c\u5916\u56fd\u4f18\u5148",
+    "stop_on_cancel": "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"llm_data_key": "llmgemini", "prompt": "{self.get_data(\"given_prompt\")}",
+    "petp_mcp_url": "http://localhost:8888", "resp_content_key": "gemini_response",
+    "convert_resp_2_json": "yes", "show_in_popup": "yes"}'
+  skipped: false
+  type: AI_LLM_GEMINI_QANDA_MCP
+loops: []
+mcp_desc: "Q: \u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u6570\u5217  7\uFF0C \u5217\u51FA\u5168\u90E8\u5185\u5BB9
+  call tool:  TEST_FIB_WITH_CACHE\nQ: \u67E5\u627E\u8FD1\u671F\u7684\u5730\u9707\u4FE1\u606F\uFF0C\u5217\u51FA\u6700\u8FD1\u53D1\u751F\u76845\u4E2A\uFF0C\u5916\u56FD\u4F18\u5148\uFF0Ccall
+  tool:  OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn\nQ: \u5C06yabangdou\u4F7F\u7528base64\u7F16\u7801
+  call tool:  ENDECODE\nQ: \u5C06eWFiYW5nZG91\u4F7F\u7528base64\u89E3\u7801 call too\uFF1A
+  \ ENDECODE"
