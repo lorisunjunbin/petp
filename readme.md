@@ -201,9 +201,9 @@ if you get an error of mismatched version (selenium task only).
 
 - Install wxpython for certain python version:
 
->  pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-win_amd64.whl
+> pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-win_amd64.whl
  
-> pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-macosx_11_0_arm64.whl 
+> pip3.13 install --force-reinstall wxpython-4.2.4a15958+e9d142ae-cp313-cp313-macosx_11_0_arm64.whl 
 
 
 - Update all lib on macOS
