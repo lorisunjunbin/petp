@@ -1,22 +1,36 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: ootb_keep_screen_unlocked
 list:
 - !!python/object:core.task.Task
   input: '{"data_key_x":"mouse_at_x", "data_key_y":"mouse_at_y", "wait":5}'
+  skipped: false
   type: MOUSE_POSITION
 - !!python/object:core.task.Task
   input: '{"x_from": "mouse_at_x", "y_from": "mouse_at_y", "x": -1, "y": -1, "vertical":
-    -1, "wait": 60}'
+    -1, "wait": 10}'
+  skipped: false
   type: MOUSE_SCROLL
 - !!python/object:core.task.Task
   input: '{"data_key_x": "mouse_at_x", "data_key_y": "mouse_at_y", "wait": 5}'
+  skipped: false
   type: MOUSE_POSITION
 - !!python/object:core.task.Task
   input: '{"x_from": "mouse_at_x", "y_from": "mouse_at_y", "x": -1, "y": -1, "vertical":
-    1, "wait": 60}'
+    1, "wait": 10}'
+  skipped: false
   type: MOUSE_SCROLL
+- !!python/object:core.task.Task
+  input: '{"name":"reload logger"}'
+  skipped: false
+  type: RELOAD_LOG
+- !!python/object:core.task.Task
+  input: '{"stop_after": "2025-10-30 20:24:59", "stop_in_minutes": "0"}'
+  skipped: false
+  type: STOPPER
 loops:
 - !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start":1, "task_end":4, "loop_key":"", "loop_times":"99999999",
+  loop_attributes: '{"task_start":1, "task_end":6, "loop_key":"", "loop_times":"99999999",
     "loop_index_key":"loop_idx", "item_key":"loop_item"}'
   loop_code: loop-20220930160320
+mcp_desc: ''

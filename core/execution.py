@@ -1,6 +1,6 @@
-import json
 import logging
 import os
+from datetime import datetime
 from threading import Condition
 
 import wx
@@ -26,12 +26,12 @@ class Execution:
     the instance could be serialized to yaml file and deserialized from yaml file.
     """
 
-    def __init__(self, execution: str, list: list, mcp_desc:str, astool: bool = False, loops: list = []):
+    def __init__(self, execution: str, list: list, mcp_desc: str, astool: bool = False, loops: list = []):
         self.execution = execution
         self.list = list
         self.loops = loops
         self.mcp_desc = mcp_desc
-        self.astool=astool
+        self.astool = astool
 
     def set_should_be_stop(self, stopOrNot: bool):
         """
@@ -39,10 +39,17 @@ class Execution:
         """
         self.should_be_stop = stopOrNot
 
+    def init_run_at(self):
+        self.run_at = datetime.now()
+
+    def get_run_at(self) -> str:
+        return self.run_at
+
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
         state: ExecutionState = ExecutionState(self.list)
         self.set_should_be_stop(False)
+        self.init_run_at()
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))

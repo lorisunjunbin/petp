@@ -92,6 +92,10 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2025-10:  [STOPPERProcessor](./core/processors/STOPPERProcessor.py) [RELOAD_LOGProcessor](./core/processors/RELOAD_LOGProcessor.py)
+
+2025-10: Upgrade to python 3.14, wxpython to wxpython-4.2.4a15981+2c2dcc52-cp314-cp314
+
 2025-06: Execution: OOTB_AI_LLM_GEMINI_MCP， [AI_LLM_GEMINI_QANDA_MCPProcessor](./core/processors/AI_LLM_GEMINI_QANDA_MCPProcessor.py)
 
 2025-05: Execution: Using ThreadingHTTPServer and build AdvancedInputDialog.
@@ -205,6 +209,7 @@ if you get an error of mismatched version (selenium task only).
 
 > pip3.13 install --force-reinstall wxpython-4.2.4a15981+2c2dcc52-cp313-cp313-macosx_11_0_arm64.whl
 
+> pip3.14 install --force-reinstall wxpython-4.2.4a15981+2c2dcc52-cp314-cp314-macosx_11_0_arm64.whl
 
 - Update all lib on macOS
 
