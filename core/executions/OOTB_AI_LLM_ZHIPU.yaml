@@ -1,0 +1,29 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: OOTB_AI_LLM_ZHIPU
+list:
+- !!python/object:core.task.Task
+  input: '{"api_key_name":"ZHIPU_ACCESS_KEY", "api_key":"", "base_url":"https://open.bigmodel.cn/api/paas/v4/",
+    "llm_data_key":"llmZHIPU"}'
+  skipped: false
+  type: AI_LLM_ZHIPU_SETUP
+- !!python/object:core.task.Task
+  input: '{"title": "LLM ZHIPU", "msg": "Prompt", "value_key": "given_prompt", "default_value":
+    "tell a joke in chinese", "stop_on_cancel": "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"llm_data_key": "llmZHIPU", "prompt": "{self.get_data(\"given_prompt\")}",
+    "model": "glm-4.7", "temperature": "1.0", "resp_content_key": "", "convert_resp_2_json":
+    "no", "show_in_popup": "yes"}'
+  skipped: false
+  type: AI_LLM_ZHIPU_QANDA
+- !!python/object:core.task.Task
+  input: '{"llm_data_key": "llmZHIPU", "prompt": "{self.get_data(\"given_prompt\")}",
+    "model": "glm-4.7", "temperature": "1.0", "show_thinking": "no", "petp_mcp_url":
+    "http://localhost:8888", "resp_content_key": "", "convert_resp_2_json": "yes",
+    "show_in_popup": "yes"}'
+  skipped: false
+  type: AI_LLM_ZHIPU_QANDA_MCP
+loops: []
+mcp_desc: ''
