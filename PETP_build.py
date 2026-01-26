@@ -22,7 +22,9 @@ executions_released = [
 	'OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn.yaml',
 	'OOTB_AI_LLM_OLLAMA_MCP.yaml',
 	'ENDECODER.yaml',
-	'TEST_FIB_WITH_CACHE.yaml'
+	'TEST_FIB_WITH_CACHE.yaml',
+	'OOTB_AI_LLM_ZHIPU.yaml',
+	'OOTB_AI_LLM_ZHIPU_MCP.yaml'
 ]
 
 # Common problematic modules that need special handling

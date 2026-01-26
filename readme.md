@@ -91,6 +91,9 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 - Able to easily create customized processors.
 
 ## DONE
+2026-01: New Executions: OOTB_AI_LLM_ZHIPU， OOTB_AI_LLM_ZHIPU_MCP
+
+2026-01: Support ZHIPU Z.AI: [AI_LLM_ZHIPU_SETUPProcessor](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) [AI_LLM_ZHIPU_QANDAProcessor](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) [AI_LLM_ZHIPU_QANDA_MCPProcessor](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) 
 
 2025-10:  [STOPPERProcessor](./core/processors/STOPPERProcessor.py) [RELOAD_LOGProcessor](./core/processors/RELOAD_LOGProcessor.py)
 
@@ -207,9 +210,7 @@ if you get an error of mismatched version (selenium task only).
 
 > pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-win_amd64.whl
 
-> pip3.13 install --force-reinstall wxpython-4.2.4a15981+2c2dcc52-cp313-cp313-macosx_11_0_arm64.whl
-
-> pip3.14 install --force-reinstall wxpython-4.2.4a15981+2c2dcc52-cp314-cp314-macosx_11_0_arm64.whl
+> pip3.14 install --force-reinstall wxpython-4.2.45988+6573a469-cp314-cp314-macosx_11_0_arm64.whl
 
 - Update all lib on macOS
 
