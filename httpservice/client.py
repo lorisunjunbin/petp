@@ -23,7 +23,8 @@ class LoggingCollector:
 
 
 logging_collector = LoggingCollector()
-port = 8001
+# port = 8001
+port = 8866
 
 
 def stream_progress(message="hello", url=f"http://localhost:{port}/stream"):

@@ -4,10 +4,13 @@ import re
 
 from urllib.parse import parse_qs, urlparse
 from http.server import SimpleHTTPRequestHandler
+from collections.abc import Iterator
+import types
 
 
 class HttpRequestHandler(SimpleHTTPRequestHandler):
 	"""Enhanced HTTP request handler with routing capabilities"""
+	protocol_version = "HTTP/1.1"
 
 	# Class variables for sharing across instances
 	_view = None
@@ -214,8 +217,11 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 			# Execute handler
 			result = handler(self, params)
 
+			# Streamed responses (generators/iterators) -> chunked transfer
+			if self._is_streaming_result(result):
+				self.send_streaming_response(result)
 			# Handle tuple returns for custom status codes
-			if isinstance(result, tuple) and len(result) == 2:
+			elif isinstance(result, tuple) and len(result) == 2:
 				data, code = result
 				self.send_success_json(code=code, data=data)
 			else:
@@ -224,6 +230,45 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 		except Exception as e:
 			logging.exception(f"Error processing request: {str(e)}")
 			self.send_failure_response(500, msg=f"Internal server error: {str(e)}")
+
+	def _is_streaming_result(self, result):
+		"""Determine if the handler returned a streaming iterator/generator."""
+		if isinstance(result, (str, bytes, dict, list, tuple)):
+			return False
+		# GeneratorType covers plain generators; Iterator covers yield-based objects
+		return isinstance(result, (types.GeneratorType, Iterator))
+
+	def send_streaming_response(self, stream_iter):
+		"""Send a chunked streaming response (text/plain)."""
+		self.send_response(200)
+		self.send_header('Content-Type', 'text/plain; charset=utf-8')
+		self.send_header('Transfer-Encoding', 'chunked')
+		self.send_cors_headers()
+		self.end_headers()
+
+		try:
+			for chunk in stream_iter:
+				if chunk is None:
+					continue
+				if isinstance(chunk, str):
+					chunk_bytes = chunk.encode('utf-8')
+				elif isinstance(chunk, bytes):
+					chunk_bytes = chunk
+				else:
+					chunk_bytes = str(chunk).encode('utf-8')
+
+				# Write chunk size in hex followed by CRLF, then data and CRLF
+				size_line = f"{len(chunk_bytes):X}\r\n".encode('ascii')
+				self.wfile.write(size_line)
+				self.wfile.write(chunk_bytes)
+				self.wfile.write(b"\r\n")
+				self.wfile.flush()
+
+			# Terminate chunked response
+			self.wfile.write(b"0\r\n\r\n")
+			self.wfile.flush()
+		except Exception as e:
+			logging.error(f"Error during streaming response: {e}")
 
 	def send_failure_response(self, code=500, data={}, msg="Failure"):
 		"""Send a failure JSON response with appropriate status code"""

@@ -36,7 +36,7 @@ class SEND_EMAILProcessor(Processor):
 
         msg.set_content(content)
 
-        if len(attachment) > 0:
+        if attachment != None and len(attachment) > 0:
             filename = attachment.split('/')[-1]
             ctype, encoding = mimetypes.guess_type(attachment)
             if ctype is None or encoding is not None:

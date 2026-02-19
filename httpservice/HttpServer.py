@@ -56,7 +56,8 @@ class HttpServer:
 			'GET:/health': self._handle_health,
 			'GET:/petp/tools': self._handle_petp_tools,
 			'POST:/petp/exec': self._handle_petp_event,
-			'GET:/petp/result': self._handle_result_check
+			'GET:/petp/result': self._handle_result_check,
+			'GET:/stream': self._handle_stream
 		})
 
 	def _handle_index(self, handler, params=None):
@@ -110,6 +111,21 @@ class HttpServer:
 		logging.debug(f"_handle_petp_tools payload: {payload}")
 		"""Handle PETP event requests"""
 		return self.p.get_tools()
+
+	@reload_http_log_after
+	def _handle_stream(self, handler, params=None):
+		"""HTTP streaming endpoint using chunked transfer."""
+		message = "hello"
+		if params and isinstance(params, dict):
+			message = params.get('message', message)
+
+		def generator():
+			for i in range(1, 4):
+				yield f"Processing file {i}/3...\n"
+				time.sleep(1)
+			yield f"Here's the file content: {message}\n"
+
+		return generator()
 
 	@reload_http_log_after
 	def _handle_petp_event(self, handler, payload):
