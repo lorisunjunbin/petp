@@ -86,11 +86,12 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## TO-DO:
 
-- Introduced LLM MCP capability, can serve as an MCP server, providing a RESTful interface
-
 - Able to easily create customized processors.
 
 ## DONE
+
+2026-02: Support standard MCP tool(HTTP-Streaming), for more details, please refer to [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py)
+
 2026-01: New Executions: OOTB_AI_LLM_ZHIPU， OOTB_AI_LLM_ZHIPU_MCP
 
 2026-01: Support ZHIPU Z.AI: [AI_LLM_ZHIPU_SETUPProcessor](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) [AI_LLM_ZHIPU_QANDAProcessor](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) [AI_LLM_ZHIPU_QANDA_MCPProcessor](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) 
