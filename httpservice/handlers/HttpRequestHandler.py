@@ -8,6 +8,16 @@ from collections.abc import Iterator
 import types
 
 
+class StreamingResponseData:
+	"""Wrapper to carry streaming iterator plus headers/content type."""
+
+	def __init__(self, iterator, headers=None, content_type=None, status_code=200):
+		self.iterator = iterator
+		self.headers = headers or {}
+		self.content_type = content_type
+		self.status_code = status_code
+
+
 class HttpRequestHandler(SimpleHTTPRequestHandler):
 	"""Enhanced HTTP request handler with routing capabilities"""
 	protocol_version = "HTTP/1.1"
@@ -177,7 +187,7 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 	def send_cors_headers(self):
 		"""Add CORS headers to response"""
 		self.send_header('Access-Control-Allow-Origin', '*')
-		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+		self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, DELETE')
 		self.send_header('Access-Control-Allow-Headers', 'Content-Type')
 
 	def do_OPTIONS(self):
@@ -192,6 +202,10 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 
 	def do_POST(self):
 		"""Handle POST requests"""
+		self.process_request()
+
+	def do_DELETE(self):
+		"""Handle DELETE requests"""
 		self.process_request()
 
 	def process_request(self):
@@ -218,7 +232,9 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 			result = handler(self, params)
 
 			# Streamed responses (generators/iterators) -> chunked transfer
-			if self._is_streaming_result(result):
+			if isinstance(result, StreamingResponseData):
+				self.send_streaming_response(result.iterator, extra_headers=result.headers, content_type=result.content_type, status_code= result.status_code )
+			elif self._is_streaming_result(result):
 				self.send_streaming_response(result)
 			# Handle tuple returns for custom status codes
 			elif isinstance(result, tuple) and len(result) == 2:
@@ -238,11 +254,14 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 		# GeneratorType covers plain generators; Iterator covers yield-based objects
 		return isinstance(result, (types.GeneratorType, Iterator))
 
-	def send_streaming_response(self, stream_iter):
-		"""Send a chunked streaming response (text/plain)."""
-		self.send_response(200)
-		self.send_header('Content-Type', 'text/plain; charset=utf-8')
+	def send_streaming_response(self, stream_iter, *, extra_headers=None, content_type=None, status_code):
+		"""Send a chunked streaming response (text/plain by default)."""
+		self.send_response(status_code)
+		self.send_header('Content-Type', content_type or 'text/plain; charset=utf-8')
 		self.send_header('Transfer-Encoding', 'chunked')
+		if extra_headers:
+			for k, v in extra_headers.items():
+				self.send_header(k, v)
 		self.send_cors_headers()
 		self.end_headers()
 

@@ -7,9 +7,10 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class HTTP_REQUESTProcessor(Processor):
-    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":""}'
-    DESC: str = f''' 
-        - Send http request(get | post | etc.) to request_url, populate response to value_key, support session. 
+    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N"}'
+    DESC: str = f'''
+        - Send http request(get | post | etc.) to request_url, populate response to value_key, support session.
+        - verify: control SSL certificate verification (default: true), set to false to bypass SSL check for expired certificates.
 
         {TPL}
 
@@ -53,12 +54,13 @@ class HTTP_REQUESTProcessor(Processor):
             data = self.expression2str(self.get_param('data_raw'))
 
         method = self.get_param('method') if self.has_param('method') else 'get'
+        verify = True if 'Y' == self.get_param('verify') else False
 
         logging.info('\n')
         logging.info('===============================================')
 
         response = getattr(session, method)(request_url, timeout=(5, timeout), data=data, params=params,
-                                            headers=headers)
+                                            headers=headers, verify=verify)
         response.encoding = 'utf-8'
 
         logging.info('<----------------------------------------------<')
