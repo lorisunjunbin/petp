@@ -30,7 +30,7 @@ and each one contains various tasks. The last **P** means processor, which handl
     - String encode/decode and hash
     - AI-LLM: DEEPSEEK, GEMINI, OLLAMA
     - Data Visualization: Matplotlib
-    - LLM MCP support
+    - MCP Tool support, Streamable-HTTP
 
 MacOS
 
@@ -52,6 +52,9 @@ HTTP Enabled
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/DEEPSEEK-MCP.png)
 
+## MCP Tool Server , Streamable-HTTP
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/petp_as_standard_mcp_server.png)
 
 ## Install & Run
 
@@ -90,7 +93,7 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2026-02: Support standard MCP tool(HTTP-Streaming), for more details, please refer to [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py)
+2026-02: Support standard MCP tool(HTTP-Streaming), for more details, please refer to [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) or using MCP inspector URL: http://localhost:8866/mcp  Transport Type: Streamable HTTP
 
 2026-01: New Executions: OOTB_AI_LLM_ZHIPU， OOTB_AI_LLM_ZHIPU_MCP
 

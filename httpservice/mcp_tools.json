@@ -1,213 +1,75 @@
 {
   "jsonrpc": "2.0",
-  "id": 2,
+  "id": 1,
   "result": {
     "tools": [
       {
-        "name": "given_map_rt_map",
-        "description": "A tool that simulates processing a map and sends progress notifications",
+        "name": "ENDECODER",
+        "description": "support encode and decode inbound string with algorithms",
         "inputSchema": {
-          "properties": {
-            "params": {
-              "additionalProperties": true,
-              "title": "Params",
-              "type": "object"
-            }
-          },
-          "required": [
-            "params"
-          ],
-          "title": "given_map_rt_mapArguments",
-          "type": "object"
-        }
-      },
-      {
-        "name": "search_whether",
-        "description": "A tool that simulates searching the weather for given coordinates and city, and sends progress notifications",
-        "inputSchema": {
-          "properties": {
-            "x": {
-              "title": "X",
-              "type": "integer"
-            },
-            "y": {
-              "title": "Y",
-              "type": "integer"
-            },
-            "city": {
-              "title": "City",
-              "type": "string"
-            }
-          },
-          "required": [
-            "x",
-            "y",
-            "city"
-          ],
-          "title": "search_whetherArguments",
-          "type": "object"
-        }
-      },
-      {
-        "name": "process_files",
-        "description": "A tool that simulates file processing and sends progress notifications",
-        "inputSchema": {
-          "properties": {
-            "message": {
-              "title": "Message",
-              "type": "string"
-            }
-          },
-          "required": [
-            "message"
-          ],
-          "title": "process_filesArguments",
-          "type": "object"
-        },
-        "outputSchema": {
-          "$defs": {
-            "Annotations": {
-              "additionalProperties": true,
-              "properties": {
-                "audience": {
-                  "anyOf": [
-                    {
-                      "items": {
-                        "enum": [
-                          "user",
-                          "assistant"
-                        ],
-                        "type": "string"
-                      },
-                      "type": "array"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null,
-                  "title": "Audience"
-                },
-                "priority": {
-                  "anyOf": [
-                    {
-                      "maximum": 1.0,
-                      "minimum": 0.0,
-                      "type": "number"
-                    },
-                    {
-                      "type": "null"
-                    }
-                  ],
-                  "default": null,
-                  "title": "Priority"
-                }
-              },
-              "title": "Annotations",
-              "type": "object"
-            }
-          },
-          "additionalProperties": true,
-          "description": "Text content for a message.",
+          "title": "ENDECODERArguments",
+          "type": "object",
           "properties": {
             "type": {
-              "const": "text",
-              "title": "Type",
+              "title": "type",
               "type": "string"
             },
-            "text": {
-              "title": "Text",
+            "algorithms": {
+              "title": "algorithms",
               "type": "string"
             },
-            "annotations": {
-              "anyOf": [
-                {
-                  "$ref": "#/$defs/Annotations"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null
-            },
-            "_meta": {
-              "anyOf": [
-                {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "default": null,
-              "title": "Meta"
+            "inbound": {
+              "title": "inbound",
+              "type": "string"
             }
           },
           "required": [
             "type",
-            "text"
-          ],
-          "title": "TextContent",
-          "type": "object"
-        }
-      },
-      {
-        "name": "add",
-        "description": "A simple addition tool that takes two integers and returns their sum",
-        "inputSchema": {
-          "properties": {
-            "left": {
-              "title": "Left",
-              "type": "integer"
-            },
-            "right": {
-              "title": "Right",
-              "type": "integer"
-            }
-          },
-          "required": [
-            "left",
-            "right"
-          ],
-          "title": "addArguments",
-          "type": "object"
+            "algorithms",
+            "inbound"
+          ]
         },
-        "outputSchema": {
-          "properties": {
-            "result": {
-              "title": "Result",
-              "type": "integer"
-            }
-          },
-          "required": [
-            "result"
-          ],
-          "title": "addOutput",
-          "type": "object"
-        }
+        "outputSchema": {}
       },
       {
-        "name": "find_identify",
-        "description": "A tool that simulates finding an identity based on some criteria and sends progress notifications",
+        "name": "OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn",
+        "description": "inquire about the information of recent earthquakes that have occurred.",
         "inputSchema": {
+          "title": "OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cnArguments",
+          "type": "object",
           "properties": {},
-          "title": "find_identifyArguments",
-          "type": "object"
+          "required": []
         },
-        "outputSchema": {
+        "outputSchema": {}
+      },
+      {
+        "name": "TEST_FIB_WITH_CACHE",
+        "description": "Based on the input seed, it can output the Fibonacci sequence.",
+        "inputSchema": {
+          "title": "TEST_FIB_WITH_CACHEArguments",
+          "type": "object",
           "properties": {
-            "result": {
-              "title": "Result",
+            "seed": {
+              "title": "seed",
               "type": "string"
             }
           },
           "required": [
-            "result"
-          ],
-          "title": "find_identifyOutput",
-          "type": "object"
-        }
+            "seed"
+          ]
+        },
+        "outputSchema": {}
+      },
+      {
+        "name": "download_huahai",
+        "description": "inquire about the information of recent earthquakes that have occurred.",
+        "inputSchema": {
+          "title": "download_huahaiArguments",
+          "type": "object",
+          "properties": {},
+          "required": []
+        },
+        "outputSchema": {}
       }
     ]
   }

@@ -269,13 +269,17 @@ class HttpServer:
     def _sse_event(self, payload: dict):
         """Wrap payload as SSE chunk (event: message)."""
         return f"event: message\ndata: {json.dumps(payload)}\n\n"
+        # return json.dumps(payload)
 
     def _build_sse_headers(self, session_id):
         """Return SSE-friendly headers, echoing session id if provided."""
         headers = {
             'Cache-Control': 'no-cache, no-transform',
             'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no'
+            'X-Accel-Buffering': 'no',
+            'content-type': 'text/event-stream',
+            'x-accel-buffering': 'no',
+            'transfer-encoding': 'chunked'
         }
         if session_id:
             headers['mcp-session-id'] = session_id
@@ -289,11 +293,20 @@ class HttpServer:
         """
 
         if isinstance(tools_petp, dict):
-            return [{"name": k,
-                     "description": self._prepareDescription(k, v) or '',
-                     "inputSchema": self._prepareInputSchema(k, v) or {},
-                     "outputSchema": self._prepareOutputSchema(k, v) or {}
-                     } for k, v in tools_petp.items()]
+            result = []
+            for k, v in tools_petp.items():
+                tool = {"name": k}
+                desc = self._prepareDescription(k, v)
+                if desc:
+                    tool["description"] = desc
+                input_schema = self._prepareInputSchema(k, v)
+                if input_schema:
+                    tool["inputSchema"] = input_schema
+                output_schema = self._prepareOutputSchema(k, v)
+                if output_schema:
+                    tool["outputSchema"] = output_schema
+                result.append(tool)
+            return result
         return []
 
     @staticmethod
@@ -335,14 +348,15 @@ class HttpServer:
         if 'params' in val:
             params = val.get('params')
             if isinstance(params, list):
-                props: dict = [{p: {'title': p, 'type': 'object'}} for p in params]
+                # filter out empty str from params
+                params = [p for p in params if p and isinstance(p, str) and p.strip()]
+                props: dict = {p: {'title': p, 'type': 'string'} for p in params}
                 return {
                     "title": f"{key}Arguments",
                     "type": "object",
                     "properties": props,
                     "required": params
                 }
-        return {}
 
     def _prepareOutputSchema(self, key, value) -> dict:
         val: dict = self._parse_tool_value(value)
@@ -352,14 +366,13 @@ class HttpServer:
         if 'outParams' in val:
             outParams: dict = val.get('outParams')
             if isinstance(outParams, list):
-                outProps: dict = [{p: {'title': p, 'type': 'object'}} for p in outParams]
+                outParams = [p for p in outParams if p and isinstance(p, str) and p.strip()]
+                outProps: dict = {p: {'title': p, 'type': 'string'} for p in outParams}
                 return {
                     "title": f"{key}Output",
-                    "type": "object",
                     "properties": outProps,
                     "required": outParams
                 }
-        return {}
 
     @reload_http_log_after
     def _handle_petp_event(self, handler, payload):
