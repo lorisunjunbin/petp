@@ -75,11 +75,6 @@ class HttpServer:
                     "method": "GET"
                 },
                 {
-                    "description": "Check server status",
-                    "uri": "/health",
-                    "method": "GET"
-                },
-                {
                     "description": "Trigger a PETP event - run get recent data from news.ceic.ac.cn",
                     "uri": "/petp/exec",
                     "method": "POST",
@@ -101,6 +96,11 @@ class HttpServer:
                     "description": "To find available tools.",
                     "uri": "/petp/result?request_id={request_id return from /exec with wait_for_result=false}",
                     "method": "GET"
+                },
+                {
+                    "description": "Standard MCP tool of Streamable HTTP",
+                    "uri": "mcp",
+                    "method": "GET | POST | DELETE"
                 }
             ]
         }

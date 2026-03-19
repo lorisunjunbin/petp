@@ -3,7 +3,7 @@ from core.processor import Processor
 
 
 class DATA_COLLECTProcessor(Processor):
-    TPL: str = '{"target":"", "type":"list|dict", "list_row_lambda":"[me.get_data(\\"\\")]", "dict_key_lambda":"[me.get_data(\\"\\")]", "dict_value_lambda":"[me.get_data(\\"\\")]"}'
+    TPL: str = '{"clean_b4_collect":"yes|no","target":"", "type":"list|dict", "list_row_lambda":"[me.get_data(\\"\\")]", "dict_key_lambda":"[me.get_data(\\"\\")]", "dict_value_lambda":"[me.get_data(\\"\\")]"}'
 
     DESC: str = f''' 
         
@@ -21,13 +21,14 @@ class DATA_COLLECTProcessor(Processor):
     def process(self):
         target_name = self.expression2str(self.get_param('target'))
         target_type = self.get_param('type')
+        clean_b4_collect =  self.expression2str(self.get_param('clean_b4_collect')) if self.has_param('clean_b4_collect') else 'no'
 
         if target_type == 'list':
             if not self.has_param('list_row_lambda'):
                 logging.error(f'list_row_lambda is required for type == list')
                 return
 
-            if not self.has_data(target_name):
+            if 'yes' == clean_b4_collect or not self.has_data(target_name):
                 self.populate_data(target_name, [])
 
             result = self.get_data(target_name)
@@ -40,7 +41,7 @@ class DATA_COLLECTProcessor(Processor):
                 logging.error(f'dict_key_lambda and dict_value_lambda are required for type == dict')
                 return
 
-            if not self.has_data(target_name):
+            if 'yes' == clean_b4_collect or not self.has_data(target_name):
                 self.populate_data(target_name, {})
 
             result = self.get_data(target_name)
