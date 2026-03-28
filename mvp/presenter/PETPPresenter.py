@@ -602,11 +602,11 @@ class PETPPresenter():
 			return False
 
 		if type(v) is str:
-			page.Append(wx.propgrid.StringProperty(k, wx.propgrid.PG_LABEL, v))
+			page.Append(wx.propgrid.StringProperty(label=k, name=k, value=v))
 		elif type(v) is int:
-			page.Append(wx.propgrid.IntProperty(k, wx.propgrid.PG_LABEL, v))
+			page.Append(wx.propgrid.IntProperty(label=k, name=k, value=v))
 		elif type(v) is list:
-			page.Append(wx.propgrid.ArrayStringProperty(k, wx.propgrid.PG_LABEL, v))
+			page.Append(wx.propgrid.ArrayStringProperty(label=k, name=k, value=v))
 		else:
 			raise AttributeError('Unsupported property type:' + str(type(v)))
 		page.FitColumns()
