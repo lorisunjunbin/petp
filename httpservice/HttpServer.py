@@ -29,6 +29,7 @@ class HttpServer:
         """
         self.port = int(p.m.http_port)
         self.http_request_timeout = int(p.m.http_request_timeout)
+        self.http_request_token = p.m.http_request_token
         self.host = ""  # Empty string means listen on all available interfaces
         self.p = p
         self.httpd = None
@@ -60,7 +61,8 @@ class HttpServer:
             'GET:/petp/result': self._handle_result_check,
             'GET:/mcp': self._handle_mcp,
             'POST:/mcp': self._handle_mcp,
-            'DELETE:/mcp': self._handle_mcp
+            'DELETE:/mcp': self._handle_mcp,
+            'GET:/mcp/.well-known/openid-configuration': self._handle_mcp_auth
         })
 
     def _handle_index(self, handler, params=None):
@@ -121,6 +123,10 @@ class HttpServer:
         return self.p.get_tools()
 
     @reload_http_log_after
+    def _handle_mcp_auth(self, handler, params=None):
+        return {"token": self.http_request_token}, 200
+
+    @reload_http_log_after
     def _handle_mcp(self, handler, params=None):
         """
         Entry point for PETP streaming transport,
@@ -129,6 +135,12 @@ class HttpServer:
         """
         params = params or {}
         method = params.get('method')
+        token = handler.headers.get('Authorization')
+
+        logging.info(f"_handle_mcp path: {handler.path}, method: {method}")
+
+        if self.http_request_token is not None and token != 'Bearer ' + self.http_request_token:
+            return {"warning": "PETP Invalid token"}, 403
 
         if not method:
             return {"info": "PETP MCP Server"}, 200
@@ -137,12 +149,17 @@ class HttpServer:
             'initialize': self._mcp_initialize,
             'notifications/initialized': self._mcp_initialized,
             'tools/list': self._mcp_tools_list,
-            'tools/call': self._mcp_tools_call
+            'tools/call': self._mcp_tools_call,
+            'prompts/list': self._mcp_prompts_list,
+            'resources/list': self._mcp_resources_list,
+            '.well-known/openid-configuration': self._mcp_initialize
         }
 
         handler_fn = dispatch.get(method)
         if handler_fn:
             return handler_fn(handler, params)
+
+        logging.warning(f"_handle_mcp method: {method}")
 
         return {"error": f"Unsupported method: {method}"}, 400
 
@@ -258,6 +275,38 @@ class HttpServer:
             }
         }
         logging.info("PETP MCP Tools: %s", json.dumps(resp))
+        gen = (self._sse_event(resp) for _ in [0])
+        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
+
+    def _mcp_prompts_list(self, handler, params):
+        """Handle prompts/list: return tools once as SSE message."""
+        request_id = params.get('id')
+        session_id = self._extract_session_id(handler)
+        # TODO: prompts/list is not implemented yet.
+        resp = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "prompts": []
+            }
+        }
+        logging.info("PETP MCP prompts: %s", json.dumps(resp))
+        gen = (self._sse_event(resp) for _ in [0])
+        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
+
+    def _mcp_resources_list(self, handler, params):
+        """Handle resources/list: return tools once as SSE message."""
+        request_id = params.get('id')
+        session_id = self._extract_session_id(handler)
+        # TODO: resources/list is not implemented yet.
+        resp = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "resources": []
+            }
+        }
+        logging.info("PETP MCP resources: %s", json.dumps(resp))
         gen = (self._sse_event(resp) for _ in [0])
         return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
 

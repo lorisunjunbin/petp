@@ -6,7 +6,8 @@ application:
   enable_windows_hdpi: false
   execute_on_startup: false
   http_port: 8866
-  http_request_timeout: 60 #seconds
-  last_run: test_read_from_excel
+  http_request_timeout: 60
+  http_request_token: cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
+  last_run: OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn
   log_level: INFO
   version: 1.1.0

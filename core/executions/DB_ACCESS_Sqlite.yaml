@@ -1,19 +1,25 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: DB_ACCESS_Sqlite
 list:
 - !!python/object:core.task.Task
-  input: '{"database": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TcodeNEWstore.db",
+  input: '{"database": "/Users/i335607/MyProject/PycharmProjects/RSDAssistant/datastore/TcodeNEWstore.db",
     "sql": "select * from tcode where TCODE like ?", "data_key": "dataset_sqlite",
     "param": "%SPRO%", "type": "Sqlite"}'
+  skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task
   input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}"}'
+  skipped: false
   type: SHOW_RESULT
 - !!python/object:core.task.Task
-  input: '{"database": "/Users/i335607/LoriProject/PycharmProjects/RSDAssistant/datastore/TcodeNEWstore.db",
+  input: '{"database": "/Users/i335607/MyProject/PycharmProjects/RSDAssistant/datastore/TcodeNEWstore.db",
     "sql": "select count(*) from tcode", "data_key": "dataset_count", "type": "Sqlite"}'
+  skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task
   input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_count\")}"}'
+  skipped: false
   type: SHOW_RESULT
 loops: []
+mcp_desc: ''

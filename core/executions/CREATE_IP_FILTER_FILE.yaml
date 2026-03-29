@@ -1,18 +1,28 @@
 !!python/object:core.execution.Execution
+astool: true
 execution: CREATE_IP_FILTER_FILE
 list:
 - !!python/object:core.task.Task
   input: '{"so": "MyCurrentInternetIP"}'
+  skipped: false
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
   input: '{"data_key": "myip", "cmdstr": "curl ifconfig.co", "timeout": 30}'
+  skipped: false
   type: CMD
 - !!python/object:core.task.Task
   input: '{"file_path": "{self.get_ddir()}/_{self.get_data(\"so\")}_ip_filter.txt",
     "content": "{self.get_data(\"myip\").split()[-1]}/32", "data_key": "ipfilter_location"}'
+  skipped: false
   type: WRITE_TO_FILE
 - !!python/object:core.task.Task
-  input: '{"title": "{self.get_data(\"myip\").split()[-1]}/32", "msg": "Location:
-    {self.get_data(\"ipfilter_location\")}"}'
+  input: '{"skipped": "no", "title": "{self.get_data(\"myip\").split()[-1]}/32", "msg":
+    "Location: {self.get_data(\"ipfilter_location\")}"}'
+  skipped: false
   type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"http_response_key":"ipfilter_location"}'
+  skipped: false
+  type: HTTP_RESPONSE_KEY
 loops: []
+mcp_desc: "{\n\u201Cdesc\u201D:\u201DIP Filter file creation\u201D,\n\u201Cparams\u201D\uFF1A[]\n}"
