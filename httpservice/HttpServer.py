@@ -1,11 +1,12 @@
+import json
 import logging
 import threading
 import time
-import json
 import uuid
-from http.server import ThreadingHTTPServer
 import weakref
 from collections import OrderedDict
+from http.server import ThreadingHTTPServer
+from typing import Any, Callable, Generator, Optional, Union
 
 import wx
 
@@ -16,65 +17,90 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 
 
 class HttpServer:
-    # Maximum number of results to store in memory
-    MAX_RESULTS_CACHE = 1000
-    # Default cleanup interval in seconds
-    CLEANUP_INTERVAL = 60
+    """Embedded HTTP server that exposes PETP executions as REST and MCP endpoints.
 
-    def __init__(self, p: PETPPresenter):
-        """Initialize the HTTP server with a presenter and default configuration
+    Supports two API styles:
+      - PETP REST API  (/petp/exec, /petp/tools, /petp/result)
+      - MCP Streamable HTTP (/mcp) following the JSON-RPC 2.0 based MCP protocol.
+
+    Results from asynchronous executions are stored in an in-memory LRU cache
+    with background cleanup of expired entries.
+    """
+
+    # Maximum number of results to keep in the in-memory cache
+    MAX_RESULTS_CACHE: int = 1000
+    # Interval (seconds) between expired-result cleanup sweeps
+    CLEANUP_INTERVAL: int = 60
+
+    # ------------------------------------------------------------------
+    # Construction & route registration
+    # ------------------------------------------------------------------
+
+    def __init__(self, presenter: PETPPresenter) -> None:
+        """Initialize the HTTP server.
 
         Args:
-            p: PETP Presenter instance
+            presenter: The PETP MVP presenter that drives business logic.
         """
-        self.port = int(p.m.http_port)
-        self.http_request_timeout = int(p.m.http_request_timeout)
-        self.http_request_token = p.m.http_request_token
-        self.host = ""  # Empty string means listen on all available interfaces
-        self.p = p
-        self.httpd = None
-        self._running = False
+        self.p: PETPPresenter = presenter  # Public — accessed by @reload_http_log_after decorator
+        self._port: int = int(presenter.m.http_port)
+        self._timeout: int = int(presenter.m.http_request_timeout)
+        self._token: Optional[str] = presenter.m.http_request_token
+        self._host: str = ""  # Empty string = listen on all interfaces
+        self._httpd: Optional[ThreadingHTTPServer] = None
+        self._running: bool = False
 
-        # Use OrderedDict for FIFO behavior when cleaning up old results
-        self._result_store = OrderedDict()
-        self._result_events = weakref.WeakValueDictionary()  # Use weak references to avoid memory leaks
-        self._result_lock = threading.RLock()  # Use reentrant lock for safer nested locking
-        self._result_timestamps = {}  # Track when results were added
+        # Ordered dict gives FIFO eviction when the cache is full
+        self._result_store: OrderedDict[str, Any] = OrderedDict()
+        # Weak refs avoid memory leaks: once no thread waits on an event it is GC'd
+        self._result_events: weakref.WeakValueDictionary[str, threading.Event] = (
+            weakref.WeakValueDictionary()
+        )
+        self._result_lock: threading.RLock = threading.RLock()
+        self._result_timestamps: dict[str, float] = {}
 
-        # Start cleanup thread
-        self._stop_cleanup = threading.Event()
-        self._cleanup_thread = threading.Thread(target=self._cleanup_expired_results, daemon=True)
+        # Background sweeper for stale results
+        self._stop_cleanup: threading.Event = threading.Event()
+        self._cleanup_thread: threading.Thread = threading.Thread(
+            target=self._cleanup_expired_results, daemon=True
+        )
         self._cleanup_thread.start()
 
-        # Register the presenter's view
-        HttpRequestHandler.register_view(p.v)
-
-        # Register the server instance for result handling
+        # Wire handler to the presenter's view and to this server instance
+        HttpRequestHandler.register_view(presenter.v)
         HttpRequestHandler.register_server(self)
 
-        # Register default routes
-        HttpRequestHandler.register_routes({
-            'GET:/': self._handle_index,
-            'GET:/health': self._handle_health,
-            'GET:/petp/tools': self._handle_petp_tools,
-            'POST:/petp/exec': self._handle_petp_event,
-            'GET:/petp/result': self._handle_result_check,
-            'GET:/mcp': self._handle_mcp,
-            'POST:/mcp': self._handle_mcp,
-            'DELETE:/mcp': self._handle_mcp,
-            'GET:/mcp/.well-known/openid-configuration': self._handle_mcp_auth
-        })
+        # Register REST + MCP routes
+        HttpRequestHandler.register_routes(self._build_route_map())
 
-    def _handle_index(self, handler, params=None):
-        logging.debug(f"_handle_index params: {params}")
+    def _build_route_map(self) -> dict[str, Callable]:
+        """Return the mapping from ``METHOD:path`` strings to handler callables."""
+        return {
+            "GET:/": self._handle_index,
+            "GET:/health": self._handle_health,
+            "GET:/petp/tools": self._handle_petp_tools,
+            "POST:/petp/exec": self._handle_petp_event,
+            "GET:/petp/result": self._handle_result_check,
+            "GET:/mcp": self._handle_mcp,
+            "POST:/mcp": self._handle_mcp,
+            "DELETE:/mcp": self._handle_mcp,
+            "GET:/mcp/.well-known/openid-configuration": self._handle_mcp_auth,
+        }
 
+    # ------------------------------------------------------------------
+    # Index & health endpoints
+    # ------------------------------------------------------------------
+
+    def _handle_index(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
+        """Return a human-readable summary of available endpoints."""
+        logging.debug("_handle_index params: %s", params)
         return {
             "server": "PETP HTTP Server",
             "available_endpoints": [
                 {
                     "description": "Check server status",
                     "uri": "/health",
-                    "method": "GET"
+                    "method": "GET",
                 },
                 {
                     "description": "Trigger a PETP event - run get recent data from news.ceic.ac.cn",
@@ -85,103 +111,176 @@ class HttpServer:
                         "action": "execution",
                         "params": {
                             "execution": "OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn",
-                            "fromHTTPService": "true"
-                        }
-                    }
+                            "fromHTTPService": "true",
+                        },
+                    },
                 },
                 {
-                    "description": "To find available tools.",
+                    "description": "List available tools",
                     "uri": "/petp/tools",
-                    "method": "GET"
+                    "method": "GET",
                 },
                 {
-                    "description": "To find available tools.",
-                    "uri": "/petp/result?request_id={request_id return from /exec with wait_for_result=false}",
-                    "method": "GET"
+                    "description": (
+                        "Poll a previously submitted request. "
+                        "Use the request_id returned by /exec when wait_for_result=false."
+                    ),
+                    "uri": "/petp/result?request_id={request_id}",
+                    "method": "GET",
                 },
                 {
-                    "description": "Standard MCP tool of Streamable HTTP",
-                    "uri": "mcp",
-                    "method": "GET | POST | DELETE"
-                }
-            ]
+                    "description": "Standard MCP Streamable HTTP endpoint",
+                    "uri": "/mcp",
+                    "method": "GET | POST | DELETE",
+                },
+            ],
         }
 
     @reload_http_log_after
-    def _handle_health(self, handler, params=None):
-        logging.debug(f"_handle_health params: {params}")
-        """Health check endpoint"""
-        return {
-            "status": "ok",
-            "timestamp": time.time()
-        }
+    def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
+        """Health-check endpoint returning ``{"status": "ok"}``."""
+        logging.debug("_handle_health params: %s", params)
+        return {"status": "ok", "timestamp": time.time()}
+
+    # ------------------------------------------------------------------
+    # PETP REST API
+    # ------------------------------------------------------------------
 
     @reload_http_log_after
-    def _handle_petp_tools(self, handler, payload) -> dict:
-        logging.debug(f"_handle_petp_tools payload: {payload}")
-        """Handle PETP event requests"""
+    def _handle_petp_tools(self, handler: HttpRequestHandler, payload: dict) -> dict:
+        """Return the full list of PETP execution tools."""
+        logging.debug("_handle_petp_tools payload: %s", payload)
         return self.p.get_tools()
 
     @reload_http_log_after
-    def _handle_mcp_auth(self, handler, params=None):
-        return {"token": self.http_request_token}, 200
+    def _handle_petp_event(
+        self, handler: HttpRequestHandler, payload: Optional[dict]
+    ) -> Union[dict, tuple]:
+        """Execute a PETP event synchronously or asynchronously.
+
+        If ``wait_for_result`` is *True* (default), the call blocks until the
+        execution finishes or the timeout expires.  Otherwise a ``request_id``
+        is returned immediately and the client can poll ``/petp/result``.
+        """
+        logging.debug("_handle_petp_event payload: %s", payload)
+
+        if not payload or "action" not in payload or "params" not in payload:
+            return {"error": "Missing required 'action' or 'params' parameter"}, 400
+
+        # Normalize the wait_for_result flag
+        wait_for_result = payload.get("wait_for_result", True)
+        if not isinstance(wait_for_result, bool):
+            wait_for_result = str(wait_for_result).lower() == "true"
+
+        request_id: str = self._generate_request_id()
+        payload["params"][HttpRequestHandler.get_request_id_key()] = request_id
+
+        # Dispatch the event to the wxPython view (asynchronous execution)
+        wx.PostEvent(
+            HttpRequestHandler.get_view(),
+            PETPEvent(PETPEvent.HTTP_REQUEST, payload),
+        )
+
+        # Fire-and-forget mode: return the request_id immediately
+        if not wait_for_result:
+            return {
+                "status": "pending",
+                "request_id": request_id,
+                "message": "Request is being processed. Use GET /petp/result?request_id=<id> to check status.",
+            }
+
+        # Synchronous mode: block until the result arrives or times out
+        result = self._get_and_remove_result(request_id, timeout=self._timeout)
+        if result is None:
+            return {"error": "Request timed out"}, 408
+
+        return result
 
     @reload_http_log_after
-    def _handle_mcp(self, handler, params=None):
-        """
-        Entry point for PETP streaming transport,
-        simulate standard MCP server(TransportType=HTTP Streaming).
-        Delegates by JSON body "method" to dedicated handlers.
+    def _handle_result_check(
+        self, handler: HttpRequestHandler, params: Optional[dict] = None
+    ) -> Union[dict, tuple]:
+        """Poll the result of a previously submitted asynchronous request."""
+        logging.debug("_handle_result_check params: %s", params)
+
+        if not params or "request_id" not in params:
+            return {"error": "Missing request_id parameter"}, 400
+
+        request_id: str = params["request_id"]
+        result = self.get_result(request_id)
+
+        if result is None:
+            # Distinguish "still processing" from "unknown / expired"
+            with self._result_lock:
+                if request_id in self._result_events:
+                    return {
+                        "status": "pending",
+                        "request_id": request_id,
+                        "message": "Request is still being processed",
+                    }
+            return {"error": "Request not found or expired"}, 404
+
+        return result
+
+    # ------------------------------------------------------------------
+    # MCP (Model Context Protocol) endpoints
+    # ------------------------------------------------------------------
+
+    @reload_http_log_after
+    def _handle_mcp_auth(
+        self, handler: HttpRequestHandler, params: Optional[dict] = None
+    ) -> tuple:
+        """Return the bearer token for MCP authentication discovery."""
+        return {"token": self._token}, 200
+
+    @reload_http_log_after
+    def _handle_mcp(
+        self, handler: HttpRequestHandler, params: Optional[dict] = None
+    ) -> Union[dict, tuple, StreamingResponseData]:
+        """Entry point for the MCP Streamable HTTP transport.
+
+        Routes the request to a dedicated handler based on the ``method`` field
+        in the JSON-RPC body.
         """
         params = params or {}
-        method = params.get('method')
-        token = handler.headers.get('Authorization')
+        method: Optional[str] = params.get("method")
+        token: Optional[str] = handler.headers.get("Authorization")
 
-        logging.info(f"_handle_mcp path: {handler.path}, method: {method}")
+        logging.info("_handle_mcp path: %s, method: %s", handler.path, method)
 
-        if self.http_request_token is not None and token != 'Bearer ' + self.http_request_token:
+        # Token-based access control (skip when _token is None)
+        if self._token is not None and token != f"Bearer {self._token}":
             return {"warning": "PETP Invalid token"}, 403
 
         if not method:
             return {"info": "PETP MCP Server"}, 200
 
-        dispatch = {
-            'initialize': self._mcp_initialize,
-            'notifications/initialized': self._mcp_initialized,
-            'tools/list': self._mcp_tools_list,
-            'tools/call': self._mcp_tools_call,
-            'prompts/list': self._mcp_prompts_list,
-            'resources/list': self._mcp_resources_list,
-            '.well-known/openid-configuration': self._mcp_initialize
+        dispatch: dict[str, Callable] = {
+            "initialize": self._mcp_initialize,
+            "notifications/initialized": self._mcp_initialized,
+            "tools/list": self._mcp_tools_list,
+            "tools/call": self._mcp_tools_call,
+            "prompts/list": self._mcp_prompts_list,
+            "resources/list": self._mcp_resources_list,
+            ".well-known/openid-configuration": self._mcp_initialize,
         }
 
-        handler_fn = dispatch.get(method)
+        handler_fn: Optional[Callable] = dispatch.get(method)
         if handler_fn:
             return handler_fn(handler, params)
 
-        logging.warning(f"_handle_mcp method: {method}")
-
+        logging.warning("_handle_mcp unsupported method: %s", method)
         return {"error": f"Unsupported method: {method}"}, 400
 
-    # NOT-IN-USE
-    def _mcp_legacy_stream(self, params):
-        """Simple text stream kept for legacy clients without MCP method."""
+    # ---- MCP protocol handlers ----
 
-        def legacy_stream():
-            msg = params.get('message', 'hello')
-            for i in range(1, 4):
-                yield f"Processing file {i}/3...\n"
-                time.sleep(1)
-            yield f"Here's the file content: {msg}\n"
-
-        return legacy_stream()
-
-    def _mcp_initialize(self, handler, params):
-        """Handle MCP initialize: respond with capabilities as SSE once."""
-        request_id = params.get('id')
-        # Generate a new 64-character session ID
-        session_id = uuid.uuid4().hex + uuid.uuid4().hex
-        protocol_version = handler.headers.get('mcp-protocol-version') or "2025-11-25"
+    def _mcp_initialize(
+        self, handler: HttpRequestHandler, params: dict
+    ) -> StreamingResponseData:
+        """Handle MCP ``initialize``: respond with server capabilities via SSE."""
+        request_id = params.get("id")
+        session_id: str = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char session ID
+        protocol_version: str = handler.headers.get("mcp-protocol-version") or "2025-11-25"
 
         resp = {
             "jsonrpc": "2.0",
@@ -192,411 +291,302 @@ class HttpServer:
                     "experimental": {},
                     "prompts": {"listChanged": False},
                     "resources": {"subscribe": False, "listChanged": False},
-                    "tools": {"listChanged": False}
+                    "tools": {"listChanged": False},
                 },
-                "serverInfo": {"name": "PETP MCP server", "version": "1.0.0"}
-            }
+                "serverInfo": {"name": "PETP MCP server", "version": "1.0.0"},
+            },
         }
 
-        gen = (self._sse_event(resp) for _ in [0])
-        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
+        return self._single_sse_response(resp, session_id)
 
-    def _mcp_initialized(self, handler, params):
-        """Handle notifications/initialized acknowledgement."""
-        session_id = self._extract_session_id(handler)
-        gen = (self._sse_event({}) for _ in [0])
-        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream',
-                                     status_code=202)
+    def _mcp_initialized(
+        self, handler: HttpRequestHandler, params: dict
+    ) -> StreamingResponseData:
+        """Handle ``notifications/initialized`` acknowledgement (HTTP 202)."""
+        session_id: Optional[str] = self._extract_session_id(handler)
+        return StreamingResponseData(
+            self._single_sse_chunk({}),
+            self._build_sse_headers(session_id),
+            content_type="text/event-stream",
+            status_code=202,
+        )
 
-    def _mcp_tools_call(self, handler, payload):
-        """Handle tools/call: stream progress then final result."""
-        request_id = payload.get('id')
-        session_id = self._extract_session_id(handler)
-        action = payload.get('params', {}).get('name', '')
-        params = payload.get('params', {}).get('arguments', {})
-        message = params.get('message') or ''
-        paramsInStr = json.dumps(params)
+    def _mcp_tools_list(
+        self, handler: HttpRequestHandler, params: dict
+    ) -> StreamingResponseData:
+        """Handle ``tools/list``: return available tools as a single SSE message."""
+        request_id = params.get("id")
+        session_id: Optional[str] = self._extract_session_id(handler)
+        tools_payload: list[dict] = self._normalize_tools(self.p.get_tools())
 
-        def gen_call_result():
-            # event: message
-            # data: {"method": "notifications/message", "params": {"level": "info", "data": "calculate 1 + 2 = ?"},
-            #        "jsonrpc": "2.0"}
-            questionInfo = f"call tool: {action} with params: {paramsInStr}"
+        resp = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {"tools": tools_payload},
+        }
+        logging.info("PETP MCP Tools: %s", json.dumps(resp))
 
-            if len(message) > 0:
-                questionInfo += f", message: {message}"
+        return self._single_sse_response(resp, session_id)
 
+    def _mcp_tools_call(
+        self, handler: HttpRequestHandler, payload: dict
+    ) -> StreamingResponseData:
+        """Handle ``tools/call``: stream a progress notification then the final result."""
+        request_id = payload.get("id")
+        session_id: Optional[str] = self._extract_session_id(handler)
+        action: str = payload.get("params", {}).get("name", "")
+        arguments: dict = payload.get("params", {}).get("arguments", {})
+        message: str = arguments.get("message") or ""
+        arguments_json: str = json.dumps(arguments)
+
+        def _stream_call_result() -> Generator[str, None, None]:
+            """Yield SSE frames: first a progress notification, then the tool result."""
+            question_info = f"call tool: {action} with params: {arguments_json}"
+            if message:
+                question_info += f", message: {message}"
+
+            # Emit a progress / log notification
             yield self._sse_event({
                 "jsonrpc": "2.0",
                 "method": "notifications/message",
-                "params": {"level": "info", "data": questionInfo}
+                "params": {"level": "info", "data": question_info},
             })
-            # event: message
-            # data: {"jsonrpc": "2.0", "id": 1,
-            #        "result": {"content": [{"type": "text", "text": "3"}], "structuredContent": {"result": 3}, "isError": false}}
 
-            petpParam = {'execution': action}
-            petpParam.update(params)
+            # Execute the PETP event and emit the final result
+            petp_param: dict = {"execution": action}
+            petp_param.update(arguments)
             result = self._handle_petp_event(handler, {
-                'action': 'execution',
-                'params': petpParam
+                "action": "execution",
+                "params": petp_param,
             })
 
             yield self._sse_event({
                 "jsonrpc": "2.0",
                 "id": request_id,
                 "result": {
-                    "content": [{
-                        "type": "text",
-                        "text": f" {questionInfo} -> {result}"
-                    }],
+                    "content": [{"type": "text", "text": f" {question_info} -> {result}"}],
                     "structuredContent": {
                         "type": "text",
                         "text": result,
                         "annotations": None,
-                        "_meta": None
+                        "_meta": None,
                     },
-                    "isError": False
-                }
+                    "isError": False,
+                },
             })
 
-        return StreamingResponseData(gen_call_result(), self._build_sse_headers(session_id), 'text/event-stream')
+        return StreamingResponseData(
+            _stream_call_result(),
+            self._build_sse_headers(session_id),
+            "text/event-stream",
+        )
 
-    def _mcp_tools_list(self, handler, params):
-        """Handle tools/list: return tools once as SSE message."""
-        request_id = params.get('id')
-        session_id = self._extract_session_id(handler)
-        tools_payload = self._normalize_tools(self.p.get_tools())
-        resp = {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "tools": tools_payload
-            }
-        }
-        logging.info("PETP MCP Tools: %s", json.dumps(resp))
-        gen = (self._sse_event(resp) for _ in [0])
-        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
-
-    def _mcp_prompts_list(self, handler, params):
-        """Handle prompts/list: return tools once as SSE message."""
-        request_id = params.get('id')
-        session_id = self._extract_session_id(handler)
-        # TODO: prompts/list is not implemented yet.
-        resp = {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "prompts": []
-            }
-        }
+    def _mcp_prompts_list(
+        self, handler: HttpRequestHandler, params: dict
+    ) -> StreamingResponseData:
+        """Handle ``prompts/list`` — currently returns an empty list."""
+        request_id = params.get("id")
+        session_id: Optional[str] = self._extract_session_id(handler)
+        resp = {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": []}}
         logging.info("PETP MCP prompts: %s", json.dumps(resp))
-        gen = (self._sse_event(resp) for _ in [0])
-        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
+        return self._single_sse_response(resp, session_id)
 
-    def _mcp_resources_list(self, handler, params):
-        """Handle resources/list: return tools once as SSE message."""
-        request_id = params.get('id')
-        session_id = self._extract_session_id(handler)
-        # TODO: resources/list is not implemented yet.
-        resp = {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "resources": []
-            }
-        }
+    def _mcp_resources_list(
+        self, handler: HttpRequestHandler, params: dict
+    ) -> StreamingResponseData:
+        """Handle ``resources/list`` — currently returns an empty list."""
+        request_id = params.get("id")
+        session_id: Optional[str] = self._extract_session_id(handler)
+        resp = {"jsonrpc": "2.0", "id": request_id, "result": {"resources": []}}
         logging.info("PETP MCP resources: %s", json.dumps(resp))
-        gen = (self._sse_event(resp) for _ in [0])
-        return StreamingResponseData(gen, self._build_sse_headers(session_id), content_type='text/event-stream')
+        return self._single_sse_response(resp, session_id)
 
-    def _extract_session_id(self, handler):
-        """Best-effort grab of MCP session id from headers."""
-        return handler.headers.get('mcp-session-id') or handler.headers.get('MCP-Session-Id') or handler.headers.get(
-            'Mcp-Session-Id')
+    # ------------------------------------------------------------------
+    # SSE (Server-Sent Events) helpers
+    # ------------------------------------------------------------------
 
-    def _sse_event(self, payload: dict):
-        """Wrap payload as SSE chunk (event: message)."""
+    def _extract_session_id(self, handler: HttpRequestHandler) -> Optional[str]:
+        """Best-effort retrieval of the MCP session ID from request headers."""
+        return (
+            handler.headers.get("mcp-session-id")
+            or handler.headers.get("MCP-Session-Id")
+            or handler.headers.get("Mcp-Session-Id")
+        )
+
+    def _sse_event(self, payload: dict) -> str:
+        """Wrap a JSON payload as a single SSE ``event: message`` chunk."""
         return f"event: message\ndata: {json.dumps(payload)}\n\n"
-        # return json.dumps(payload)
 
-    def _build_sse_headers(self, session_id):
-        """Return SSE-friendly headers, echoing session id if provided."""
-        headers = {
-            'Cache-Control': 'no-cache, no-transform',
-            'Connection': 'keep-alive',
-            'X-Accel-Buffering': 'no',
-            'content-type': 'text/event-stream',
-            'x-accel-buffering': 'no',
-            'transfer-encoding': 'chunked'
+    def _single_sse_chunk(self, payload: dict) -> Generator[str, None, None]:
+        """Yield exactly one SSE chunk for *payload*."""
+        yield self._sse_event(payload)
+
+    def _single_sse_response(
+        self, resp: dict, session_id: Optional[str]
+    ) -> StreamingResponseData:
+        """Build a ``StreamingResponseData`` that emits one SSE event."""
+        return StreamingResponseData(
+            self._single_sse_chunk(resp),
+            self._build_sse_headers(session_id),
+            content_type="text/event-stream",
+        )
+
+    def _build_sse_headers(self, session_id: Optional[str]) -> dict[str, str]:
+        """Return standard SSE headers, echoing the session ID when present."""
+        headers: dict[str, str] = {
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "Content-Type": "text/event-stream",
+            "Transfer-Encoding": "chunked",
+            "X-Accel-Buffering": "no",
         }
         if session_id:
-            headers['mcp-session-id'] = session_id
+            headers["mcp-session-id"] = session_id
         return headers
 
-    def _normalize_tools(self, tools_petp):
-        """Ensure tools payload is a list per MCP spec.
+    # ------------------------------------------------------------------
+    # Tool normalization (PETP internal -> MCP tools/list schema)
+    # ------------------------------------------------------------------
 
-        - If dict, convert to [{"name": key, "description": str(value)}].
-        - Otherwise, wrap into empty list to avoid validation errors.
+    def _normalize_tools(self, tools_petp: Any) -> list[dict]:
+        """Convert the PETP tools dict into a list of MCP tool definitions.
+
+        Each entry becomes ``{"name": key, "description": ..., "inputSchema": ..., "outputSchema": ...}``.
+
+        Returns an empty list when *tools_petp* is not a dict.
         """
+        if not isinstance(tools_petp, dict):
+            return []
 
-        if isinstance(tools_petp, dict):
-            result = []
-            for k, v in tools_petp.items():
-                tool = {"name": k}
-                desc = self._prepareDescription(k, v)
-                if desc:
-                    tool["description"] = desc
-                input_schema = self._prepareInputSchema(k, v)
-                if input_schema:
-                    tool["inputSchema"] = input_schema
-                output_schema = self._prepareOutputSchema(k, v)
-                if output_schema:
-                    tool["outputSchema"] = output_schema
-                result.append(tool)
-            return result
-        return []
+        result: list[dict] = []
+        for key, value in tools_petp.items():
+            tool: dict = {"name": key}
+            parsed: dict = self._parse_tool_value(value)
+
+            desc = self._extract_description(key, parsed)
+            if desc:
+                tool["description"] = desc
+
+            input_schema = self._build_input_schema(key, parsed)
+            if input_schema:
+                tool["inputSchema"] = input_schema
+
+            output_schema = self._build_output_schema(key, parsed)
+            if output_schema:
+                tool["outputSchema"] = output_schema
+
+            result.append(tool)
+        return result
 
     @staticmethod
-    def _parse_tool_value(value) -> dict:
-        """Convert tool value to dict, handling Chinese quotation marks.
+    def _parse_tool_value(value: Any) -> dict:
+        """Parse a tool's raw value into a dict.
 
-        Args:
-            value: Can be a JSON string (possibly with Chinese quotes), dict, or other type
-
-        Returns:
-            dict: Parsed dictionary, empty dict if parsing fails
+        Handles dicts, JSON strings (including those with Chinese quotation marks),
+        and gracefully returns an empty dict on failure.
         """
         if isinstance(value, dict):
             return value
-
         if not isinstance(value, str) or not value.strip():
             return {}
 
-        # Replace Chinese quotation marks with ASCII ones
-        normalized = (value.replace('“', '"')
-                      .replace('”', '"')
-                      .replace('\n', '')
-                      .replace('：', ':'))
+        # Normalize Chinese punctuation to ASCII equivalents
+        normalized: str = (
+            value.replace("\u201c", '"')   # left double quotation mark
+            .replace("\u201d", '"')        # right double quotation mark
+            .replace("\n", "")
+            .replace("\uff1a", ":")        # fullwidth colon
+        )
         try:
             return json.loads(normalized)
-        except json.JSONDecodeError as ex:
-            logging.error(ex)
+        except json.JSONDecodeError:
+            logging.exception("Failed to parse tool value")
             return {}
 
-    def _prepareDescription(self, key: str, value: str) -> str:
-        val: dict = self._parse_tool_value(value)
-        return key if val.get('desc') is None else val.get('desc')
+    @staticmethod
+    def _extract_description(key: str, parsed: dict) -> Optional[str]:
+        """Return the tool description, falling back to *key*."""
+        return key if parsed.get("desc") is None else parsed.get("desc")
 
-    def _prepareInputSchema(self, key, value) -> dict:
-        val: dict = self._parse_tool_value(value)
-        if val.get('inputSchema'):
-            return val.get('inputSchema')
+    @staticmethod
+    def _build_input_schema(key: str, parsed: dict) -> Optional[dict]:
+        """Build an ``inputSchema`` from explicit schema or a flat ``params`` list."""
+        if parsed.get("inputSchema"):
+            return parsed["inputSchema"]
 
-        if 'params' in val:
-            params = val.get('params')
-            if isinstance(params, list):
-                # filter out empty str from params
-                params = [p for p in params if p and isinstance(p, str) and p.strip()]
-                props: dict = {p: {'title': p, 'type': 'string'} for p in params}
-                return {
-                    "title": f"{key}Arguments",
-                    "type": "object",
-                    "properties": props,
-                    "required": params
-                }
-
-    def _prepareOutputSchema(self, key, value) -> dict:
-        val: dict = self._parse_tool_value(value)
-        if val.get('outputSchema'):
-            return val.get('outputSchema')
-
-        if 'outParams' in val:
-            outParams: dict = val.get('outParams')
-            if isinstance(outParams, list):
-                outParams = [p for p in outParams if p and isinstance(p, str) and p.strip()]
-                outProps: dict = {p: {'title': p, 'type': 'string'} for p in outParams}
-                return {
-                    "title": f"{key}Output",
-                    "properties": outProps,
-                    "required": outParams
-                }
-
-    @reload_http_log_after
-    def _handle_petp_event(self, handler, payload):
-        logging.debug(f"_handle_petp_event payload: {payload}")
-
-        """Handle PETP event requests"""
-        if not payload or 'action' not in payload or 'params' not in payload:
-            return {"error": "Missing required 'action' or 'params' parameter"}, 400
-
-        # Extract wait_for_result parameter (default: True for backward compatibility)
-        wait_for_result = payload.get('wait_for_result', True)
-        if not isinstance(wait_for_result, bool):
-            wait_for_result = str(wait_for_result).lower() == 'true'
-
-        request_id = self._generate_request_id()
-        payload['params'][HttpRequestHandler.get_request_id_key()] = request_id
-
-        # Post event to the view (asynchronously)
-        wx.PostEvent(HttpRequestHandler.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, payload))
-
-        # If client doesn't want to wait, return the request ID immediately
-        if not wait_for_result:
+        params = parsed.get("params")
+        if isinstance(params, list):
+            # Filter out empty / blank entries
+            clean_params: list[str] = [
+                p for p in params if isinstance(p, str) and p.strip()
+            ]
+            properties: dict = {p: {"title": p, "type": "string"} for p in clean_params}
             return {
-                "status": "pending",
-                "request_id": request_id,
-                "message": "Request is being processed. Use GET /petp/result/{request_id} to check status."
+                "title": f"{key}Arguments",
+                "type": "object",
+                "properties": properties,
+                "required": clean_params,
             }
+        return None
 
-        # Wait for the result with timeout (backward compatibility)
-        result = self._get_and_remove_result(request_id, timeout=self.http_request_timeout)
+    @staticmethod
+    def _build_output_schema(key: str, parsed: dict) -> Optional[dict]:
+        """Build an ``outputSchema`` from explicit schema or a flat ``outParams`` list."""
+        if parsed.get("outputSchema"):
+            return parsed["outputSchema"]
 
-        if result is None:
-            return {"error": "Request timed out"}, 408
+        out_params = parsed.get("outParams")
+        if isinstance(out_params, list):
+            clean_params: list[str] = [
+                p for p in out_params if isinstance(p, str) and p.strip()
+            ]
+            properties: dict = {p: {"title": p, "type": "string"} for p in clean_params}
+            return {
+                "title": f"{key}Output",
+                "properties": properties,
+                "required": clean_params,
+            }
+        return None
 
-        return result
+    # ------------------------------------------------------------------
+    # Result store (async execution support)
+    # ------------------------------------------------------------------
 
-    def store_result(self, request_id, result):
+    def store_result(self, request_id: str, result: Any) -> None:
+        """Store an execution result so a waiting client can retrieve it."""
         if not request_id:
             logging.warning("Attempted to store result with empty request_id")
             return
 
         try:
             with self._result_lock:
-                # Enforce maximum cache size by removing oldest items if needed
+                # Evict the oldest entry when the cache is full
                 if len(self._result_store) >= self.MAX_RESULTS_CACHE:
-                    # Remove oldest item (first item in OrderedDict)
-                    oldest_key = next(iter(self._result_store))
+                    oldest_key: str = next(iter(self._result_store))
                     del self._result_store[oldest_key]
-                    if oldest_key in self._result_timestamps:
-                        del self._result_timestamps[oldest_key]
-                    logging.debug(f"Cache full: Removed oldest result: {oldest_key}")
+                    self._result_timestamps.pop(oldest_key, None)
+                    logging.debug("Cache full — evicted oldest result: %s", oldest_key)
 
-                # Store the result and timestamp
                 self._result_store[request_id] = result
                 self._result_timestamps[request_id] = time.time()
 
-                # Set event if waiting threads exist
+                # Wake up any thread that is blocked waiting for this result
                 event = self._result_events.get(request_id)
                 if event and not event.is_set():
                     event.set()
-        except Exception as e:
-            logging.error(f"Error storing result for request {request_id}: {str(e)}")
+        except Exception:
+            logging.exception("Error storing result for request %s", request_id)
 
-    def _generate_request_id(self):
-        """Generate a unique request ID for tracking async operations"""
-        return str(uuid.uuid4())
+    def get_result(self, request_id: str, remove: bool = True) -> Any:
+        """Retrieve a stored result by *request_id*.
 
-    def _get_and_remove_result(self, request_id, timeout=10):
-        if not request_id:
-            logging.error("Invalid request_id provided to _get_and_remove_result")
-            return None
+        Args:
+            request_id: The unique identifier of the request.
+            remove: If *True*, delete the result from the store after reading.
 
-        event = None
-
-        try:
-            # Check if result already exists before creating an event
-            with self._result_lock:
-                if request_id in self._result_store:
-                    result = self._result_store.pop(request_id, None)
-                    if request_id in self._result_timestamps:
-                        del self._result_timestamps[request_id]
-                    logging.info(f"Result for request {request_id} was immediately available")
-                    return result
-
-                # Create event if it doesn't exist
-                event = threading.Event()
-                self._result_events[request_id] = event
-
-            # Wait for the result outside the lock to reduce contention
-            result_ready = event.wait(timeout)
-
-            with self._result_lock:
-                if not result_ready:
-                    logging.warning(f"Request {request_id} timed out after {timeout} seconds")
-                    return None
-
-                # Get and clean up the result
-                result = self._result_store.pop(request_id, None)
-                if request_id in self._result_timestamps:
-                    del self._result_timestamps[request_id]
-
-                if result is not None:
-                    logging.info(f"Http Response for request ID: {request_id}")
-                    logging.debug(f"Result details: {result}")
-                else:
-                    logging.warning(f"Result was set but not found for request {request_id}")
-
-                return result
-
-        except Exception as e:
-            logging.error(f"Error retrieving result for request {request_id}: {str(e)}")
-            return None
-
-    def _cleanup_expired_results(self):
-        """Background thread to clean up expired results"""
-        while not self._stop_cleanup.is_set():
-            try:
-                time.sleep(self.CLEANUP_INTERVAL)
-
-                with self._result_lock:
-                    current_time = time.time()
-                    expired_requests = []
-
-                    # Find expired results
-                    for req_id, timestamp in list(self._result_timestamps.items()):
-                        if current_time - timestamp > 2 * self.http_request_timeout:
-                            expired_requests.append(req_id)
-
-                    # Remove expired results
-                    for req_id in expired_requests:
-                        if req_id in self._result_store:
-                            del self._result_store[req_id]
-                        if req_id in self._result_timestamps:
-                            del self._result_timestamps[req_id]
-
-                    if expired_requests:
-                        logging.info(f"Cleaned up {len(expired_requests)} expired results")
-
-            except Exception as e:
-                logging.error(f"Error in cleanup thread: {str(e)}")
-
-    def start(self):
-        if self._running:
-            logging.warning("HTTP Server is already running")
-            return
-        try:
-            handler = HttpRequestHandler
-            self.httpd = ThreadingHTTPServer((self.host, self.port), handler)
-            server_thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
-            server_thread.start()
-            self._running = True
-            logging.info(f"HTTP Server is serving at http://{self.host or 'localhost'}:{self.port}")
-        except Exception as e:
-            logging.error(f"Failed to start HTTP Server: {e}, so can not handle any http request by this instance.")
-            self._running = False
-
-    def stop(self):
-
-        self._stop_cleanup.set()
-        if self._cleanup_thread.is_alive():
-            self._cleanup_thread.join(0.5)  # Wait briefly for the thread to exit
-
-        # Clear all pending requests to avoid memory leaks
-        with self._result_lock:
-            self._result_store.clear()
-            self._result_timestamps.clear()
-        # Events will be cleared by GC due to WeakValueDictionary
-
-        if self.httpd and self._running:
-            self.httpd.shutdown()
-            self._running = False
-            logging.info("HTTP Server has been stopped.")
-
-    def get_result(self, request_id, remove=True):
-
+        Returns:
+            The stored result, or ``None`` if not found.
+        """
         if not request_id:
             return None
 
@@ -606,38 +596,136 @@ class HttpServer:
                     return None
 
                 result = self._result_store[request_id]
-
                 if remove:
                     del self._result_store[request_id]
-                    if request_id in self._result_timestamps:
-                        del self._result_timestamps[request_id]
-
+                    self._result_timestamps.pop(request_id, None)
                 return result
-        except Exception as e:
-            logging.error(f"Error retrieving result for request {request_id}: {str(e)}")
+        except Exception:
+            logging.exception("Error retrieving result for request %s", request_id)
             return None
 
-    @reload_http_log_after
-    def _handle_result_check(self, handler, params=None):
-        """Handle result check requests"""
-        logging.debug(f"_handle_result_check params: {params}")
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
 
-        if not params or 'request_id' not in params:
-            return {"error": "Missing request_id parameter"}, 400
+    @staticmethod
+    def _generate_request_id() -> str:
+        """Generate a unique request ID (UUID4)."""
+        return str(uuid.uuid4())
 
-        request_id = params['request_id']
-        result = self.get_result(request_id)
+    def _get_and_remove_result(self, request_id: str, timeout: int = 10) -> Any:
+        """Block until the result for *request_id* is available or *timeout* elapses.
 
-        if result is None:
-            # Check if this is a known request that's still processing
+        The result is removed from the store once consumed.
+        """
+        if not request_id:
+            logging.error("Invalid request_id provided to _get_and_remove_result")
+            return None
+
+        try:
+            # Fast path: result is already available
             with self._result_lock:
-                if request_id in self._result_events:
-                    return {
-                        "status": "pending",
-                        "request_id": request_id,
-                        "message": "Request is still being processed"
-                    }
+                if request_id in self._result_store:
+                    result = self._result_store.pop(request_id, None)
+                    self._result_timestamps.pop(request_id, None)
+                    logging.info("Result for request %s was immediately available", request_id)
+                    return result
 
-            return {"error": "Request not found or expired"}, 404
+                # Register an event so the producer can wake us up
+                event = threading.Event()
+                self._result_events[request_id] = event
 
-        return result
+            # Wait outside the lock to reduce contention
+            result_ready: bool = event.wait(timeout)
+
+            with self._result_lock:
+                if not result_ready:
+                    logging.warning("Request %s timed out after %s seconds", request_id, timeout)
+                    return None
+
+                result = self._result_store.pop(request_id, None)
+                self._result_timestamps.pop(request_id, None)
+
+                if result is not None:
+                    logging.info("Http Response for request ID: %s", request_id)
+                    logging.debug("Result details: %s", result)
+                else:
+                    logging.warning("Result was set but not found for request %s", request_id)
+
+                return result
+        except Exception:
+            logging.exception("Error retrieving result for request %s", request_id)
+            return None
+
+    def _cleanup_expired_results(self) -> None:
+        """Background thread that periodically evicts stale results.
+
+        A result is considered expired when its age exceeds twice the configured
+        request timeout.
+        """
+        while not self._stop_cleanup.is_set():
+            try:
+                self._stop_cleanup.wait(self.CLEANUP_INTERVAL)
+                if self._stop_cleanup.is_set():
+                    break
+
+                with self._result_lock:
+                    now: float = time.time()
+                    max_age: float = 2 * self._timeout
+                    expired: list[str] = [
+                        req_id
+                        for req_id, ts in self._result_timestamps.items()
+                        if now - ts > max_age
+                    ]
+
+                    for req_id in expired:
+                        self._result_store.pop(req_id, None)
+                        del self._result_timestamps[req_id]
+
+                    if expired:
+                        logging.info("Cleaned up %d expired results", len(expired))
+            except Exception:
+                logging.exception("Error in cleanup thread")
+
+    # ------------------------------------------------------------------
+    # Server lifecycle
+    # ------------------------------------------------------------------
+
+    def start(self) -> None:
+        """Start the HTTP server on the configured host:port."""
+        if self._running:
+            logging.warning("HTTP Server is already running")
+            return
+
+        try:
+            self._httpd = ThreadingHTTPServer((self._host, self._port), HttpRequestHandler)
+            server_thread = threading.Thread(target=self._httpd.serve_forever, daemon=True)
+            server_thread.start()
+            self._running = True
+            logging.info(
+                "HTTP Server is serving at http://%s:%d",
+                self._host or "localhost",
+                self._port,
+            )
+        except Exception:
+            logging.exception(
+                "Failed to start HTTP Server — no HTTP requests will be handled by this instance."
+            )
+            self._running = False
+
+    def stop(self) -> None:
+        """Shut down the HTTP server and release all resources."""
+        # Signal the cleanup thread to exit and wait briefly
+        self._stop_cleanup.set()
+        if self._cleanup_thread.is_alive():
+            self._cleanup_thread.join(0.5)
+
+        # Clear all pending results (events are GC'd via WeakValueDictionary)
+        with self._result_lock:
+            self._result_store.clear()
+            self._result_timestamps.clear()
+
+        if self._httpd and self._running:
+            self._httpd.shutdown()
+            self._running = False
+            logging.info("HTTP Server has been stopped.")
