@@ -27,10 +27,10 @@ class SeleniumUtil:
         return isinstance(chrome, WebDriver)
 
     @staticmethod
-    def get_webdriver4_chrome(download_folder=None) -> WebDriver:
+    def get_webdriver4_chrome(download_folder=None, page_load_timeout=180, maximize_window=False) -> WebDriver:
         wdpath: str = os.path.realpath('webdriver') + os.sep + OSUtils.get_system() + os.sep + 'chromedriver' + (
             '.exe' if OSUtils.get_system() == 'win32' else '')
-        
+
         down_path = os.path.join(os.path.realpath('download'), download_folder) \
             if download_folder is not None else os.path.realpath('download')
 
@@ -40,7 +40,7 @@ class SeleniumUtil:
 
         options = webdriver.ChromeOptions()
         options.add_argument("--start-maximized")
-
+        
         prefs = {"profile.default_content_settings.popups": 0,
                  "download.default_directory": down_path,
                  "directory_upgrade": True}
@@ -49,7 +49,14 @@ class SeleniumUtil:
 
         service = Service(executable_path=wdpath)
 
-        return webdriver.Chrome(options=options, service=service)
+        chrome = webdriver.Chrome(options=options, service=service)
+
+        chrome.set_page_load_timeout(page_load_timeout)
+
+        if maximize_window:
+            chrome.maximize_window()
+
+        return chrome
 
     """ UI 5 specific"""
 
@@ -249,8 +256,9 @@ class SeleniumUtil:
         return chrome
 
     @staticmethod
-    def get_page_from_url(crmurl, download_folder=None):
-        chrome = SeleniumUtil.get_webdriver4_chrome(download_folder)
+    def get_page_from_url(crmurl, download_folder=None, page_load_timeout=180):
+        chrome = SeleniumUtil.get_webdriver4_chrome(download_folder=download_folder,
+                                                    page_load_timeout=page_load_timeout)
         chrome.get(crmurl)
 
         return chrome
@@ -278,13 +286,16 @@ class SeleniumUtil:
         return SeleniumUtil.wait_then_return(chrome, "//table/tbody/tr/td/button", 200)
 
     @staticmethod
-    def get_page(url, xpath, timeoutInSeconds):
-        chrome = SeleniumUtil.get_webdriver4_chrome()
-        # chrome.fullscreen_window()
-        chrome.maximize_window()
-        logging.debug("page start rendering...")
-        chrome.get(url)
-        return SeleniumUtil.wait_then_return(chrome, xpath, timeoutInSeconds)
+    def get_page(url, xpath, timeout_in_seconds, page_load_timeout=180):
+        from selenium.common.exceptions import TimeoutException
+        chrome = SeleniumUtil.get_webdriver4_chrome(maximize_window=True, page_load_timeout=page_load_timeout)
+        logging.debug(f"page start rendering... (page_load_timeout={page_load_timeout}s)")
+        try:
+            chrome.get(url)
+        except TimeoutException:
+            logging.warning(f"page_load_timeout({page_load_timeout}s) exceeded for url: {url}, "
+                            f"still trying to locate element: {xpath}")
+        return SeleniumUtil.wait_then_return(chrome, xpath, timeout_in_seconds)
 
     @staticmethod
     def full_screen(chrome):
@@ -341,18 +352,25 @@ class SeleniumUtil:
                 im.show()
 
     @staticmethod
-    def wait_then_return(chrome, xpath, timeoutInSeconds):
+    def wait_then_return(chrome, xpath, timeoutInSeconds, retry=2):
+        from selenium.common.exceptions import TimeoutException
         logging.debug("waiting page rendering.")
-        try:
-            element = WebDriverWait(chrome, timeoutInSeconds).until(
-                EC.presence_of_element_located((By.XPATH, xpath))
-            )
-            logging.debug("page rendered as excepted.")
-            return chrome
-        except:
-            chrome.quit()
-            logging.error("wait_then_return - fail to loading page, xpath:" + xpath)
-            return None
+        for attempt in range(1, retry + 1):
+            try:
+                WebDriverWait(chrome, timeoutInSeconds).until(
+                    EC.presence_of_element_located((By.XPATH, xpath))
+                )
+                logging.debug("page rendered as expected.")
+                return chrome
+            except TimeoutException:
+                logging.warning(f"wait_then_return - attempt {attempt}/{retry} timed out "
+                                f"after {timeoutInSeconds}s, xpath: {xpath}")
+            except Exception as e:
+                logging.error(f"wait_then_return - unexpected error: {e}, xpath: {xpath}")
+                break
+        chrome.quit()
+        logging.error(f"wait_then_return - all {retry} attempts failed, xpath: {xpath}")
+        return None
 
     @staticmethod
     def wait_for_element_id_visible(chrome, eleId, timeout=60):

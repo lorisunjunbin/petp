@@ -5,7 +5,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class GO_TO_PAGEProcessor(Processor):
-    TPL: str = '{"url":"required", "url_key":"", "chrome_name":"chrome","skip_in_pipeline":"no", "download_folder":""}'
+    TPL: str = '{"page_load_timeout_seconds":"180","url":"required", "url_key":"", "chrome_name":"chrome","skip_in_pipeline":"no", "download_folder":""}'
     DESC: str = f''' 
         - Call selenium to launch chrome browser and visit specific URL, usually it's the first task of web  relevant execution.   
 
@@ -24,9 +24,11 @@ class GO_TO_PAGEProcessor(Processor):
 
         download_folder = self.expression2str(self.get_param('download_folder')) \
             if self.has_param('download_folder') else None
+        page_load_timeout_seconds = int(self.get_param('page_load_timeout_seconds')) \
+            if self.has_param('page_load_timeout_seconds') else 180
 
         url = self.get_data_by_param_default_param("url_key", "url")
-        chrome = SeleniumUtil.get_page_from_url(url, download_folder=download_folder)
+        chrome = SeleniumUtil.get_page_from_url(url, download_folder=download_folder, page_load_timeout=page_load_timeout_seconds)
 
         if self.has_param('chrome_name'):
             self.populate_data(self.get_param('chrome_name'), chrome)

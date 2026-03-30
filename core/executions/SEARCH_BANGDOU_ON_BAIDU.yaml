@@ -1,13 +1,18 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: SEARCH_BANGDOU_ON_BAIDU
 list:
 - !!python/object:core.task.Task
   input: '{"url":"http://www.baidu.com"}'
+  skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "kw", "value": "\u4e2b\u68d2\u8c46\u513f"}'
+  input: '{"keyinby": "id", "identity": "chat-textarea", "value": "\u4e2b\u68d2\u8c46\u798f\u513f"}'
+  skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby":"id", "identity":"su"}'
+  input: '{"clickby": "id", "identity": "chat-submit-button"}'
+  skipped: false
   type: FIND_THEN_CLICK
 loops: []
+mcp_desc: ''
