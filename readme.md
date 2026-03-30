@@ -93,6 +93,10 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2026-03: Enhance FIND_MULTI_XXXProcessor with skip function support for element handling.
+
+2026-03: Add page load timeout support in Selenium utility.
+
 2026-02: Support standard MCP tool(HTTP-Streaming), for more details, please refer to [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) or using MCP inspector URL: http://localhost:8866/mcp  Transport Type: Streamable HTTP
 
 2026-01: New Executions: OOTB_AI_LLM_ZHIPU， OOTB_AI_LLM_ZHIPU_MCP

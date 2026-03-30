@@ -1,11 +1,12 @@
 import logging
 
 from core.processor import Processor
+from utils.CodeExplainerUtil import CodeExplainerUtil
 from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_MULTI_THEN_COLLECTProcessor(Processor):
-    TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value|ele", "value_key":"name_of_collecttion", "wait":5, "timeout":10}'
+    TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value|ele", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None"}'
 
     DESC = f'''
     get muti-text/property/attribute from given elements via selenium 
@@ -27,14 +28,21 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
         value_key = self.expression2str(self.get_param('value_key'))
         identity = self.get_param('identity')
         time_out = int(self.get_param('timeout')) if self.has_param('timeout') else 10
+        skip_fn_body = self.expression2str(self.get_param('skip_fn')) \
+            if self.has_param('skip_fn') and len(self.get_param('skip_fn')) > 0 \
+            else None
 
         super().extra_wait()
 
         elements = SeleniumUtil.get_elements(chrome, collectby, identity, time_out)
 
         valueCollection = []
-
+        skip_fn = CodeExplainerUtil.create_and_execute_func('FIND_MULTI_THEN_COLLECTProcessor_skip_fn', '(ele)',
+                                                            skip_fn_body) if skip_fn_body else None
         for ele in elements:
+            if skip_fn and skip_fn(ele):
+                continue
+
             new_value = None
             if value_type == 'text':
                 new_value = ele.text

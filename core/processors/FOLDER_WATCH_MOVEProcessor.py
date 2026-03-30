@@ -1,6 +1,6 @@
 import logging
 import os
-import shutil
+import time
 
 from core.processor import Processor
 from utils.OSUtils import OSUtils
@@ -28,19 +28,33 @@ class FOLDER_WATCH_MOVEProcessor(Processor):
         target_filespath_key = self.expression2str(self.get_param('targetfilespath_key'))
         timeout = self.get_param('timeout') if self.has_param('timeout') else 2
 
+        logging.info(f'source_folder={source_folder}')
+        logging.info(f'target_folder={target_folder}')
+        logging.info(f'target_filespath_key={target_filespath_key}')
+
         targetfiles_path = []
 
         if expect_count > 0:
             actual_file_count = OSUtils.wait_for_folder_reach_expectcount_within_seconds(source_folder, expect_count,
                                                                                          timeout)
+
             # move files if count matched with expected
             if actual_file_count == expect_count:
                 targetfiles_path = self.move_files_only(source_folder, target_folder)
+                logging.info(f'count matched,  targetfiles_path={targetfiles_path}')
             else:
-                logging.warning(f'expect {expect_count} files in {source_folder}, found {actual_file_count}')
+                logging.warning(
+                    f'expect {expect_count} files in {source_folder}, found {actual_file_count}, will not move')
+
+        # move all files if no expected count, but wait for timeout if specified
+        elif timeout > 0:
+            time.sleep(timeout)
+            targetfiles_path = self.move_files_only(source_folder, target_folder)
+            logging.info(f'wait {timeout} seconds,  targetfiles_path={targetfiles_path}')
         # move all files if no expected count
         else:
             targetfiles_path = self.move_files_only(source_folder, target_folder)
+            logging.info(f'timeout:{timeout}, expect_count:{expect_count},  targetfiles_path={targetfiles_path}')
 
         self.populate_data(target_filespath_key, targetfiles_path)
 
