@@ -8,12 +8,16 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 class ExcelUtil:
     @staticmethod
-    def filter_by_fields(fields: [str] = [], data: [[]] = []):
+    def filter_by_fields(fields: [str] = None, data: [[]] = None):
         """
         1, find all matched column index from data[0] associated with fields
         2, collect matched columns into new data_filtered, then return
 
         """
+        if data is None:
+            data = []
+        if fields is None:
+            fields = []
         # figure out which columns should be kept
         first_row = data[0]
         column_idx = ExcelUtil.find_column_index_arr_via_fields(first_row, fields)
@@ -32,7 +36,9 @@ class ExcelUtil:
         return data_filtered
 
     @staticmethod
-    def find_column_index_arr_via_fields(first_row: [], fields: [str] = []):
+    def find_column_index_arr_via_fields(first_row: [], fields: [str] = None):
+        if fields is None:
+            fields = []
         column_idx: [int] = []
         for f_idx, field in enumerate(fields):
             for c_idx, cell in enumerate(first_row):
@@ -68,7 +74,7 @@ class ExcelUtil:
         logging.info(f'convert_csv_to_xlsx save file to: {xlsxFilePath}')
 
     @staticmethod
-    def write_dict_to_excel(full_file_path: str, data_as_dict: dict[str:[]]):
+    def write_dict_to_excel(full_file_path: str, data_as_dict: dict[str, list]):
         if len(data_as_dict) == 0:
             logging.info(f'not data to write: {full_file_path}')
             return

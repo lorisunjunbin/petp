@@ -289,16 +289,18 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
 		except Exception as e:
 			logging.error(f"Error during streaming response: {e}")
 
-	def send_failure_response(self, code=500, data={}, msg="Failure"):
+	def send_failure_response(self, code=500, data=None, msg="Failure"):
 		"""Send a failure JSON response with appropriate status code"""
 		self.send_json_response(code, data, msg)
 
-	def send_success_json(self, code=200, data={}, msg="Success"):
+	def send_success_json(self, code=200, data=None, msg="Success"):
 		"""Send a success JSON response with appropriate status code"""
 		self.send_json_response(code, data, msg)
 
-	def send_json_response(self, code=-1, data={}, msg=""):
+	def send_json_response(self, code=-1, data=None, msg=""):
 		"""Send a JSON response with the given status code and data"""
+		if data is None:
+			data = {}
 		self.send_response(code)
 		self.send_header('Content-Type', 'application/json')
 		self.send_cors_headers()

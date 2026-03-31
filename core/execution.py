@@ -26,10 +26,10 @@ class Execution:
     the instance could be serialized to yaml file and deserialized from yaml file.
     """
 
-    def __init__(self, execution: str, list: list, mcp_desc: str, astool: bool = False, loops: list = []):
+    def __init__(self, execution: str, list: list, mcp_desc: str, astool: bool = False, loops: list = None):
         self.execution = execution
         self.list = list
-        self.loops = loops
+        self.loops = loops if loops is not None else []
         self.mcp_desc = mcp_desc
         self.astool = astool
 

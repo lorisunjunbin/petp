@@ -33,7 +33,11 @@ class SystemConfig():
             yaml.dump(self.yamldoc, f, default_flow_style=False)
         logging.debug('set_config -' + str(keys) + '= ' + str(value))
 
-    def bind_model(self, model, keys=[], exclude_keys=[]):
+    def bind_model(self, model, keys=None, exclude_keys=None):
+        if keys is None:
+            keys = []
+        if exclude_keys is None:
+            exclude_keys = []
         for idx, key in enumerate(keys):
             config_set = self.yamldoc[key]
             for k, v in config_set.items():
