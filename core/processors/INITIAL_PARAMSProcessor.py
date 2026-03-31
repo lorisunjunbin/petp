@@ -1,18 +1,10 @@
 from core.processor import Processor
 
-"""
-TODO: 
-    load from json,yaml files?
-    able to specify chrome properties, etc.
-    
-"""
-
-
 class INITIAL_PARAMSProcessor(Processor):
-    TPL: str = '{"key":"value"}'
+    TPL: str = '{"any_key":"any_value"}'
 
     DESC: str = f''' 
-        - Initial key-value pairs, save to data_chain  
+        - Initial key-value pairs, save to data_chain, can be used in f-string via: self.get_data("any_key"), any_value support expression2str.
 
         {TPL}
 

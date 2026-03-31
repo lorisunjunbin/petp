@@ -89,6 +89,9 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_pwd, self.v.convertPWD)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data, self.v.convertGetData)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data, self.v.convertGetDeepData)
+        self.v.Bind(wx.EVT_BUTTON, self.on_append_date_str, self.v.appendDateStr)
+        self.v.Bind(wx.EVT_BUTTON, self.on_append_os_sep, self.v.appendOsSep)
+
         self.v.datepicker.Bind(wx.adv.EVT_DATE_CHANGED, self.on_datepicker_changed)
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_property, self.v.delProperty)
         self.v.Bind(wx.EVT_BUTTON, self.on_add_property, self.v.addProperty)
@@ -298,6 +301,14 @@ class PETPInteractor():
     def on_convert_get_deep_data(self, evt):
         evt.Skip()
         self.p.on_convert_get_deep_data()
+
+    def on_append_date_str(self, evt):
+        evt.Skip()
+        self.p.on_append_date_str()
+
+    def on_append_os_sep(self,  evt):
+        evt.Skip()
+        self.p.on_append_os_sep()
 
     def on_datepicker_changed(self, evt):
         self.p.on_datepicker_changed(evt)

@@ -20,6 +20,7 @@ from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
 from mvp.view.common.AdvancedInputDialog import AdvancedInputDialog
+from mvp.view.common.SearchableGridChoiceEditor import SearchableGridChoiceEditor
 from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
 from mvp.view.sub.PETP_PIE_CHARTView import PETP_PIE_CHARTView
 from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
@@ -151,7 +152,9 @@ class PETPPresenter():
 		self.cron = Cron(self.v)
 
 	def _load_available_executions(self):
-		self.v.executionChooser.AppendItems(Execution.get_available_executions())
+		self.available_executions = Execution.get_available_executions()
+		self._execution_all_items = list(self.available_executions)
+		self.v.executionChooser.AppendItems(self.available_executions)
 
 	def _load_available_pipelines(self):
 		self.v.pipelineChooser.AppendItems(Pipeline.get_available_pipelines())
@@ -528,10 +531,17 @@ class PETPPresenter():
 				'Recording location and test name should not be empty, also able to select the row where start to load.')
 
 	def _bind_grid_cell_choice_editor(self, rowAt, grid, choices):
-		grid.SetCellEditor(
-			rowAt, 0,
-			wx.grid.GridCellChoiceEditor(choices, allowOthers=False)
-		)
+		# Prefer searchable choice editor to improve UX when choice lists are long.
+		try:
+			grid.SetCellEditor(
+				rowAt, 0,
+				SearchableGridChoiceEditor(choices, allow_others=False, match_mode="contains")
+			)
+		except Exception:
+			grid.SetCellEditor(
+				rowAt, 0,
+				wx.grid.GridCellChoiceEditor(choices, allowOthers=False)
+			)
 		# this cell editor is not working for mac so,
 		if not OSUtils.get_system() == "darwin":
 			grid.SetCellEditor(
@@ -634,6 +644,12 @@ class PETPPresenter():
 
 	def on_convert_get_deep_data(self):
 		self._convert('{self.get_deep_data(["",""])}')
+
+	def on_append_date_str(self):
+		self._convert('{self.get_now_str()}')
+
+	def on_append_os_sep(self):
+		self._convert('{os.sep}')
 
 	def _convert(self, to, put2first=False):
 		tp = self.v.taskProperty
