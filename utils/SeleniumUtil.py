@@ -1,5 +1,6 @@
 import logging
 import os
+import urllib3
 
 from PIL import Image
 from selenium import webdriver
@@ -13,6 +14,8 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 from utils.OSUtils import OSUtils
+
+urllib3.HTTPConnectionPool.maxsize = 20
 
 
 class SeleniumUtil:
@@ -40,7 +43,7 @@ class SeleniumUtil:
 
         options = webdriver.ChromeOptions()
         options.add_argument("--start-maximized")
-        
+
         prefs = {"profile.default_content_settings.popups": 0,
                  "download.default_directory": down_path,
                  "directory_upgrade": True}

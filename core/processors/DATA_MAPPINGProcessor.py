@@ -24,8 +24,8 @@ class DATA_MAPPINGProcessor(Processor):
         logging.info(f'given_collection: {len(given_collection)} -> {given_collection}')
 
         # --- optional slice: start_idx / end_idx ---
-        start_idx_raw = self.get_param('start_idx') if self.has_param('start_idx') else ''
-        end_idx_raw = self.get_param('end_idx') if self.has_param('end_idx') else ''
+        start_idx_raw = self.expression2str(self.get_param('start_idx')) if self.has_param('start_idx') else ''
+        end_idx_raw = self.expression2str(self.get_param('end_idx')) if self.has_param('end_idx') else ''
 
         if start_idx_raw != '' or end_idx_raw != '':
             # start_idx defaults to the first index (0) when not set

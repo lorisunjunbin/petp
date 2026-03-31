@@ -453,7 +453,7 @@ class PETPPresenter():
 			Thread(target=self.pipeline.run, args=({"__m": self.m, "__p": self}, self.v), daemon=True).start()
 
 	@reload_log_after
-	def on_run_execution(self, init_param: dict = {}):
+	def on_run_execution(self, init_param: dict = None):
 		combo = self.v.executionChooser
 		self.execution = Execution.get_execution(combo.GetValue())
 
@@ -462,8 +462,9 @@ class PETPPresenter():
 			self.m.last_run = combo.GetValue()
 			self.m.set_config('last_run', self.m.last_run)
 
-		init_param.update({"__m": self.m, "__p": self})
-		executor = Executor(self.execution, init_param, self.v)
+		fresh_init = dict(init_param) if init_param else {}
+		fresh_init.update({"__m": self.m, "__p": self})
+		executor = Executor(self.execution, fresh_init, self.v)
 		self.executors.append(executor)
 		executor.start()
 
