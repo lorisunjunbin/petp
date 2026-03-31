@@ -1,3 +1,6 @@
+import logging
+
+
 class CodeExplainerUtil:
 
     @staticmethod
@@ -10,6 +13,7 @@ class CodeExplainerUtil:
         :param args: arguments, if None, the function will not be executed, just created
         """
         func = 'def ' + func_name + func_args + ':\n\t\t' + func_body
+        logging.info("Dynamic function generated:\n%s", func)
         exec(func, globals())
         if args:
             return globals()[func_name](args)
