@@ -69,6 +69,31 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         """Get the HTTP response key"""
         return cls._response_key
 
+    # Errors that mean the remote peer simply closed the connection.
+    # We treat them as debug-level noise, not server errors.
+    _PEER_DISCONNECT_ERRORS = (
+        ConnectionResetError,   # [Errno 54] on macOS / [Errno 104] on Linux
+        BrokenPipeError,        # write to a closed socket
+        ConnectionAbortedError, # Windows peer-abort equivalent
+    )
+
+    def handle(self):
+        """Override to silently absorb peer-disconnect errors.
+
+        Python's socketserver prints a full traceback to stderr for *any*
+        unhandled exception in process_request_thread.  Catching the
+        connection-reset family here prevents those noisy tracebacks while
+        still letting genuine errors propagate.
+        """
+        try:
+            super().handle()
+        except self._PEER_DISCONNECT_ERRORS as e:
+            logging.info(
+                "Client %s disconnected before the request was fully read: %s",
+                self.client_address,
+                e,
+            )
+
     def log_message(self, format, *args):
         logging.debug("%s - - [%s] %s" % (
             self.address_string(),
@@ -286,6 +311,9 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
             # Terminate chunked response
             self.wfile.write(b"0\r\n\r\n")
             self.wfile.flush()
+        except self._PEER_DISCONNECT_ERRORS as e:
+            # Client closed the connection mid-stream — not a server error.
+            logging.debug("Client %s disconnected during streaming: %s", self.client_address, e)
         except Exception as e:
             logging.error(f"Error during streaming response: {e}")
 
