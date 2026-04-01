@@ -31,8 +31,7 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
 		skip_fn_body = self.expression2str(self.get_param('skip_fn')) \
 			if self.has_param('skip_fn') and len(self.get_param('skip_fn')) > 0 \
 			else None
-		sort_lambda = lambda item: eval(self.expression2str(self.get_param('sort_lambda'))) if self.has_param(
-			'sort_lambda') else None
+		sort_lambda = (lambda item: eval(self.expression2str(self.get_param('sort_lambda')))) if self.has_param('sort_lambda') else None
 		sort_reverse = self.get_param('sort_reverse').lower() == 'yes' if self.has_param('sort_reverse') else False
 		skip_fn = CodeExplainerUtil.create_and_execute_func('FIND_MULTI_THEN_COLLECTProcessor_skip_fn', '(ele)',
 		                                                    skip_fn_body) if skip_fn_body else None
