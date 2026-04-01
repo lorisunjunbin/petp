@@ -246,7 +246,7 @@ class HttpServer:
         method: Optional[str] = params.get("method")
         token: Optional[str] = handler.headers.get("Authorization")
 
-        logging.info("_handle_mcp path: %s, method: %s", handler.path, method)
+        logging.debug("_handle_mcp path: %s, method: %s", handler.path, method)
 
         # Token-based access control (skip when _token is None)
         if self._token is not None and token != f"Bearer {self._token}":
@@ -388,7 +388,7 @@ class HttpServer:
         request_id = params.get("id")
         session_id: Optional[str] = self._extract_session_id(handler)
         resp = {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": []}}
-        logging.info("PETP MCP prompts: %s", json.dumps(resp))
+        logging.debug("PETP MCP prompts: %s", json.dumps(resp))
         return self._single_sse_response(resp, session_id)
 
     def _mcp_resources_list(
@@ -398,7 +398,7 @@ class HttpServer:
         request_id = params.get("id")
         session_id: Optional[str] = self._extract_session_id(handler)
         resp = {"jsonrpc": "2.0", "id": request_id, "result": {"resources": []}}
-        logging.info("PETP MCP resources: %s", json.dumps(resp))
+        logging.debug("PETP MCP resources: %s", json.dumps(resp))
         return self._single_sse_response(resp, session_id)
 
     # ------------------------------------------------------------------
@@ -648,7 +648,7 @@ class HttpServer:
 
                 if result is not None:
                     logging.info("Http Response for request ID: %s", request_id)
-                    logging.debug("Result details: %s", result)
+                    logging.info("Result details: %s", result)
                 else:
                     logging.warning("Result was set but not found for request %s", request_id)
 

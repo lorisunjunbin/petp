@@ -4,8 +4,9 @@ execution: T_SEACH_TCODE
 list:
 - !!python/object:core.task.Task
   input: '{"title": "\u8f93\u5165", "msg": "\u9700\u8981\u67e5\u627e\u54ea\u4e2aTcode",
-    "value_key": "tcode", "default_value": "SE16N", "stop_on_cancel": "yes"}'
-  skipped: false
+    "value_key": "tcode", "default_value": "SE16N", "stop_on_cancel": "yes", "skipped":
+    "yes"}'
+  skipped: true
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"param_not_empty": "tcode"}'

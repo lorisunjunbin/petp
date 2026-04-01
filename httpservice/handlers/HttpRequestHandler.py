@@ -70,8 +70,7 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         return cls._response_key
 
     def log_message(self, format, *args):
-        """Override to use Python's logging instead of stderr"""
-        logging.info("%s - - [%s] %s" % (
+        logging.debug("%s - - [%s] %s" % (
             self.address_string(),
             self.log_date_time_string(),
             format % args
