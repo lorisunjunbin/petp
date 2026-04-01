@@ -1,0 +1,16 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: ENDECODER
+list:
+- !!python/object:core.task.Task
+  input: '{"type": "ENCODE", "inbound": "yabangdou", "outbound_key": "result", "algorithms":
+    "base64"}'
+  skipped: false
+  type: ENCODE_DECODE_STR
+- !!python/object:core.task.Task
+  input: '{"http_response_key":"result"}'
+  skipped: false
+  type: HTTP_RESPONSE_KEY
+loops: []
+mcp_desc: "{\n\u201Cdesc\u201D:\u201Dsupport encode and decode inbound string with
+  algorithms\u201D,\n\u201Cparams\u201D\uFF1A[\u201Ctype\u201D,\u201Dalgorithms\u201D,\u201Dinbound\u201D]\n}"

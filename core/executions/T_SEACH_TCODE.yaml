@@ -1,0 +1,31 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: T_SEACH_TCODE
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "\u8f93\u5165", "msg": "\u9700\u8981\u67e5\u627e\u54ea\u4e2aTcode",
+    "value_key": "tcode", "default_value": "SE16N", "stop_on_cancel": "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"param_not_empty": "tcode"}'
+  skipped: false
+  type: CHECK_PARAM
+- !!python/object:core.task.Task
+  input: '{"database": "/Users/i335607/MyProject/PycharmProjects/tcodesearch/datastore/TcodeLiteStore.db",
+    "sql": "select TCODE,TCODE_DESC from tcode where TCODE like ?", "data_key": "dataset_of_sqlite",
+    "param": "%{self.get_data(\"tcode\")}%", "type": "Sqlite"}'
+  skipped: false
+  type: DB_ACCESS
+- !!python/object:core.task.Task
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_of_sqlite\")}",
+    "skipped": "yes"}'
+  skipped: true
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"http_response_key": "dataset_of_sqlite"}'
+  skipped: false
+  type: HTTP_RESPONSE_KEY
+loops: []
+mcp_desc: "{\n  \u201Cdesc\u201D: \u201Cfind description of tcode\u201D,\n  \u201Cparams\u201D:
+  [\u201Ctcode\u201D]\n}"

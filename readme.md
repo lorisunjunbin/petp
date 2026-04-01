@@ -93,6 +93,10 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
+2026-04: add new handy buttons: append date_str, append os.sep; checkbox: skip task when run execution.
+
+2026-03: two new Executions: OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm and OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64
+
 2026-03: Enhance FIND_MULTI_XXXProcessor with skip function support for element handling.
 
 2026-03: Add page load timeout support in Selenium utility.

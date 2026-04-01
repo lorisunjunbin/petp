@@ -605,6 +605,11 @@ class PETPPresenter():
 		available_processors = [k for k in tpl_dict.keys() if not k in input_dict]
 		self.v.avaibleProperties.AppendItems(available_processors)
 
+		# Sync the "skipped" checkbox to reflect the current task's skipped state.
+		skipped_value = str(input_dict.get("skipped", "")).lower()
+		is_skipped = skipped_value in {"yes", "y", "true", "t"}
+		self.v.cb_skipped.SetValue(is_skipped)
+
 	def _append_or_update_property_to_page(self, k, v, page):
 		prop = page.GetPropertyByName(k)
 
@@ -650,6 +655,15 @@ class PETPPresenter():
 
 	def on_append_os_sep(self):
 		self._convert('{os.sep}')
+
+	def on_cb_astool_changed(self, evt):
+		# When "as tool" is checked and the description field is empty,
+		# pre-fill it with a default MCP tool descriptor template.
+		if evt.IsChecked():
+			current_desc = self.v.execution_desc.GetValue().strip()
+			if not current_desc:
+				default_desc = json.dumps({"desc": "", "params": []}, indent=2)
+				self.v.execution_desc.SetValue(default_desc)
 
 	def _convert(self, to, put2first=False):
 		tp = self.v.taskProperty
@@ -716,6 +730,26 @@ class PETPPresenter():
 
 		input_dict = json.loads(grid.GetCellValue(self.current_selected_row, 1))
 		self._fill_available_properties(processor, input_dict)
+
+	@reload_log_after
+	def on_skip_task_changed(self, evt):
+		# Guard: a task row must be selected before toggling skip state
+		if self.current_selected_row < 0:
+			logging.info('Please select a task row first before toggling skip.')
+			return
+
+		page = self.v.taskProperty.GetPage(self.single_page)
+
+		if evt.IsChecked():
+			# Mark task as skipped: add/update 'skipped = yes' in both
+			# the property grid panel and the backing task JSON in the grid cell
+			self._append_or_update_property_to_page("skipped", "yes", page)
+			self._add_property("skipped", "yes")
+		else:
+			# Un-skip: update 'skipped' to 'no' so the key stays visible
+			# but is no longer treated as a skip signal by _check_task_skipped
+			self._append_or_update_property_to_page("skipped", "no", page)
+			self._add_property("skipped", "no")
 
 	@reload_log_after
 	def on_delete_property(self):

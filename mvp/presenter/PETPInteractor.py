@@ -6,6 +6,7 @@ import wx.lib.colourutils
 
 from mvp.presenter.event.PETPEvent import PETPEvent
 
+
 class PETPInteractor():
     """
     PETPInteractor is in charge of binding events from view to presenter.
@@ -92,9 +93,13 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_append_date_str, self.v.appendDateStr)
         self.v.Bind(wx.EVT_BUTTON, self.on_append_os_sep, self.v.appendOsSep)
 
+        self.v.Bind(wx.EVT_CHECKBOX, self.on_cb_astool_changed, self.v.cb_astool)
+
         self.v.datepicker.Bind(wx.adv.EVT_DATE_CHANGED, self.on_datepicker_changed)
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_property, self.v.delProperty)
         self.v.Bind(wx.EVT_BUTTON, self.on_add_property, self.v.addProperty)
+        self.v.Bind(wx.EVT_CHECKBOX, self.on_skip_task_changed, self.v.cb_skipped)
+
 
     def bind_view_event_4e_task_editor(self):
         # task editor - top action panel
@@ -114,7 +119,6 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_del_loop, self.v.delLoop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data_4loop, self.v.convertGetDeepData4Loop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data_4loop, self.v.convertGetData4Loop)
-
 
     def on_handle_display_in_matplotlib_view(self, evt: PETPEvent):
         self.p.on_handle_display_in_matplotlib_view(evt)
@@ -306,9 +310,13 @@ class PETPInteractor():
         evt.Skip()
         self.p.on_append_date_str()
 
-    def on_append_os_sep(self,  evt):
+    def on_append_os_sep(self, evt):
         evt.Skip()
         self.p.on_append_os_sep()
+
+    def on_cb_astool_changed(self, evt):
+        evt.Skip()
+        self.p.on_cb_astool_changed(evt)
 
     def on_datepicker_changed(self, evt):
         self.p.on_datepicker_changed(evt)
@@ -316,6 +324,10 @@ class PETPInteractor():
     def on_add_property(self, evt):
         evt.Skip()
         self.p.on_add_property()
+
+    def on_skip_task_changed(self, evt):
+        evt.Skip()
+        self.p.on_skip_task_changed(evt)
 
     def on_delete_property(self, evt):
         evt.Skip()

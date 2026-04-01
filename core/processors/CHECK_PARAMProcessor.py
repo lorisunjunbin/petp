@@ -2,7 +2,7 @@ from core.processor import Processor
 
 
 class CHECK_PARAMProcessor(Processor):
-    TPL: str = '{"param_not_empty":"name on data_chain"}'
+    TPL: str = '{"param_not_empty":"name1|>name2"}'
     DESC: str = f''' 
         - To check the required attribute of data_chain, will terminate the execution or pipeline if given attribute not available.
         {TPL}
