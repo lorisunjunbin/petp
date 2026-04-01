@@ -13,6 +13,8 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 		self._control = None
 		self._start_value = ""
 		self._is_syncing = False
+		self._is_selecting = False   # True while a dropdown click is being processed
+		self._is_navigating = False  # True while Up/Down key navigation is in progress
 
 	def Create(self, parent, id, evt_handler):
 		self._control = wx.ComboBox(
@@ -27,7 +29,9 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 		if evt_handler:
 			self._control.PushEventHandler(evt_handler)
 
+		self._control.Bind(wx.EVT_COMBOBOX, self._on_combobox_select)
 		self._control.Bind(wx.EVT_TEXT, self._on_text)
+		self._control.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
 		self._control.Bind(wx.EVT_KILL_FOCUS, self._on_kill_focus)
 
 	def SetSize(self, rect):
@@ -76,8 +80,56 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 				pass
 		super().Destroy()
 
+	def _on_key_down(self, evt):
+		"""Handle keyboard navigation in the dropdown list."""
+		keycode = evt.GetKeyCode()
+
+		if keycode in (wx.WXK_UP, wx.WXK_DOWN):
+			# Mark as navigating so _on_text won't re-filter and close the dropdown.
+			self._is_navigating = True
+			evt.Skip()  # Let ComboBox handle native Up/Down movement.
+			# Reset the flag after the ComboBox has finished processing the key.
+			wx.CallAfter(self._reset_navigating)
+			return
+
+		if keycode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+			# Accept the currently highlighted value and restore the full list.
+			selected = self._control.GetValue()
+			self._is_selecting = True
+			self._sync_items(self._all_choices, selected)
+			self._is_selecting = False
+			# Dismiss the dropdown.
+			self._control.Dismiss()
+			evt.Skip()
+			return
+
+		if keycode == wx.WXK_ESCAPE:
+			# Cancel: revert to the original value.
+			self._sync_items(self._all_choices, self._start_value)
+			self._control.Dismiss()
+			evt.Skip()
+			return
+
+		# Any other key: allow normal typing and filtering.
+		evt.Skip()
+
+	def _reset_navigating(self):
+		"""Called via CallAfter to clear the navigation flag."""
+		self._is_navigating = False
+
+	def _on_combobox_select(self, evt):
+		"""User clicked an item in the dropdown – accept the value and
+		restore the full choice list without re-filtering."""
+		self._is_selecting = True
+		selected = self._control.GetValue()
+		# Restore full list so the next open shows everything,
+		# but keep the selected value in the text field.
+		self._sync_items(self._all_choices, selected)
+		self._is_selecting = False
+		evt.Skip()
+
 	def _on_text(self, evt):
-		if self._is_syncing:
+		if self._is_syncing or self._is_selecting or self._is_navigating:
 			evt.Skip()
 			return
 
