@@ -348,12 +348,7 @@ class PETPPresenter():
 			self.v.executionChooser.Popup()
 
 	def _reload_executions(self, items, value):
-		self.v.executionChooser.Freeze()
-		self.v.executionChooser.Clear()
-		self.v.executionChooser.AppendItems(items)
-		self.v.executionChooser.SetValue(value)
-		self.v.executionChooser.SetInsertionPointEnd()
-		self.v.executionChooser.Thaw()
+		self.v.executionChooser.Reload(items, value)
 
 	def _save_execcution(self, name):
 		grid = self.v.taskGrid

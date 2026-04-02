@@ -1,4 +1,7 @@
+import sys
 import wx
+
+_IS_WINDOWS = sys.platform == 'win32'
 
 
 class SearchableComboBox(wx.ComboBox):
@@ -9,6 +12,9 @@ class SearchableComboBox(wx.ComboBox):
     - Up/Down keys navigate the filtered list; Enter confirms; Escape dismisses.
     - Selecting an item from the list restores the full list for the next interaction.
     - All standard wx.ComboBox API (AppendItems, Clear, SetValue, GetValue …) still works.
+
+    On Windows extra care is taken to prevent flickering caused by asynchronous
+    EVT_TEXT events that Clear() / SetValue() post into the event queue.
     """
 
     def __init__(self, parent, id=wx.ID_ANY, value="", choices=None, **kwargs):
@@ -22,6 +28,13 @@ class SearchableComboBox(wx.ComboBox):
         self._is_syncing = False
         self._is_selecting = False
         self._is_navigating = False
+
+        # Windows-only: timer-based debounce to avoid rebuilding the list on
+        # every keystroke (async EVT_TEXT from Clear/SetValue causes recursion).
+        if _IS_WINDOWS:
+            self._filter_timer = wx.Timer(self)
+            self._pending_keyword = ""
+            self.Bind(wx.EVT_TIMER, self._on_filter_timer)
 
         self.Bind(wx.EVT_TEXT, self._on_text)
         self.Bind(wx.EVT_COMBOBOX, self._on_combobox_select)
@@ -46,6 +59,16 @@ class SearchableComboBox(wx.ComboBox):
         self._all_choices = list(items)
         self._sync(items, self.GetValue())
 
+    def Reload(self, items, value):
+        """Replace the full item list and set the display value atomically.
+
+        External callers (e.g. Presenter._reload_executions) should prefer
+        this over manual Clear() + AppendItems() + SetValue() sequences to
+        avoid triggering unwanted EVT_TEXT cascades on Windows.
+        """
+        self._all_choices = list(items)
+        self._sync(items, value)
+
     # ------------------------------------------------------------------
     # Internal event handlers
     # ------------------------------------------------------------------
@@ -56,6 +79,16 @@ class SearchableComboBox(wx.ComboBox):
             evt.Skip()
             return
 
+        if _IS_WINDOWS:
+            # Debounce: restart timer so rapid keystrokes don't each rebuild
+            # the list (which would trigger more async EVT_TEXT events).
+            self._pending_keyword = self.GetValue()
+            self._filter_timer.Stop()
+            self._filter_timer.StartOnce(200)
+            evt.Skip()
+            return
+
+        # macOS / Linux: immediate filtering (original behaviour, unchanged).
         keyword = self.GetValue()
         filtered = self._filter(keyword)
         self._sync(filtered, keyword)
@@ -66,13 +99,48 @@ class SearchableComboBox(wx.ComboBox):
 
         evt.Skip()
 
+    def _on_filter_timer(self, _evt):
+        """Windows only – apply the filter after the debounce interval."""
+        if self._is_syncing or self._is_selecting or self._is_navigating:
+            return
+        keyword = self._pending_keyword
+        filtered = self._filter(keyword)
+        self._sync(filtered, keyword)
+        if filtered and keyword:
+            wx.CallAfter(self.Popup)
+
     def _on_combobox_select(self, evt):
         """User clicked an item – restore the full list for the next open."""
-        self._is_selecting = True
-        selected = self.GetValue()
-        self._sync(self._all_choices, selected)
-        self._is_selecting = False
+        if _IS_WINDOWS:
+            self._filter_timer.Stop()
+            # On Windows, do NOT call _sync() here.  The Clear() inside
+            # _sync would blank the text that the native control just set.
+            # Keep the guard flag raised so that the follow-up EVT_TEXT
+            # (CBN_EDITCHANGE) is suppressed, and defer the list restore
+            # until all native selection events have been processed.
+            self._is_selecting = True
+            wx.CallAfter(self._deferred_select_restore)
+        else:
+            self._is_selecting = True
+            selected = self.GetValue()
+            self._sync(self._all_choices, selected)
+            self._is_selecting = False
         evt.Skip()
+
+    def _deferred_select_restore(self):
+        """Windows only – restore the full item list after a dropdown selection.
+
+        Called via wx.CallAfter so that all native ComboBox events
+        (CBN_SELCHANGE, CBN_EDITCHANGE) have already been processed and the
+        displayed text is stable.
+        """
+        selected = self.GetValue()
+        # Restore the full list only if it was previously filtered.
+        if self.GetCount() != len(self._all_choices):
+            self._sync(self._all_choices, selected)
+        # Clear the guard AFTER _sync (which sets its own _is_syncing guard),
+        # so that there is no unguarded gap between the two flags.
+        self._is_selecting = False
 
     def _on_key_down(self, evt):
         """Handle keyboard navigation inside the dropdown."""
@@ -80,6 +148,8 @@ class SearchableComboBox(wx.ComboBox):
 
         if keycode in (wx.WXK_UP, wx.WXK_DOWN):
             # Let the ComboBox move the selection; suppress filtering.
+            if _IS_WINDOWS:
+                self._filter_timer.Stop()
             self._is_navigating = True
             evt.Skip()
             wx.CallAfter(self._reset_navigating)
@@ -87,6 +157,8 @@ class SearchableComboBox(wx.ComboBox):
 
         if keycode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
             # Confirm the highlighted value and restore the full list.
+            if _IS_WINDOWS:
+                self._filter_timer.Stop()
             selected = self.GetValue()
             self._is_selecting = True
             self._sync(self._all_choices, selected)
@@ -97,6 +169,8 @@ class SearchableComboBox(wx.ComboBox):
 
         if keycode == wx.WXK_ESCAPE:
             # Dismiss without changing value; restore full list.
+            if _IS_WINDOWS:
+                self._filter_timer.Stop()
             self._sync(self._all_choices, self.GetValue())
             self.Dismiss()
             evt.Skip()
@@ -119,11 +193,26 @@ class SearchableComboBox(wx.ComboBox):
             self.Freeze()
             super().Clear()
             super().AppendItems(items)
-            self.SetValue(value)
+            if _IS_WINDOWS:
+                # ChangeValue() does NOT fire EVT_TEXT – avoids the
+                # synchronous re-entrant call that SetValue() causes.
+                self.ChangeValue(value)
+            else:
+                self.SetValue(value)
             self.SetInsertionPointEnd()
         finally:
             self.Thaw()
-            self._is_syncing = False
+            if _IS_WINDOWS:
+                # Defer the flag reset: async EVT_TEXT events posted by
+                # Clear() are still in the queue; they must see
+                # _is_syncing == True so they get suppressed.
+                wx.CallAfter(self._finish_sync)
+            else:
+                self._is_syncing = False
+
+    def _finish_sync(self):
+        """Windows only – reset the guard after pending events have drained."""
+        self._is_syncing = False
 
     def _filter(self, keyword: str) -> list:
         """Return items whose text contains *keyword* (case-insensitive)."""
@@ -131,4 +220,9 @@ class SearchableComboBox(wx.ComboBox):
             return self._all_choices
         needle = keyword.lower()
         return [item for item in self._all_choices if needle in item.lower()]
+
+    def Destroy(self):
+        if _IS_WINDOWS and hasattr(self, '_filter_timer'):
+            self._filter_timer.Stop()
+        return super().Destroy()
 
