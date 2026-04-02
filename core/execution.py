@@ -96,20 +96,20 @@ class Execution:
     def log_end_process(self, current_loop, state, processor, task, view):
         loop_cursor = self.collect_loop_cursor(current_loop, state)
         logging.info(
-            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {state.get_sequence()} {loop_cursor}-- end << \n')
+            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {state.get_sequence()} {loop_cursor} -- end << \n')
         self.post_log_reload(state, view)
 
     def collect_loop_cursor(self, current_loop: Loop, state: ExecutionState) -> str:
         idx = "" if current_loop is None \
             else str(state.loop_times_cur) if state.is_times_loop \
             else str(state.current_loop_idx)
-        loop_cursor = (current_loop.get_loop_code() + "#" + idx) if current_loop is not None else ""
+        loop_cursor = (current_loop.get_loop_code() + "@" + idx) if current_loop is not None else ""
         return loop_cursor
 
     def log_start_process(self, current_loop, state, processor, task, view):
         loop_cursor = self.collect_loop_cursor(current_loop, state)
         logging.info(
-            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {state.get_sequence()} {loop_cursor}- begin >')
+            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {state.get_sequence()} {loop_cursor} -- begin >')
         logging.info(f'process start: {task.input}')
         self.post_log_reload(state, view)
 
