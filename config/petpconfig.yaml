@@ -10,4 +10,4 @@ application:
   http_request_token: cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
   last_run: loop_time
   log_level: INFO
-  version: 1.1.0
+  version: 1.2.0
