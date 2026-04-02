@@ -108,7 +108,7 @@ HTTP Enabled
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/user_manual.png)
 
-## LLM MCP Server, Clent & host:
+## LLM MCP Server, Client & host:
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/DEEPSEEK-MCP.png)
 
@@ -118,34 +118,116 @@ HTTP Enabled
 
 ## Install & Run
 
-1, Download & Install [python3.x](https://www.python.org/downloads/)
+### Prerequisites
 
-2, Install UI widgets, download wxpython for certain python
-version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| Python | 3.13 / 3.14 | [Download](https://www.python.org/downloads/) |
+| wxPython | 4.2.x / 4.3.x | Must match your Python version — see step 2 |
+| ChromeDriver | 134+ | Only needed for Selenium browser tasks |
 
-    > pip3.13 install --force-reinstall wxPython-4.2.3a1.dev5757+82b1c7aa-cp313-cp313-macosx_10_13_universal2.whl
+---
 
-3, Install dependencies
+### Step 1 — Install Python
 
+Download and install Python 3.13 or 3.14 from [python.org](https://www.python.org/downloads/).
+
+> ✅ Make sure to check **"Add Python to PATH"** during installation on Windows.
+
+---
+
+### Step 2 — Install wxPython
+
+wxPython must match your exact Python version and OS. Download the correct `.whl` from
+[wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/), then install it:
+
+**macOS (Apple Silicon, Python 3.14)**
 ```bash
-    pip install -r requirements.txt
+pip3.14 install --force-reinstall wxpython-4.3.0a16047+70fc073f-cp314-cp314-macosx_11_0_arm64.whl
 ```
 
-4, Run:
-
+**Windows (Python 3.14)**
 ```bash
-    python PETP.py
+pip install --force-reinstall wxpython-4.3.0a16047+70fc073f-cp314-cp314-win_amd64.whl
 ```
 
-5, Still not running? most of the issue is missing dependencies xxx, pls install xxx accordingly.
+**Windows (Python 3.13)**
+```bash
+pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-win_amd64.whl
+```
 
-    > pip install xxx
+> 💡 Always download the **latest snapshot** from [wxpython snapshots](https://wxpython.org/Phoenix/snapshot-builds/) for the best compatibility.
 
-6, Build executable for Mac & Windows, the executable is under dist folder.
+---
+
+### Step 3 — Install Dependencies
 
 ```bash
-    python PETP_build.py
+pip install -r requirements.txt
 ```
+
+> ⚠️ If you encounter a missing package error, install it manually:
+> ```bash
+> pip install <package-name>
+> ```
+
+---
+
+### Step 4 — Run PETP
+
+```bash
+python PETP.py
+```
+
+The GUI window will launch. On first run, PETP creates a default config under `./config/petpconfig.yaml`.
+
+---
+
+### Step 5 — (Optional) Enable HTTP Service
+
+PETP includes a built-in HTTP server on port **8866** for remote execution triggering and MCP tool access.
+
+Once started from the UI, you can access:
+
+| Endpoint | Description |
+|----------|-------------|
+| `http://localhost:8866/` | PETP HTTP service home |
+| `http://localhost:8866/mcp` | MCP Tool Server (Streamable HTTP) |
+
+For MCP Inspector, use Transport Type: **Streamable HTTP** and URL: `http://localhost:8866/mcp`
+
+---
+
+### Step 6 — (Optional) Build Standalone Executable
+
+Build a native executable for **macOS or Windows** (output goes to `./dist/`):
+
+```bash
+python PETP_build.py
+```
+
+> 🍎 On macOS this produces `PETP.app`; on Windows it produces `PETP.exe`.
+
+---
+
+### Step 7 — (Optional) Update All Dependencies
+
+Keep all installed packages up to date on macOS/Linux:
+
+```bash
+pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+```
+
+---
+
+### Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `ModuleNotFoundError: No module named 'xxx'` | Run `pip install xxx` |
+| wxPython import error | Ensure the `.whl` matches your exact Python version and OS arch |
+| ChromeDriver version mismatch | Download the matching driver from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
+| Port 8866 already in use | Change the port in `./config/petpconfig.yaml` |
 
 ## TO-DO:
 
@@ -250,27 +332,5 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 ## Appreciate for
 
 - [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
-
 - [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/)
 
-## tips:
-
-Upgrade [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/) ,[and more](https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json)
-if you get an error of mismatched version (selenium task only).
-
-- Download latest snapshot version from [Wxpython snapshot](https://wxpython.org/Phoenix/snapshot-builds/)
-
-
-- Install wxpython for certain python version:
-
-> pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-win_amd64.whl
-
-> pip3.14 install --force-reinstall wxpython-4.3.0a16047+70fc073f-cp314-cp314-macosx_11_0_arm64.whl
-
-> pip  install --force-reinstall wxpython-4.3.0a16047+70fc073f-cp314-cp314-win_amd64.whl
-
-- Update all lib on macOS
-
-``` bash 
-pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
-```  
