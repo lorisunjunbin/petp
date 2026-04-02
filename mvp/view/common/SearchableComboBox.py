@@ -54,6 +54,34 @@ class SearchableComboBox(wx.ComboBox):
         self._all_choices = []
         super().Clear()
 
+    def SetValue(self, value: str):
+        """Programmatically set the displayed value without triggering live
+        filtering or opening the dropdown popup.
+
+        Any external caller (e.g. Presenter loading the last-run value on
+        startup) should use this method.  User keystrokes fire EVT_TEXT
+        directly and bypass SetValue, so they still invoke _on_text and get
+        the normal filter-as-you-type behaviour.
+        """
+        self._is_syncing = True
+        try:
+            self.Freeze()
+            # Restore the full item list in case it was previously narrowed by
+            # a filter operation, so the next user interaction sees all choices.
+            if self.GetCount() != len(self._all_choices):
+                super().Clear()
+                super().AppendItems(self._all_choices)
+            super().SetValue(value)
+            self.SetInsertionPointEnd()
+        finally:
+            self.Thaw()
+            if _IS_WINDOWS:
+                # Defer the flag reset so that any async EVT_TEXT events that
+                # Clear() queued on Windows are still suppressed.
+                wx.CallAfter(self._finish_sync)
+            else:
+                self._is_syncing = False
+
     def SetItems(self, items):
         """Replace the full item list (master + visible)."""
         self._all_choices = list(items)
@@ -198,7 +226,9 @@ class SearchableComboBox(wx.ComboBox):
                 # synchronous re-entrant call that SetValue() causes.
                 self.ChangeValue(value)
             else:
-                self.SetValue(value)
+                # Use super().SetValue() to bypass our own override so that
+                # _is_syncing is not reset prematurely inside this call.
+                super().SetValue(value)
             self.SetInsertionPointEnd()
         finally:
             self.Thaw()
