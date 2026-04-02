@@ -21,7 +21,6 @@ and each one contains various tasks. The last **P** means processor, which handl
     - Navigate to pages, go back, enter fullscreen, close Chrome
     - Find element(s) then click / key-in / collect data
     - Find multiple elements then click or collect in batch (with optional skip function)
-    - Run JavaScript in page context
     - Move into iFrame, get cookies, take screenshot
     - Convert Selenium IDE recordings directly to PETP tasks
 
