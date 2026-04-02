@@ -14,23 +14,83 @@ and each one contains various tasks. The last **P** means processor, which handl
 
 ## What-Can-Do:
 
-    Orchestrate below available task(s) as Execution, dataset-based loop and time-based loop. 
+    Orchestrate below available task(s) as Execution, dataset-based loop and time-based loop.
     Combine Execution(s) as pipeline, run once, or as cron.
 
-    - Browser-related tasks by selenium, able to covert selenium IDE recording to PETP tasks.
-    - SSH/SFTP tasks(paramiko)
-    - HTML/XML parser(beautiful soup)
-    - File-related tasks, open/write/move/delete/etc.
-    - Read records from CSV/Excel
-    - Send email
-    - Send HTTP request
-    - Input dialog / Show message
-    - Mouse click/scroll(pyautogui)
-    - Database CRUD for MySQL, Hana, Postgres, Sqlite
-    - String encode/decode and hash
-    - AI-LLM: DEEPSEEK, GEMINI, OLLAMA
+    🌐 Browser Automation (Selenium)
+    - Navigate to pages, go back, enter fullscreen, close Chrome
+    - Find element(s) then click / key-in / collect data
+    - Find multiple elements then click or collect in batch (with optional skip function)
+    - Run JavaScript in page context
+    - Move into iFrame, get cookies, take screenshot
+    - Convert Selenium IDE recordings directly to PETP tasks
+
+    🔒 SSH / SFTP (Paramiko)
+    - Create SSH / SFTP client sessions
+    - Run remote SSH commands
+    - Upload (PUT) and download (GET) files via SFTP
+
+    🗂 File & Folder Operations
+    - Open, write, delete files; read plain text from file
+    - Find files / find latest file in a folder
+    - Watch and auto-move files or folders on change
+    - ZIP and UNZIP archives
+    - Choose file interactively via file-chooser dialog
+
+    📊 Data & Spreadsheet
+    - Read records from CSV / Excel
+    - Write data to Excel; convert CSV to XLSX
+    - Data collect, filter, groupby, mapping, masking (single & multi-field)
+    - Data type conversion and nested-to-flat conversion
+    - Merge multiple collections into one
+
+    🗃 Database CRUD
+    - MySQL, PostgreSQL, SAP HANA, SQLite — all via a unified DB_ACCESS processor
+
+    🤖 AI / LLM Integration
+    - DeepSeek: setup + Q&A + MCP-tool calling
+    - Google Gemini: setup + Q&A + MCP-tool calling
+    - Ollama (local): setup + Q&A + MCP-tool calling
+    - Zhipu Z.AI: setup + Q&A + MCP-tool calling
+
+    🔗 MCP (Model Context Protocol)
+    - Expose PETP as a standard MCP Tool Server via Streamable-HTTP
+    - MCP client processors for DeepSeek / Gemini / Ollama / Zhipu
+
+    🌍 HTTP / Network
+    - Send HTTP requests (GET / POST / etc.) with configurable headers, params, body
+    - Extract specific keys from HTTP responses
+    - Built-in HTTP service (port 8866) — return execution results as HTTP responses
+    - OAuth2 / PKCE authorization endpoint for MCP clients
+
+    🔤 String Utilities
+    - Encode / decode strings (Base64, URL, etc.)
+    - Hash strings (MD5, SHA256, etc.)
+
+    🖱 Mouse & GUI Automation (PyAutoGUI)
+    - Mouse click and scroll at absolute or relative positions
+    - Query current mouse position
+
+    📬 Messaging & Interaction
+    - Send email (SMTP)
+    - Show result dialog / input dialog for interactive prompts
+    - Advanced input dialog for structured user input
+
+    📈 Data Visualization
+    - Render charts and plots via Matplotlib
+
+    🎬 Media & Download
+    - Download YouTube videos (PyTube)
+
+    ⚙ Execution Control & Utilities
+    - Initialize or check parameters (CHECK_PARAM / INITIAL_PARAMS)
+    - Run a nested Execution from within another Execution
+    - Stop execution conditionally (STOPPER)
+    - Wait for a condition or wait N seconds
+    - Reload log configuration at runtime
+    - Read JSON data from file or data-chain
+    - Run any OS-level shell/CMD command
     - Data Visualization: Matplotlib
-    - MCP Tool support, Streamable-HTTP
 
 MacOS
 
@@ -93,116 +153,99 @@ version. [*.whl](https://wxpython.org/Phoenix/snapshot-builds/), then run
 
 ## DONE
 
-2026-04: add new handy buttons: append date_str, append os.sep; checkbox: skip task when run execution.
+---
 
-2026-03: two new Executions: OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm and OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64
+### 🗓 2026
 
-2026-03: Enhance FIND_MULTI_XXXProcessor with skip function support for element handling.
+| Date | What's New |
+|------|------------|
+| 2026-04 | ✨ New handy toolbar buttons: append `date_str`, append `os.sep`; added **Skip Task** checkbox on execution run |
+| 2026-03 | 📦 Two new OOTB Executions: `OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm` & `OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64` |
+| 2026-03 | 🖱 Enhanced [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) with **skip function** support for flexible element handling |
+| 2026-03 | ⏱ Added **page load timeout** support in Selenium utility |
+| 2026-02 | 🔗 Support standard **MCP Tool Server** (Streamable-HTTP) — see [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) or MCP Inspector: `http://localhost:8866/mcp` |
+| 2026-01 | 🤖 New OOTB Executions: `OOTB_AI_LLM_ZHIPU`, `OOTB_AI_LLM_ZHIPU_MCP` |
+| 2026-01 | 🧠 Added **Zhipu Z.AI** support: [SETUP](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) · [Q&A](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) · [MCP](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) |
 
-2026-03: Add page load timeout support in Selenium utility.
+---
 
-2026-02: Support standard MCP tool(HTTP-Streaming), for more details, please refer to [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) or using MCP inspector URL: http://localhost:8866/mcp  Transport Type: Streamable HTTP
+### 🗓 2025
 
-2026-01: New Executions: OOTB_AI_LLM_ZHIPU， OOTB_AI_LLM_ZHIPU_MCP
+| Date | What's New |
+|------|------------|
+| 2025-10 | 🛑 New processors: [STOPPERProcessor](./core/processors/STOPPERProcessor.py) · [RELOAD_LOGProcessor](./core/processors/RELOAD_LOGProcessor.py) |
+| 2025-10 | ⬆️ Upgraded to **Python 3.14** and **wxPython 4.2.4a15981** |
+| 2025-06 | 🤖 New OOTB Execution: `OOTB_AI_LLM_GEMINI_MCP` — [AI_LLM_GEMINI_QANDA_MCPProcessor](./core/processors/AI_LLM_GEMINI_QANDA_MCPProcessor.py) |
+| 2025-05 | 🌐 Switched to `ThreadingHTTPServer`; added **AdvancedInputDialog** |
+| 2025-05 | 🤖 New OOTB Execution: `OOTB_AI_LLM_OLLAMA_MCP` — [AI_LLM_OLLAMA_QANDA_MCPProcessor](./core/processors/AI_LLM_OLLAMA_QANDA_MCPProcessor.py) |
+| 2025-05 | 🤖 New OOTB Execution: `OOTB_AI_LLM_DEEPSEEK_MCP` — dual PETP instances as MCP server + client |
+| 2025-05 | 🌍 Enabled **HTTP Service** for PETP — execution results exposed as HTTP responses (port 8866) |
+| 2025-04 | 🔍 Added execution **search** and improved dropdown handling |
+| 2025-03 | 🚗 Upgraded **ChromeDriver** to v134 |
+| 2025-03 | 📦 New wxPython snapshot for Python 3.13 / Windows: [wxPython-4.2.3a1.dev5840](https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl) |
+| 2025-01 | 🧠 Initial **AI LLM** support: DeepSeek · Gemini · Ollama (local) |
 
-2026-01: Support ZHIPU Z.AI: [AI_LLM_ZHIPU_SETUPProcessor](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) [AI_LLM_ZHIPU_QANDAProcessor](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) [AI_LLM_ZHIPU_QANDA_MCPProcessor](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) 
+---
 
-2025-10:  [STOPPERProcessor](./core/processors/STOPPERProcessor.py) [RELOAD_LOGProcessor](./core/processors/RELOAD_LOGProcessor.py)
+### 🗓 2024
 
-2025-10: Upgrade to python 3.14, wxpython to wxpython-4.2.4a15981+2c2dcc52-cp314-cp314
+| Date | What's New |
+|------|------------|
+| 2024-10 | ⬆️ Upgraded to **Python 3.13** and ChromeDriver 130; fixed PyInstaller build issues |
+| 2024-08 | 📊 New: [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py) — data visualization with Matplotlib |
+| 2024-08 | 🤖 New: [AI_LLM_OLLAMA_QANDAProcessor](./core/processors/AI_LLM_OLLAMA_QANDAProcessor.py) |
+| 2024-08 | 🔁 New: [RUN_EXECUTIONProcessor](./core/processors/RUN_EXECUTIONProcessor.py) — nest and invoke executions |
+| 2024-07 | 🔒 New: [DATA_MULTI_MASKINGProcessor](./core/processors/DATA_MULTI_MASKINGProcessor.py) |
+| 2024-07 | 🧠 AI-LLM Gemini: [SETUP](./core/processors/AI_LLM_GEMINI_SETUPProcessor.py) · [Q&A](./core/processors/AI_LLM_GEMINI_QANDAProcessor.py) |
+| 2024-07 | ⏭ Task skipping via `{"skipped":"yes"}`; upgraded ChromeDriver to v126; widened execution chooser |
+| 2024-06 | 🗃 New: [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py) · [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py) |
+| 2024-05 | 🌐 Introduced **HttpServer** (Python 3.12) — GET/POST support, JSON responses (port 8866) |
+| 2024-04 | 📂 On-demand loading of processors from `./core/processors` folder after PyInstaller build |
+| 2024-03 | 🏗 Build PETP executable for **macOS & Windows** via [PETP_build.py](./PETP_build.py) |
+| 2024-02 | 🖥 Introduced [PETP File Viewer](./webapp/README.md) web app (Flask, basic auth) |
+| 2024-01 | 🚀 New feature: **execute on startup** |
 
-2025-06: Execution: OOTB_AI_LLM_GEMINI_MCP， [AI_LLM_GEMINI_QANDA_MCPProcessor](./core/processors/AI_LLM_GEMINI_QANDA_MCPProcessor.py)
+---
 
-2025-05: Execution: Using ThreadingHTTPServer and build AdvancedInputDialog.
+### 🗓 2023
 
-2025-05: Execution: OOTB_AI_LLM_OLLAMA_MCP， [AI_LLM_OLLAMA_QANDA_MCPProcessor](./core/processors/AI_LLM_OLLAMA_QANDA_MCPProcessor.py)
+| Date | What's New |
+|------|------------|
+| 2023-12 | ➕ New processors: `DATA_COLLECTProcessor` · `DATA_MAPPINGProcessor` · `FIND_MULTI_THEN_CLICKProcessor` · `FOLDER_WATCH_MOVEProcessor` |
+| 2023-11 | 🎚 On-demand **log level** change at runtime |
+| 2023-11 | 🔤 New: [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py) · [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py); OOTB execution: `ootb_encode_decode_hash_str` |
+| 2023-11 | 📋 Optimized logging: configurable log level + rotating file handler |
+| 2023-11 | 🔀 New: [DATA_FILTERProcessor](./core/processors/DATA_FILTERProcessor.py) · [COLLECTION_MERGEProcessor](./core/processors/COLLECTION_MERGEProcessor.py) |
+| 2023-10 | ⬆️ Upgraded to **Python 3.12** |
+| 2023-09 | 🗃 `DB_ACCESSProcessor` now supports: MySQL · PostgreSQL · SAP HANA · SQLite |
+| 2023-04 | 🎬 New: `PYTUBEProcessor` — download YouTube videos |
 
-2025-05: OOTB_AI_LLM_DEEPSEEK_MCP， two PETP instances, one as MCP server, another as client.
+---
 
-2025-05: Enable http service for PETP, the execution result as http response, port 8866 by default.
+### 🗓 2022
 
-2025-04: Add execution search and dropdown handling.
+| Date | What's New |
+|------|------------|
+| 2022-11 | 🎨 Simplified & optimized entire [UI](./mvp/view) |
+| 2022-11 | 🧹 Clean & restructured UI event bindings |
+| 2022-10 | ⚡ Non-blocking execution in [GUI](./mvp) |
+| 2022-09 | 💾 **Last run** feature — restore previous execution state on startup |
+| 2022-09 | 🖱 New: `MOUSE_CLICKProcessor` · `MOUSE_SCROLLProcessor`; OOTB: `ootb_keep_screen_unlocked` |
+| 2022-07 | 🗃 `DB_ACCESSProcessor` — initial MySQL support |
+| 2022-07 | ⬆️ Upgraded to **Selenium 4.3.0** |
+| 2022-06 | ⬆️ Upgraded to **Python 3.10** and **wxPython 4.1.2** |
+| 2022-05 | 🍎 Fixed wxPython install issue on **Mac M1**; built wheel locally |
+| 2022-04 | 🗜 New: `ZIPProcessor` — verified on Windows |
+| 2022-03 | 🔁 New loop mode: **Loop for N times** |
 
-2025-03: Upgrade chromedriver to 134.
+---
 
-2025-03: upgrade [wxpython wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl](https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl) for python 3.13 and windows.
+### 🗓 2021
 
-2025-01: AI LLM support, Deepseek/ gemini/ ollama-local
-
-2024-10: Upgrade to python 3.13, chromedriver 130, fix issue of pyinstaller build.
-
-2024-08: [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py)
-
-2024-08: [AI_LLM_OLLAMA_QANDAProcessor](./core/processors/AI_LLM_OLLAMA_QANDAProcessor.py)
-
-2024-08: [RUN_EXECUTIONProcessor](./core/processors/RUN_EXECUTIONProcessor.py)
-
-2024-07: [DATA_MULTI_MASKINGProcessor](./core/processors/DATA_MULTI_MASKINGProcessor.py)
-
-2024-07:
-AI-LLM [AI_LLM_GEMINI_SETUPProcessor](./core/processors/AI_LLM_GEMINI_SETUPProcessor.py) & [AI_LLM_GEMINI_QANDAProcessor](./core/processors/AI_LLM_GEMINI_QANDAProcessor.py)
-
-2024-07: New feature of task skipping via {"skipped":"yes"}, upgrade chromedriver to 126, modify the width of chooser
-from 300 to 500
-
-2024-06: [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py)
-& [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py)
-
-2024-05: Introduced HttpServer(python3.12), provide http service for PETP, support GET/POST request, and return JSON
-response. port 8866 by default.
-
-2024-04: after building via pyinstall, support on-demand loading processors from ./core/processors folder.
-
-2024-03: Build PETP executable for both MacOS & Windows by [PETP_build.py](./PETP_build.py)
-
-2024-02: provide [PETP File Viewer](./webapp/README.md) - #5
-
-2024-02: bring in web framework for PETP, powered by Flask, supporting basic authentication.
-
-2024-01: new feature: execute on startup.
-
-2023-12: DATA_COLLECTProcessor, DATA_MAPPINGProcessor, FIND_MULTI_THEN_CLICKProcessor, FOLDER_WATCH_MOVEProcessor
-
-2023-11: On-demand change log level
-
-2023-11: [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py) & [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py)  ,
-execution: ootb_encode_decode_hash_str
-
-2023-11: Optimized logging feature, provide setting for log level, support rotating.
-
-2023-11: [DATA_FILTERProcessor](./core/processors/DATA_FILTERProcessor.py) & [COLLECTION_MERGEProcessor](./core/processors/COLLECTION_MERGEProcessor.py)
-
-2023-10: Update to python3.12.
-
-2023-09: DB_ACCESSProcessor supports databases: Mysql, Postgres, Hana, Sqlite
-
-2023-04: PYTUBEProcessor, download youtube videos.
-
-2022-11: Samplify & Optimize entire [UI](./mvp/view).
-
-2022-11: clean & restructure code UI event binding.
-
-2022-10: Enhancement [GUI](./mvp) none-blocking execution
-
-2022-09: Support last run feature
-
-2022-09: MOUSE_CLICKProcessor & MOUSE_SCROLLProcessor, ootb_keep_screen_unlocked
-
-2022-07: DB_ACCESSProcessor, Mysql supported.
-
-2022-07: Update to Selenium 4.3.0
-
-2022-06: Update to Python 3.10 and wxpython 4.1.2.
-
-2022-05: Mac m1 CPU, fix wxpython install issue, pack and build wheel locally.
-
-2022-04-06: ZIPProcessor, verified under Windows.
-
-2022-03-28： Loop for times
-
-2021-09-22: Execution grid copy & paste, right-click on the row, context menu show up, then Copy or Paste
-
-2021-10-02: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py)
+| Date | What's New |
+|------|------------|
+| 2021-10 | 🌐 New: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) — HTML/XML parsing |
+| 2021-09 | 📋 Execution grid **copy & paste** via right-click context menu |
 
 ## Appreciate for
 
