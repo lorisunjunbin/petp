@@ -25,20 +25,18 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 	TPL: str = '{"llm_data_key":"llmdeepseek", "prompt":"prompt","petp_mcp_url":"http://localhost:8888", "model":"deepseek-chat","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
 	DESC: str = f'''
-        this task depends on the task AI_LLM_DEEPSEEK_SETUPProcessor, which is to setup LLM DeepSeek, then save the llm instance to llm_data_key.
-        
-        Run another PETP as mcp server, http endpoint: http://localhost:8888
-        
-        Ask llm deepseek a question associated with available tools, if tool is available, call tool then give the response accordingly.
-        
-        USE CASE TEMPERATURE
-        
-		Coding / Math: 0.0
-		Data Cleaning / Data Analysis: 1.0
-		General Conversation: 1.3
-		Translation: 1.3
-		Creative Writing / Poetry: 1.5
-        
+        Ask DeepSeek LLM a question with MCP tool support. Depends on AI_LLM_DEEPSEEK_SETUPProcessor to setup the LLM instance first.
+        Runs another PETP as MCP server. If LLM decides to use a tool, it calls the MCP endpoint and feeds the result back.
+
+        - llm_data_key: key of data_chain where the LLM client instance is stored (default: "llmdeepseek")
+        - prompt: question to ask the LLM (supports expression)
+        - petp_mcp_url: base URL of the PETP MCP server (default: "http://localhost:8888")
+        - model: DeepSeek model name (default: "deepseek-chat")
+        - temperature: sampling temperature, Coding/Math: 0.0, Data Analysis: 1.0, Conversation: 1.3, Creative Writing: 1.5 (default: "1.0")
+        - resp_content_key: key of data_chain to store the final response content
+        - convert_resp_2_json: "yes" to parse JSON from markdown code block in response (default: "yes")
+        - show_in_popup: "yes" to display Q&A in popup dialog (default: "yes")
+
         {TPL}
     '''
 

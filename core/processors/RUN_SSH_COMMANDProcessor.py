@@ -7,11 +7,15 @@ from paramiko.client import SSHClient
 
 class RUN_SSH_COMMANDProcessor(Processor):
     TPL: str = '{"ssh_client_key":"sshclient", "cmd":"", "output_key":"", "close_after_run":"yes|no"}'
-    DESC: str = f''' 
-        - run ssh via paramiko, save result to output_key of data_chain. 
+    DESC: str = f'''
+        Run SSH command via paramiko, save result to output_key of data_chain.
+
+        - ssh_client_key: key of data_chain where the SSH client instance is stored (default: "sshclient")
+        - cmd: SSH command to execute (supports expression)
+        - output_key: key of data_chain to store the command output
+        - close_after_run: "yes" to close the SSH client after running the command, "no" to keep it open (default: "yes")
 
         {TPL}
-
     '''
     def get_category(self) -> str:
         return super().CATE_PARAMIKO

@@ -5,7 +5,11 @@ import time
 
 class WAIT_SECONDSProcessor(Processor):
     TPL: str = '{"wait_seconds":"5"}'
-    DESC: str = f''' 
+    DESC: str = f'''
+        Pause execution for the given number of seconds.
+
+        - wait_seconds: number of seconds to wait (default: "5")
+
         {TPL}
     '''
 

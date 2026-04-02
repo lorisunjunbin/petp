@@ -5,8 +5,14 @@ from utils.ExcelUtil import ExcelUtil
 class WRITE_TO_EXCELProcessor(Processor):
     TPL: str = '{"file_path":"", "value_key":"sheetname2list", "data_key":""}'
     DESC: str = f'''
-        value_key point to the dict[str:[]] of data_chain, sheet title is key of the dict , sheet content list is value of dict.
-        data_key is the key of data_chain to store the file_path.
+        Write data to an Excel file. The data is retrieved from data_chain via value_key, expected as a dict mapping
+        sheet names (str) to row data (list). If the value is a plain list, it is wrapped using value_key as the sheet name.
+        The resulting file path is stored back into data_chain via data_key.
+
+        - file_path: output Excel file path to write to (supports expression, default: "")
+        - value_key: key in data_chain pointing to the sheet data dict[str:list] or a plain list (supports expression, default: "sheetname2list")
+        - data_key: key in data_chain to store the written file path (supports expression, default: "")
+
         {TPL}
     '''
 

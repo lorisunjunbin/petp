@@ -6,13 +6,18 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class DATA_CONVERTProcessor(Processor):
     TPL: str = '{"given_key":"", "convertor_func":"return [p.get_now_str(), given]", "target_key":""}'
 
-    DESC: str = f''' 
-        
-        [given_key] of data_chain as input, convert it with [convertor_func], and store it in [target_key].
-        
-        :param p - is current DATA_CONVERTProcessor
-        :param given - is data associated with [given_key]
-        
+    DESC: str = f'''
+        Retrieve a value from the data_chain by key, transform it using a custom Python
+        function string, and store the result back into the data_chain under a target key.
+
+        The convertor_func has access to two variables:
+          - p: the current processor instance (e.g. p.get_now_str())
+          - given: the value retrieved from given_key
+
+        - given_key: Key in data_chain whose value will be converted (supports expression, default: "")
+        - convertor_func: Python function body that takes (p, given) and returns the converted value (supports expression, default: "return [p.get_now_str(), given]")
+        - target_key: Key in data_chain to store the converted result (supports expression, default: "")
+
         {TPL}
 
     '''

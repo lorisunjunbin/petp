@@ -6,11 +6,17 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class GO_TO_PAGEProcessor(Processor):
     TPL: str = '{"page_load_timeout_seconds":"180","url":"required", "url_key":"", "chrome_name":"chrome","skip_in_pipeline":"no", "download_folder":""}'
-    DESC: str = f''' 
-        - Call selenium to launch chrome browser and visit specific URL, usually it's the first task of web  relevant execution.   
+    DESC: str = f'''
+        Launch chrome browser via selenium and navigate to a specific URL. Usually the first task of web-related execution.
+
+        - page_load_timeout_seconds: max seconds to wait for page load (default: "180")
+        - url: target URL to navigate to (required)
+        - url_key: key of data_chain to get the URL, takes priority over url if set
+        - chrome_name: key of data_chain to store the chrome driver instance (default: "chrome")
+        - skip_in_pipeline: "yes" to skip this task when running in pipeline (default: "no")
+        - download_folder: folder path for chrome downloads (optional, supports expression)
 
         {TPL}
-
     '''
 
     def get_category(self) -> str:

@@ -7,13 +7,17 @@ from core.processor import Processor
 
 class CMDProcessor(Processor):
     TPL: str = '{"cmdstr":"","cmddir":"","data_key":"", "timeout":30}'
-    DESC: str = f''' 
-        - Run system command via subprocess.check_output, then save value to data_chain associated with data_key. 
-        
+    DESC: str = f'''
+        Run system command via subprocess.check_output, then save the output to data_chain associated with data_key.
+
+        - cmdstr: command string to execute (supports expression)
+        - cmddir: working directory for the command (supports expression, optional)
+        - data_key: key of data_chain to store the command output (supports expression, optional)
+        - timeout: command execution timeout in seconds (default: 30, set empty to disable)
+        - shell: set to "yes" to enable shell mode (default: disabled)
+        - encoding: output encoding for decoding byte results (default: "utf-8")
+
         {TPL}
-        - cmdstr: command to execute
-        - cmddir: which folder to run the cmd
-         
     '''
 
     def get_category(self) -> str:

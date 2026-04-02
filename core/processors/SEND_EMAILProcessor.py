@@ -9,9 +9,19 @@ class SEND_EMAILProcessor(Processor):
     TPL: str = '{"smtp":"","port":25, "name":"", "pwd":"","to":"6099012@qq.com,lori.sun@qq.com","subject":"","content":"","attachment":""}'
 
     DESC: str = f'''
-        Able to send email from given smtp.
-       {TPL}
-       
+        Send an email via a specified SMTP server. Supports plain text content and optional file attachments.
+        The attachment file type is automatically detected via MIME type guessing.
+
+        - smtp: The SMTP server hostname or IP address (supports expression, default: "")
+        - port: The SMTP server port number (default: 25)
+        - name: The sender email address used for both login and the "From" header (supports expression, default: "")
+        - pwd: The password or app-specific password for SMTP authentication (supports expression, default: "")
+        - to: The recipient email address(es), comma-separated for multiple recipients (supports expression, default: "6099012@qq.com,lori.sun@qq.com")
+        - subject: The email subject line (supports expression, default: "")
+        - content: The email body text content (supports expression, default: "")
+        - attachment: The absolute file path of a file to attach; leave empty for no attachment (supports expression, default: "")
+
+        {TPL}
     '''
 
     def get_category(self) -> str:

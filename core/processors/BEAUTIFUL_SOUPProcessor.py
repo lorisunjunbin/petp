@@ -16,12 +16,18 @@ https://beautiful-soup-4.readthedocs.io/en/latest/
 class BEAUTIFUL_SOUPProcessor(Processor):
     TPL: str = '{"inbound_data_key":"", "inbound_data":"", "parser":"html.parser|xml", "outbound_data_key":"soup_outbound","func_body":"print(str(args.data)) print(str(args.soup))"}'
 
-    DESC: str = f''' 
-        - Collect data(outbound_data_key) from HTML/XML String via beautifulsoup4:
-          https://beautiful-soup-4.readthedocs.io/en/latest/
-          
+    DESC: str = f'''
+        Parse HTML or XML content using BeautifulSoup and execute a custom function body to extract data.
+        The parsed soup object and raw data are available inside the function body for flexible processing.
+        See: https://beautiful-soup-4.readthedocs.io/en/latest/
+
+        - inbound_data_key: key in data_chain whose value is the HTML/XML string to parse; takes precedence over inbound_data (supports expression, default: "")
+        - inbound_data: raw HTML/XML string to parse when inbound_data_key is not set (supports expression, default: "")
+        - parser: BeautifulSoup parser to use, either "html.parser" or "xml" (default: "html.parser|xml")
+        - outbound_data_key: key in data_chain to store the result returned by the function body (supports expression, default: "soup_outbound")
+        - func_body: Python function body as a string; receives args.data (raw input) and args.soup (parsed object) (supports expression, default: "print(str(args.data)) print(str(args.soup))")
+
         {TPL}
-        
     '''
 
     def get_category(self) -> str:

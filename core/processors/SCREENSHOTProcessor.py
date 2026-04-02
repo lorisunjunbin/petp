@@ -4,11 +4,19 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class SCREENSHOTProcessor(Processor):
     TPL: str = '{"xpath":"", "crop":"left;top;right;bottom","format":"png", "show":"yes|no", "filepath":"", "filepath_key":"","data_key":"","wait": 3}'
-    DESC: str = f''' 
-        - Make a web page screenshot via selenium within chrome, store image location to filepath_key of data_chain.
+    DESC: str = f'''
+        Take a screenshot of the web page via selenium. Supports full page, element by xpath, or cropped region.
+
+        - xpath: xpath to locate a specific element to screenshot (optional)
+        - crop: crop region as "left;top;right;bottom" pixel values (optional)
+        - format: image format, e.g. "png" (default: "png")
+        - show: "yes" to open the screenshot after taking it (default: "no")
+        - filepath: file path to save the screenshot (supports expression)
+        - filepath_key: key of data_chain to get the file path, takes priority over filepath if set
+        - data_key: key of data_chain to store the screenshot file path
+        - wait: extra wait in seconds before taking screenshot (default: 3)
 
         {TPL}
-
     '''
 
     def get_category(self) -> str:

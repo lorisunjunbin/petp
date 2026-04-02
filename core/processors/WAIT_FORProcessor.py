@@ -6,7 +6,13 @@ from utils.SeleniumUtil import SeleniumUtil
 class WAIT_FORProcessor(Processor):
     TPL: str = '{"waitfor":"id|xpath|link|css", "identity":"", "identity_key":"", "timeout":200, "wait":1}'
     DESC: str = f'''
-        perform a certain waiting, [timeout] is for selenium wait and [wait] is time.sleep. 
+        Wait until a specific element appears on the page via selenium.
+
+        - waitfor: locator type to find the element, "id", "xpath", "link" or "css"
+        - identity: locator value for the target element
+        - identity_key: key of data_chain to get the locator value, takes priority over identity if set
+        - timeout: max seconds to wait for the element (default: 200)
+        - wait: extra wait in seconds after element is found (default: 1)
 
         {TPL}
     '''

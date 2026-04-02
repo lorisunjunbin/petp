@@ -9,10 +9,15 @@ class FIND_MULTI_THEN_CLICKProcessor(Processor):
     TPL: str = '{"skip_fn":"return ele is None","findby":"xpath|css","identity":"", "wait":3, "timeout":10}'
 
     DESC = f'''
-    Find multiple elements within 'timeout', then click on them one by one, between every click 'wait'.  
+        Find multiple elements via selenium within timeout, then click on them one by one.
 
-    {TPL}
+        - skip_fn: Python function body to decide whether to skip an element, variable "ele" is available (default: "return ele is None")
+        - findby: locator type, "xpath" or "css"
+        - identity: locator value for the target elements (supports expression)
+        - wait: extra wait in seconds between clicks (default: 3)
+        - timeout: max seconds to wait for elements to appear (default: 10)
 
+        {TPL}
     '''
 
     def get_category(self) -> str:

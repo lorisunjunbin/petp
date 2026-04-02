@@ -5,13 +5,17 @@ from core.processor import Processor
 class DATA_MAPPINGProcessor(Processor):
     TPL: str = '{"given_collection":"", "lambda":"[item.id, item.title]", "start_idx":"","end_idx":"", "target_collection":""}'
 
-    DESC: str = f''' 
+    DESC: str = f'''
+        Map/transform each element in given_collection using lambda expression and store result in target_collection.
+        Supports slicing via start_idx/end_idx. Replace given_collection if target_collection is not given.
 
-        convert element in given_collection associated with lambda expression and store it in target_collection.
-        Replace given_collection if target_collection is not given.
-        
+        - given_collection: key of data_chain pointing to the source list
+        - lambda: Python expression to transform each element, variable "item" is available (default: "[item.id, item.title]")
+        - start_idx: start index for slicing the collection (optional, supports expression)
+        - end_idx: end index for slicing the collection, inclusive (optional, supports expression)
+        - target_collection: key of data_chain to store the mapped result (optional, defaults to given_collection)
+
         {TPL}
-
     '''
 
     def get_category(self) -> str:

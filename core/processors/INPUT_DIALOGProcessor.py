@@ -10,8 +10,16 @@ class INPUT_DIALOGProcessor(Processor):
     TPL: str = '{"title":" Message Input","msg":"","value_key":"","default_value":"","stop_on_cancel":"yes"}'
 
     DESC: str = f''' 
-        To collect user input via popup text entry dialog, save to data_chain. wx must run Dialog in MainThread, so should not use this processor as cron mode. 
-        
+        Display a popup text entry dialog to collect user input at runtime, then store the entered value in the data chain.
+        Must run on the main UI thread (wx requirement), so this processor should NOT be used in cron mode.
+        Supports stopping the execution if the user cancels the dialog.
+
+        - title: The title displayed on the input dialog window (supports expression, default: " Message Input")
+        - msg: The message or label shown above the text entry field (supports expression, default: "")
+        - value_key: The data chain key under which the user-entered value will be stored (supports expression, default: "")
+        - default_value: The pre-filled default text in the input field (supports expression, default: "")
+        - stop_on_cancel: If "yes", stop the entire execution when the user cancels the dialog; if "no", continue (default: "yes")
+
         {TPL}
         
     '''

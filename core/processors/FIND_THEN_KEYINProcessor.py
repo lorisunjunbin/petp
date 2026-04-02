@@ -7,18 +7,19 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_THEN_KEYINProcessor(Processor):
 	TPL: str = '{"keyinby":"id|xpath|css", "identity":"", "value":"", "value_key":"", "clearb4keyin":"yes|no","wait":1}'
 	DESC = f'''
-    To call chrome driver find the element, then call send_key, simulate keyboard action, input string/press KEY_ENTER/etc.
-    
-    {TPL}
-    
-    "keyinby" is locator type
-    "identity" is locator itself
-    "value" is the given string or KEY_*
-    "value_key" is property of data_chain, support nested access, '__m;author' means: data_chain['__m']['author']
-    "clearb4keyin" is flag to decide whether clear before key in.
-    "wait" is extra wait in seconds, after locating element, before key in.
-    
+    Call the Chrome driver to locate a web element, then simulate keyboard input via send_keys.
+    Supports typing strings or pressing special keys (KEY_ENTER, KEY_TAB, etc.).
+
+    - keyinby: Locator strategy to find the element, one of: id, xpath, css (supports expression, default: "id|xpath|css")
+    - identity: The locator value used to find the element (supports expression, default: "")
+    - value: The string to type or a KEY_* constant to press (supports expression, default: "")
+    - value_key: Key in data_chain to read the value from; supports nested access via ';' separator, e.g. '__m;author' means data_chain['__m']['author'] (supports expression, default: "")
+    - clearb4keyin: If "yes", clears the element's existing content before typing (supports expression, default: "yes|no")
+    - wait: Extra wait time in seconds after locating the element and before keying in (supports expression, default: 1)
+
     Supported keys: ['KEY_NULL', 'KEY_CANCEL', 'KEY_HELP', 'KEY_BACKSPACE', 'KEY_BACK_SPACE', 'KEY_TAB', 'KEY_CLEAR', 'KEY_RETURN', 'KEY_ENTER', 'KEY_SHIFT', 'KEY_LEFT_SHIFT', 'KEY_CONTROL', 'KEY_LEFT_CONTROL', 'KEY_ALT', 'KEY_LEFT_ALT', 'KEY_PAUSE', 'KEY_ESCAPE', 'KEY_SPACE', 'KEY_PAGE_UP', 'KEY_PAGE_DOWN', 'KEY_END', 'KEY_HOME', 'KEY_LEFT', 'KEY_ARROW_LEFT', 'KEY_UP', 'KEY_ARROW_UP', 'KEY_RIGHT', 'KEY_ARROW_RIGHT', 'KEY_DOWN', 'KEY_ARROW_DOWN', 'KEY_INSERT', 'KEY_DELETE', 'KEY_SEMICOLON', 'KEY_EQUALS', 'KEY_NUMPAD0', 'KEY_NUMPAD1', 'KEY_NUMPAD2', 'KEY_NUMPAD3', 'KEY_NUMPAD4', 'KEY_NUMPAD5', 'KEY_NUMPAD6', 'KEY_NUMPAD7', 'KEY_NUMPAD8', 'KEY_NUMPAD9', 'KEY_MULTIPLY', 'KEY_ADD', 'KEY_SEPARATOR', 'KEY_SUBTRACT', 'KEY_DECIMAL', 'KEY_DIVIDE', 'KEY_F1', 'KEY_F2', 'KEY_F3', 'KEY_F4', 'KEY_F5', 'KEY_F6', 'KEY_F7', 'KEY_F8', 'KEY_F9', 'KEY_F10', 'KEY_F11', 'KEY_F12', 'KEY_META', 'KEY_COMMAND'])
+
+    {TPL}
     '''
 
 	def get_category(self) -> str:

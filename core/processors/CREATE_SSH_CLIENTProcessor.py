@@ -4,11 +4,15 @@ from utils.ParamikoUtil import ParamikoUtil
 
 class CREATE_SSH_CLIENTProcessor(Processor):
     TPL: str = '{"ssh_ip":"", "uname":"", "pwd":"","ssh_client_key":"sshclient"}'
-    DESC: str = f''' 
-        - Create paramiko ssh client, save to data_chain associated with ssh_client_key. 
-        
+    DESC: str = f'''
+        Create paramiko SSH client, save to data_chain associated with ssh_client_key.
+
+        - ssh_ip: SSH server IP address (supports expression)
+        - uname: username for authentication (supports expression)
+        - pwd: password for authentication (supports expression)
+        - ssh_client_key: key of data_chain to store the SSH client instance (default: "sshclient")
+
         {TPL}
-         
     '''
     def get_category(self) -> str:
         return super().CATE_PARAMIKO

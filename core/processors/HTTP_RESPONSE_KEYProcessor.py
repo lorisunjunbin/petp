@@ -7,9 +7,12 @@ class HTTP_RESPONSE_KEYProcessor(Processor):
 
 	DESC: str = f''' 
 
-        This is required if you want call PETP from http service, 
-        It will read data from the data_chain based on the http_response_key and use it as the HTTP response body.
-        
+        Required when calling PETP from an HTTP service. Specifies which data chain key's value should be used
+        as the HTTP response body. The processor reads data from the data chain using the given key and registers
+        it as the response key for the HTTP handler.
+
+        - http_response_key: The data chain key whose value will be returned as the HTTP response body (supports expression, default: "result")
+
         {TPL}
 
     '''

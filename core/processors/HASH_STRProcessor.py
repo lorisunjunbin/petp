@@ -20,8 +20,13 @@ from hashlib import (
 class HASH_STRProcessor(Processor):
     TPL: str = '{"inbound":"","outbound_key":"","algorithms":"blake2b | blake2s | md5 | sha1 | sha224 | sha256 | sha384 | sha3_224 | sha3_256 | sha3_384 | sha3_512 | sha512"}'
 
-    DESC: str = f''' 
-        Support hash string with algorithms: blake2b, blake2s, md5, sha1, sha224, sha256, sha384, sha3_224, sha3_256, sha3_384, sha3_512, sha512.
+    DESC: str = f'''
+        Hash a string using the specified algorithm and store the hex digest to data_chain.
+
+        - inbound: input string to hash (supports expression)
+        - outbound_key: key of data_chain to store the hashed result
+        - algorithms: hash algorithm to use (default: "sha256"), supports: blake2b, blake2s, md5, sha1, sha224, sha256, sha384, sha3_224, sha3_256, sha3_384, sha3_512, sha512
+
         {TPL}
     '''
 

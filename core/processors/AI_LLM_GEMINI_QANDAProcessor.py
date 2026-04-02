@@ -22,9 +22,18 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
     TPL: str = '{"llm_data_key":"llmgemini", "prompt":"prompt", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
     DESC: str = f'''
-        this task depends on the task AI_LLM_GEMINI_SETUPProcessor, which is to setup LLM Gemini, then save the llm instance to llm_data_key.
-        Ask llm gemini a question associated with prompt get the response, parse the response to json if needed, and show the response in popup dialog if needed.
-        
+        Ask Google Gemini LLM a question using a previously configured Gemini instance
+        (set up by AI_LLM_GEMINI_SETUPProcessor). The prompt is sent to the model, and the
+        response can optionally be parsed as JSON and/or displayed in a popup dialog.
+
+        Requires: pip install langchain langchain-google-genai generativeai
+
+        - llm_data_key: Key in data_chain where the Gemini LLM instance is stored (supports expression, default: "llmgemini")
+        - prompt: The question or prompt text to send to the LLM (supports expression, default: "prompt")
+        - resp_content_key: Key in data_chain to store the response content; if empty the response is not stored (supports expression, default: "")
+        - convert_resp_2_json: If "yes", extracts JSON from the markdown response (supports expression, default: "yes")
+        - show_in_popup: If "yes", displays the Q&A result in a popup dialog (supports expression, default: "yes")
+
         {TPL}
     '''
 

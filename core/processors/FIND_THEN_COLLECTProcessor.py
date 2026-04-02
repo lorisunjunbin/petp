@@ -8,10 +8,16 @@ class FIND_THEN_COLLECTProcessor(Processor):
     TPL: str = '{"collectby":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10}'
 
     DESC = f'''
-    get single text/property/attribute from given element via selenium 
+        Find a single element via selenium and collect its text, value, or any property/attribute, then store to data_chain.
 
-    {TPL}
+        - collectby: locator type to find the element, "id", "xpath" or "css"
+        - identity: locator value for the target element
+        - value_type: what to collect from the element - "text" for element.text, "value" for input value, or any attribute/property name (default: "text")
+        - value_key: key of data_chain to store the collected value (supports expression)
+        - timeout: max seconds to wait for the element to appear (default: 10)
+        - wait: extra wait in seconds before locating the element (default: 1)
 
+        {TPL}
     '''
 
     def get_category(self) -> str:

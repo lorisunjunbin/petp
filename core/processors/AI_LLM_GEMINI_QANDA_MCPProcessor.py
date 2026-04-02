@@ -25,21 +25,17 @@ class AI_LLM_GEMINI_QANDA_MCPProcessor(Processor):
 	TPL: str = '{"llm_data_key":"llmgemini", "prompt":"prompt", "petp_mcp_url":"http://localhost:8888", "resp_content_key":"gemini_response","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
 	DESC: str = f'''
-        This task depends on the task AI_LLM_GEMINI_SETUPProcessor, which is to setup LLM Gemini, then save the llm instance to llm_data_key.
-        
-        Run another PETP as mcp server, http endpoint: http://localhost:8888
-        
-        Ask llm gemini a question associated with available tools, if tool is available, call tool then give the response accordingly.
-        
-        - llm_data_key: Key to retrieve the pre-configured Gemini LLM instance.
-        - prompt: The question/prompt to send to the LLM.
-        - petp_mcp_url: The base URL of the PETP MCP server for tool execution (e.g., "http://localhost:8888").
-        - model: The Gemini model to use (e.g., "gemini-pro"). Note: The primary model is usually set during SETUP.
-        - temperature: The sampling temperature for the LLM. Note: The primary temperature is usually set during SETUP.
-        - resp_content_key: The key under which the final response content will be stored in the data chain.
-        - convert_resp_2_json: If 'yes', attempts to parse the final response as JSON from a markdown block.
-        - show_in_popup: If 'yes', displays the final question and answer in a popup dialog.
-        
+        Ask Google Gemini LLM a question with tool-use capabilities via the PETP MCP server. Depends on AI_LLM_GEMINI_SETUPProcessor
+        to have previously initialized the LLM instance. Fetches available tools from the MCP server, and if the LLM decides
+        to use a tool, executes it via the MCP endpoint and returns the refined answer.
+
+        - llm_data_key: Key to retrieve the pre-configured Gemini LLM instance from the data chain (default: "llmgemini")
+        - prompt: The question or prompt text to send to the LLM (supports expression, default: "prompt")
+        - petp_mcp_url: The base URL of the PETP MCP server for tool discovery and execution (default: "http://localhost:8888")
+        - resp_content_key: The data chain key under which the final response content will be stored (default: "gemini_response")
+        - convert_resp_2_json: If "yes", attempts to parse the final response as JSON from a markdown code block (default: "yes")
+        - show_in_popup: Whether to display the Q&A result in a popup dialog, "yes" or "no" (default: "yes")
+
         {TPL}
     '''
 

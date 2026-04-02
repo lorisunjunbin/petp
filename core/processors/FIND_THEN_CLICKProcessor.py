@@ -8,10 +8,17 @@ class FIND_THEN_CLICKProcessor(Processor):
     TPL: str = '{"clickby":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no"}'
 
     DESC: str = f'''
-        Find the element via selenium and click it.
-        
+        Find a web element via Selenium using the specified locator strategy and click it.
+        If the element is not found within the timeout, an exception is raised unless skip_timeout_error is set.
+
+        - clickby: locator strategy to find the element, one of "id", "xpath", "link", or "css" (default: "id|xpath|link|css")
+        - identity: the locator value used to find the element (supports expression, default: "")
+        - identity_key: key in data_chain whose value is used as the locator; takes precedence over identity (supports expression, default: "")
+        - wait: seconds to wait before performing the click action (default: 5)
+        - timeout: maximum seconds to wait for the element to appear (default: 5)
+        - skip_timeout_error: whether to suppress the exception when element is not found; "yes" to skip, "no" to raise (default: "yes|no")
+
         {TPL}
-        
     '''
 
     def get_category(self) -> str:

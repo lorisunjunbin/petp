@@ -4,11 +4,12 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class ENTER_FULLSCREENProcessor(Processor):
     TPL: str = '{"chrome_name":"chrome"}'
-    DESC: str = f''' 
-        - Make chrome browser to fullscreen mode associated with chrome_name which saved to data_chain. 
-        
-       {TPL}       
-       
+    DESC: str = f'''
+        Make chrome browser fullscreen associated with chrome_name saved to data_chain.
+
+        - chrome_name: key of data_chain where the chrome driver instance is stored (default: "chrome")
+
+        {TPL}
     '''
 
     def get_category(self) -> str:

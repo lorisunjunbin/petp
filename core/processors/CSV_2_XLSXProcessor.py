@@ -5,6 +5,13 @@ from utils.ExcelUtil import ExcelUtil
 class CSV_2_XLSXProcessor(Processor):
     TPL: str = '{"csv_file_path":"", "xlsx_file_path":"", "target_xlsx_key":"", "dlr":""}'
     DESC: str = f'''
+        Convert CSV file to XLSX format. Read from csv_file_path, write to xlsx_file_path, then save the target xlsx path to data_chain via target_xlsx_key.
+
+        - csv_file_path: source CSV file path (supports expression)
+        - xlsx_file_path: target XLSX file path to write (supports expression)
+        - target_xlsx_key: key of data_chain to store the xlsx file path (supports expression)
+        - dlr: delimiter used in the CSV file, e.g. "," or "\\t" (supports expression)
+
         {TPL}
     '''
 

@@ -18,8 +18,19 @@ class PYTUBEProcessor(Processor):
                ',"max_retries":3' \
                ',"timeout":""' \
                '}'
-    DESC: str = f''' 
-        - To download a YouTube video with a specific link, support different video formats and resolutions.
+    DESC: str = f'''
+        Download a YouTube video with a specific link via pytube, support different video formats and resolutions.
+
+        - video_url: YouTube video URL (supports expression, default: "https://www.youtube.com/shorts/Fn-osmFZbnA")
+        - file_extension: video file extension to filter, e.g. "mp4", "webm" (default: "mp4")
+        - download_folder: local folder to save the downloaded file (default: "download")
+        - specific_file_name: exact filename for the downloaded file (optional)
+        - file_prefix: prefix prepended to the downloaded filename (optional)
+        - quality: video quality, "HIGH" for highest resolution, "LOW" for lowest (default: "HIGH")
+        - file_download_path_key: key of data_chain to store the downloaded file path (optional)
+        - max_retries: number of retry attempts on download failure (default: 3)
+        - timeout: download timeout in seconds (optional)
+
         {TPL}
     '''
 

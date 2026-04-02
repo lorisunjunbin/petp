@@ -10,11 +10,14 @@ class FIND_LATEST_FILEProcessor(Processor):
                '"found_file_key":"found_file" ' \
                '}'
 
-    DESC: str = f''' 
-        finding the latest file of a given type (file_type) in specific folder(path_to_find)
-        found_file_key is the key of data_chain which points to full file path
+    DESC: str = f'''
+        Find the most recently modified file of a given type in a specific folder.
+
+        - path_to_find: folder path to search in (supports expression)
+        - file_type: file extension filter, e.g. ".zip", ".csv" (default: ".zip")
+        - found_file_key: key of data_chain to store the full file path of the found file (default: "found_file")
+
         {TPL}
-         
     '''
     def get_category(self) -> str:
         return super().CATE_FILE

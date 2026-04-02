@@ -8,8 +8,13 @@ from core.processor import Processor
 class SHOW_RESULTProcessor(Processor):
     TPL: str = '{"title":"","msg":""}'
 
-    DESC: str = f''' 
-        - To show msg via popup dialog.
+    DESC: str = f'''
+        Display a message in a popup dialog using the system GUI (wx.MessageDialog).
+        Also logs the title and message to the console.
+
+        - title: title of the popup dialog window (supports expression, default: "")
+        - msg: message content displayed in the popup dialog (supports expression, default: "")
+
         {TPL}
     '''
 

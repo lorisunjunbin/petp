@@ -21,9 +21,9 @@ class Processor:
 
     TPL: str
     DESC: str = f''' 
-        TODO: Explain the usage of current  processor 
+        - Explain the usage of current  processor 
         - overview
-        - parameter explanation for  one by one
+        - parameter explanation
         - give example
     '''
 

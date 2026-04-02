@@ -5,13 +5,15 @@ from core.processor import Processor
 class DATA_FILTERProcessor(Processor):
     TPL: str = '{"given_collection":"", "lambda":"len(row) > 0 and len(row[0]) > 0", "filtered_collection":""}'
 
-    DESC: str = f''' 
-
-        Filter given_collection associated with lambda expression and store it in filtered_collection.
+    DESC: str = f'''
+        Filter given_collection with lambda expression and store result in filtered_collection.
         Replace given_collection if filtered_collection is not given.
-        
-        {TPL}
 
+        - given_collection: key of data_chain pointing to the list to filter
+        - lambda: Python lambda expression as string, variable "row" represents each element (default: "len(row) > 0 and len(row[0]) > 0")
+        - filtered_collection: key of data_chain to store the filtered result (optional, defaults to given_collection)
+
+        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -6,11 +6,16 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class GET_COOKIEProcessor(Processor):
     TPL: str = '{"chrome_name":"chrome", "cookie_name":"", "value_key":"", "get_all":"no|yes"}'
-    DESC: str = f''' 
-        - to get cookie from chrome driver and popluate to value_key of data_chain 
-        
+    DESC: str = f'''
+        Get cookie(s) from chrome driver and populate to value_key of data_chain.
+        When get_all is "yes", returns all cookies as "name=value; name=value;" string.
+
+        - chrome_name: key of data_chain where the chrome driver instance is stored (default: "chrome")
+        - cookie_name: name of the specific cookie to retrieve (supports expression, used when get_all is not "yes")
+        - value_key: key of data_chain to store the cookie value(s) (supports expression)
+        - get_all: "yes" to get all cookies as concatenated string, "no" to get a single cookie by name (default: "no")
+
         {TPL}
-        
     '''
     def get_category(self) -> str:
         return super().CATE_SELENIUM

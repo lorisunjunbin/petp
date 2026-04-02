@@ -8,7 +8,11 @@ class RELOAD_LOGProcessor(Processor):
     TPL: str = '{"name":"reload logger"}'
 
     DESC: str = f''' 
-        Reload the log window to show latest logs.
+        Trigger a refresh of the log window in the PETP UI to display the latest log entries.
+        Useful after a series of tasks to ensure the log view is up to date.
+
+        - name: A descriptive label for this task step (supports expression, default: "reload logger")
+
         {TPL}
     '''
 

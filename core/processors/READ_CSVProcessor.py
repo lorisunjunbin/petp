@@ -5,13 +5,16 @@ from utils.ExcelUtil import ExcelUtil
 class READ_CSVProcessor(Processor):
     TPL: str = '{"file_path":"", "file_path_key":"str on data_chain", "skip_first":"Yes|No", "data_key":"name on data_chain", "delimiter":"default is tab"}'
 
-    DESC: str = f''' 
-        
-        Load csv file from location, read data into array and save to data_chain. 
-        Support specific delimiter, default is tab. Able to skip the first row.
+    DESC: str = f'''
+        Load CSV file from location, read data into 2D array and save to data_chain.
+
+        - file_path: CSV file path (supports expression)
+        - file_path_key: key of data_chain to get the file path, takes priority over file_path if set
+        - skip_first: "Yes" to skip the first row (header), "No" to include it (default: "No")
+        - data_key: key of data_chain to store the parsed CSV data
+        - delimiter: column delimiter (default: tab)
 
         {TPL}
-
     '''
     def get_category(self) -> str:
         return super().CATE_EXCEL

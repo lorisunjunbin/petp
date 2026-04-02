@@ -4,11 +4,12 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class MOVE_TO_IFRAMEProcessor(Processor):
     TPL: str = '{"frame_ids":["at least give one"]}'
-    DESC: str = f''' 
-        Move to specific iframe, support multiple iframes. 
+    DESC: str = f'''
+        Switch chrome driver context into specific iframe, supports nested iframes by providing multiple frame IDs.
+
+        - frame_ids: list of frame identifiers (index, name or id) to navigate through, e.g. ["frame1", "frame2"]
 
         {TPL}
-
     '''
 
     def get_category(self) -> str:

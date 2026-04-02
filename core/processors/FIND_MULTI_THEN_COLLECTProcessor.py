@@ -9,11 +9,19 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
 	TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value|ele|_any property or attribute_", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None","sort_lambda":"item", "sort_reverse":"no"}'
 
 	DESC = f'''
-    get muti-text/property/attribute from given elements via selenium 
+        Find multiple elements via selenium and collect their text, value, or any property/attribute into a list.
 
-    {TPL}
+        - collectby: locator type, "xpath" or "css"
+        - identity: locator value for the target elements
+        - value_type: what to collect - "text" for element.text, "value" for input value, "ele" for element itself, or any attribute name
+        - value_key: key of data_chain to store the collected list (supports expression)
+        - wait: extra wait in seconds before locating elements (default: 5)
+        - timeout: max seconds to wait for elements to appear (default: 10)
+        - skip_fn: Python function body to skip elements, variable "ele" is available (default: "return ele is None")
+        - sort_lambda: Python expression for sorting, variable "item" is available (default: "item")
+        - sort_reverse: "yes" to sort in descending order (default: "no")
 
-
+        {TPL}
     '''
 
 	def get_category(self) -> str:

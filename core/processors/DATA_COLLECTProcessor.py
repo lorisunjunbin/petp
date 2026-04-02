@@ -5,14 +5,17 @@ from core.processor import Processor
 class DATA_COLLECTProcessor(Processor):
     TPL: str = '{"clean_b4_collect":"yes|no","target":"", "type":"list|dict", "list_row_lambda":"[me.get_data(\\"\\")]", "dict_key_lambda":"[me.get_data(\\"\\")]", "dict_value_lambda":"[me.get_data(\\"\\")]"}'
 
-    DESC: str = f''' 
-        
-        based on [type], then collect data via xxx_lambda, then store into target list or dict.
-        type == list, list_row_lambda is required.
-        type == dict, dict_key_lambda and dict_value_lambda are required.
-        
-        {TPL}
+    DESC: str = f'''
+        Collect data into a list or dict in data_chain via lambda expressions. Supports cleaning before collect.
 
+        - clean_b4_collect: "yes" to clear the target before collecting, "no" to append (default: "no")
+        - target: key of data_chain to store the collected data (supports expression)
+        - type: collection type, "list" or "dict" (default: "list")
+        - list_row_lambda: Python expression for list row value, variable "me" (current processor) is available (required when type is "list")
+        - dict_key_lambda: Python expression for dict key, variable "me" is available (required when type is "dict")
+        - dict_value_lambda: Python expression for dict value, variable "me" is available (required when type is "dict")
+
+        {TPL}
     '''
 
     def get_category(self) -> str:

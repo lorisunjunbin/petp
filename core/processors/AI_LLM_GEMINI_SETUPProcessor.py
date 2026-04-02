@@ -37,10 +37,17 @@ class AI_LLM_GEMINI_SETUPProcessor(Processor):
     TPL: str = '{"key_name_gemini":"GOOGLE_API_KEY", "model":"gemini-1.5-pro", "llm_data_key":"llmgemini","top_p":"0.85", "temperature":"0.8"}'
 
     DESC: str = f'''
-        To setup LLM Gemini, a ChatGoogleGenerativeAI instance configured for the "gemini-1.5-pro" model with specific temperature, top_p, and safety settings,
-        then save the llm instance to llm_data_key. 
-        It requires the GOOGLE_API_KEY environment variable to be set.
-        
+        Initialize and configure a Google Gemini LLM instance (ChatGoogleGenerativeAI) with the specified model,
+        temperature, top_p, and safety settings, then store it in the data chain for use by downstream processors
+        such as AI_LLM_GEMINI_QANDA_MCPProcessor. Requires the GOOGLE_API_KEY environment variable to be set.
+        Skips setup if an LLM instance already exists for the given llm_data_key.
+
+        - key_name_gemini: The environment variable name that holds the Google API key (default: "GOOGLE_API_KEY")
+        - model: The Gemini model name to use (default: "gemini-1.5-pro")
+        - llm_data_key: The data chain key under which the configured LLM instance will be stored (default: "llmgemini")
+        - top_p: The top-p (nucleus) sampling parameter as a float string, controls diversity (default: "0.85")
+        - temperature: The sampling temperature as a float string, higher values produce more creative output (default: "0.8")
+
         {TPL}
     '''
 

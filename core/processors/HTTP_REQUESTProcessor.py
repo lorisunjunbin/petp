@@ -9,11 +9,23 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class HTTP_REQUESTProcessor(Processor):
     TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N"}'
     DESC: str = f'''
-        - Send http request(get | post | etc.) to request_url, populate response to value_key, support session.
-        - verify: control SSL certificate verification (default: true), set to false to bypass SSL check for expired certificates.
+        Send HTTP request (get/post/etc.) to request_url, process response via resp_func_body, then store to value_key.
+        Supports session persistence via session_key.
+
+        - timeout: request timeout in seconds (default: 60)
+        - session_key: key of data_chain to store/retrieve requests.Session for persistent connections (default: "__session_key")
+        - resp_func_body: Python function body string to process the response, variable "response" is available (default: "return response.text if response.status_code == 200 else response.status_code")
+        - request_url: target URL for the HTTP request (supports expression)
+        - headers: HTTP headers in "key[>value|key2[>value2" format (supports expression)
+        - method: HTTP method, e.g. "get", "post", "put", "delete" (default: "get")
+        - params: URL query parameters in "key[>value|key2[>value2" format (supports expression)
+        - data_raw: raw request body as string (supports expression)
+        - data: form data in "key[>value|key2[>value2" format (supports expression)
+        - data_key: key of data_chain to get request body data from (takes priority over data param)
+        - value_key: key of data_chain to store the processed response (supports expression)
+        - verify: "Y" to enable SSL verification, "N" to bypass (default: "Y")
 
         {TPL}
-
     '''
 
     def get_category(self) -> str:

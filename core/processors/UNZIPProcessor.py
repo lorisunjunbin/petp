@@ -12,13 +12,18 @@ class UNZIPProcessor(Processor):
                '"pwd":"", ' \
                '"name_appended":""}'
 
-    DESC: str = f''' 
+    DESC: str = f'''
         Simply unzip the file from path_to_zip_file to directory_to_extract, if protected with password, use pwd.
-        path_after_extract_key is key of data_chain, points to final path after unzip.   
+        path_after_extract_key is key of data_chain, points to final path after unzip.
         name_appended will be appended to directory_to_extract.
-        
+
+        - path_to_zip_file: source zip file path to extract (supports expression, default: "")
+        - directory_to_extract: target directory where files are extracted to (supports expression, default: "")
+        - path_after_extract_key: key in data_chain to store the final extraction path (supports expression, default: "path_after_extract")
+        - pwd: password for protected zip files (supports expression, default: "")
+        - name_appended: sub-path appended to directory_to_extract to form the final path (supports expression, default: "")
+
         {TPL}
-         
     '''
 
     def get_category(self) -> str:

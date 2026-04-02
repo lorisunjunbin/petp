@@ -19,17 +19,16 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 	TPL: str = '{"llm_data_key":"llmdeepseek", "prompt":"prompt", "model":"deepseek-chat","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
 	DESC: str = f'''
-        this task depends on the task AI_LLM_DEEPSEEK_SETUPProcessor, which is to setup LLM DeepSeek, then save the llm instance to llm_data_key.
-        Ask llm deepseek a question associated with prompt get the response, parse the response to json if needed, and show the response in popup dialog if needed.
-        
-        USE CASE TEMPERATURE
-        
-		Coding / Math: 0.0
-		Data Cleaning / Data Analysis: 1.0
-		General Conversation: 1.3
-		Translation: 1.3
-		Creative Writing / Poetry: 1.5
-        
+        Ask DeepSeek LLM a question and get the response. Depends on AI_LLM_DEEPSEEK_SETUPProcessor to setup the LLM instance first.
+
+        - llm_data_key: key of data_chain where the LLM client instance is stored (default: "llmdeepseek")
+        - prompt: question to ask the LLM (supports expression)
+        - model: DeepSeek model name (default: "deepseek-chat")
+        - temperature: sampling temperature, Coding/Math: 0.0, Data Analysis: 1.0, Conversation: 1.3, Creative Writing: 1.5 (default: "1.0")
+        - resp_content_key: key of data_chain to store the response content
+        - convert_resp_2_json: "yes" to parse JSON from markdown code block in response (default: "yes")
+        - show_in_popup: "yes" to display Q&A in popup dialog (default: "yes")
+
         {TPL}
     '''
 

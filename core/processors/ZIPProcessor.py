@@ -9,11 +9,20 @@ from utils.OSUtils import OSUtils
 
 class ZIPProcessor(Processor):
     TPL: str = '{"sourcefolder":"","sourcelist":"|","zipname":"", "pathinzip":"","pathbereplaced":"","targetfolder":"", "data_key":""}'
-    DESC: str = f''' 
-        Create zip file with name $zipname, and including either all files in $sourcefolder or files within $sourcelist; put the file to $targetfolder, also populate the data_key.   
-        pathbereplaced will be replaced by pathinzip or removed if pathinzip is empty. 
+    DESC: str = f'''
+        Create a zip file with the given name, including either all files in sourcefolder or specific files from sourcelist.
+        The resulting zip is placed in targetfolder, and its path is stored in data_chain via data_key.
+        pathbereplaced will be replaced by pathinzip inside the archive, or removed if pathinzip is empty.
+
+        - sourcefolder: folder whose files are recursively zipped when sourcelist is not provided (supports expression, default: "")
+        - sourcelist: pipe-separated list of specific file paths to include; falls back to sourcefolder if only "|" (supports expression, default: "|")
+        - zipname: name of the output zip file (without extension) (supports expression, default: "")
+        - pathinzip: replacement path structure inside the zip archive (supports expression, default: "")
+        - pathbereplaced: portion of the file path to be replaced by pathinzip within the archive (supports expression, default: "")
+        - targetfolder: output directory where the zip file is created (supports expression, default: "")
+        - data_key: key in data_chain to store the resulting zip file path (supports expression, default: "")
+
         {TPL}
-         
     '''
 
     def get_category(self) -> str:

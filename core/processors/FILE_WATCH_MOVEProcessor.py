@@ -7,11 +7,15 @@ from utils.OSUtils import OSUtils
 class FILE_WATCH_MOVEProcessor(Processor):
     TPL: str = '{"sourcefile":"","targetfile":"", "filepath_key":"", "timeout":30}'
     DESC: str = f'''
+        Watch for a source file to appear within a timeout period, then copy it to the target location.
+        The target file path is stored in data_chain under the specified key.
 
-        Move file from [sourcefile] to [targetfile], wait until [timeout], then save target location to [filepath_key] of data_chain. 
+        - sourcefile: path of the source file to watch for (supports expression, default: "")
+        - targetfile: destination path where the file is copied to (supports expression, default: "")
+        - filepath_key: key in data_chain to store the target file path (supports expression, default: "")
+        - timeout: maximum seconds to wait for the source file to appear (default: 30)
 
         {TPL}
-        
     '''
 
     def get_category(self) -> str:

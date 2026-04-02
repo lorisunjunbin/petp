@@ -9,7 +9,11 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 class RUN_EXECUTIONProcessor(Processor):
 	TPL: str = '{"execution":"EXECUTION_NAME", "params":"","if_stop":"no"}'
 	DESC: str = f'''
-        - Run a specific execution with params. if_stop is set to yes, the execution will be skipped.
+        Run (trigger) a specific execution by name with optional parameters. If if_stop is set to "yes", the execution will be skipped entirely.
+
+        - execution: The name of the execution to run (supports expression, default: "EXECUTION_NAME")
+        - params: Additional parameters to pass to the execution as a JSON string (supports expression, default: "")
+        - if_stop: If "yes", skip running this execution; if "no", proceed normally (supports expression, default: "no")
 
         {TPL}
     '''

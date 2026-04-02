@@ -7,8 +7,15 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class COLLECTION_MERGEProcessor(Processor):
     TPL: str = '{"c_one_name":"","c_two_name":"","c_result_name":"", "lambda_finder":"rowc1[0] == rowc2[0]", "lambda_merge_matched":"rowc1 + rowc2"}'
 
-    DESC: str = f''' 
-        Find matched rows from c_one and c_two, merge them into c_result, find by lambda_finder, merge by lambda_merge_matched.
+    DESC: str = f'''
+        Find matched rows from two collections and merge them into a result collection.
+
+        - c_one_name: key of data_chain pointing to the first collection
+        - c_two_name: key of data_chain pointing to the second collection
+        - c_result_name: key of data_chain to store the merged result
+        - lambda_finder: Python expression to match rows, variables "rowc1" and "rowc2" are available (default: "rowc1[0] == rowc2[0]")
+        - lambda_merge_matched: Python expression to merge matched rows, variables "rowc1" and "rowc2" are available (default: "rowc1 + rowc2")
+
         {TPL}
     '''
 

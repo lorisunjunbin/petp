@@ -9,7 +9,13 @@ class FIBProcessor(Processor):
 	TPL: str = '{"seed":"","useCache":"yes|no","data_key":"fib_arr"}'
 
 	DESC: str = f'''
-        This is task run fib calculate.
+        Calculate Fibonacci numbers from 0 up to the given seed value. Supports both a cached (fast) and a non-cached
+        (slow/recursive) computation mode. Results are stored as a list of formatted strings in the data chain.
+
+        - seed: The upper bound (exclusive) for Fibonacci calculation; calculates fib(0) through fib(seed-1) (supports expression, default: "")
+        - useCache: Whether to use memoized/cached computation, "yes" for fast cached mode or "no" for plain recursive mode (default: "yes|no")
+        - data_key: The data chain key under which the resulting Fibonacci array will be stored (default: "fib_arr")
+
         {TPL}
     '''
 

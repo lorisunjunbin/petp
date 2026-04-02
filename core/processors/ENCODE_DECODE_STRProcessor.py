@@ -22,8 +22,16 @@ class ENCODE_DECODE_STRProcessor(Processor):
 	TPL: str = '{"type":"ENCODE | DECODE", "inbound":"","outbound_key":"","algorithms":"base64 | base85 | hexlify | a85 | base16 | base32 | base32hex"}'
 
 	DESC: str = f''' 
-        Support encode/decode string with algorithms: base64, base85, hexlify, a85, base16, base32, base32hex.
-        {TPL}
+
+        Encode or decode a string using the specified algorithm. Supports multiple encoding schemes including
+        base64, base85, hexlify, a85 (Ascii85), base16, base32, and base32hex.
+
+        - type: The operation to perform, either "ENCODE" or "DECODE" (supports expression, default: "ENCODE | DECODE")
+        - inbound: The input string to encode or decode; can come from parameters or the data chain (supports expression, default: "")
+        - outbound_key: The data chain key under which the encoded/decoded result will be stored (default: "")
+        - algorithms: The encoding algorithm to use: base64, base85, hexlify, a85, base16, base32, or base32hex (default: "base64 | base85 | hexlify | a85 | base16 | base32 | base32hex")
+
+         {TPL}
     '''
 
 	ENCODING_ALGORITHMS: dict = {

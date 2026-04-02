@@ -20,7 +20,14 @@ class FILE_CHOOSERProcessor(Processor):
     TPL: str = '{"fileuploadby":"id|xpath", "identity":"", "filepath":"", "filepath_key":""}'
 
     DESC: str = f'''
-        To select the file which will be uploaded.
+        Find the file upload element via selenium, then select the file to upload using system file chooser dialog.
+        Supports unicode file names via copy-paste mechanism.
+
+        - fileuploadby: locator type to find the upload element, "id" or "xpath"
+        - identity: locator value for the upload element (supports expression)
+        - filepath: the file path to upload (supports expression), used when filepath_key is not set
+        - filepath_key: key of data_chain to get the file path, falls back to filepath param if not set
+
         {TPL}
     '''
     def get_category(self) -> str:

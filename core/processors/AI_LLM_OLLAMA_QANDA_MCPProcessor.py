@@ -28,15 +28,20 @@ class AI_LLM_OLLAMA_QANDA_MCPProcessor(Processor):
 	TPL: str = '{"model":"deepseek-r1:latest","show_thinking":"no", "prompt":"who are you?","petp_mcp_url":"http://localhost:8888", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
 	DESC: str = f'''
-    
-            This processor is able to call OLLAMA LLM locally, and use tools of PETP MCP server.
+        Call a locally running Ollama LLM with tool-use capabilities via the PETP MCP (Model Context Protocol) server.
+        Fetches available tools from the MCP server, asks the LLM a question, and if the LLM decides to use a tool,
+        executes it via the MCP server and returns the refined answer.
 
-            Ask ollama llm a question associated with available tools, if tool is available, call tool then give the response accordingly.
-			
-			Run another PETP as mcp server, http endpoint: http://localhost:8888
-			
-            {TPL}
-        '''
+        - model: The Ollama model name to use for chat (supports expression, default: "deepseek-r1:latest")
+        - show_thinking: Whether to display thinking/reasoning tags in the output, "yes" or "no" (default: "no")
+        - prompt: The question or prompt text to send to the LLM (supports expression, default: "who are you?")
+        - petp_mcp_url: The base URL of the PETP MCP server for tool discovery and execution (default: "http://localhost:8888")
+        - resp_content_key: The data chain key under which the final response content will be stored (default: "")
+        - convert_resp_2_json: If "yes", attempts to parse the final response as JSON from a markdown code block (default: "yes")
+        - show_in_popup: Whether to display the Q&A result in a popup dialog, "yes" or "no" (default: "yes")
+
+        {TPL}
+    '''
 
 	def get_category(self) -> str:
 		return super().CATE_AI_LLM

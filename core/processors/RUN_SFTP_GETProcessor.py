@@ -8,14 +8,16 @@ from utils.ParamikoUtil import ParamikoUtil
 
 class RUN_SFTP_GETProcessor(Processor):
     TPL: str = '{"from_remote":"","to_local": "","sftp_client_key":"sftpclient", "sftp_get_file_key":"", "close_after_run":"yes|no"}'
-    DESC: str = f''' 
+    DESC: str = f'''
+        Get (download) file from remote server to local via paramiko SFTP client.
 
-        Get file from [from_remote] to [to_local], via paramiko require [sftp_client_key] of data_chain. 
-        Save target location to [sftp_get_file_key] of data_chain.
-        Able to close sftp client by [close_after_run]
+        - from_remote: remote file path to download (supports expression)
+        - to_local: local file path to save the downloaded file (supports expression)
+        - sftp_client_key: key of data_chain where the SFTP client instance is stored (default: "sftpclient")
+        - sftp_get_file_key: key of data_chain to store the local file path after download
+        - close_after_run: "yes" to close the SFTP client after download, "no" to keep it open (default: "yes")
 
         {TPL}
-
     '''
     def get_category(self) -> str:
         return super().CATE_PARAMIKO
