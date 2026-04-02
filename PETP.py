@@ -63,8 +63,27 @@ def build_presenter(model, view):
     return PETPPresenter(model, view, PETPInteractor())
 
 
+def _set_macos_app_name(name: str):
+    """Override the macOS bundle display name so the Dock shows 'PETP' instead of 'Python'.
+    Uses PyObjC's AppKit which ships with macOS system Python and most virtual environments."""
+    try:
+        from AppKit import NSBundle
+        bundle = NSBundle.mainBundle()
+        info = bundle.localizedInfoDictionary() or bundle.infoDictionary()
+        info['CFBundleName'] = name
+        info['CFBundleDisplayName'] = name
+    except Exception as e:
+        logging.warning(f'Could not set macOS app name via AppKit: {e}')
+
+
 def start_app():
     app = wx.App(False)
+    # Set the app name shown in the menu bar and task switcher
+    app.SetAppName('PETP')
+    app.SetAppDisplayName('PETP')
+    # On macOS, also patch the NSBundle info dict so the Dock shows 'PETP' not 'Python'
+    if platform.system() == 'Darwin':
+        _set_macos_app_name('PETP')
 
     model: PETPModel = build_model()
     view: PETPView = build_view()
