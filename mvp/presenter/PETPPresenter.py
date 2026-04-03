@@ -983,10 +983,21 @@ class PETPPresenter():
 
         if action == 'execution':
             params = evt.data['params']
-            self.v.executionChooser.SetValue(params['execution'])
-            self.on_task_execution_changed()
-            self.on_run_execution(params)
+            execution_name = params['execution']
+            execution: Execution = Execution.get_execution(params['execution'])
 
+            if hasattr(execution, 'astool') and execution.astool:
+                self.v.executionChooser.SetValue(execution_name)
+                self.on_task_execution_changed()
+                self.on_run_execution(params)
+            else:
+                from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
+                request_id_key = HttpRequestHandler.get_request_id_key()
+                request_id = params.get(request_id_key)
+                server = HttpRequestHandler.get_server()
+                if request_id and server:
+                    server.store_result(request_id, {
+                        "error": f"Execution '{execution_name}' is not available as a tool (astool=false)"})
         logging.info(f'\nHTTP request be handled - action: {action}, params: {params}\n')
 
     def get_tools(self):
