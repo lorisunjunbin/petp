@@ -266,7 +266,7 @@ class Processor:
         if not isinstance(expression, str):
             return expression
 
-        local_vars = {'self': self, 'os':os}
+        local_vars = {'self': self, 'os':os, 'json': json}
         try:
             if self.task and self.task.data_chain:
                 local_vars.update(self.task.data_chain)
