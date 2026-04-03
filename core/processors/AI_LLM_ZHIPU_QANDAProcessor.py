@@ -12,7 +12,7 @@ Refer: https://docs.bigmodel.cn/cn/guide/develop/python/introduction
 
 # install zhipu zai sdk:
 > pip install zai-sdk
-> pip install zai-sdk==0.2.0
+> pip install zai-sdk==0.2.2
 
 # API address: https://open.bigmodel.cn/api/paas/v4/
 
@@ -20,7 +20,7 @@ Refer: https://docs.bigmodel.cn/cn/guide/develop/python/introduction
 
 
 class AI_LLM_ZHIPU_QANDAProcessor(Processor):
-    TPL: str = '{"llm_data_key":"llmZHIPU","prompt":"prompt", "model":"glm-4.7","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
+    TPL: str = '{"llm_data_key":"llmZHIPU","prompt":"prompt", "model":"GLM-5","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
     DESC: str = f'''
         Ask ZhipuAI (GLM) big model a question, retrieve the response, optionally parse it as JSON from a markdown block,
@@ -29,7 +29,7 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
 
         - llm_data_key: Key to retrieve the pre-configured ZhipuAI client instance from the data chain (default: "llmZHIPU")
         - prompt: The question or prompt text to send to the LLM (supports expression, default: "prompt")
-        - model: The ZhipuAI model name to use for the chat completion (default: "glm-4.7")
+        - model: The ZhipuAI model name to use for the chat completion (default: "GLM-5")
         - temperature: The sampling temperature as a float string, higher values produce more creative output (default: "1.0")
         - resp_content_key: The data chain key under which the final response content will be stored (default: "")
         - convert_resp_2_json: If "yes", attempts to parse the response as JSON from a markdown code block (default: "yes")
