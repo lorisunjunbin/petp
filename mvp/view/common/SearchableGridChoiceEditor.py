@@ -1,5 +1,9 @@
+import sys
 import wx
 import wx.grid
+
+
+_IS_WINDOWS = sys.platform == 'win32'
 
 
 class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
@@ -15,6 +19,8 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 		self._is_syncing = False
 		self._is_selecting = False   # True while a dropdown click is being processed
 		self._is_navigating = False  # True while Up/Down key navigation is in progress
+		self._filter_timer = None
+		self._pending_keyword = ""
 
 	def Create(self, parent, id, evt_handler):
 		self._control = wx.ComboBox(
@@ -33,6 +39,10 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 		self._control.Bind(wx.EVT_TEXT, self._on_text)
 		self._control.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
 		self._control.Bind(wx.EVT_KILL_FOCUS, self._on_kill_focus)
+
+		if _IS_WINDOWS:
+			self._filter_timer = wx.Timer(self._control)
+			self._control.Bind(wx.EVT_TIMER, self._on_filter_timer, self._filter_timer)
 
 	def SetSize(self, rect):
 		if self._control is not None:
@@ -73,6 +83,8 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 		pass
 
 	def Destroy(self):
+		if _IS_WINDOWS and self._filter_timer is not None:
+			self._filter_timer.Stop()
 		if self._control is not None:
 			try:
 				self._control.PopEventHandler(True)
@@ -86,6 +98,8 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 
 		if keycode in (wx.WXK_UP, wx.WXK_DOWN):
 			# Mark as navigating so _on_text won't re-filter and close the dropdown.
+			if _IS_WINDOWS and self._filter_timer is not None:
+				self._filter_timer.Stop()
 			self._is_navigating = True
 			evt.Skip()  # Let ComboBox handle native Up/Down movement.
 			# Reset the flag after the ComboBox has finished processing the key.
@@ -94,6 +108,8 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 
 		if keycode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
 			# Accept the currently highlighted value and restore the full list.
+			if _IS_WINDOWS and self._filter_timer is not None:
+				self._filter_timer.Stop()
 			selected = self._control.GetValue()
 			self._is_selecting = True
 			self._sync_items(self._all_choices, selected)
@@ -105,6 +121,8 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 
 		if keycode == wx.WXK_ESCAPE:
 			# Cancel: revert to the original value.
+			if _IS_WINDOWS and self._filter_timer is not None:
+				self._filter_timer.Stop()
 			self._sync_items(self._all_choices, self._start_value)
 			self._control.Dismiss()
 			evt.Skip()
@@ -120,16 +138,37 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 	def _on_combobox_select(self, evt):
 		"""User clicked an item in the dropdown – accept the value and
 		restore the full choice list without re-filtering."""
-		self._is_selecting = True
-		selected = self._control.GetValue()
-		# Restore full list so the next open shows everything,
-		# but keep the selected value in the text field.
-		self._sync_items(self._all_choices, selected)
-		self._is_selecting = False
+		if _IS_WINDOWS:
+			if self._filter_timer is not None:
+				self._filter_timer.Stop()
+			# On Windows, restoring items immediately here can wipe out the
+			# value just selected by the native control.
+			self._is_selecting = True
+			wx.CallAfter(self._deferred_select_restore)
+		else:
+			self._is_selecting = True
+			selected = self._control.GetValue()
+			# Restore full list so the next open shows everything,
+			# but keep the selected value in the text field.
+			self._sync_items(self._all_choices, selected)
+			self._is_selecting = False
 		evt.Skip()
+
+	def _deferred_select_restore(self):
+		selected = self._control.GetValue()
+		if self._control.GetCount() != len(self._all_choices):
+			self._sync_items(self._all_choices, selected)
+		self._is_selecting = False
 
 	def _on_text(self, evt):
 		if self._is_syncing or self._is_selecting or self._is_navigating:
+			evt.Skip()
+			return
+
+		if _IS_WINDOWS and self._filter_timer is not None:
+			self._pending_keyword = self._control.GetValue()
+			self._filter_timer.Stop()
+			self._filter_timer.StartOnce(200)
 			evt.Skip()
 			return
 
@@ -138,24 +177,46 @@ class SearchableGridChoiceEditor(wx.grid.GridCellEditor):
 		self._sync_items(filtered, keyword)
 		evt.Skip()
 
+	def _on_filter_timer(self, _evt):
+		if self._is_syncing or self._is_selecting or self._is_navigating:
+			return
+		keyword = self._pending_keyword
+		filtered = self._filter_choices(keyword)
+		self._sync_items(filtered, keyword)
+		if filtered and keyword:
+			wx.CallAfter(self._control.Popup)
+
 	def _on_kill_focus(self, evt):
 		# Keep existing behavior when allow_others=False: invalid input falls back to original value.
-		if not self._allow_others:
+		if not self._allow_others and not self._is_selecting:
 			current = self._control.GetValue()
 			if current and current not in self._all_choices:
-				self._control.SetValue(self._start_value)
+				if _IS_WINDOWS:
+					self._control.ChangeValue(self._start_value)
+				else:
+					self._control.SetValue(self._start_value)
 		evt.Skip()
 
 	def _sync_items(self, items, value):
 		self._is_syncing = True
 		try:
 			self._control.Freeze()
-			self._control.SetItems(items)
-			self._control.SetValue(value)
+			self._control.Clear()
+			self._control.AppendItems(items)
+			if _IS_WINDOWS:
+				self._control.ChangeValue(value)
+			else:
+				self._control.SetValue(value)
 			self._control.SetInsertionPointEnd()
 		finally:
 			self._control.Thaw()
-			self._is_syncing = False
+			if _IS_WINDOWS:
+				wx.CallAfter(self._finish_sync)
+			else:
+				self._is_syncing = False
+
+	def _finish_sync(self):
+		self._is_syncing = False
 
 	def _filter_choices(self, keyword):
 		if not keyword:
