@@ -4,14 +4,19 @@ import logging
 import os
 import time
 from threading import Condition
+from typing import TYPE_CHECKING, Any
 
 import cryptocode
 
 from core.loop import Loop
 from core.task import Task
-from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
+
+if TYPE_CHECKING:
+    from mvp.view.PETPView import PETPView
+else:
+    PETPView = Any
 
 
 class Processor:

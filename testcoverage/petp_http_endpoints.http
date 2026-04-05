@@ -1,36 +1,84 @@
 ###
-GET {{baseURL}}
+GET {{baseURL}}/
 
 ###
-POST  {{baseURL}}
-Content-Type: application/json
-
-{
-  "generated-in": "PyCharm",
-  "message": "Hello, World!"
-}
+GET {{baseURL}}/health
 
 ###
-POST  {{baseURL}}petp
+GET {{baseURL}}/petp/tools
+
+###
+POST {{baseURL}}/petp/exec
 Content-Type: application/json
 
 {
   "action": "execution",
+  "wait_for_result": true,
   "params": {
-    "execution": "test_DB_ACCESS_Sqlite",
-    "user": "sunjunbin",
-    "table": "user"
+    "execution": "ENDECODER",
+    "type": "ENCODE",
+    "algorithms": "base64",
+    "inbound": "abc"
   }
 }
 
 ###
-POST  {{baseURL}}petp
+POST {{baseURL}}/petp/exec
 Content-Type: application/json
 
 {
-    "action": "execution",
-    "params":{
-        "execution":"test_read_from_excel",
-        "fromHTTPservice":true
+  "action": "execution",
+  "wait_for_result": false,
+  "params": {
+    "execution": "ENDECODER",
+    "type": "ENCODE",
+    "algorithms": "base64",
+    "inbound": "xyz"
+  }
+}
+
+###
+GET {{baseURL}}/petp/result?request_id={{request_id}}
+
+###
+POST {{baseURL}}/mcp
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {}
+}
+
+###
+POST {{baseURL}}/mcp
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list",
+  "params": {}
+}
+
+###
+POST {{baseURL}}/mcp
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "ENDECODER",
+    "arguments": {
+      "type": "ENCODE",
+      "algorithms": "base64",
+      "inbound": "nogui"
     }
+  }
 }

@@ -180,6 +180,36 @@ python PETP.py
 
 The GUI window will launch. On first run, PETP creates a default config under `./config/petpconfig.yaml`.
 
+### Step 4B — Run PETP in Background (No UI)
+
+Use the new no-GUI entrypoint:
+
+```bash
+python PETP_backgroud.py
+```
+
+Run one execution and exit:
+
+```bash
+python PETP_backgroud.py --run-execution ENDECODER --no-http
+```
+
+Important no-GUI config in `./config/petpconfig.yaml`:
+
+- `nogui_enabled: true`
+- `nogui_ui_processor_policy: skip`
+
+`nogui_ui_processor_policy` supports:
+
+- `skip`: skip GUI processors and continue
+- `abort`: stop execution when a GUI processor is encountered
+
+Current GUI processor types in no-GUI mode:
+
+- `SHOW_RESULT`
+- `INPUT_DIALOG`
+- `MATPLOTLIB`
+
 ---
 
 ### Step 5 — (Optional) Enable HTTP Service
@@ -206,6 +236,20 @@ python PETP_build.py
 ```
 
 > 🍎 On macOS this produces `PETP.app`; on Windows it produces `PETP.exe`.
+
+### Step 6B — (Optional) Run in Docker (No-GUI)
+
+Build image:
+
+```bash
+docker build -t petp-nogui .
+```
+
+Run container:
+
+```bash
+docker run --rm -p 8866:8866 petp-nogui
+```
 
 ---
 

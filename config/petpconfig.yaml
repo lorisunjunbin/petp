@@ -8,6 +8,8 @@ application:
   http_port: 8866
   http_request_timeout: 60
   http_request_token: cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
+  nogui_enabled: true
+  nogui_ui_processor_policy: skip
   last_run: loop_time
   log_level: INFO
   version: 1.2.0

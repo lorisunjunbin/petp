@@ -2,8 +2,17 @@ import logging
 import os
 from datetime import datetime
 from threading import Condition
+from typing import TYPE_CHECKING, Any
 
-import wx
+try:
+    import wx
+except Exception:
+    class _WxShim:
+        @staticmethod
+        def PostEvent(*args, **kwargs):
+            return None
+
+    wx = _WxShim()
 
 from core.definition.yamlro import YamlRO
 from core.executionstate import ExecutionState
@@ -11,9 +20,13 @@ from core.loop import Loop
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
-from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
+
+if TYPE_CHECKING:
+    from mvp.view.PETPView import PETPView
+else:
+    PETPView = Any
 
 """
 Execution 1:n Task
