@@ -269,9 +269,10 @@ class Processor:
             return None
 
         if not isinstance(expression, str):
+            logging.error(f"expression2str NOT isinstance str {expression!r}")
             return expression
 
-        local_vars = {'self': self, 'os':os, 'json': json}
+        local_vars = {'self': self, 'os': os, 'json': json}
         try:
             if self.task and self.task.data_chain:
                 local_vars.update(self.task.data_chain)

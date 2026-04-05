@@ -79,8 +79,9 @@ class BackgroundHttpServer:
             exec_name: str = cast(str, execution_name)
 
             if wait_for_result:
-                result = self.runtime.run_execution(exec_name, params)
-                return result, 200 if result.get("ok") else 500
+                runtime_result = self.runtime.run_execution(exec_name, params)
+                client_result = self._extract_business_response(runtime_result)
+                return client_result, 200 if bool(runtime_result.get("ok")) else 500
 
             self._submit_async(request_id, lambda: self.runtime.run_execution(exec_name, params))
             return {
@@ -96,8 +97,9 @@ class BackgroundHttpServer:
             pipe_name: str = cast(str, pipeline_name)
 
             if wait_for_result:
-                result = self.runtime.run_pipeline(pipe_name, params)
-                return result, 200 if result.get("ok") else 500
+                runtime_result = self.runtime.run_pipeline(pipe_name, params)
+                client_result = self._extract_business_response(runtime_result)
+                return client_result, 200 if bool(runtime_result.get("ok")) else 500
 
             self._submit_async(request_id, lambda: self.runtime.run_pipeline(pipe_name, params))
             return {
@@ -123,15 +125,15 @@ class BackgroundHttpServer:
                         "message": "Request is still being processed",
                     }, 200
             return {"error": "Request not found or expired"}, 404
-        return result, 200 if result.get("ok") else 500
+        return result, self._status_code_for_result(result)
 
     def _handle_mcp_auth(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> tuple:
         return {"token": self._token}, 200
 
     def _handle_mcp(
-        self,
-        handler: HttpRequestHandler,
-        params: Optional[dict] = None,
+            self,
+            handler: HttpRequestHandler,
+            params: Optional[dict] = None,
     ) -> Union[StreamingResponseData, tuple]:
         params = params or {}
         token = handler.headers.get("Authorization")
@@ -207,17 +209,24 @@ class BackgroundHttpServer:
                 })
 
                 result = self.runtime.run_execution(tool_exec_name, arguments)
+                extracted_result = self._extract_business_response(result)
+                client_result = self._strip_meta_for_client(extracted_result)
+                content_text = self._to_mcp_text(client_result)
+                if isinstance(result, dict) and result.get("meta") is not None:
+                    logging.info("MCP tools/call meta for %s: %s", tool_name,
+                                 json.dumps(result.get("meta"), ensure_ascii=False, default=str))
                 yield self._sse_event({
                     "jsonrpc": "2.0",
                     "id": request_id,
                     "result": {
-                        "content": [{"type": "text", "text": json.dumps(result, ensure_ascii=False)}],
-                        "structuredContent": result,
-                        "isError": not result.get("ok", False),
+                        "content": [{"type": "text", "text": f" {info} -> {content_text}"}],
+                        "structuredContent": self._to_mcp_structured_content(client_result),
+                        "isError": not bool(result.get("ok", False)) if isinstance(result, dict) else True,
                     },
                 })
 
-            return StreamingResponseData(_stream_call_result(), self._build_sse_headers(session_id), "text/event-stream", 200)
+            return StreamingResponseData(_stream_call_result(), self._build_sse_headers(session_id),
+                                         "text/event-stream", 200)
 
         response = {
             "jsonrpc": "2.0",
@@ -257,9 +266,9 @@ class BackgroundHttpServer:
     @staticmethod
     def _extract_session_id(handler: HttpRequestHandler) -> Optional[str]:
         return (
-            handler.headers.get("mcp-session-id")
-            or handler.headers.get("MCP-Session-Id")
-            or handler.headers.get("Mcp-Session-Id")
+                handler.headers.get("mcp-session-id")
+                or handler.headers.get("MCP-Session-Id")
+                or handler.headers.get("Mcp-Session-Id")
         )
 
     @staticmethod
@@ -287,6 +296,59 @@ class BackgroundHttpServer:
         return tools
 
     @staticmethod
+    def _to_mcp_text(payload: Any) -> str:
+        if isinstance(payload, str):
+            return payload
+        return json.dumps(payload, ensure_ascii=False, default=str)
+
+    @staticmethod
+    def _to_mcp_structured_content(payload: Any) -> dict[str, Any]:
+        return {
+            "type": "text",
+            "text": payload,
+            "annotations": None,
+            "_meta": None,
+        }
+
+    @staticmethod
+    def _strip_meta_for_client(result: Any) -> Any:
+        if not isinstance(result, dict):
+            return result
+        return {k: v for k, v in result.items() if k != "meta"}
+
+    @staticmethod
+    def _extract_business_response(runtime_result: Any) -> Any:
+        if not isinstance(runtime_result, dict):
+            return runtime_result
+
+        if not bool(runtime_result.get("ok")):
+            return runtime_result
+
+        data = runtime_result.get("data")
+        if not isinstance(data, dict):
+            return data
+
+        response_key = data.get("__http_response_key__")
+        if not isinstance(response_key, str) or not response_key:
+            legacy_key = data.get("http_response_key")
+            if isinstance(legacy_key, str) and legacy_key:
+                response_key = legacy_key
+
+        if isinstance(response_key, str) and response_key in data:
+            return data.get(response_key)
+
+        if "http_response" in data:
+            return data.get("http_response")
+
+        return data
+
+    @staticmethod
+    def _status_code_for_result(result: Any) -> int:
+        if isinstance(result, dict) and "ok" in result:
+            return 200 if bool(result.get("ok")) else 500
+        return 200
+
+    @staticmethod
     def _parse_tool_value(value: Any) -> dict:
         if isinstance(value, dict):
             return value
@@ -311,8 +373,9 @@ class BackgroundHttpServer:
             self._result_events[request_id] = event
 
         def _runner():
-            result = task()
-            self.store_result(request_id, result)
+            runtime_result = task()
+            client_result = self._extract_business_response(runtime_result)
+            self.store_result(request_id, client_result)
 
         threading.Thread(target=_runner, daemon=True).start()
 
@@ -353,8 +416,3 @@ class BackgroundHttpServer:
             self._httpd.shutdown()
             self._running = False
             logging.info("Background HTTP Server has been stopped")
-
-
-
-
-

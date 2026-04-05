@@ -284,7 +284,8 @@ pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 
 | Date | What's New |
 |------|------------|
-| 2026-04 | ✨ New handy toolbar buttons: append `date_str`, append `os.sep`; added **Skip Task** checkbox on execution run |
+| 2026-04 | ✨ Support NO_GUI mode, [`PETP_backgroud.py`](./PETP_backgroud.py), easy to run in [`Docker`](./Dockerfile).
+| 2026-04 | 🖱 New handy toolbar buttons: append `date_str`, append `os.sep`; added **Skip Task** checkbox on execution run |
 | 2026-03 | 📦 Two new OOTB Executions: `OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm` & `OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64` |
 | 2026-03 | 🖱 Enhanced [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) with **skip function** support for flexible element handling |
 | 2026-03 | ⏱ Added **page load timeout** support in Selenium utility |

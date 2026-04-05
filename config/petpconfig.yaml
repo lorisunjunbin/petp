@@ -6,10 +6,10 @@ application:
   enable_windows_hdpi: false
   execute_on_startup: false
   http_port: 8866
-  http_request_timeout: 60
+  http_request_timeout: 600
   http_request_token: cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
-  nogui_enabled: true
-  nogui_ui_processor_policy: skip
   last_run: loop_time
   log_level: INFO
+  nogui_enabled: true
+  nogui_ui_processor_policy: skip
   version: 1.2.0

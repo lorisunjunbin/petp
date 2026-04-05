@@ -3,9 +3,9 @@ from httpservice.HttpServer import HttpRequestHandler
 
 
 class HTTP_RESPONSE_KEYProcessor(Processor):
-	TPL: str = '{"http_response_key":"result"}'
+    TPL: str = '{"http_response_key":"result"}'
 
-	DESC: str = f''' 
+    DESC: str = f''' 
 
         Required when calling PETP from an HTTP service. Specifies which data chain key's value should be used
         as the HTTP response body. The processor reads data from the data chain using the given key and registers
@@ -17,9 +17,9 @@ class HTTP_RESPONSE_KEYProcessor(Processor):
 
     '''
 
-	def get_category(self) -> str:
-		return super().CATE_DATA_PROCESSING
+    def get_category(self) -> str:
+        return super().CATE_DATA_PROCESSING
 
-	def process(self):
-		key = self.get_param('http_response_key')
-		self.populate_data(HttpRequestHandler.get_response_key(), key)
+    def process(self):
+        key = self.expression2str(self.get_param('http_response_key'))
+        self.populate_data(HttpRequestHandler.get_response_key(), key)

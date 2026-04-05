@@ -37,7 +37,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--run-execution", help="Run one execution immediately")
     parser.add_argument("--run-pipeline", help="Run one pipeline immediately")
     parser.add_argument("--init-data", default="{}", help="JSON object for initial data")
-    parser.add_argument("--no-http", action="store_true", help="Run immediate job and exit without starting HTTP server")
+    parser.add_argument("--no-http", action="store_true",
+                        help="Run immediate job and exit without starting HTTP server")
     return parser.parse_args()
 
 
@@ -58,7 +59,7 @@ def _merge_config(args: argparse.Namespace, model: PETPModel) -> dict:
         "ui_policy": ui_policy,
         "log_level": args.log_level or getattr(model, "log_level", "INFO"),
         "http_port": args.http_port or int(getattr(model, "http_port", 8866)),
-        "http_timeout": int(getattr(model, "http_request_timeout", 60)),
+        "http_timeout": int(getattr(model, "http_request_timeout", 600)),
         "http_token": args.http_token if args.http_token is not None else getattr(model, "http_request_token", None),
         "run_execution": args.run_execution,
         "run_pipeline": args.run_pipeline,
@@ -129,5 +130,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-

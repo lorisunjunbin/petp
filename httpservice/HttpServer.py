@@ -31,6 +31,8 @@ class HttpServer:
     MAX_RESULTS_CACHE: int = 1000
     # Interval (seconds) between expired-result cleanup sweeps
     CLEANUP_INTERVAL: int = 60
+    # Minimum timeout for sync waits (10 minutes)
+    MIN_HTTP_TIMEOUT_SECONDS: int = 600
 
     # ------------------------------------------------------------------
     # Construction & route registration
@@ -44,7 +46,7 @@ class HttpServer:
         """
         self.p: PETPPresenter = presenter  # Public — accessed by @reload_http_log_after decorator
         self._port: int = int(presenter.m.http_port)
-        self._timeout: int = int(presenter.m.http_request_timeout)
+        self._timeout: int = max(int(presenter.m.http_request_timeout), self.MIN_HTTP_TIMEOUT_SECONDS)
         self._token: Optional[str] = presenter.m.http_request_token
         self._host: str = ""  # Empty string = listen on all interfaces
         self._httpd: Optional[ThreadingHTTPServer] = None
@@ -336,8 +338,17 @@ class HttpServer:
         session_id: Optional[str] = self._extract_session_id(handler)
         action: str = payload.get("params", {}).get("name", "")
         arguments: dict = payload.get("params", {}).get("arguments", {})
+        if not action:
+            return self._single_sse_response(
+                {
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "error": {"code": -32602, "message": "Invalid params: params.name is required"},
+                },
+                session_id,
+            )
         message: str = arguments.get("message") or ""
-        arguments_json: str = json.dumps(arguments)
+        arguments_json: str = json.dumps(arguments, ensure_ascii=False)
 
         def _stream_call_result() -> Generator[str, None, None]:
             """Yield SSE frames: first a progress notification, then the tool result."""
@@ -360,18 +371,15 @@ class HttpServer:
                 "params": petp_param,
             })
 
+            client_result = self._strip_meta_for_client(result)
+            content_text = self._to_mcp_text(client_result)
             yield self._sse_event({
                 "jsonrpc": "2.0",
                 "id": request_id,
                 "result": {
-                    "content": [{"type": "text", "text": f" {question_info} -> {result}"}],
-                    "structuredContent": {
-                        "type": "text",
-                        "text": result,
-                        "annotations": None,
-                        "_meta": None,
-                    },
-                    "isError": False,
+                    "content": [{"type": "text", "text": f" {question_info} -> {content_text}"}],
+                    "structuredContent": self._to_mcp_structured_content(client_result),
+                    "isError": self._is_mcp_error_result(result),
                 },
             })
 
@@ -548,6 +556,36 @@ class HttpServer:
             }
         return None
 
+    @staticmethod
+    def _to_mcp_text(payload: Any) -> str:
+        if isinstance(payload, str):
+            return payload
+        return json.dumps(payload, ensure_ascii=False, default=str)
+
+    @staticmethod
+    def _to_mcp_structured_content(payload: Any) -> dict[str, Any]:
+        return {
+            "type": "text",
+            "text": payload,
+            "annotations": None,
+            "_meta": None,
+        }
+
+    @staticmethod
+    def _strip_meta_for_client(result: Any) -> Any:
+        if not isinstance(result, dict):
+            return result
+        return {k: v for k, v in result.items() if k != "meta"}
+
+    @staticmethod
+    def _is_mcp_error_result(result: Any) -> bool:
+        if isinstance(result, dict):
+            if "ok" in result:
+                return not bool(result.get("ok"))
+            if result.get("error"):
+                return True
+        return False
+
     # ------------------------------------------------------------------
     # Result store (async execution support)
     # ------------------------------------------------------------------
@@ -613,7 +651,7 @@ class HttpServer:
         """Generate a unique request ID (UUID4)."""
         return str(uuid.uuid4())
 
-    def _get_and_remove_result(self, request_id: str, timeout: int = 10) -> Any:
+    def _get_and_remove_result(self, request_id: str, timeout: int = 600) -> Any:
         """Block until the result for *request_id* is available or *timeout* elapses.
 
         The result is removed from the store once consumed.

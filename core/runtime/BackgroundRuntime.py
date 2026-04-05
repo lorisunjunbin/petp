@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 from threading import Condition
@@ -9,6 +10,8 @@ from core.pipeline import Pipeline
 from core.processor import Processor
 from core.runtime.UiProcessorPolicy import decide
 from core.task import Task
+from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
+from utils.DateUtil import DateUtil
 
 
 class BackgroundRuntime:
@@ -28,11 +31,21 @@ class BackgroundRuntime:
         skipped_tasks = []
 
         state = ExecutionState(execution.list)
+        execution.set_should_be_stop(False)
+        execution.init_run_at()
         if hasattr(execution, "loops"):
             execution.loops.sort(key=lambda loop: loop.get_attribute("task_start"))
 
         try:
             while state.has_next():
+                if getattr(execution, "should_be_stop", False):
+                    logging.info(
+                        "Execution: [ %s ] is manually stop at task: %s",
+                        execution_name,
+                        state.get_sequence(),
+                    )
+                    break
+
                 seq = state.get_sequence()
                 task: Task = execution.list[state.get_current_index()]
 
@@ -43,10 +56,22 @@ class BackgroundRuntime:
 
                 task.data_chain = data_chain
                 task.run_sequence = seq
+                task.start = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
+
+                processor = Processor.get_processor_by_type(task.type)
+                processor.set_execution(execution)
+                processor.set_task(task)
+                processor.set_condition(cond)
+                processor.set_view(None)
+                processor.set_in_loop(state.is_loop_execution)
+                processor.set_current_loop(current_loop)
+
+                self._log_start_process(current_loop, state, processor, task)
 
                 skip_reason = self._skip_reason(task)
                 if skip_reason is not None:
                     skipped_tasks.append({"task_index": seq, "task_type": task.type, "reason": skip_reason})
+                    self._log_skipped_process(task)
                     logging.info(
                         "Skip task @execution=%s task=%s type=%s reason=%s",
                         execution_name,
@@ -55,14 +80,10 @@ class BackgroundRuntime:
                         skip_reason,
                     )
                 else:
-                    processor = Processor.get_processor_by_type(task.type)
-                    processor.set_execution(execution)
-                    processor.set_task(task)
-                    processor.set_condition(cond)
-                    processor.set_view(None)
-                    processor.set_in_loop(state.is_loop_execution)
-                    processor.set_current_loop(current_loop)
                     processor.do_process()
+
+                task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
+                self._log_end_process(current_loop, state, processor, task)
 
                 if state.is_loop_end and state.setup_loop_end_then_continue(data_chain):
                     continue
@@ -119,22 +140,22 @@ class BackgroundRuntime:
         for execution_name in Execution.get_available_executions():
             execution = Execution.get_execution(execution_name)
             if (
-                hasattr(execution, "astool")
-                and execution.astool
-                and hasattr(execution, "mcp_desc")
-                and execution.mcp_desc
+                    hasattr(execution, "astool")
+                    and execution.astool
+                    and hasattr(execution, "mcp_desc")
+                    and execution.mcp_desc
             ):
                 tools[execution_name] = execution.mcp_desc
         return tools
 
     @staticmethod
     def _result(
-        ok: bool,
-        data: dict,
-        error: Optional[str],
-        started: float,
-        skipped_tasks: Optional[list] = None,
-        extra_meta: Optional[dict] = None,
+            ok: bool,
+            data: dict,
+            error: Optional[str],
+            started: float,
+            skipped_tasks: Optional[list] = None,
+            extra_meta: Optional[dict] = None,
     ) -> dict:
         safe_data = BackgroundRuntime._public_data(data)
         meta = {
@@ -151,19 +172,61 @@ class BackgroundRuntime:
         if not isinstance(data_chain, dict):
             return {}
 
+        resp_key = HttpRequestHandler.get_response_key()
+        if resp_key in data_chain:
+            return data_chain[data_chain[resp_key]]
+
         result = {}
         for key, value in data_chain.items():
-            if key in {"__m", "__p"}:
-                continue
-            if key.startswith("__") and key != "__http_response_key__":
+            if key in {"__m", "__p"} or BackgroundRuntime._should_skip_public_value(value):
                 continue
             result[key] = value
 
-        response_key = result.get("__http_response_key__")
-        if isinstance(response_key, str) and response_key in result:
-            result["http_response"] = result.get(response_key)
-
         return result
+
+    @staticmethod
+    def _should_skip_public_value(value: Any) -> bool:
+        return BackgroundRuntime._is_chrome_driver_instance(value) or not BackgroundRuntime._is_json_serializable(value)
+
+    @staticmethod
+    def _is_chrome_driver_instance(value: Any) -> bool:
+        cls = getattr(value, "__class__", None)
+        if cls is None:
+            return False
+
+        module_name = str(getattr(cls, "__module__", "")).lower()
+        class_name = str(getattr(cls, "__name__", "")).lower()
+        return "selenium" in module_name and "webdriver" in module_name and "chrome" in (module_name + class_name)
+
+    @staticmethod
+    def _is_json_serializable(value: Any) -> bool:
+        try:
+            json.dumps(value)
+            return True
+        except (TypeError, OverflowError):
+            return False
+
+    @staticmethod
+    def _collect_loop_cursor(current_loop: Any, state: ExecutionState) -> str:
+        idx = "" if current_loop is None else str(state.loop_times_cur) if state.is_times_loop else str(
+            state.current_loop_idx)
+        return (current_loop.get_loop_code() + "@" + idx) if current_loop is not None else ""
+
+    def _log_start_process(self, current_loop: Any, state: ExecutionState, processor: Processor, task: Task) -> None:
+        loop_cursor = self._collect_loop_cursor(current_loop, state)
+        logging.info(
+            f">-{task.start} >- {type(processor).__name__} >---------------> Task: {state.get_sequence()} {loop_cursor} -- begin >"
+        )
+        logging.info(f"process start: {task.input}")
+
+    def _log_skipped_process(self, task: Task) -> None:
+        logging.info(f"*** skipped *** : {task.input}")
+
+    def _log_end_process(self, current_loop: Any, state: ExecutionState, processor: Processor, task: Task) -> None:
+        loop_cursor = self._collect_loop_cursor(current_loop, state)
+        logging.info(
+            f"<-{task.end} <- {type(processor).__name__} <--------------< Task: {state.get_sequence()} {loop_cursor} -- end << \n"
+        )
 
     def _skip_reason(self, task: Task) -> Optional[str]:
         if getattr(task, "skipped", False):
@@ -185,7 +248,3 @@ class BackgroundRuntime:
         if not isinstance(execution_name, str) or not execution_name:
             raise ValueError("execution name is required in init_param['execution']")
         return self.run_execution(execution_name, init_param)
-
-
-
-

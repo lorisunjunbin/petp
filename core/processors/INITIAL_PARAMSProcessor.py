@@ -1,4 +1,7 @@
+import logging
+
 from core.processor import Processor
+
 
 class INITIAL_PARAMSProcessor(Processor):
     TPL: str = '{"any_key":"any_value"}'
@@ -18,5 +21,10 @@ class INITIAL_PARAMSProcessor(Processor):
     def process(self):
         allParams = self.get_all_params()
         for key in allParams:
+            if self.has_data(key):
+                logging.warning("INITIAL_PARAMS skipped: key [%s] already exists, current value=[%s]", key,
+                                self.get_data(key))
+                continue
+
             value = allParams[key]
             self.populate_data(key, self.expression2str(value) if value is not None else None)
