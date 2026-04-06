@@ -2,7 +2,10 @@ import json
 import logging
 import re
 
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from core.processor import Processor
@@ -50,7 +53,8 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
 
         if existed_llm is None:
             msg = f'LLM Gemini is not setup yet, please add task AI_LLM_GEMINI_SETUPProcessor as previous Task.'
-            wx.MessageDialog(None, msg, "AI_LLM_GEMINI_Q&A").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, msg, "AI_LLM_GEMINI_Q&A").ShowModal()
             return
 
         logging.debug(f'prompt: {prompt}')
@@ -62,11 +66,12 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
         logging.info(f'Q and A:\n {message}')
 
         if show_in_popup:
-            wx.MessageDialog(None, message, "AI_LLM_GEMINI_QANDA").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, message, "AI_LLM_GEMINI_QANDA").ShowModal()
 
         self.populate_data(resp_content_key, content)
 
-    def read_json_from_markdown(markdown_content: str) -> dict[str, any]:
+    def read_json_from_markdown(markdown_content: str) -> dict:
         try:
             json_match = re.search(r'```json\n([\s\S]*?)\n```', markdown_content)
             if json_match:

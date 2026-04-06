@@ -1,7 +1,11 @@
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 
 from core.processor import Processor
 from mvp.presenter.event.PETPEvent import PETPEvent
+import logging
 
 
 class RELOAD_LOGProcessor(Processor):
@@ -20,4 +24,7 @@ class RELOAD_LOGProcessor(Processor):
         return super().CATE_GUI
 
     def process(self):
-        wx.PostEvent(self.view, PETPEvent(PETPEvent.LOG))
+        if wx is not None and self.view is not None:
+            wx.PostEvent(self.view, PETPEvent(PETPEvent.LOG))
+        else:
+            logging.info("[Notification] Log event triggered.")

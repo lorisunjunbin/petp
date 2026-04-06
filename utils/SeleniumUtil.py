@@ -21,6 +21,36 @@ urllib3.HTTPConnectionPool.maxsize = 20
 class SeleniumUtil:
 
     @staticmethod
+    def is_running_in_docker() -> bool:
+        """Detect if we are running inside a Docker container."""
+        if os.path.exists('/.dockerenv'):
+            return True
+        try:
+            with open('/proc/1/cgroup', 'r') as f:
+                return 'docker' in f.read()
+        except (FileNotFoundError, PermissionError):
+            return False
+
+    @staticmethod
+    def _resolve_chromedriver_path() -> str:
+        """Return the chromedriver path — bundled one first, then system-installed."""
+        bundled = os.path.realpath('webdriver') + os.sep + OSUtils.get_system() + os.sep + 'chromedriver' + (
+            '.exe' if OSUtils.get_system() == 'win32' else '')
+        if os.path.isfile(bundled):
+            return bundled
+
+        # Fallback: system-installed chromedriver (e.g. in Docker via apt)
+        import shutil
+        system_driver = shutil.which('chromedriver')
+        if system_driver:
+            logging.info(f'Using system chromedriver: {system_driver}')
+            return system_driver
+
+        raise FileNotFoundError(
+            f'chromedriver not found. Tried bundled path: {bundled} and system PATH.'
+        )
+
+    @staticmethod
     def get_chrome_keys():
         result = list(filter(lambda k: not k[0].startswith('__'), Keys.__dict__.copy().items()))
         return result
@@ -31,8 +61,7 @@ class SeleniumUtil:
 
     @staticmethod
     def get_webdriver4_chrome(download_folder=None, page_load_timeout=180, maximize_window=False) -> WebDriver:
-        wdpath: str = os.path.realpath('webdriver') + os.sep + OSUtils.get_system() + os.sep + 'chromedriver' + (
-            '.exe' if OSUtils.get_system() == 'win32' else '')
+        wdpath = SeleniumUtil._resolve_chromedriver_path()
 
         down_path = os.path.join(os.path.realpath('download'), download_folder) \
             if download_folder is not None else os.path.realpath('download')
@@ -42,7 +71,17 @@ class SeleniumUtil:
         logging.info(f'Loading webdriver from: {wdpath}, Download folder: {down_path}')
 
         options = webdriver.ChromeOptions()
-        options.add_argument("--start-maximized")
+
+        # Auto-enable headless mode in Docker / headless environments
+        if SeleniumUtil.is_running_in_docker() or os.environ.get('PETP_HEADLESS', '').lower() == 'true':
+            logging.info('Headless mode enabled (Docker or PETP_HEADLESS=true)')
+            options.add_argument('--headless=new')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            options.add_argument('--disable-gpu')
+            options.add_argument('--window-size=1920,1080')
+        else:
+            options.add_argument("--start-maximized")
 
         prefs = {"profile.default_content_settings.popups": 0,
                  "download.default_directory": down_path,
@@ -56,7 +95,7 @@ class SeleniumUtil:
 
         chrome.set_page_load_timeout(page_load_timeout)
 
-        if maximize_window:
+        if maximize_window and not SeleniumUtil.is_running_in_docker():
             chrome.maximize_window()
 
         return chrome

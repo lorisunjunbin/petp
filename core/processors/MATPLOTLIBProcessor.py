@@ -1,5 +1,8 @@
 import json
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 
 from core.processor import Processor
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -36,12 +39,15 @@ class MATPLOTLIBProcessor(Processor):
 		show_toolbar = True if 'True' == self.expression2str(self.get_param('show_toolbar')) else False
 		data = self.get_json_param('data_json')
 
-		wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.MATPLOTLIB, {
-			"title": title,
-			"chart_type": chart_type,
-			"msg": msg,
-			"top": top,
-			"left": left,
-			"show_toolbar": show_toolbar,
-			"matplotlib_data": data
-		}))
+		if wx is not None:
+			wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.MATPLOTLIB, {
+				"title": title,
+				"chart_type": chart_type,
+				"msg": msg,
+				"top": top,
+				"left": left,
+				"show_toolbar": show_toolbar,
+				"matplotlib_data": data
+			}))
+		else:
+			logging.info(f"[Notification] MATPLOTLIBProcessor: title={title}, chart_type={chart_type}, msg={msg}, top={top}, left={left}, show_toolbar={show_toolbar}, matplotlib_data={data}")

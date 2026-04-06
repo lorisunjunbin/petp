@@ -4,7 +4,10 @@ import re
 from typing import Any, Dict, List, Optional, Union
 
 import requests
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 import ollama
 
 from core.processor import Processor
@@ -101,12 +104,18 @@ class AI_LLM_OLLAMA_QANDA_MCPProcessor(Processor):
 			logging.info(f'Q and A:\n{alert_message}')
 
 			if show_in_popup:
-				wx.MessageDialog(None, alert_message, f"AI_LLM_OLLAMA_QANDA_MCP via: {model}").ShowModal()
+				if wx is not None:
+					wx.MessageDialog(None, alert_message, f"AI_LLM_OLLAMA_QANDA_MCP via: {model}").ShowModal()
+				else:
+					logging.info(f"[Notification] AI_LLM_OLLAMA_QANDA_MCP via: {model}: {alert_message}")
 
 		except Exception as e:
 			error_msg = f'Error processing request: {str(e)}'
 			logging.error(error_msg)
-			wx.MessageDialog(None, error_msg, f"AI_LLM_OLLAMA_QANDA_MCP via: {model}").ShowModal()
+			if wx is not None:
+				wx.MessageDialog(None, error_msg, f"AI_LLM_OLLAMA_QANDA_MCP via: {model}").ShowModal()
+			else:
+				logging.info(f"[Notification] AI_LLM_OLLAMA_QANDA_MCP via: {model}: {error_msg}")
 
 	def remove_think_tags(self, text: str) -> str:
 		"""Remove content within <think></think> tags from text."""

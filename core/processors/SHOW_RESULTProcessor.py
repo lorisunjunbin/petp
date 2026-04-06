@@ -1,6 +1,10 @@
 import logging
 import json
-import wx
+
+try:
+    import wx
+except ImportError:
+    wx = None
 
 from core.processor import Processor
 
@@ -26,4 +30,7 @@ class SHOW_RESULTProcessor(Processor):
         msg = self.expression2str(self.get_param('msg'))
 
         logging.info(f'\n\n=========\n{title}\n\n{msg}\n=========\n')
-        wx.MessageDialog(None, msg, title).ShowModal()
+        if wx is not None:
+            wx.MessageDialog(None, msg, title).ShowModal()
+        else:
+            logging.info(f"[Notification] {title}: {msg}")

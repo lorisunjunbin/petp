@@ -1,7 +1,11 @@
 import json
 import logging
 import re
-import wx
+
+try:
+    import wx
+except ImportError:
+    wx = None
 import zai
 
 from zai import ZhipuAiClient
@@ -51,7 +55,10 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
 
         if existed_llm is None:
             msg = f'LLM ZHIPU is not setup yet, please add task AI_LLM_ZHIPU_SETUPProcessor as previous Task.'
-            wx.MessageDialog(None, msg, "AI_LLM_ZHIPU_Q&A").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, msg, "AI_LLM_ZHIPU_Q&A").ShowModal()
+            else:
+                logging.info(f"[Notification] AI_LLM_ZHIPU_Q&A: {msg}")
             return
 
         model = self.get_param('model')
@@ -71,32 +78,48 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
             answer = response.choices[0].message
             logging.debug(f'answer: {str(answer)}')
 
-            content = self.read_json_from_markdown(answer.reasoning_content) if convert_resp_2_json else answer.reasoning_content
+            content = self.read_json_from_markdown(
+                answer.reasoning_content) if convert_resp_2_json else answer.reasoning_content
             message = "Q:\n" + prompt + "\nA:\n" + content
             logging.info(f'Q and A:\n {message}')
 
             if show_in_popup:
-                wx.MessageDialog(None, message, "AI_LLM_ZHIPU_QANDA").ShowModal()
+                if wx is not None:
+                    wx.MessageDialog(None, message, "AI_LLM_ZHIPU_QANDA").ShowModal()
+                else:
+                    logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {message}")
 
             self.populate_data(resp_content_key, content)
         except zai.core.APIStatusError as err:
             error_msg = f"API status Error: {err}"
             logging.error(error_msg)
-            wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            else:
+                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
         except zai.core.APITimeoutError as err:
             error_msg = f"request timeout: {err}"
             logging.error(error_msg)
-            wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            else:
+                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
         except Exception as err:
             error_msg = f'Unexpected error: {str(err)}'
             logging.error(error_msg)
-            wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            else:
+                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
         except Exception as e:
             error_msg = f'Unexpected error: {str(e)}'
             logging.error(error_msg)
-            wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            if wx is not None:
+                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
+            else:
+                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
 
-    def read_json_from_markdown(self, markdown_content: str) -> dict[str, any]:
+    def read_json_from_markdown(self, markdown_content: str) -> dict:
         try:
             json_match = re.search(r'```json\n([\s\S]*?)\n```', markdown_content)
             if json_match:

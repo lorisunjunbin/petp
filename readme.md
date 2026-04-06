@@ -204,11 +204,14 @@ Important no-GUI config in `./config/petpconfig.yaml`:
 - `skip`: skip GUI processors and continue
 - `abort`: stop execution when a GUI processor is encountered
 
-Current GUI processor types in no-GUI mode:
+Current GUI processor types skipped in no-GUI / Docker mode:
 
-- `SHOW_RESULT`
-- `INPUT_DIALOG`
-- `MATPLOTLIB`
+- **Pure GUI (always skipped):** `SHOW_RESULT`, `INPUT_DIALOG`, `MATPLOTLIB`, `FILE_CHOOSER`
+- **Mouse (always skipped — requires display + pyautogui):** `MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL`
+- **Selenium (auto-detected):** `GO_TO_PAGE`, `CLOSE_CHROME`, `ENTER_FULLSCREEN`, `FIND_THEN_CLICK`, `FIND_THEN_COLLECT`, `FIND_THEN_KEYIN`, `FIND_MULTI_THEN_CLICK`, `FIND_MULTI_THEN_COLLECT`, `GET_COOKIE`, `GO_BACK`, `MOVE_TO_IFRAME`, `SCREENSHOT`
+  - ✅ **Docker image includes Chromium + chromedriver** — Selenium tasks run in **headless mode** automatically
+  - ⚠️ If Chrome is not installed (e.g. custom minimal image), Selenium tasks are skipped
+  - 💡 You can also force headless mode outside Docker by setting `PETP_HEADLESS=true`
 
 ---
 
@@ -239,17 +242,63 @@ python PETP_build.py
 
 ### Step 6B — (Optional) Run in Docker (No-GUI)
 
-Build image:
+PETP provides a headless background mode via [`PETP_backgroud.py`](./PETP_backgroud.py), packaged with [`Dockerfile`](./Dockerfile) and a convenience script [`docker_build.sh`](./docker_build.sh).
+
+> ✅ Fully supports **building on Apple M1 (arm64)** and **running on x86 (amd64)** Docker hosts.
+
+**Key files:**
+
+| File | Purpose |
+|------|---------|
+| `Dockerfile` | Multi-arch image definition (Python 3.13-slim) |
+| `docker_build.sh` | One-command build script with buildx + QEMU |
+| `requirements-docker.txt` | Dependencies for headless mode (no pyautogui / pyperclip / wx) |
+| `.dockerignore` | Excludes build/, dist/, download/, .git/, etc. |
+
+**① Build amd64 image locally on M1 (for testing):**
 
 ```bash
-docker build -t petp-nogui .
+./docker_build.sh
 ```
 
-Run container:
+This creates `petp-background:amd64-local` via QEMU cross-compilation.
+
+**② Run the container:**
 
 ```bash
-docker run --rm -p 8866:8866 petp-nogui
+docker run --rm -p 8866:8866 petp-background:amd64-local
 ```
+
+**③ Health check:**
+
+```bash
+curl http://localhost:8866/health
+```
+
+**④ Push dual-arch image to a registry (for x86 production servers):**
+
+```bash
+./docker_build.sh --push yourrepo/petp-background:1.0
+```
+
+Then on any x86 server:
+
+```bash
+docker pull yourrepo/petp-background:1.0
+docker run --rm -p 8866:8866 yourrepo/petp-background:1.0
+```
+
+**⑤ Available endpoints inside the container:**
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Health check (`{"status": "ok"}`) |
+| `GET /petp/tools` | List available MCP tools |
+| `POST /petp/exec` | Trigger execution or pipeline |
+| `GET /petp/result?request_id=<id>` | Check async result |
+| `POST /mcp` | MCP Tool Server (Streamable HTTP) |
+
+> ⚠️ **Note:** Selenium (browser), Mouse, and GUI processors are automatically **skipped** in Docker / no-GUI mode via `nogui_ui_processor_policy: skip` in `petpconfig.yaml`.
 
 ---
 
@@ -260,6 +309,58 @@ Keep all installed packages up to date on macOS/Linux:
 ```bash
 pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 ```
+
+---
+
+### Project Structure
+
+#### Root Files
+
+| Category | File | Description |
+|----------|------|-------------|
+| **Entry Points** | [`PETP.py`](./PETP.py) | Main GUI entry point (wxPython desktop app) |
+| | [`PETP_backgroud.py`](./PETP_backgroud.py) | Headless / no-GUI background entry point (for Docker & CLI) |
+| **Build Scripts** | [`PETP_build.py`](./PETP_build.py) | PyInstaller build script for GUI executable |
+| | [`PETP_build.spec`](./PETP_build.spec) | PyInstaller spec template for GUI build |
+| | [`PETP_background_build.py`](./PETP_background_build.py) | PyInstaller build script for background executable |
+| | [`PETP_background_build.spec`](./PETP_background_build.spec) | PyInstaller spec template for background build |
+| | [`PETP_build_debug_runtime.py`](./PETP_build_debug_runtime.py) | Debug-mode build helper for diagnosing PyInstaller issues |
+| **Docker** | [`Dockerfile`](./Dockerfile) | Multi-arch Docker image definition (Python 3.13-slim) |
+| | [`docker_build.sh`](./docker_build.sh) | One-command build script (buildx + QEMU, M1 → amd64) |
+| | [`.dockerignore`](./.dockerignore) | Excludes build artefacts, caches, large data from Docker context |
+| **Dependencies** | [`requirements.txt`](./requirements.txt) | Full dependencies for GUI mode (includes wxPython, pyautogui, etc.) |
+| | [`requirements-nogui.txt`](./requirements-nogui.txt) | Dependencies for no-GUI mode (no wx) |
+| | [`requirements-docker.txt`](./requirements-docker.txt) | Dependencies for Docker (no pyautogui/pyperclip/wx, fixed package names) |
+| **Documentation** | [`readme.md`](./readme.md) | This file — project overview, install guide, changelog |
+| | [`LICENSE.txt`](./LICENSE.txt) | Project license |
+
+#### Directories
+
+| Directory | Description |
+|-----------|-------------|
+| `config/` | Application configuration (`petpconfig.yaml` — port, log level, auth token, etc.) |
+| `core/` | Core engine — execution, pipeline, task, processor, loop, cron, runtime |
+| `core/executions/` | YAML-defined execution files (each describes a sequence of tasks) |
+| `core/processors/` | All processor implementations (one `.py` per task type, e.g. `GO_TO_PAGEProcessor.py`) |
+| `core/pipelines/` | YAML-defined pipeline files (each combines multiple executions) |
+| `core/runtime/` | Runtime logic for background / no-GUI mode (`BackgroundRuntime`, `UiProcessorPolicy`) |
+| `core/definition/` | YAML reader/writer, Selenium IDE converter |
+| `core/cron/` | Cron scheduler for timed execution |
+| `decorators/` | Python decorators used across the project |
+| `httpservice/` | Built-in HTTP server, MCP handler, request routing |
+| `httpservice/handlers/` | HTTP request handler implementations |
+| `mvp/` | GUI layer (Model-View-Presenter pattern) |
+| `mvp/model/` | `PETPModel` — application data model and config binding |
+| `mvp/view/` | wxPython views, dialogs, and UI components |
+| `mvp/presenter/` | Presenter logic, events, and interactors |
+| `utils/` | Utility modules — `SeleniumUtil`, `ExcelUtil`, `DateUtil`, `OSUtils`, `Logger`, etc. |
+| `image/` | Icons and screenshots used in the app and README |
+| `resources/` | Static resource files (Excel templates, test data) |
+| `download/` | Default download directory for browser and file tasks |
+| `webapp/` | Flask-based PETP File Viewer web application |
+| `webdriver/` | Platform-specific ChromeDriver binaries (`darwin/`, `win32/`) |
+| `testcoverage/` | Test scripts, HTTP test files, Groovy/JS modules, Selenium tests |
+| `log/` | Runtime log output (`petp.log`) |
 
 ---
 
@@ -284,7 +385,7 @@ pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
 
 | Date | What's New |
 |------|------------|
-| 2026-04 | ✨ Support NO_GUI mode, [`PETP_backgroud.py`](./PETP_backgroud.py), easy to run in [`Docker`](./Dockerfile).
+| 2026-04 | ✨ Support NO_GUI mode, [`PETP_backgroud.py`](./PETP_backgroud.py), easy to run in [`Docker`](./Dockerfile). |
 | 2026-04 | 🖱 New handy toolbar buttons: append `date_str`, append `os.sep`; added **Skip Task** checkbox on execution run |
 | 2026-03 | 📦 Two new OOTB Executions: `OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm` & `OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64` |
 | 2026-03 | 🖱 Enhanced [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) with **skip function** support for flexible element handling |

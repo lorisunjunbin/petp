@@ -1,0 +1,48 @@
+# ── Python cache ──────────────────────────────────────────────────────────────
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# ── Virtual environments ───────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+.env
+
+# ── PyInstaller build artefacts ───────────────────────────────────────────────
+build/
+dist/
+*.spec
+
+# ── Large / generated data directories ────────────────────────────────────────
+download/
+log/
+http_traffic_log.log
+
+# ── Test / coverage results ───────────────────────────────────────────────────
+testcoverage/
+
+# ── Resources that are not needed at runtime ──────────────────────────────────
+resources/
+webdriver/
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ── OS noise ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.gitattributes
+
+# ── Docker build scripts (not needed inside the image) ────────────────────────
+docker_build.sh
+

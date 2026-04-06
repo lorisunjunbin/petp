@@ -1,7 +1,10 @@
 import json
 import logging
 
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 import ollama
 
 from core.processor import Processor
@@ -63,7 +66,10 @@ class AI_LLM_OLLAMA_QANDAProcessor(Processor):
 			logging.info(f'Q and A:\n {message}')
 
 			if show_in_popup:
-				wx.MessageDialog(None, message, "AI_LLM_OLLAMA_QAND").ShowModal()
+				if wx is not None:
+					wx.MessageDialog(None, message, "AI_LLM_OLLAMA_QAND").ShowModal()
+				else:
+					logging.info(f"[Notification] AI_LLM_OLLAMA_QAND: {message}")
 
 			self.populate_data(resp_content_key, answer)
 		except ollama.ResponseError as e:

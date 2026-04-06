@@ -4,7 +4,10 @@ import re
 from typing import Any, Dict, List, Optional
 
 import requests
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 from openai import OpenAI
 
 from core.processor import Processor
@@ -49,7 +52,10 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 		existed_llm: OpenAI = self.get_data(llm_data_key)
 		if existed_llm is None:
 			msg = 'LLM DeepSeek is not setup yet, please add task AI_LLM_DEEPSEEK_SETUPProcessor as previous Task.'
-			wx.MessageDialog(None, msg, "AI_LLM_DEEPSEEK_Q&A").ShowModal()
+			if wx is not None:
+				wx.MessageDialog(None, msg, "AI_LLM_DEEPSEEK_Q&A").ShowModal()
+			else:
+				logging.info(f"[Notification] AI_LLM_DEEPSEEK_Q&A: {msg}")
 			return
 
 		# get params
@@ -112,13 +118,19 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
 			logging.info(f'Q and A:\n {alert_message}')
 
 			if show_in_popup:
-				wx.MessageDialog(None, alert_message, "AI_LLM_DEEPSEEK_QANDA_MCP").ShowModal()
+				if wx is not None:
+					wx.MessageDialog(None, alert_message, "AI_LLM_DEEPSEEK_QANDA_MCP").ShowModal()
+				else:
+					logging.info(f"[Notification] AI_LLM_DEEPSEEK_QANDA_MCP: {alert_message}")
 
 			self.populate_data(resp_content_key, content)
 		except Exception as e:
 			error_msg = f'Unexpected error: {str(e)}'
 			logging.error(error_msg)
-			wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA_MCP").ShowModal()
+			if wx is not None:
+				wx.MessageDialog(None, error_msg, "AI_LLM_DEEPSEEK_QANDA_MCP").ShowModal()
+			else:
+				logging.info(f"[Notification] AI_LLM_DEEPSEEK_QANDA_MCP: {error_msg}")
 
 	def read_json_from_markdown(self, markdown_content: str) -> Optional[Dict[str, Any]]:
 		"""Extract JSON from markdown code blocks."""

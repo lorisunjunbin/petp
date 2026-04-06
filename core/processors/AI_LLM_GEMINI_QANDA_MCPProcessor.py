@@ -4,7 +4,10 @@ import re
 from typing import Any, Dict, List, Optional
 
 import requests
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -48,7 +51,10 @@ class AI_LLM_GEMINI_QANDA_MCPProcessor(Processor):
 
 		if existed_llm is None:
 			msg = f'LLM Gemini is not setup yet, please add task AI_LLM_GEMINI_SETUPProcessor as a previous Task.'
-			wx.MessageDialog(None, msg, "AI_LLM_GEMINI_Q&A Error").ShowModal()
+			if wx is not None:
+			    wx.MessageDialog(None, msg, "AI_LLM_GEMINI_Q&A Error").ShowModal()
+			else:
+			    logging.info(f"[Notification] AI_LLM_GEMINI_Q&A Error: {msg}")
 			return
 
 		# Get parameters
@@ -104,13 +110,18 @@ class AI_LLM_GEMINI_QANDA_MCPProcessor(Processor):
 				dlg = wx.MessageDialog(None, alert_message, "AI LLM GEMINI Q&A (MCP)")
 				dlg.ShowModal()
 				dlg.Destroy()
+			else:
+			    logging.info(f"[Notification] AI LLM GEMINI Q&A (MCP): {alert_message}")
 
 			self.populate_data(resp_content_key, content)
 
 		except Exception as e:
 			error_msg = f'Unexpected error: {str(e)}'
 			logging.error(error_msg)
-			wx.MessageDialog(None, error_msg, "AI LLM GEMINI Q&A (MCP) Error").ShowModal()
+			if wx is not None:
+			    wx.MessageDialog(None, error_msg, "AI LLM GEMINI Q&A (MCP) Error").ShowModal()
+			else:
+			    logging.info(f"[Notification] AI LLM GEMINI Q&A (MCP) Error: {error_msg}")
 
 	def read_json_from_markdown(self, markdown_content: str) -> Optional[Dict[str, Any]]:
 		"""Extract JSON from markdown code blocks."""

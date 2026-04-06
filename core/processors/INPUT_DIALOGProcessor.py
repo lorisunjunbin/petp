@@ -1,6 +1,9 @@
 import logging
 
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 
 from core.processor import Processor
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -33,9 +36,12 @@ class INPUT_DIALOGProcessor(Processor):
         value_key = self.expression2str(self.get_param('value_key'))
         default_value = self.expression2str(self.get_param('default_value')) if self.has_param('default_value') else ''
 
-        wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.OPEN_INPUT_DIALOG,
+        if wx is not None:
+            wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.OPEN_INPUT_DIALOG,
                                                 {"msg": msg, "title": title, "default_value": default_value},
                                                 self.handle_ui_thread_callback))
+        else:
+            logging.info(f"[Notification] INPUT_DIALOGProcessor: title={title}, msg={msg}, default_value={default_value}")
         # 挂起当前线程，让UI主线程继续执行
         cond = self.get_condition()
         with cond:

@@ -1,6 +1,9 @@
 import logging
 
-import wx
+try:
+    import wx
+except ImportError:
+    wx = None
 
 from core.processor import Processor
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -32,9 +35,10 @@ class RUN_EXECUTIONProcessor(Processor):
 
 			logging.debug(f'RUN_EXECUTIONProcessor - {execution} - {params}')
 
-			wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, {
-				"action": "execution",
-				"params": params
-			}))
-		else:
-			logging.debug(f'RUN_EXECUTIONProcessor - skipped')
+			if wx is not None:
+				wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, {
+					"action": "execution",
+					"params": params
+				}))
+			else:
+				logging.info(f"[Notification] RUN_EXECUTIONProcessor: execution={execution}, params={params}")
