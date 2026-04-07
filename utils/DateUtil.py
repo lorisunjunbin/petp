@@ -36,6 +36,11 @@ class DateUtil:
         return datetime.strptime(date_str, df)
 
     @staticmethod
+    def get_now_with_delta_in_str(delta=0, df="%Y-%m-%d %H:%M:%S"):
+        target_date = DateUtil.get_now() + timedelta(days=delta)
+        return target_date.strftime(df)
+
+    @staticmethod
     def get_now():
         return datetime.now()
 

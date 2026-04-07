@@ -129,6 +129,9 @@ class Processor:
         return f'''
         ----------------------------------------------------{self.DESC}    ----------------------------------------------------'''
 
+    def get_now_with_delta_in_str(self, delta=0, df="%Y-%m-%d %H:%M:%S"):
+        return DateUtil.get_now_with_delta_in_str(delta, df)
+
     def get_now_str(self):
         return DateUtil.get_now_in_str()
 

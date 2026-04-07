@@ -1,7 +1,7 @@
 # ![image](./image/petp_small.png) PET-P
 
-This is a techno-person RPA toolkit, a configurable handy task runner/execution engine built by Python, friendly for
-DevOps, and automation tests.
+This is a techno-person RPA toolkit, a configurable handy task runner/execution engine, MCP Tool Server built by Python  
+friendly for AI Agent, DevOps, and automation tests. 
 
 **PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, the pipeline may combine
 multiple
@@ -114,6 +114,11 @@ HTTP Enabled
 ## MCP Tool Server , Streamable-HTTP
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/petp_as_standard_mcp_server.png)
+
+## Integrate with Claude Code:
+
+![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/claude-code-mcp-tool.png)
+
 
 ## Install & Run
 

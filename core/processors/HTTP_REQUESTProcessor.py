@@ -50,8 +50,9 @@ class HTTP_REQUESTProcessor(Processor):
             session = requests.Session()
 
         if self.has_param('headers'):
-            headers = self.str2dict(self.expression2str(self.get_param('headers')))
             headers.update(session.headers)
+            headers = self.str2dict(self.expression2str(self.get_param('headers')))
+
 
         if self.has_param('params'):
             params = self.str2dict(self.expression2str(self.get_param('params')))
