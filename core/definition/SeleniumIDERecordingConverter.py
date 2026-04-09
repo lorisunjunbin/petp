@@ -1,22 +1,33 @@
 import json
 import logging
 import os.path
+from typing import Optional, Callable
 
 from core.task import Task
 
 """
-load Selenium IDE recording from file, then convert to tasks: 
-    Current supported tasks: 
-    - GO_TO_PAGE
-    - FIND_THEN_CLICK
-    - FIND_THEN_KEYIN is from [type] and [sendKeys]
-    - FIND_THEN_COLLECT
+Load Selenium IDE recording (.side) from file, then convert to PETP tasks.
+
+Supported Selenium IDE commands → PETP task types:
+    - open        → GO_TO_PAGE
+    - click       → FIND_THEN_CLICK
+    - type        → FIND_THEN_KEYIN
+    - sendKeys    → FIND_THEN_KEYIN  (strips leading '$' from key constants)
+    - doubleClick → FIND_THEN_COLLECT
+
+Locator resolution order: xpath > id > css
 """
 
+# Locator prefixes in order of preference
+_LOCATOR_STRATEGIES = [
+    ('xpath=', 'xpath'),
+    ('id=', 'id'),
+    ('css=', 'css'),
+]
 
-class SeleniumIDERecordingConverter(object):
-    file_path: str
-    test_name: str
+
+class SeleniumIDERecordingConverter:
+    """Converts Selenium IDE .side recording files into PETP Task lists."""
 
     def __init__(self, file_path: str, test_name: str = ''):
         self.file_path = file_path
@@ -24,132 +35,129 @@ class SeleniumIDERecordingConverter(object):
         logging.info(
             f'SeleniumIDERecordingConverter will load tasks from recording: {self.test_name}, {self.file_path}')
 
-    def set_test_name(self, test_name):
+    def set_test_name(self, test_name: str):
         self.test_name = test_name
 
-    def get_test_names(self):
-        with open(self.file_path, "r", encoding='utf-8') as read_file:
-            data = json.load(read_file)
-            return list(map(lambda x: x['name'], data['tests']))
+    def get_test_names(self) -> list[str]:
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            return [t['name'] for t in json.load(f)['tests']]
 
-    def is_initialized(self):
-        return not self.file_path is None \
-            and not self.test_name is None
+    def is_initialized(self) -> bool:
+        return self.file_path is not None and self.test_name is not None
 
-    def convert_from_selenium_ide_recording(self) -> list:
-        tasks = []
-        with open(self.file_path, "r", encoding='utf-8') as read_file:
-            data = json.load(read_file)
-            base_url = data['url']
-            commends = self.find_commands_by_test_name(data, self.test_name)
+    def convert_from_selenium_ide_recording(self) -> list[Task]:
+        with open(self.file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        base_url = data['url']
+        commands = self._find_commands_by_test_name(data, self.test_name)
+        return [task for cmd in commands if (task := self._convert(cmd, base_url)) is not None]
 
-            for command in commends:
-                task = self.convert(command, base_url)
-                if not task is None:
-                    tasks.append(task)
+    # ── command → Task dispatch ──────────────────────────────────────
 
-        return tasks
+    _COMMAND_MAP = {
+        'open': '_handle_open',
+        'click': '_handle_click',
+        'type': '_handle_type',
+        'sendKeys': '_handle_send_keys',
+        'doubleClick': '_handle_double_click',
+    }
 
-    def convert(self, command, baseUrl) -> Task | None:
-        cmd = command['command']
+    def _convert(self, command: dict, base_url: str) -> Optional[Task]:
+        handler_name = self._COMMAND_MAP.get(command['command'])
+        if handler_name is None:
+            logging.debug(f"Unsupported Selenium IDE command: {command['command']}")
+            return None
+        return getattr(self, handler_name)(command, base_url)
 
-        if cmd == 'open':
-            return self.buildGO_TO_PAGETask(baseUrl, command['target'])
+    # ── individual command handlers ──────────────────────────────────
 
-        if cmd == 'click':
-            return self.buildFIND_THEN_CLICKTask(command)
+    def _handle_open(self, command: dict, base_url: str) -> Task:
+        return Task('GO_TO_PAGE', json.dumps({'url': f"{base_url}{command['target']}"}))
 
-        if cmd == 'type':
-            return self.buildFIND_THEN_KEYINTask(command)
+    def _handle_click(self, command: dict, _base_url: str) -> Optional[Task]:
+        return self._build_locator_task(command, 'FIND_THEN_CLICK', by_key='clickby')
 
-        if cmd == 'sendKeys':
-            return self.buildFIND_THEN_KEYINTask(command, lambda v: v.replace('$', ''))
+    def _handle_type(self, command: dict, _base_url: str) -> Optional[Task]:
+        return self._build_keyin_task(command)
 
-        if cmd == 'doubleClick':
-            return self.buildFIND_THEN_COLLECTTask(command)
+    def _handle_send_keys(self, command: dict, _base_url: str) -> Optional[Task]:
+        return self._build_keyin_task(command, value_fn=lambda v: v.replace('$', ''))
 
+    def _handle_double_click(self, command: dict, _base_url: str) -> Optional[Task]:
+        locator = self._find_proper_locator(command)
+        if locator is None:
+            return self._log_no_locator(command)
+        by, identity = locator
+        value_key = command.get('comment') or command['id']
+        return Task('FIND_THEN_COLLECT', json.dumps({
+            'collectby': by, 'identity': identity,
+            'value_type': 'any', 'value_key': value_key,
+        }))
+
+    # ── shared builders ──────────────────────────────────────────────
+
+    def _build_locator_task(self, command: dict, task_type: str, by_key: str) -> Optional[Task]:
+        locator = self._find_proper_locator(command)
+        if locator is None:
+            return self._log_no_locator(command)
+        by, identity = locator
+        return Task(task_type, json.dumps({by_key: by, 'identity': identity}))
+
+    def _build_keyin_task(self, command: dict,
+                          value_fn: Callable[[str], str] = lambda v: v) -> Optional[Task]:
+        locator = self._find_proper_locator(command)
+        if locator is None:
+            return self._log_no_locator(command)
+        by, identity = locator
+        return Task('FIND_THEN_KEYIN', json.dumps({
+            'keyinby': by, 'identity': identity, 'value': value_fn(command['value']),
+        }))
+
+    # ── locator helpers ──────────────────────────────────────────────
+
+    @staticmethod
+    def _find_proper_locator(command: dict) -> Optional[tuple[str, str]]:
+        """Return (strategy, value) for the first matching locator, or None."""
+        for prefix, strategy in _LOCATOR_STRATEGIES:
+            value = SeleniumIDERecordingConverter._find_first_by_prefix(prefix, command)
+            if value is not None:
+                return (strategy, value)
         return None
 
-    def buildGO_TO_PAGETask(self, baseUrl, targetUrl):
-        return Task('GO_TO_PAGE', json.dumps({"url": f"{baseUrl}{targetUrl}"}))
-
-    def buildFIND_THEN_CLICKTask(self, command):
-        by0id1 = self.find_proper_locator(command)
-        if len(by0id1) == 0:
-            logging.info(json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
-            return None
-
-        return Task('FIND_THEN_CLICK', json.dumps({'clickby': by0id1[0], 'identity': by0id1[1]}))
-
-    def buildFIND_THEN_KEYINTask(self, command, fn=lambda v: v):
-        by0id1 = self.find_proper_locator(command)
-        if len(by0id1) == 0:
-            logging.info(json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
-            return None
-
-        return Task('FIND_THEN_KEYIN',
-                    json.dumps({'keyinby': by0id1[0], 'identity': by0id1[1], 'value': fn(command['value'])}))
-
-    def buildFIND_THEN_COLLECTTask(self, command):
-        by0id1 = self.find_proper_locator(command)
-
-        if len(by0id1) == 0:
-            logging.info(json.dumps({'msg': 'can not find proper xpath: ' + str(command)}))
-            return None
-
-        value_key = command['comment'] if len(command['comment']) > 0 else command['id']
-        return Task('FIND_THEN_COLLECT', json.dumps({'collectby': by0id1[0], 'identity': by0id1[1],
-                                                     'value_type': 'any', 'value_key': value_key}))
-
-    def find_proper_locator(self, command) -> list[str]:
-
-        xpathlocator = self.find_first_by_prefix('xpath=', command)
-        if not xpathlocator == None:
-            return ['xpath', xpathlocator]
-
-        idlocator = self.find_first_by_prefix('id=', command)
-        if not idlocator == None:
-            return ['id', idlocator]
-
-        csslocator = self.find_first_by_prefix('css=', command)
-        if not csslocator == None:
-            return ['css', csslocator]
-
-    def find_first_by_prefix(self, prefix, command) -> str | None:
-
-        default_target = command['target']
-
-        if default_target.startswith(prefix):
-            return default_target.replace(prefix, '')
-
-        elif len(command['targets']) > 0:
-            for ts in command['targets']:
-                t = ts[0]
-                if t.startswith(prefix):
-                    return t.replace(prefix, '')
-
+    @staticmethod
+    def _find_first_by_prefix(prefix: str, command: dict) -> Optional[str]:
+        target = command['target']
+        if target.startswith(prefix):
+            return target[len(prefix):]
+        for ts in command.get('targets', []):
+            if ts[0].startswith(prefix):
+                return ts[0][len(prefix):]
         return None
 
-    def find_commands_by_test_name(self, data, testName):
-        test = self.find_test_by_name(data, testName)
-        commends = test['commands']
-        return commends
+    @staticmethod
+    def _log_no_locator(command: dict) -> None:
+        logging.info(json.dumps({'msg': 'cannot find proper locator: ' + str(command)}))
+        return None
 
-    def find_test_by_name(self, data, testName):
-        return next(filter(lambda t: t['name'] == testName, data['tests']), None)
+    # ── test lookup ──────────────────────────────────────────────────
+
+    @staticmethod
+    def _find_commands_by_test_name(data: dict, test_name: str) -> list[dict]:
+        test = next((t for t in data['tests'] if t['name'] == test_name), None)
+        if test is None:
+            raise ValueError(f'Test "{test_name}" not found in recording')
+        return test['commands']
 
 
 if __name__ == '__main__':
     # customerserveroverview.side
     given = os.path.realpath('../../testcoverage/selenium/customerserveroverview.side')
     c = SeleniumIDERecordingConverter(given, 'Testcustomerserviewoverview')
-    tasks = c.convert_from_selenium_ide_recording()
-    for t in tasks:
-        print(str(t))
+    for t in c.convert_from_selenium_ide_recording():
+        print(t)
 
     # GC-phoenix.side
     given = os.path.realpath('../../testcoverage/selenium/GC-phoenix.side')
     c = SeleniumIDERecordingConverter(given, 'gc-phoenix')
-    tasks = c.convert_from_selenium_ide_recording()
-    for t in tasks:
-        print(str(t))
+    for t in c.convert_from_selenium_ide_recording():
+        print(t)

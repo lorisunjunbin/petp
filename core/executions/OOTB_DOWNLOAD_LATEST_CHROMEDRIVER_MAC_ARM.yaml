@@ -1,0 +1,33 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: OOTB_DOWNLOAD_LATEST_CHROMEDRIVER_MAC_ARM
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://googlechromelabs.github.io/chrome-for-testing/"}'
+  skipped: false
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"collectby": "xpath", "identity": "//*[@id=\"stable\"]/div/table/tbody/tr[7]/td[1]/code",
+    "value_type": "text", "value_key": "full_target_download_url", "wait": 1, "timeout":
+    10}'
+  skipped: false
+  type: FIND_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"page_load_timeout_seconds": "180", "url": "{full_target_download_url}",
+    "url_key": "", "chrome_name": "chrome", "skip_in_pipeline": "no", "download_folder":
+    "{self.get_ddir()}/latest_chromedriver"}'
+  skipped: false
+  type: GO_TO_PAGE
+loops: []
+mcp_desc: "{\n\u201Cdesc\u201D:\u201Dinquire about the information of recent earthquakes
+  that have occurred.date format: yyyy-mm-dd hh:mm:ss, able to sort by: magnitude
+  or or id(means timeline)\u201D,\n\u201CinputSchema\u201D : {\n      \u201Ctitle\u201D:
+  \u201CT_CENC_EARTHQUAKE_SEARCHArguments\u201D,\n      \u201Ctype\u201D: \u201Cobject\u201D,\n
+  \     \u201Cproperties\u201D: {\n      \t\t\u201CorderBy\u201D:{\u201Ctitle\u201D:
+  \u201CorderBy\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CisAsc\u201D:{\u201Ctitle\u201D:
+  \u201CisAsc\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CstartMg\u201D:{\u201Ctitle\u201D:
+  \u201CstartMg\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CendMg\u201D:{\u201Ctitle\u201D:
+  \u201CendMg\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CstartTime\u201D:{\u201Ctitle\u201D:
+  \u201CstartTime\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CendTime\u201D:{\u201Ctitle\u201D:
+  \u201CendTime\u201D, \u201Ctype\u201D: \u201Cstring\u201D}\n      },\n      \u201Crequired\u201D:
+  []\n   }\n}"
