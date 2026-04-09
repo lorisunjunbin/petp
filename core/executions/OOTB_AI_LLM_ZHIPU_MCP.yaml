@@ -13,10 +13,9 @@ list:
   skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
-  input: '{"llm_data_key": "llmZHIPU", "prompt": "{self.get_data(\"given_prompt\")}",
-    "model": "glm-4.7", "temperature": "1.0", "show_thinking": "no", "petp_mcp_url":
-    "http://localhost:8888", "resp_content_key": "", "convert_resp_2_json": "yes",
-    "show_in_popup": "yes"}'
+  input: '{"llm_data_key": "llmZHIPU", "prompt": "{given_prompt}", "model": "GLM-5",
+    "temperature": "1.0", "show_thinking": "no", "petp_mcp_url": "http://localhost:8888",
+    "resp_content_key": "", "convert_resp_2_json": "yes", "show_in_popup": "yes"}'
   skipped: false
   type: AI_LLM_ZHIPU_QANDA_MCP
 loops: []

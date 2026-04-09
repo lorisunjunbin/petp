@@ -1,4 +1,5 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: SEARCH_ON_GOOGLE
 list:
 - !!python/object:core.task.Task
@@ -7,7 +8,7 @@ list:
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
   input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
-    "\u4e2b\u68d2\u8c46\u513f"}'
+    "\u4e2b\u68d2\u8c46\u798f\u513f"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
@@ -16,3 +17,4 @@ list:
   skipped: false
   type: FIND_THEN_KEYIN
 loops: []
+mcp_desc: ''

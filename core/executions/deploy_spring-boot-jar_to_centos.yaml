@@ -3,7 +3,7 @@ execution: deploy_spring-boot-jar_to_centos
 list:
 - !!python/object:core.task.Task
   input: '{"title": "Please Input Info", "msg": "root password", "value_key": "root_pwd",
-    "default_value": ""}'
+    "default_value": "STECHrocks2022#"}'
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"ssh_ip": "47.122.4.142", "uname": "root", "pwd": "{self.get_data(\"root_pwd\")}",
@@ -23,7 +23,7 @@ list:
     "ssh_output", "close_after_run": "no"}'
   type: RUN_SSH_COMMAND
 - !!python/object:core.task.Task
-  input: '{"from_local": "D:/LoriCode/spring-boot312-saml2/build/libs/spring-boot312-saml2-0.0.1-SNAPSHOT.jar",
+  input: '{"from_local": "/Users/i335607/LoriCode/spring-boot-saml2/build/libs/spring-boot312-saml2-0.0.1-SNAPSHOT.jar",
     "to_remote": "/www/jtools/spring-boot312-saml2-0.0.1-SNAPSHOT.jar", "sftp_client_key":
     "sftpclient", "sftp_put_file_key": "sftp_put_key", "close_after_run": "yes"}'
   type: RUN_SFTP_PUT

@@ -9,7 +9,7 @@ list:
   skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task
-  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}"}'
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{dataset_sqlite}"}'
   skipped: false
   type: SHOW_RESULT
 - !!python/object:core.task.Task
@@ -18,7 +18,7 @@ list:
   skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task
-  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_count\")}"}'
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{dataset_count}"}'
   skipped: false
   type: SHOW_RESULT
 loops: []
