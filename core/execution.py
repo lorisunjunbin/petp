@@ -187,3 +187,13 @@ class Execution:
         executions = OSUtils.get_file_list(os.path.realpath('core') + os.sep + 'executions')
         result = sorted([f.replace('.yaml', '') for f in executions if '.yaml' in f])
         return result
+
+    @staticmethod
+    def get_tool_execution_names():
+        """Return the set of execution names where astool is True."""
+        tool_names = set()
+        for name in Execution.get_available_executions():
+            execution = Execution.get_execution(name)
+            if execution and hasattr(execution, 'astool') and execution.astool:
+                tool_names.add(name)
+        return tool_names

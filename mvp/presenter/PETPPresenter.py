@@ -193,6 +193,10 @@ class PETPPresenter():
         self.available_executions = Execution.get_available_executions()
         self._execution_all_items = list(self.available_executions)
         self.v.executionChooser.AppendItems(self.available_executions)
+        # Mark tool executions so they display with a 🔧 prefix
+        tool_names = Execution.get_tool_execution_names()
+        if tool_names:
+            self.v.executionChooser.set_tool_names(tool_names)
 
     def _load_available_pipelines(self):
         self.v.pipelineChooser.AppendItems(Pipeline.get_available_pipelines())
@@ -329,12 +333,15 @@ class PETPPresenter():
 
     @reload_log_after
     def on_execution_search(self, evt):
-        search_text = evt.String.lower()
+        # Use GetValue() which strips the tool-icon prefix, instead of raw evt.String
+        combo = self.v.executionChooser
+        search_value = combo.GetValue()
+        search_text = search_value.lower()
         all_executions = Execution.get_available_executions()
 
-        if evt.String in all_executions:
-            self._reload_executions(all_executions, evt.String)
-            self.v.executionChooser.Dismiss()
+        if search_value in all_executions:
+            self._reload_executions(all_executions, search_value)
+            combo.Dismiss()
             return
 
         filtered_executions = [exec_name for exec_name in all_executions if search_text in exec_name.lower()]
@@ -342,10 +349,10 @@ class PETPPresenter():
 
         if exact_match:
             self._reload_executions(all_executions, filtered_executions[0])
-            self.v.executionChooser.Dismiss()
+            combo.Dismiss()
         else:
-            self._reload_executions(filtered_executions or all_executions, evt.String)
-            self.v.executionChooser.Popup()
+            self._reload_executions(filtered_executions or all_executions, search_value)
+            combo.Popup()
 
     def _reload_executions(self, items, value):
         self.v.executionChooser.Reload(items, value)
@@ -450,6 +457,15 @@ class PETPPresenter():
             logging.warning(f'Execution: {combo.GetValue()} already existed, overrwrite!')
 
         self._save_execcution(name)
+
+        # Sync tool icon prefix after save (astool may have changed)
+        as_tool = self.v.cb_astool.IsChecked()
+        tools = combo._tool_names
+        if as_tool:
+            tools = tools | {name}
+        else:
+            tools = tools - {name}
+        combo.set_tool_names(tools)
 
     @reload_log_after
     def on_delete_pipeline(self):
@@ -692,11 +708,18 @@ class PETPPresenter():
     def on_cb_astool_changed(self, evt):
         # When "as tool" is checked and the description field is empty,
         # pre-fill it with a default MCP tool descriptor template.
+        combo = self.v.executionChooser
+        name = combo.GetValue()
         if evt.IsChecked():
             current_desc = self.v.execution_desc.GetValue().strip()
             if not current_desc:
                 default_desc = json.dumps({"desc": "", "params": []}, indent=2)
                 self.v.execution_desc.SetValue(default_desc)
+        # Sync the tool icon prefix in the dropdown immediately
+        combo.set_tool_names(
+            combo._tool_names | {name} if evt.IsChecked()
+            else combo._tool_names - {name}
+        )
 
     def _convert(self, to, put2first=False):
         tp = self.v.taskProperty
