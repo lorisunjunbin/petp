@@ -1,5 +1,5 @@
 import logging
-import json
+import threading
 
 try:
     import wx
@@ -13,7 +13,7 @@ class SHOW_RESULTProcessor(Processor):
     TPL: str = '{"title":"","msg":""}'
 
     DESC: str = f'''
-        Display a message in a popup dialog using the system GUI (wx.MessageDialog).
+        Display a message in a rich popup dialog (ResultDialog).
         Also logs the title and message to the console.
 
         - title: title of the popup dialog window (supports expression, default: "")
@@ -31,6 +31,19 @@ class SHOW_RESULTProcessor(Processor):
 
         logging.info(f'\n\n=========\n{title}\n\n{msg}\n=========\n')
         if wx is not None:
-            wx.MessageDialog(None, msg, title).ShowModal()
+            # wx.Dialog must be created on the main thread (macOS requirement).
+            # Use wx.CallAfter to delegate, and block this worker thread
+            # until the user dismisses the dialog.
+            done = threading.Event()
+            wx.CallAfter(self._show_on_main_thread, title, msg, done)
+            done.wait()
         else:
             logging.info(f"[Notification] {title}: {msg}")
+
+    @staticmethod
+    def _show_on_main_thread(title, msg, done_event):
+        from mvp.view.common.ResultDialog import ResultDialog
+        dlg = ResultDialog(None, title=title, message=msg)
+        dlg.ShowModal()
+        dlg.Destroy()
+        done_event.set()
