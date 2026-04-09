@@ -3,7 +3,7 @@ import wx
 
 _IS_WINDOWS = sys.platform == 'win32'
 
-_TOOL_PREFIX = "🔧 "
+_TOOL_PREFIX = "🦾 "
 
 
 class SearchableComboBox(wx.ComboBox):
