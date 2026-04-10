@@ -2,6 +2,8 @@
 
 中文 | **[English](./readme.md)**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.txt)
+
 一个技术人员的 RPA 工具包 — 可配置的任务运行器、执行引擎、MCP 工具服务器，基于 Python 构建。
 适用于 AI Agent、DevOps 和自动化测试。
 
@@ -26,6 +28,7 @@ Task      1:1 Processor
 - [打包与 Docker](#打包与-docker)
 - [项目结构](#项目结构)
 - [常见问题](#常见问题)
+- [致谢](#致谢)
 - [更新日志](#更新日志)
 
 ---
@@ -362,6 +365,13 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 ---
 
+## 致谢
+
+- [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
+- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/)
+
+---
+
 ## 更新日志
 
 ### 2026
@@ -432,10 +442,3 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 |------|----------|
 | 2021-10 | [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) |
 | 2021-09 | 表格复制粘贴 |
-
----
-
-## 致谢
-
-- [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
-- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/)

@@ -2,6 +2,8 @@
 
 **[中文文档](./readme_cn.md)** | English
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.txt)
+
 A techno-person RPA toolkit — configurable task runner, execution engine, and MCP Tool Server built with Python.
 Friendly for AI Agents, DevOps, and automation testing.
 
@@ -26,6 +28,7 @@ Task      1:1 Processor
 - [Build & Docker](#build--docker)
 - [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
+- [Acknowledgements](#acknowledgements)
 - [Changelog](#changelog)
 
 ---
@@ -362,6 +365,13 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 ---
 
+## Acknowledgements
+
+- [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
+- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/)
+
+---
+
 ## Changelog
 
 ### 2026
@@ -432,10 +442,3 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 |------|------------|
 | 2021-10 | [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) |
 | 2021-09 | Grid copy & paste |
-
----
-
-## Acknowledgements
-
-- [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
-- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/)
