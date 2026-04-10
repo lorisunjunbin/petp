@@ -19,7 +19,7 @@ from decorators.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
-from mvp.view.common.AdvancedInputDialog import AdvancedInputDialog
+from mvp.view.common.InputDialog import InputDialog
 from mvp.view.common.SearchableComboBox import SearchableComboBox
 from mvp.view.common.SearchableGridChoiceEditor import SearchableGridChoiceEditor
 from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
@@ -989,7 +989,7 @@ class PETPPresenter():
             logging.warning(f'Unsupported chart type: {data["chart_type"]}')
 
     def on_handle_open_input_dialog(self, evt: PETPEvent):
-        advance_dialog = AdvancedInputDialog(self.v, evt.data['title'], evt.data['msg'], evt.data['default_value'])
+        advance_dialog = InputDialog(self.v, evt.data['title'], evt.data['msg'], evt.data['default_value'])
         result_value = None
 
         if advance_dialog.ShowModal() == wx.ID_OK:
