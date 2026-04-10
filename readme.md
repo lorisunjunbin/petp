@@ -112,8 +112,8 @@ wxPython must match your exact Python version and OS. Download the `.whl` from [
 
 | Platform | Command |
 |----------|---------|
-| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
-| Windows | `pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
+| macOS (Apple Silicon) | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
+| Windows | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
 
 > Always download the **latest snapshot** for best compatibility.
 
@@ -124,6 +124,12 @@ See [Dependency Management](#dependency-management) for full details. Quick inst
 ```bash
 # Recommended: install with uv
 pip install -U uv
+
+# If you see: "No virtual environment found"
+uv venv
+# Creating virtual environment at: .venv
+# Activate with: .venv\Scripts\activate
+
 uv pip install -r requirements.txt
 
 # Or install only what you need (see [Dependency Groups](#dependency-groups))

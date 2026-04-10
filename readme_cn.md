@@ -112,8 +112,8 @@ wxPython 须精确匹配 Python 版本和操作系统。从 [wxpython.org/Phoeni
 
 | 平台 | 命令 |
 |------|------|
-| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
-| Windows | `pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
+| macOS (Apple Silicon) | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
+| Windows | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
 
 > 建议始终下载**最新快照版**以获得最佳兼容性。
 
@@ -124,6 +124,12 @@ wxPython 须精确匹配 Python 版本和操作系统。从 [wxpython.org/Phoeni
 ```bash
 # 推荐：使用 uv 安装
 pip install -U uv
+
+# 如果出现："No virtual environment found"
+uv venv
+# 创建虚拟环境于：.venv
+# 激活方式：.venv\Scripts\activate
+
 uv pip install -r requirements.txt
 
 # 或只安装需要的分组（见[依赖分组](#依赖分组)）
