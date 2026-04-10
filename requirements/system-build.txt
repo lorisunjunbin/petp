@@ -1,0 +1,3 @@
+# [System / Build] 系统工具与打包
+psutil                    # 系统进程管理 (PETP_build, PETP_background_build)
+pyinstaller               # 应用打包 (build scripts)

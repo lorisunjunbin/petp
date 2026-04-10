@@ -1,0 +1,3 @@
+# [MCP] Model Context Protocol
+# httpservice: mcp_client_4_petp.py, server.py, client.py
+mcp                       # Model Context Protocol SDK

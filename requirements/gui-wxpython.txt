@@ -1,0 +1,3 @@
+# [GUI Framework] wxPython桌面GUI
+# Entry: PETP.py (桌面版入口)
+wxpython                  # GUI框架 (PETP.py, mvp.view.*, httpservice.HttpServer)

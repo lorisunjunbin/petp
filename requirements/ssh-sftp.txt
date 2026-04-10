@@ -1,0 +1,4 @@
+# [SSH / SFTP] 远程连接与文件传输
+# Processors: CREATE_SSH_CLIENT, CREATE_SFTP_CLIENT,
+#   RUN_SSH_COMMAND, RUN_SFTP_GET, RUN_SFTP_PUT
+paramiko                  # SSH/SFTP客户端 (utils.ParamikoUtil)

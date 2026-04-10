@@ -1,0 +1,8 @@
+# [Web Automation / Selenium] Web自动化与浏览器控制
+# Processors: FIND_THEN_CLICK, FIND_THEN_COLLECT, FIND_THEN_KEYIN,
+#   FIND_MULTI_THEN_CLICK, FIND_MULTI_THEN_COLLECT, GO_TO_PAGE,
+#   GO_BACK, GET_COOKIE, SCREENSHOT, CLOSE_CHROME, ENTER_FULLSCREEN,
+#   MOVE_TO_IFRAME, WAIT_FOR, FILE_CHOOSER
+selenium                  # 浏览器自动化 (utils.SeleniumUtil)
+urllib3                   # HTTP连接池 (utils.SeleniumUtil)
+Pillow                    # 图像处理/截图 (utils.SeleniumUtil)

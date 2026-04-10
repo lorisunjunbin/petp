@@ -1,0 +1,4 @@
+# [Web Scraping] 网页抓取与解析
+# Processors: BEAUTIFUL_SOUP
+beautifulsoup4            # HTML/XML解析 (BEAUTIFUL_SOUPProcessor)
+lxml                      # XML解析后端

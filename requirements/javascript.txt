@@ -1,0 +1,3 @@
+# [JavaScript Engine] JavaScript执行引擎
+# Processors: RUN_JAVASCRIPT
+pythonmonkey              # JS引擎 (RUN_JAVASCRIPTProcessor)

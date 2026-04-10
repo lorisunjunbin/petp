@@ -1,0 +1,5 @@
+# [Excel / Data] Excel与数据处理
+# Processors: READ_EXCEL, WRITE_TO_EXCEL, CSV_2_XLSX, READ_CSV,
+#   DATA_*, COLLECTION_MERGE
+openpyxl                  # Excel读写 (utils.ExcelUtil)
+pandas                    # 数据分析处理 (PETP_build, runtime)

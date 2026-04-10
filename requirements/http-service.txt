@@ -1,0 +1,4 @@
+# [HTTP Service / API] HTTP服务端
+# httpservice: server.py, BackgroundHttpServer.py
+fastapi                   # REST API框架 (httpservice.server)
+uvicorn                   # ASGI服务器 (httpservice.server)

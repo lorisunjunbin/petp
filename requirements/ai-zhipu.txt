@@ -1,0 +1,3 @@
+# [AI LLM - Zhipu] 智谱AI集成
+# Processors: AI_LLM_ZHIPU_SETUP, AI_LLM_ZHIPU_QANDA, AI_LLM_ZHIPU_QANDA_MCP
+zai                       # 智谱AI SDK (ZhipuAiClient)

@@ -1,0 +1,4 @@
+# [Chart / Visualization] 图表可视化
+# Processors: MATPLOTLIB
+# Views: PETP_LINE_CHARTView, PETP_PIE_CHARTView, PETP_BAR_CHARTView
+matplotlib                # 图表绑定 (mvp.view.sub.PETPMATPLOTLIBBaseView)

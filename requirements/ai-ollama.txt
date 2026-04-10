@@ -1,0 +1,3 @@
+# [AI LLM - Ollama] Ollama本地LLM集成
+# Processors: AI_LLM_OLLAMA_QANDA, AI_LLM_OLLAMA_QANDA_MCP
+ollama                    # Ollama本地LLM客户端

@@ -1,0 +1,3 @@
+# [AI LLM - DeepSeek] DeepSeek AI集成
+# Processors: AI_LLM_DEEPSEEK_SETUP, AI_LLM_DEEPSEEK_QANDA, AI_LLM_DEEPSEEK_QANDA_MCP
+openai                    # OpenAI兼容API客户端 (DeepSeek使用OpenAI兼容接口)

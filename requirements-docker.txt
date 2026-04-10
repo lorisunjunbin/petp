@@ -1,25 +1,21 @@
-selenium
-openpyxl
-pyyaml
-cryptocode
-cron-descriptor
-croniter
-beautifulsoup4
-lxml
-jsonpath-python
-requests
-httpx==0.27.2
-httpx-sse
-python-docx
-paramiko
-python-dateutil
-pandas
-psutil
-ollama
-matplotlib
-langchain
-langchain-google-genai
-google-generativeai
-openai
-mcp
-fastapi
+# ============================================================
+# PETP (Docker) - Docker容器部署
+# 无GUI、无浏览器自动化的纯服务端场景
+# 不含: gui-wxpython, gui-automation, chart, web-automation
+# ============================================================
+-r requirements/core.txt
+-r requirements/http-client.txt
+-r requirements/web-scraping.txt
+-r requirements/data-processing.txt
+-r requirements/excel-data.txt
+-r requirements/document.txt
+-r requirements/ssh-sftp.txt
+-r requirements/database.txt
+-r requirements/ai-gemini.txt
+-r requirements/ai-deepseek.txt
+-r requirements/ai-ollama.txt
+-r requirements/ai-zhipu.txt
+-r requirements/mcp.txt
+-r requirements/http-service.txt
+-r requirements/webapp.txt
+-r requirements/system-build.txt

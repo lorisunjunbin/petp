@@ -1,0 +1,4 @@
+# [GUI Desktop Automation] 桌面GUI自动化
+# Processors: MOUSE_CLICK, MOUSE_POSITION, MOUSE_SCROLL, FILE_CHOOSER
+pyautogui                 # 桌面自动化-鼠标键盘 (MOUSE_*Processor, FILE_CHOOSERProcessor)
+pyperclip                 # 剪贴板操作 (FILE_CHOOSERProcessor)

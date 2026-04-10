@@ -1,0 +1,7 @@
+# [Database] 数据库访问
+# Processors: DB_ACCESS
+# Sub-processors: PostgresDBAccess, MysqlDBAccess, SqliteDBAccess, HanaDBAccess
+# 按需取消注释所需的数据库驱动:
+# psycopg                  # PostgreSQL驱动 (sub/dbprocessors/PostgresDBAccess)
+# mysql-connector-python   # MySQL驱动 (sub/dbprocessors/MysqlDBAccess)
+# hdbcli                   # SAP HANA驱动 (sub/dbprocessors/HanaDBAccess)

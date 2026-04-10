@@ -1,486 +1,441 @@
 # ![image](./image/petp_small.png) PET-P
 
-This is a techno-person RPA toolkit, a configurable handy task runner/execution engine, MCP Tool Server built by Python  
-friendly for AI Agent, DevOps, and automation tests. 
+**[中文文档](./readme_cn.md)** | English
 
-**PET** is short for Pipeline-Execution-Task, which represents the execution unit up-down, the pipeline may combine
-multiple
-executions,
-and each one contains various tasks. The last **P** means processor, which handles the specific task one-to-one.
+A techno-person RPA toolkit — configurable task runner, execution engine, and MCP Tool Server built with Python.
+Friendly for AI Agents, DevOps, and automation testing.
 
-    Pipeline  1:n Execution
-    Execution 1:n Task
-    Task      1:1 Processor
+**PET** = **P**ipeline-**E**xecution-**T**ask, the hierarchical execution model. The trailing **P** stands for **Processor**, which handles each task one-to-one.
 
-## What-Can-Do:
+```
+Pipeline  1:n Execution
+Execution 1:n Task
+Task      1:1 Processor
+```
 
-    Orchestrate below available task(s) as Execution, dataset-based loop and time-based loop.
-    Combine Execution(s) as pipeline, run once, or as cron.
+---
 
-    🌐 Browser Automation (Selenium)
-    - Navigate to pages, go back, enter fullscreen, close Chrome
-    - Find element(s) then click / key-in / collect data
-    - Find multiple elements then click or collect in batch (with optional skip function)
-    - Move into iFrame, get cookies, take screenshot
-    - Convert Selenium IDE recordings directly to PETP tasks
+## Table of Contents
 
-    🔒 SSH / SFTP (Paramiko)
-    - Create SSH / SFTP client sessions
-    - Run remote SSH commands
-    - Upload (PUT) and download (GET) files via SFTP
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Quick Start](#quick-start)
+- [Dependency Management](#dependency-management)
+- [Running Modes](#running-modes)
+- [HTTP Service & MCP](#http-service--mcp)
+- [Build & Docker](#build--docker)
+- [Project Structure](#project-structure)
+- [Troubleshooting](#troubleshooting)
+- [Changelog](#changelog)
 
-    🗂 File & Folder Operations
-    - Open, write, delete files; read plain text from file
-    - Find files / find latest file in a folder
-    - Watch and auto-move files or folders on change
-    - ZIP and UNZIP archives
-    - Choose file interactively via file-chooser dialog
+---
 
-    📊 Data & Spreadsheet
-    - Read records from CSV / Excel
-    - Write data to Excel; convert CSV to XLSX
-    - Data collect, filter, groupby, mapping, masking (single & multi-field)
-    - Data type conversion and nested-to-flat conversion
-    - Merge multiple collections into one
+## Features
 
-    🗃 Database CRUD
-    - MySQL, PostgreSQL, SAP HANA, SQLite — all via a unified DB_ACCESS processor
+Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Executions as Pipelines, run once or on cron.
 
-    🤖 AI / LLM Integration
-    - DeepSeek: setup + Q&A + MCP-tool calling
-    - Google Gemini: setup + Q&A + MCP-tool calling
-    - Ollama (local): setup + Q&A + MCP-tool calling
-    - Zhipu Z.AI: setup + Q&A + MCP-tool calling
+| Category | Capabilities |
+|----------|-------------|
+| **Browser Automation** (Selenium) | Navigate, go back, fullscreen, close Chrome. Find element(s) then click / key-in / collect. Find multiple elements in batch (with skip). iFrame, cookies, screenshot. Convert Selenium IDE recordings to PETP tasks. |
+| **SSH / SFTP** (Paramiko) | Create SSH / SFTP sessions. Run remote commands. Upload / download files. |
+| **File & Folder** | Open, write, delete, read text. Find files / latest file. Watch & auto-move. ZIP / UNZIP. File-chooser dialog. |
+| **Data & Spreadsheet** | Read CSV / Excel. Write to Excel. CSV to XLSX. Collect, filter, group-by, mapping, masking, conversion. Merge collections. |
+| **Database CRUD** | MySQL, PostgreSQL, SAP HANA, SQLite — unified `DB_ACCESS` processor. |
+| **AI / LLM** | DeepSeek, Google Gemini, Ollama (local), Zhipu Z.AI — each with setup + Q&A + MCP-tool calling. |
+| **MCP** | Expose PETP as standard MCP Tool Server (Streamable-HTTP). MCP client processors for all LLM providers. |
+| **HTTP / Network** | Configurable HTTP requests. Extract response keys. Built-in HTTP service (port 8866). OAuth2 / PKCE. |
+| **String Utilities** | Encode / decode (Base64, URL...). Hash (MD5, SHA256...). |
+| **Mouse & GUI** (PyAutoGUI) | Click, scroll, query position at absolute or relative coordinates. |
+| **Email** | Send email via SMTP with attachments. |
+| **Data Visualization** | Charts and plots via Matplotlib. |
+| **Media** | Download YouTube videos (PyTube). |
+| **Execution Control** | Initialize / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON. Run shell commands. |
 
-    🔗 MCP (Model Context Protocol)
-    - Expose PETP as a standard MCP Tool Server via Streamable-HTTP
-    - MCP client processors for DeepSeek / Gemini / Ollama / Zhipu
+---
 
-    🌍 HTTP / Network
-    - Send HTTP requests (GET / POST / etc.) with configurable headers, params, body
-    - Extract specific keys from HTTP responses
-    - Built-in HTTP service (port 8866) — return execution results as HTTP responses
-    - OAuth2 / PKCE authorization endpoint for MCP clients
+## Screenshots
 
-    🔤 String Utilities
-    - Encode / decode strings (Base64, URL, etc.)
-    - Hash strings (MD5, SHA256, etc.)
-
-    🖱 Mouse & GUI Automation (PyAutoGUI)
-    - Mouse click and scroll at absolute or relative positions
-    - Query current mouse position
-
-    📬 Messaging & Interaction
-    - Send email (SMTP)
-    - Show result dialog / input dialog for interactive prompts
-    - Advanced input dialog for structured user input
-
-    📈 Data Visualization
-    - Render charts and plots via Matplotlib
-
-    🎬 Media & Download
-    - Download YouTube videos (PyTube)
-
-    ⚙ Execution Control & Utilities
-    - Initialize or check parameters (CHECK_PARAM / INITIAL_PARAMS)
-    - Run a nested Execution from within another Execution
-    - Stop execution conditionally (STOPPER)
-    - Wait for a condition or wait N seconds
-    - Reload log configuration at runtime
-    - Read JSON data from file or data-chain
-    - Run any OS-level shell/CMD command
-    - Data Visualization: Matplotlib
-
-MacOS
+**macOS**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview.png)
 
-Windows
+**Windows**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/PETP_overview_windows.png)
 
-HTTP Enabled
+**HTTP Service Enabled**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/HTTP_SERVICE_ENABLED.png)
 
-## Run first Execution within 4 steps:
+**Run first Execution within 4 steps:**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/user_manual.png)
 
-## LLM MCP Server, Client & host:
+**LLM MCP Server, Client & Host:**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/DEEPSEEK-MCP.png)
 
-## MCP Tool Server , Streamable-HTTP
+**MCP Tool Server (Streamable-HTTP):**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/petp_as_standard_mcp_server.png)
 
-## Integrate with Claude Code:
+**Integrate with Claude Code:**
 
 ![image](https://raw.githubusercontent.com/lorisunjunbin/petp/master/image/claude-code-mcp-tool.png)
 
+---
 
-## Install & Run
+## Quick Start
 
 ### Prerequisites
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
-| Python | 3.13 / 3.14 | [Download](https://www.python.org/downloads/) |
-| wxPython | 4.2.x / 4.3.x | Must match your Python version — see step 2 |
-| ChromeDriver | 134+ | Only needed for Selenium browser tasks |
-
----
+| Python | 3.14 | [Download](https://www.python.org/downloads/) |
+| wxPython | 4.3.x | Must match your Python version — see Step 2 |
+| ChromeDriver | Match Chrome version | Download from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
 
 ### Step 1 — Install Python
 
-Download and install Python 3.13 or 3.14 from [python.org](https://www.python.org/downloads/).
+Download and install Python 3.14 from [python.org](https://www.python.org/downloads/).
 
-> ✅ Make sure to check **"Add Python to PATH"** during installation on Windows.
-
----
+> On Windows, check **"Add Python to PATH"** during installation.
 
 ### Step 2 — Install wxPython
 
-wxPython must match your exact Python version and OS. Download the correct `.whl` from
-[wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/), then install it:
+wxPython must match your exact Python version and OS. Download the `.whl` from [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/):
 
-**macOS (Apple Silicon, Python 3.14)**
-```bash
-pip3.14 install --force-reinstall wxpython-4.3.0a16047+70fc073f-cp314-cp314-macosx_11_0_arm64.whl
-```
+| Platform | Command |
+|----------|---------|
+| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16047...cp314-macosx_11_0_arm64.whl` |
+| Windows | `pip install --force-reinstall wxpython-4.3.0a16047...cp314-cp314-win_amd64.whl` |
 
-**Windows (Python 3.14)**
-```bash
-pip install --force-reinstall wxpython-4.3.0a16047+70fc073f-cp314-cp314-win_amd64.whl
-```
-
-**Windows (Python 3.13)**
-```bash
-pip3.13 install --force-reinstall wxpython-4.2.4a15955+4320e9da-cp313-cp313-win_amd64.whl
-```
-
-> 💡 Always download the **latest snapshot** from [wxpython snapshots](https://wxpython.org/Phoenix/snapshot-builds/) for the best compatibility.
-
----
+> Always download the **latest snapshot** for best compatibility.
 
 ### Step 3 — Install Dependencies
 
+See [Dependency Management](#dependency-management) for full details. Quick install:
+
 ```bash
+# Full install (all groups)
 pip install -r requirements.txt
+
+# Or install only what you need
+pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
 ```
 
-> ⚠️ If you encounter a missing package error, install it manually:
-> ```bash
-> pip install <package-name>
-> ```
-
----
-
-### Step 4 — Run PETP
+### Step 4 — Run
 
 ```bash
 python PETP.py
 ```
 
-The GUI window will launch. On first run, PETP creates a default config under `./config/petpconfig.yaml`.
+The GUI launches. On first run, a default config is created at `./config/petpconfig.yaml`.
 
-### Step 4B — Run PETP in Background (No UI)
+---
 
-Use the new no-GUI entrypoint:
+## Dependency Management
+
+PETP uses a **modular dependency structure** — split by processor category for flexible installation and minimal packaging.
+
+### Install with `pip`
 
 ```bash
-python PETP_backgroud.py
+# Full (GUI desktop)
+pip install -r requirements.txt
+
+# Background service (no GUI)
+pip install -r requirements-nogui.txt
+
+# Docker (headless, no browser automation)
+pip install -r requirements-docker.txt
+
+# Custom combination
+pip install -r requirements/core.txt -r requirements/ssh-sftp.txt -r requirements/http-client.txt
 ```
 
-Run one execution and exit:
+### Install with `uv` (Recommended)
+
+[`uv`](https://docs.astral.sh/uv/) is a fast Python package manager (10-100x faster than pip). Drop-in compatible with existing requirements files — **zero migration needed**.
 
 ```bash
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# All pip commands work as-is with uv
+uv pip install -r requirements.txt
+uv pip install -r requirements-docker.txt
+uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
+```
+
+#### Lock versions with `uv pip compile`
+
+Generate pinned requirement files for reproducible builds:
+
+```bash
+# Compile a specific group
+uv pip compile requirements/core.txt -o requirements/core.lock
+
+# Compile the full set
+uv pip compile requirements.txt -o requirements.lock
+```
+
+### Dependency Groups
+
+| File | Category | Packages |
+|------|----------|----------|
+| `core.txt` | Core framework | pyyaml, cryptocode, croniter, cron-descriptor, python-dateutil |
+| `http-client.txt` | HTTP requests | requests, httpx, httpx-sse |
+| `web-automation.txt` | Browser automation | selenium, urllib3, Pillow |
+| `web-scraping.txt` | Web scraping | beautifulsoup4, lxml |
+| `data-processing.txt` | JSON processing | jsonpath-python |
+| `excel-data.txt` | Excel & data | openpyxl, pandas |
+| `chart.txt` | Visualization | matplotlib |
+| `document.txt` | Document processing | python-docx |
+| `ssh-sftp.txt` | SSH / SFTP | paramiko |
+| `gui-automation.txt` | Desktop automation | pyautogui, pyperclip |
+| `gui-wxpython.txt` | Desktop GUI | wxpython |
+| `database.txt` | Database | psycopg, mysql-connector-python, hdbcli (enable as needed) |
+| `ai-gemini.txt` | Google Gemini AI | langchain, langchain-google-genai, google-generativeai |
+| `ai-deepseek.txt` | DeepSeek AI | openai |
+| `ai-ollama.txt` | Ollama local LLM | ollama |
+| `ai-zhipu.txt` | Zhipu Z.AI | zai |
+| `mcp.txt` | MCP Protocol | mcp |
+| `javascript.txt` | JS engine | pythonmonkey |
+| `video-download.txt` | Video download | pytube |
+| `http-service.txt` | HTTP server | fastapi, uvicorn |
+| `webapp.txt` | Web application | Flask, flask-httpauth, werkzeug, gunicorn |
+| `system-build.txt` | System tools | psutil, pyinstaller |
+
+### Update Dependencies
+
+```bash
+# With pip
+pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
+
+# With uv
+uv pip install --upgrade -r requirements.txt
+```
+
+---
+
+## Running Modes
+
+| Mode | Entry Point | GUI | Selenium | Use Case |
+|------|------------|-----|----------|----------|
+| Desktop | `python PETP.py` | Yes | Yes | Local development, interactive RPA |
+| Background | `python PETP_backgroud.py` | No | Auto-detect | CLI, scheduled tasks |
+| Docker | `PETP_backgroud.py` in container | No | Headless | Server deployment, CI/CD |
+
+### Background Mode
+
+```bash
+# Start background service
+python PETP_backgroud.py
+
+# Run one execution and exit
 python PETP_backgroud.py --run-execution ENDECODER --no-http
 ```
 
-Important no-GUI config in `./config/petpconfig.yaml`:
+Key config in `petpconfig.yaml`:
 
 - `nogui_enabled: true`
-- `nogui_ui_processor_policy: skip`
+- `nogui_ui_processor_policy: skip` — skip GUI processors and continue
+- `nogui_ui_processor_policy: abort` — stop on GUI processor
 
-`nogui_ui_processor_policy` supports:
+**Processors skipped in no-GUI mode:**
 
-- `skip`: skip GUI processors and continue
-- `abort`: stop execution when a GUI processor is encountered
+| Type | Processors | Behavior |
+|------|-----------|----------|
+| Pure GUI | `SHOW_RESULT`, `INPUT_DIALOG`, `MATPLOTLIB`, `FILE_CHOOSER` | Always skipped |
+| Mouse | `MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL` | Always skipped (requires display) |
+| Selenium | `GO_TO_PAGE`, `FIND_THEN_*`, `SCREENSHOT`, etc. | Auto-detect — headless if Chrome available |
 
-Current GUI processor types skipped in no-GUI / Docker mode:
-
-- **Pure GUI (always skipped):** `SHOW_RESULT`, `INPUT_DIALOG`, `MATPLOTLIB`, `FILE_CHOOSER`
-- **Mouse (always skipped — requires display + pyautogui):** `MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL`
-- **Selenium (auto-detected):** `GO_TO_PAGE`, `CLOSE_CHROME`, `ENTER_FULLSCREEN`, `FIND_THEN_CLICK`, `FIND_THEN_COLLECT`, `FIND_THEN_KEYIN`, `FIND_MULTI_THEN_CLICK`, `FIND_MULTI_THEN_COLLECT`, `GET_COOKIE`, `GO_BACK`, `MOVE_TO_IFRAME`, `SCREENSHOT`
-  - ✅ **Docker image includes Chromium + chromedriver** — Selenium tasks run in **headless mode** automatically
-  - ⚠️ If Chrome is not installed (e.g. custom minimal image), Selenium tasks are skipped
-  - 💡 You can also force headless mode outside Docker by setting `PETP_HEADLESS=true`
+> Force headless outside Docker: set `PETP_HEADLESS=true`
 
 ---
 
-### Step 5 — (Optional) Enable HTTP Service
+## HTTP Service & MCP
 
-PETP includes a built-in HTTP server on port **8866** for remote execution triggering and MCP tool access.
-
-Once started from the UI, you can access:
+PETP includes a built-in HTTP server on port **8866**.
 
 | Endpoint | Description |
 |----------|-------------|
-| `http://localhost:8866/` | PETP HTTP service home |
-| `http://localhost:8866/mcp` | MCP Tool Server (Streamable HTTP) |
+| `GET /` | PETP HTTP service home |
+| `GET /mcp` | MCP Tool Server (Streamable-HTTP) |
 
-For MCP Inspector, use Transport Type: **Streamable HTTP** and URL: `http://localhost:8866/mcp`
+For MCP Inspector: Transport Type = **Streamable HTTP**, URL = `http://localhost:8866/mcp`
 
 ---
 
-### Step 6 — (Optional) Build Standalone Executable
+## Build & Docker
 
-Build a native executable for **macOS or Windows** (output goes to `./dist/`):
+### Build Standalone Executable
 
 ```bash
 python PETP_build.py
 ```
 
-> 🍎 On macOS this produces `PETP.app`; on Windows it produces `PETP.exe`.
+Output: `PETP.app` (macOS) or `PETP.exe` (Windows) in `./dist/`.
 
-### Step 6B — (Optional) Run in Docker (No-GUI)
+### Docker
 
-PETP provides a headless background mode via [`PETP_backgroud.py`](./PETP_backgroud.py), packaged with [`Dockerfile`](./Dockerfile) and a convenience script [`docker_build.sh`](./docker_build.sh).
-
-> ✅ Fully supports **building on Apple M1 (arm64)** and **running on x86 (amd64)** Docker hosts.
-
-**Key files:**
+Fully supports **building on Apple M1 (arm64)** and **running on x86 (amd64)**.
 
 | File | Purpose |
 |------|---------|
-| `Dockerfile` | Multi-arch image definition (Python 3.13-slim) |
-| `docker_build.sh` | One-command build script with buildx + QEMU |
-| `requirements-docker.txt` | Dependencies for headless mode (no pyautogui / pyperclip / wx) |
-| `.dockerignore` | Excludes build/, dist/, download/, .git/, etc. |
-
-**① Build amd64 image locally on M1 (for testing):**
+| `Dockerfile` | Multi-arch image (Python 3.14-slim) |
+| `docker_build.sh` | One-command build (buildx + QEMU) |
+| `requirements-docker.txt` | Headless dependencies |
 
 ```bash
+# Build & run locally
 ./docker_build.sh
-```
-
-This creates `petp-background:amd64-local` via QEMU cross-compilation.
-
-**② Run the container:**
-
-```bash
 docker run --rm -p 8866:8866 petp-background:amd64-local
-```
 
-**③ Health check:**
-
-```bash
-curl http://localhost:8866/health
-```
-
-**④ Push dual-arch image to a registry (for x86 production servers):**
-
-```bash
+# Push to registry
 ./docker_build.sh --push yourrepo/petp-background:1.0
 ```
 
-Then on any x86 server:
-
-```bash
-docker pull yourrepo/petp-background:1.0
-docker run --rm -p 8866:8866 yourrepo/petp-background:1.0
-```
-
-**⑤ Available endpoints inside the container:**
+**Container endpoints:**
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /health` | Health check (`{"status": "ok"}`) |
-| `GET /petp/tools` | List available MCP tools |
-| `POST /petp/exec` | Trigger execution or pipeline |
+| `GET /health` | Health check |
+| `GET /petp/tools` | List MCP tools |
+| `POST /petp/exec` | Trigger execution / pipeline |
 | `GET /petp/result?request_id=<id>` | Check async result |
-| `POST /mcp` | MCP Tool Server (Streamable HTTP) |
-
-> ⚠️ **Note:** Selenium (browser), Mouse, and GUI processors are automatically **skipped** in Docker / no-GUI mode via `nogui_ui_processor_policy: skip` in `petpconfig.yaml`.
+| `POST /mcp` | MCP Tool Server |
 
 ---
 
-### Step 7 — (Optional) Update All Dependencies
+## Project Structure
 
-Keep all installed packages up to date on macOS/Linux:
-
-```bash
-pip list --outdated | grep -v '^\-e' | cut -d = -f 1 | xargs -n1 pip install -U
-```
-
----
-
-### Project Structure
-
-#### Root Files
+### Root Files
 
 | Category | File | Description |
 |----------|------|-------------|
-| **Entry Points** | [`PETP.py`](./PETP.py) | Main GUI entry point (wxPython desktop app) |
-| | [`PETP_backgroud.py`](./PETP_backgroud.py) | Headless / no-GUI background entry point (for Docker & CLI) |
-| **Build Scripts** | [`PETP_build.py`](./PETP_build.py) | PyInstaller build script for GUI executable |
-| | [`PETP_build.spec`](./PETP_build.spec) | PyInstaller spec template for GUI build |
-| | [`PETP_background_build.py`](./PETP_background_build.py) | PyInstaller build script for background executable |
-| | [`PETP_background_build.spec`](./PETP_background_build.spec) | PyInstaller spec template for background build |
-| | [`PETP_build_debug_runtime.py`](./PETP_build_debug_runtime.py) | Debug-mode build helper for diagnosing PyInstaller issues |
-| **Docker** | [`Dockerfile`](./Dockerfile) | Multi-arch Docker image definition (Python 3.13-slim) |
-| | [`docker_build.sh`](./docker_build.sh) | One-command build script (buildx + QEMU, M1 → amd64) |
-| | [`.dockerignore`](./.dockerignore) | Excludes build artefacts, caches, large data from Docker context |
-| **Dependencies** | [`requirements.txt`](./requirements.txt) | Full dependencies for GUI mode (includes wxPython, pyautogui, etc.) |
-| | [`requirements-nogui.txt`](./requirements-nogui.txt) | Dependencies for no-GUI mode (no wx) |
-| | [`requirements-docker.txt`](./requirements-docker.txt) | Dependencies for Docker (no pyautogui/pyperclip/wx, fixed package names) |
-| **Documentation** | [`readme.md`](./readme.md) | This file — project overview, install guide, changelog |
-| | [`LICENSE.txt`](./LICENSE.txt) | Project license |
+| Entry | `PETP.py` | GUI desktop entry |
+| | `PETP_backgroud.py` | Headless / background entry |
+| Build | `PETP_build.py` | PyInstaller build (GUI) |
+| | `PETP_background_build.py` | PyInstaller build (background) |
+| | `PETP_build_debug_runtime.py` | Debug helper |
+| Docker | `Dockerfile` | Multi-arch image |
+| | `docker_build.sh` | Build script |
+| | `.dockerignore` | Exclude list |
+| Deps | `requirements.txt` | Full install (references all groups) |
+| | `requirements-nogui.txt` | No-GUI / background |
+| | `requirements-docker.txt` | Docker / headless |
+| | `requirements/*.txt` | Modular dependency groups |
 
-#### Directories
+### Directories
 
 | Directory | Description |
 |-----------|-------------|
-| `config/` | Application configuration (`petpconfig.yaml` — port, log level, auth token, etc.) |
-| `core/` | Core engine — execution, pipeline, task, processor, loop, cron, runtime |
-| `core/executions/` | YAML-defined execution files (each describes a sequence of tasks) |
-| `core/processors/` | All processor implementations (one `.py` per task type, e.g. `GO_TO_PAGEProcessor.py`) |
-| `core/pipelines/` | YAML-defined pipeline files (each combines multiple executions) |
-| `core/runtime/` | Runtime logic for background / no-GUI mode (`BackgroundRuntime`, `UiProcessorPolicy`) |
-| `core/definition/` | YAML reader/writer, Selenium IDE converter |
-| `core/cron/` | Cron scheduler for timed execution |
-| `decorators/` | Python decorators used across the project |
-| `httpservice/` | Built-in HTTP server, MCP handler, request routing |
-| `httpservice/handlers/` | HTTP request handler implementations |
-| `mvp/` | GUI layer (Model-View-Presenter pattern) |
-| `mvp/model/` | `PETPModel` — application data model and config binding |
-| `mvp/view/` | wxPython views, dialogs, and UI components |
-| `mvp/presenter/` | Presenter logic, events, and interactors |
-| `utils/` | Utility modules — `SeleniumUtil`, `ExcelUtil`, `DateUtil`, `OSUtils`, `Logger`, etc. |
-| `image/` | Icons and screenshots used in the app and README |
-| `resources/` | Static resource files (Excel templates, test data) |
-| `download/` | Default download directory for browser and file tasks |
-| `webapp/` | Flask-based PETP File Viewer web application |
-| `webdriver/` | Platform-specific ChromeDriver binaries (`darwin/`, `win32/`) |
-| `testcoverage/` | Test scripts, HTTP test files, Groovy/JS modules, Selenium tests |
-| `log/` | Runtime log output (`petp.log`) |
+| `config/` | Configuration (`petpconfig.yaml`) |
+| `core/` | Core engine — execution, pipeline, task, processor, loop, cron |
+| `core/executions/` | YAML execution definitions |
+| `core/processors/` | Processor implementations (one `.py` per task type) |
+| `core/pipelines/` | YAML pipeline definitions |
+| `core/runtime/` | Background / no-GUI runtime logic |
+| `core/definition/` | YAML reader, Selenium IDE converter |
+| `httpservice/` | HTTP server, MCP handler, request routing |
+| `mvp/` | GUI layer (Model-View-Presenter) |
+| `utils/` | Utilities — Selenium, Excel, Date, OS, Logger, Paramiko |
+| `webapp/` | Flask web application |
+| `webdriver/` | Platform ChromeDriver binaries |
+| `resources/` | Static resources |
+| `download/` | Default download directory |
+| `testcoverage/` | Test scripts |
+| `log/` | Runtime logs |
 
 ---
 
-### Troubleshooting
+## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
-| `ModuleNotFoundError: No module named 'xxx'` | Run `pip install xxx` |
-| wxPython import error | Ensure the `.whl` matches your exact Python version and OS arch |
-| ChromeDriver version mismatch | Download the matching driver from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
-| Port 8866 already in use | Change the port in `./config/petpconfig.yaml` |
-
-## TO-DO:
-
-- Able to easily create customized processors.
-
-## DONE
+| `ModuleNotFoundError` | `pip install <package>` or install the corresponding requirements group |
+| wxPython import error | Ensure `.whl` matches your Python version and OS |
+| ChromeDriver mismatch | Download from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
+| Port 8866 in use | Change port in `petpconfig.yaml` |
 
 ---
 
-### 🗓 2026
+## Changelog
+
+### 2026
 
 | Date | What's New |
 |------|------------|
-| 2026-04 | ✨ Support NO_GUI mode, [`PETP_backgroud.py`](./PETP_backgroud.py), easy to run in [`Docker`](./Dockerfile). |
-| 2026-04 | 🖱 New handy toolbar buttons: append `date_str`, append `os.sep`; added **Skip Task** checkbox on execution run |
-| 2026-03 | 📦 Two new OOTB Executions: `OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm` & `OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64` |
-| 2026-03 | 🖱 Enhanced [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) with **skip function** support for flexible element handling |
-| 2026-03 | ⏱ Added **page load timeout** support in Selenium utility |
-| 2026-02 | 🔗 Support standard **MCP Tool Server** (Streamable-HTTP) — see [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) or MCP Inspector: `http://localhost:8866/mcp` |
-| 2026-01 | 🤖 New OOTB Executions: `OOTB_AI_LLM_ZHIPU`, `OOTB_AI_LLM_ZHIPU_MCP` |
-| 2026-01 | 🧠 Added **Zhipu Z.AI** support: [SETUP](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) · [Q&A](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) · [MCP](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) |
+| 2026-04 | Modular dependency management with `requirements/` groups; `uv` support |
+| 2026-04 | NO_GUI mode, [`PETP_backgroud.py`](./PETP_backgroud.py), [`Docker`](./Dockerfile) support |
+| 2026-04 | Toolbar: append `date_str`, `os.sep`; **Skip Task** checkbox |
+| 2026-03 | OOTB: `OOTB_DOWNLOAD_LATEST_WXPYTHON` for macOS & Windows |
+| 2026-03 | [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) skip function |
+| 2026-03 | Page load timeout in Selenium |
+| 2026-02 | **MCP Tool Server** (Streamable-HTTP) — [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) |
+| 2026-01 | **Zhipu Z.AI**: [SETUP](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) / [Q&A](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) / [MCP](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) |
+
+### 2025
+
+| Date | What's New |
+|------|------------|
+| 2025-10 | [STOPPERProcessor](./core/processors/STOPPERProcessor.py) / [RELOAD_LOGProcessor](./core/processors/RELOAD_LOGProcessor.py); Python 3.14 |
+| 2025-06 | OOTB: `OOTB_AI_LLM_GEMINI_MCP` |
+| 2025-05 | `ThreadingHTTPServer`; **AdvancedInputDialog**; HTTP Service (port 8866) |
+| 2025-05 | OOTB: `OOTB_AI_LLM_OLLAMA_MCP` / `OOTB_AI_LLM_DEEPSEEK_MCP` |
+| 2025-04 | Execution search, improved dropdowns |
+| 2025-03 | ChromeDriver v134 |
+| 2025-01 | Initial **AI LLM**: DeepSeek / Gemini / Ollama |
+
+### 2024
+
+| Date | What's New |
+|------|------------|
+| 2024-10 | Python 3.13, ChromeDriver 130 |
+| 2024-08 | [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py), [AI_LLM_OLLAMA_QANDAProcessor](./core/processors/AI_LLM_OLLAMA_QANDAProcessor.py), [RUN_EXECUTIONProcessor](./core/processors/RUN_EXECUTIONProcessor.py) |
+| 2024-07 | Gemini AI-LLM; [DATA_MULTI_MASKINGProcessor](./core/processors/DATA_MULTI_MASKINGProcessor.py); task skipping |
+| 2024-06 | [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py), [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py) |
+| 2024-05 | HttpServer (GET/POST, JSON) |
+| 2024-04 | On-demand processor loading after PyInstaller build |
+| 2024-03 | PyInstaller build for macOS & Windows |
+| 2024-02 | [PETP File Viewer](./webapp/README.md) web app (Flask) |
+| 2024-01 | Execute on startup |
+
+### 2023
+
+| Date | What's New |
+|------|------------|
+| 2023-12 | `DATA_COLLECT`, `DATA_MAPPING`, `FIND_MULTI_THEN_CLICK`, `FOLDER_WATCH_MOVE` processors |
+| 2023-11 | [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py), [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py), [DATA_FILTERProcessor](./core/processors/DATA_FILTERProcessor.py), [COLLECTION_MERGEProcessor](./core/processors/COLLECTION_MERGEProcessor.py); runtime log level; rotating file handler |
+| 2023-10 | Python 3.12 |
+| 2023-09 | DB_ACCESS: MySQL / PostgreSQL / SAP HANA / SQLite |
+| 2023-04 | `PYTUBEProcessor` — YouTube download |
+
+### 2022
+
+| Date | What's New |
+|------|------------|
+| 2022-11 | UI simplification and event binding cleanup |
+| 2022-10 | Non-blocking GUI execution |
+| 2022-09 | Last-run restore; `MOUSE_CLICKProcessor`, `MOUSE_SCROLLProcessor` |
+| 2022-07 | MySQL support; Selenium 4.3.0 |
+| 2022-06 | Python 3.10, wxPython 4.1.2 |
+| 2022-05 | Mac M1 wxPython fix |
+| 2022-04 | `ZIPProcessor` |
+| 2022-03 | Loop N-times mode |
+
+### 2021
+
+| Date | What's New |
+|------|------------|
+| 2021-10 | [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) |
+| 2021-09 | Grid copy & paste |
 
 ---
 
-### 🗓 2025
+## Acknowledgements
 
-| Date | What's New |
-|------|------------|
-| 2025-10 | 🛑 New processors: [STOPPERProcessor](./core/processors/STOPPERProcessor.py) · [RELOAD_LOGProcessor](./core/processors/RELOAD_LOGProcessor.py) |
-| 2025-10 | ⬆️ Upgraded to **Python 3.14** and **wxPython 4.2.4a15981** |
-| 2025-06 | 🤖 New OOTB Execution: `OOTB_AI_LLM_GEMINI_MCP` — [AI_LLM_GEMINI_QANDA_MCPProcessor](./core/processors/AI_LLM_GEMINI_QANDA_MCPProcessor.py) |
-| 2025-05 | 🌐 Switched to `ThreadingHTTPServer`; added **AdvancedInputDialog** |
-| 2025-05 | 🤖 New OOTB Execution: `OOTB_AI_LLM_OLLAMA_MCP` — [AI_LLM_OLLAMA_QANDA_MCPProcessor](./core/processors/AI_LLM_OLLAMA_QANDA_MCPProcessor.py) |
-| 2025-05 | 🤖 New OOTB Execution: `OOTB_AI_LLM_DEEPSEEK_MCP` — dual PETP instances as MCP server + client |
-| 2025-05 | 🌍 Enabled **HTTP Service** for PETP — execution results exposed as HTTP responses (port 8866) |
-| 2025-04 | 🔍 Added execution **search** and improved dropdown handling |
-| 2025-03 | 🚗 Upgraded **ChromeDriver** to v134 |
-| 2025-03 | 📦 New wxPython snapshot for Python 3.13 / Windows: [wxPython-4.2.3a1.dev5840](https://wxpython.org/Phoenix/snapshot-builds/wxPython-4.2.3a1.dev5840+45f9e89f-cp313-cp313-win_amd64.whl) |
-| 2025-01 | 🧠 Initial **AI LLM** support: DeepSeek · Gemini · Ollama (local) |
-
----
-
-### 🗓 2024
-
-| Date | What's New |
-|------|------------|
-| 2024-10 | ⬆️ Upgraded to **Python 3.13** and ChromeDriver 130; fixed PyInstaller build issues |
-| 2024-08 | 📊 New: [MATPLOTLIBProcessor](./core/processors/MATPLOTLIBProcessor.py) — data visualization with Matplotlib |
-| 2024-08 | 🤖 New: [AI_LLM_OLLAMA_QANDAProcessor](./core/processors/AI_LLM_OLLAMA_QANDAProcessor.py) |
-| 2024-08 | 🔁 New: [RUN_EXECUTIONProcessor](./core/processors/RUN_EXECUTIONProcessor.py) — nest and invoke executions |
-| 2024-07 | 🔒 New: [DATA_MULTI_MASKINGProcessor](./core/processors/DATA_MULTI_MASKINGProcessor.py) |
-| 2024-07 | 🧠 AI-LLM Gemini: [SETUP](./core/processors/AI_LLM_GEMINI_SETUPProcessor.py) · [Q&A](./core/processors/AI_LLM_GEMINI_QANDAProcessor.py) |
-| 2024-07 | ⏭ Task skipping via `{"skipped":"yes"}`; upgraded ChromeDriver to v126; widened execution chooser |
-| 2024-06 | 🗃 New: [DATA_GROUPBYProcessor](./core/processors/DATA_GROUPBYProcessor.py) · [DATA_MASKINGProcessor](./core/processors/DATA_MASKINGProcessor.py) |
-| 2024-05 | 🌐 Introduced **HttpServer** (Python 3.12) — GET/POST support, JSON responses (port 8866) |
-| 2024-04 | 📂 On-demand loading of processors from `./core/processors` folder after PyInstaller build |
-| 2024-03 | 🏗 Build PETP executable for **macOS & Windows** via [PETP_build.py](./PETP_build.py) |
-| 2024-02 | 🖥 Introduced [PETP File Viewer](./webapp/README.md) web app (Flask, basic auth) |
-| 2024-01 | 🚀 New feature: **execute on startup** |
-
----
-
-### 🗓 2023
-
-| Date | What's New |
-|------|------------|
-| 2023-12 | ➕ New processors: `DATA_COLLECTProcessor` · `DATA_MAPPINGProcessor` · `FIND_MULTI_THEN_CLICKProcessor` · `FOLDER_WATCH_MOVEProcessor` |
-| 2023-11 | 🎚 On-demand **log level** change at runtime |
-| 2023-11 | 🔤 New: [ENCODE_DECODE_STRProcessor](./core/processors/ENCODE_DECODE_STRProcessor.py) · [HASH_STRProcessor](./core/processors/HASH_STRProcessor.py); OOTB execution: `ootb_encode_decode_hash_str` |
-| 2023-11 | 📋 Optimized logging: configurable log level + rotating file handler |
-| 2023-11 | 🔀 New: [DATA_FILTERProcessor](./core/processors/DATA_FILTERProcessor.py) · [COLLECTION_MERGEProcessor](./core/processors/COLLECTION_MERGEProcessor.py) |
-| 2023-10 | ⬆️ Upgraded to **Python 3.12** |
-| 2023-09 | 🗃 `DB_ACCESSProcessor` now supports: MySQL · PostgreSQL · SAP HANA · SQLite |
-| 2023-04 | 🎬 New: `PYTUBEProcessor` — download YouTube videos |
-
----
-
-### 🗓 2022
-
-| Date | What's New |
-|------|------------|
-| 2022-11 | 🎨 Simplified & optimized entire [UI](./mvp/view) |
-| 2022-11 | 🧹 Clean & restructured UI event bindings |
-| 2022-10 | ⚡ Non-blocking execution in [GUI](./mvp) |
-| 2022-09 | 💾 **Last run** feature — restore previous execution state on startup |
-| 2022-09 | 🖱 New: `MOUSE_CLICKProcessor` · `MOUSE_SCROLLProcessor`; OOTB: `ootb_keep_screen_unlocked` |
-| 2022-07 | 🗃 `DB_ACCESSProcessor` — initial MySQL support |
-| 2022-07 | ⬆️ Upgraded to **Selenium 4.3.0** |
-| 2022-06 | ⬆️ Upgraded to **Python 3.10** and **wxPython 4.1.2** |
-| 2022-05 | 🍎 Fixed wxPython install issue on **Mac M1**; built wheel locally |
-| 2022-04 | 🗜 New: `ZIPProcessor` — verified on Windows |
-| 2022-03 | 🔁 New loop mode: **Loop for N times** |
-
----
-
-### 🗓 2021
-
-| Date | What's New |
-|------|------------|
-| 2021-10 | 🌐 New: [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) — HTML/XML parsing |
-| 2021-09 | 📋 Execution grid **copy & paste** via right-click context menu |
-
-## Appreciate for
-
-- [wxpython](https://www.wxpython.org/) & [wxglade](https://wxglade.sourceforge.net/)
-- [selenium](https://selenium-python.readthedocs.io/) & [chromedriver](https://googlechromelabs.github.io/chrome-for-testing/)
-
+- [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
+- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/)

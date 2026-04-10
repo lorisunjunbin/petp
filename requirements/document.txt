@@ -1,0 +1,3 @@
+# [Document] 文档处理
+# Processors: (间接通过utils.WordUtil)
+python-docx               # Word文档读写 (utils.WordUtil)

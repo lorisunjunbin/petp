@@ -1,58 +1,38 @@
-# PETP specific
-PETP.spec
+# ============================================================
+# PETP .gitignore
+# ============================================================
 
-# Byte-compiled / optimized / DLL files
+# IDE
+.idea/
+.vscode/
+.claude/
+
+# macOS
+.DS_Store
+
+# Python
 __pycache__/
 *.py[cod]
-
-# C extensions
 *.so
+*.egg-info/
+*.egg
 
 # Distribution / packaging
 .Python
 build/
 dist/
-*.egg-info/
-*.egg
-
-# PyInstaller
 *.manifest
 
-# Installer logs
-pip-log.txt
+# PyInstaller generated spec (rebuilt from PETP_build.spec)
+PETP.spec
+PETP_background.spec
+PETP_debug.spec
 
-# Unit test / coverage reports
-htmlcov/
-.coverage
-.cache
-
-# Translations
-*.mo
-
-# Django stuff:
-*.log
-db.sqlite3
-
-# Flask stuff:
-instance/
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
+# Runtime output
+download/*
+!download/.gitkeep
+log/*
+!log/.gitkeep
 
 # Environments
 .env
@@ -60,20 +40,13 @@ celerybeat-schedule
 env/
 venv/
 
-# Spyder project settings
-.spyderproject
+# Testing / coverage
+htmlcov/
+.coverage
+.cache
 
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
+# Logs
+*.log
 
 # mypy
 .mypy_cache/
-
-# Pyre type checker
-.pyre/
-.idea/!/runtime_debug.log
-.idea
-.claude

@@ -1,0 +1,3 @@
+# [Video Download] 视频下载
+# Processors: PYTUBE
+pytube                    # YouTube视频下载 (PYTUBEProcessor)

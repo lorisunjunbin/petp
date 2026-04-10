@@ -1,0 +1,6 @@
+# [Core] 核心框架 - 运行时必需
+pyyaml                    # YAML配置解析 (core.definition.yamlro, config)
+cryptocode                # 加密解密 (core.processor)
+croniter                  # Cron表达式解析 (core.cron.cron)
+cron-descriptor           # Cron表达式可读化 (mvp.presenter.PETPPresenter)
+python-dateutil           # 日期工具 (utils.DateUtil)

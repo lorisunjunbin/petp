@@ -1,0 +1,6 @@
+# [Web App] Web应用界面
+# webapp: app.py
+Flask                     # Web框架 (webapp.app)
+flask-httpauth            # HTTP认证 (webapp.app)
+werkzeug                  # WSGI工具 (webapp.config)
+gunicorn                  # WSGI服务器部署

@@ -1,0 +1,5 @@
+# [AI LLM - Gemini] Google Gemini AI集成
+# Processors: AI_LLM_GEMINI_SETUP, AI_LLM_GEMINI_QANDA, AI_LLM_GEMINI_QANDA_MCP
+langchain                 # AI编排框架
+langchain-google-genai    # LangChain Google GenAI集成
+google-generativeai       # Google Generative AI SDK
