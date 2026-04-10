@@ -96,7 +96,9 @@ Task      1:1 Processor
 |------|------|------|
 | Python | 3.14 | [下载](https://www.python.org/downloads/) |
 | wxPython | 4.3.x | 须匹配 Python 版本 — 见第 2 步 |
-| ChromeDriver | 与 Chrome 版本匹配 | 从 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) 下载 |
+| ChromeDriver | 与 Chrome 版本匹配 | 从 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) 下载，放入 `webdriver/<平台>/` |
+
+> ChromeDriver 位置：`webdriver/darwin/chromedriver`（macOS）或 `webdriver/win32/chromedriver.exe`（Windows）
 
 ### 第 1 步 — 安装 Python
 

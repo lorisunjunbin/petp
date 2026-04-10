@@ -96,7 +96,9 @@ Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Execut
 |-------------|---------|-------|
 | Python | 3.14 | [Download](https://www.python.org/downloads/) |
 | wxPython | 4.3.x | Must match your Python version — see Step 2 |
-| ChromeDriver | Match Chrome version | Download from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
+| ChromeDriver | Match Chrome version | Download from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/), place in `webdriver/<platform>/` |
+
+> ChromeDriver location: `webdriver/darwin/chromedriver` (macOS) or `webdriver/win32/chromedriver.exe` (Windows)
 
 ### Step 1 — Install Python
 
