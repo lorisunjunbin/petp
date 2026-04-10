@@ -122,10 +122,17 @@ wxPython 须精确匹配 Python 版本和操作系统。从 [wxpython.org/Phoeni
 详见 [依赖管理](#依赖管理)。快速安装：
 
 ```bash
-# 全量安装（所有分组）
+# 推荐：使用 uv 安装
+pip install -U uv
+uv pip install -r requirements.txt
+
+# 或只安装需要的分组（见[依赖分组](#依赖分组)）
+uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
+
+# 备选：使用 pip 安装
 pip install -r requirements.txt
 
-# 或只安装需要的分组
+# 或只安装需要的分组（见[依赖分组](#依赖分组)）
 pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
 ```
 
@@ -143,6 +150,40 @@ GUI 窗口将启动。首次运行会在 `./config/petpconfig.yaml` 创建默认
 
 PETP 采用**模块化依赖结构** — 按处理器类别拆分，灵活安装，按需打包。
 
+### 使用 `uv` 安装（推荐）
+
+[`uv`](https://docs.astral.sh/uv/) 是高性能 Python 包管理器（比 pip 快 10-100 倍）。与现有 requirements 文件完全兼容 — **零迁移成本**。
+
+```bash
+# Windows (PowerShell)：安装 uv
+pip install -U uv
+
+# 验证安装
+uv --version
+
+# Linux/macOS：安装 uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 验证安装
+uv --version
+
+# 如果出现："No virtual environment found"
+uv venv
+# Creating virtual environment at: .venv
+# Activate with: .venv\Scripts\activate
+
+# 方案 A（推荐）：创建并使用虚拟环境
+uv pip install -r requirements.txt
+
+# 方案 B：显式安装到系统 Python
+uv pip install --system -r requirements.txt
+
+# 所有 pip 命令直接替换为 uv pip 即可
+uv pip install -r requirements.txt
+uv pip install -r requirements-docker.txt
+uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
+```
+
 ### 使用 `pip` 安装
 
 ```bash
@@ -157,20 +198,6 @@ pip install -r requirements-docker.txt
 
 # 自定义组合
 pip install -r requirements/core.txt -r requirements/ssh-sftp.txt -r requirements/http-client.txt
-```
-
-### 使用 `uv` 安装（推荐）
-
-[`uv`](https://docs.astral.sh/uv/) 是高性能 Python 包管理器（比 pip 快 10-100 倍）。与现有 requirements 文件完全兼容 — **零迁移成本**。
-
-```bash
-# 安装 uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# 所有 pip 命令直接替换为 uv pip 即可
-uv pip install -r requirements.txt
-uv pip install -r requirements-docker.txt
-uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
 ```
 
 #### 使用 `uv pip compile` 锁定版本

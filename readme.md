@@ -112,8 +112,8 @@ wxPython must match your exact Python version and OS. Download the `.whl` from [
 
 | Platform | Command |
 |----------|---------|
-| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16047...cp314-macosx_11_0_arm64.whl` |
-| Windows | `pip install --force-reinstall wxpython-4.3.0a16047...cp314-cp314-win_amd64.whl` |
+| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
+| Windows | `pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
 
 > Always download the **latest snapshot** for best compatibility.
 
@@ -122,10 +122,17 @@ wxPython must match your exact Python version and OS. Download the `.whl` from [
 See [Dependency Management](#dependency-management) for full details. Quick install:
 
 ```bash
-# Full install (all groups)
+# Recommended: install with uv
+pip install -U uv
+uv pip install -r requirements.txt
+
+# Or install only what you need (see [Dependency Groups](#dependency-groups))
+uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
+
+# Alternative: install with pip
 pip install -r requirements.txt
 
-# Or install only what you need
+# Or install only what you need (see [Dependency Groups](#dependency-groups))
 pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
 ```
 
@@ -143,6 +150,40 @@ The GUI launches. On first run, a default config is created at `./config/petpcon
 
 PETP uses a **modular dependency structure** — split by processor category for flexible installation and minimal packaging.
 
+### Install with `uv` (Recommended)
+
+[`uv`](https://docs.astral.sh/uv/) is a fast Python package manager (10-100x faster than pip). Drop-in compatible with existing requirements files — **zero migration needed**.
+
+```bash
+# Windows (PowerShell): install uv
+pip install -U uv
+
+# Verify installation
+uv --version
+
+# Linux/macOS: install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Verify installation
+uv --version
+
+# If you see: "No virtual environment found"
+uv venv
+# Creating virtual environment at: .venv
+# Activate with: .venv\Scripts\activate
+
+# Option A (recommended): create and use a virtual environment
+uv pip install -r requirements.txt
+
+# Option B: install into system Python explicitly
+uv pip install --system -r requirements.txt
+
+# All pip commands work as-is with uv
+uv pip install -r requirements.txt
+uv pip install -r requirements-docker.txt
+uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
+```
+
 ### Install with `pip`
 
 ```bash
@@ -157,20 +198,6 @@ pip install -r requirements-docker.txt
 
 # Custom combination
 pip install -r requirements/core.txt -r requirements/ssh-sftp.txt -r requirements/http-client.txt
-```
-
-### Install with `uv` (Recommended)
-
-[`uv`](https://docs.astral.sh/uv/) is a fast Python package manager (10-100x faster than pip). Drop-in compatible with existing requirements files — **zero migration needed**.
-
-```bash
-# Install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# All pip commands work as-is with uv
-uv pip install -r requirements.txt
-uv pip install -r requirements-docker.txt
-uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
 ```
 
 #### Lock versions with `uv pip compile`
