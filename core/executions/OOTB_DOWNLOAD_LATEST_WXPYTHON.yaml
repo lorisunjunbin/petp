@@ -1,0 +1,29 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: OOTB_DOWNLOAD_LATEST_WXPYTHON
+list:
+- !!python/object:core.task.Task
+  input: '{"download_folder": "{self.get_ddir()}{os.sep}{self.get_now_str()}{os.sep}",
+    "os_platform": "win_amd64"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"url": "https://wxpython.org/Phoenix/snapshot-builds/", "download_folder":
+    "{self.get_data(\"download_folder\")}"}'
+  skipped: false
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"collectby": "xpath", "identity": "//table//a[starts-with(@href, ''wxpython-'')
+    and substring(@href, string-length(@href) - 3) = ''.whl'']", "value_key": "wxpython_whl_collecttion",
+    "wait": 5, "timeout": 10, "skip_fn": "return \\\"{self.get_data(\"os_platform\")}\\\"
+    not in ele.get_property(\"innerHTML\")", "value_type": "innerHTML", "sort_lambda":
+    "item", "sort_reverse": "no"}'
+  skipped: false
+  type: FIND_MULTI_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"clickby": "link", "identity": "{self.get_data(\"wxpython_whl_collecttion\")[-1]}",
+    "identity_key": "", "wait": 5, "timeout": 5, "skip_timeout_error": "yes|no"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+loops: []
+mcp_desc: ''
