@@ -6,16 +6,13 @@ try:
     import wx
 except ImportError:
     wx = None
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from core.processor import Processor
 
 """
 REQUIREMENTS:
 
-pip install langchain
-pip install langchain-google-genai
-pip install generativeai
+pip install google-genai
 
 
 """
@@ -29,7 +26,7 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
         (set up by AI_LLM_GEMINI_SETUPProcessor). The prompt is sent to the model, and the
         response can optionally be parsed as JSON and/or displayed in a popup dialog.
 
-        Requires: pip install langchain langchain-google-genai generativeai
+        Requires: pip install google-genai
 
         - llm_data_key: Key in data_chain where the Gemini LLM instance is stored (supports expression, default: "llmgemini")
         - prompt: The question or prompt text to send to the LLM (supports expression, default: "prompt")
@@ -45,7 +42,7 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
 
     def process(self):
         llm_data_key = self.get_param('llm_data_key')
-        existed_llm: ChatGoogleGenerativeAI = self.get_data(llm_data_key)
+        existed_llm = self.get_data(llm_data_key)
         prompt = self.expression2str(self.get_param('prompt'))
         resp_content_key = self.get_data("resp_content_key")
         convert_resp_2_json = True if 'yes' == self.get_param("convert_resp_2_json") else False
@@ -62,7 +59,8 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
         logging.debug(f'answer: {answer}')
 
         content = self.read_json_from_markdown(answer.content) if convert_resp_2_json else answer.content
-        message = "Q:\n" + prompt + "\nA:\n" + content
+        content_text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
+        message = "Q:\n" + prompt + "\nA:\n" + content_text
         logging.info(f'Q and A:\n {message}')
 
         if show_in_popup:
@@ -71,7 +69,7 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
 
         self.populate_data(resp_content_key, content)
 
-    def read_json_from_markdown(markdown_content: str) -> dict:
+    def read_json_from_markdown(self, markdown_content: str):
         try:
             json_match = re.search(r'```json\n([\s\S]*?)\n```', markdown_content)
             if json_match:

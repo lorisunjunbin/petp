@@ -228,7 +228,7 @@ uv pip compile requirements.txt -o requirements.lock
 | `gui-automation.txt` | Desktop automation | pyautogui, pyperclip |
 | `gui-wxpython.txt` | Desktop GUI | wxpython |
 | `database.txt` | Database | psycopg, mysql-connector-python, hdbcli (enable as needed) |
-| `ai-gemini.txt` | Google Gemini AI | langchain, langchain-google-genai, google-generativeai |
+| `ai-gemini.txt` | Google Gemini AI | google-genai |
 | `ai-deepseek.txt` | DeepSeek AI | openai |
 | `ai-ollama.txt` | Ollama local LLM | ollama |
 | `ai-zhipu.txt` | Zhipu Z.AI | zai |

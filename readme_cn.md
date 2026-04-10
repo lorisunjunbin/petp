@@ -112,8 +112,8 @@ wxPython 须精确匹配 Python 版本和操作系统。从 [wxpython.org/Phoeni
 
 | 平台 | 命令 |
 |------|------|
-| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16047...cp314-macosx_11_0_arm64.whl` |
-| Windows | `pip install --force-reinstall wxpython-4.3.0a16047...cp314-cp314-win_amd64.whl` |
+| macOS (Apple Silicon) | `pip3.14 install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
+| Windows | `pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
 
 > 建议始终下载**最新快照版**以获得最佳兼容性。
 
@@ -228,7 +228,7 @@ uv pip compile requirements.txt -o requirements.lock
 | `gui-automation.txt` | 桌面自动化 | pyautogui, pyperclip |
 | `gui-wxpython.txt` | 桌面 GUI | wxpython |
 | `database.txt` | 数据库 | psycopg, mysql-connector-python, hdbcli（按需启用） |
-| `ai-gemini.txt` | Google Gemini AI | langchain, langchain-google-genai, google-generativeai |
+| `ai-gemini.txt` | Google Gemini AI | google-genai |
 | `ai-deepseek.txt` | DeepSeek AI | openai |
 | `ai-ollama.txt` | Ollama 本地 LLM | ollama |
 | `ai-zhipu.txt` | 智谱 Z.AI | zai |

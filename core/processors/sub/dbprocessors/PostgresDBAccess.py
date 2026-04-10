@@ -4,7 +4,7 @@ from core.processors.sub.dbprocessors.BaseDBAccess import BaseDBAccess
 
 import psycopg
 
-'''
+r'''
  pip install psycopg
  
  OR refer to:   

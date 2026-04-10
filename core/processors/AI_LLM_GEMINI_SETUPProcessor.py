@@ -1,7 +1,9 @@
 import logging
 import os
+from dataclasses import dataclass
+from typing import Any
 
-from langchain_google_genai import ChatGoogleGenerativeAI, HarmCategory, HarmBlockThreshold
+import google.genai as genai
 
 from core.processor import Processor
 
@@ -9,36 +11,48 @@ from core.processor import Processor
 REQUIREMENTS:
 
 1. Install necessary packages:
-   pip install langchain langchain-core langchain-google-genai google-generativeai pydantic
+   pip install google-genai
 
-2. Pydantic Versioning:
-   The error "ImportError: cannot import name 'validate_core_schema' from 'pydantic_core'"
-   is often due to a mismatch or issue with Pydantic v2 and its interaction with
-   langchain components. 
-   
-   Troubleshooting steps:
-   a. Ensure `pydantic` and `pydantic-core` are compatible. Often, `pydantic-core` is a
-      dependency of `pydantic`.
-   b. Try reinstalling or upgrading `pydantic` and related `langchain` packages:
-      pip uninstall pydantic pydantic-core langchain-core langchain-google-genai
-      pip install pydantic langchain-core langchain-google-genai --upgrade
-   c. If issues persist, check the specific versions of `langchain`, `langchain-core`, 
-      `pydantic`, and `pydantic-core` required by `langchain-google-genai` and ensure 
-      they are met. You might need to pin versions, e.g.:
-      pip install pydantic>=2.0.0,<3.0.0 langchain-core>=0.1.40,<0.2.0
-
-3. Environment Variables:
+2. Environment Variables:
    Ensure your GOOGLE_API_KEY is correctly set in your environment.
 
 """
+
+
+@dataclass
+class GeminiInvokeResponse:
+    content: str
+
+
+class GeminiLLMClient:
+    """Small adapter to keep existing `invoke(...).content` behavior."""
+
+    def __init__(self, api_key: str, model: str, temperature: float, top_p: float):
+        self.model = model
+        self.client = genai.Client(api_key=api_key)
+        self._config = {
+            "temperature": temperature,
+            "top_p": top_p,
+        }
+
+    def invoke(self, prompt: Any) -> GeminiInvokeResponse:
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=prompt,
+            config=self._config,
+        )
+        text = getattr(response, "text", None)
+        if text is None:
+            text = str(response)
+        return GeminiInvokeResponse(content=text)
 
 
 class AI_LLM_GEMINI_SETUPProcessor(Processor):
     TPL: str = '{"key_name_gemini":"GOOGLE_API_KEY", "model":"gemini-1.5-pro", "llm_data_key":"llmgemini","top_p":"0.85", "temperature":"0.8"}'
 
     DESC: str = f'''
-        Initialize and configure a Google Gemini LLM instance (ChatGoogleGenerativeAI) with the specified model,
-        temperature, top_p, and safety settings, then store it in the data chain for use by downstream processors
+        Initialize and configure a Google Gemini LLM instance with the specified model,
+        temperature, and top_p, then store it in the data chain for use by downstream processors
         such as AI_LLM_GEMINI_QANDA_MCPProcessor. Requires the GOOGLE_API_KEY environment variable to be set.
         Skips setup if an LLM instance already exists for the given llm_data_key.
 
@@ -71,25 +85,18 @@ class AI_LLM_GEMINI_SETUPProcessor(Processor):
 
         google_api_key = os.environ[key_name_gemini]
         model = self.get_param('model')
+        top_p_str = self.get_param('top_p')
+        temperature_str = self.get_param('temperature')
 
         try:
-            top_p_str = self.get_param('top_p')
-            temperature_str = self.get_param('temperature')
-
             top_p = float(top_p_str)
             temperature = float(temperature_str)
 
-            llmgemini = ChatGoogleGenerativeAI(
+            llmgemini = GeminiLLMClient(
+                api_key=google_api_key,
                 model=model,
-                google_api_key=google_api_key,
                 temperature=temperature,
                 top_p=top_p,
-                safety_settings={
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_LOW_AND_ABOVE
-                }
             )
             self.populate_data(llm_data_key, llmgemini)
             logging.info(f"Successfully set up LLM Gemini (model: {model}) and stored in data key '{llm_data_key}'.")

@@ -118,7 +118,7 @@ def find_imported_modules() -> set:
         re.compile(r'^\s*import\s+(\w+)'),
         re.compile(r'^\s*from\s+(\w+)\s+import'),
         re.compile(r'^\s*import\s+([^,\s]+)(?:,\s*([^,\s]+))*'),
-        re.compile(r'^\s*from\s+([^,\s\.]+)(?:\.[^,\s\.]+)*\s+import'),
+        re.compile(r'^\s*from\s+([^,\s.]+)(?:\.[^,\s.]+)*\s+import'),
     ]
 
     modules: set = set()
@@ -212,7 +212,7 @@ def collect_hidden_imports() -> None:
 
     # collect_submodules list
     collect_submodules = []
-    for module in ['numpy', 'pandas', 'selenium', 'PIL', 'requests']:
+    for module in ['selenium', 'PIL', 'requests']:
         try:
             importlib.import_module(module)
             collect_submodules.append(module)

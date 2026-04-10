@@ -31,9 +31,9 @@ curl http://localhost:11434/api/generate -d '{
 
 
 class AI_LLM_OLLAMA_QANDAProcessor(Processor):
-	TPL: str = '{"model":"deepseek-r1:7b", "prompt":"How old are you?", "role":"user","show_in_popup":"yes","resp_content_key":"ollama_resp"}'
+    TPL: str = '{"model":"deepseek-r1:7b", "prompt":"How old are you?", "role":"user","show_in_popup":"yes","resp_content_key":"ollama_resp"}'
 
-	DESC: str = f'''
+    DESC: str = f'''
         Ask Ollama LLM a question via a locally running Ollama instance, retrieve the response, parse it to JSON if needed,
         and optionally display the response in a popup dialog. Requires Ollama to be running locally.
 
@@ -46,38 +46,38 @@ class AI_LLM_OLLAMA_QANDAProcessor(Processor):
         {TPL}
     '''
 
-	def get_category(self) -> str:
-		return super().CATE_AI_LLM
+    def get_category(self) -> str:
+        return super().CATE_AI_LLM
 
-	def process(self):
-		model = self.get_param('model')
-		role = self.get_param('role')
-		prompt = self.expression2str(self.get_param('prompt'))
-		resp_content_key = self.get_data("resp_content_key")
-		show_in_popup = True if 'yes' == self.get_param("show_in_popup") else False
+    def process(self):
+        model = self.get_param('model')
+        role = self.get_param('role')
+        prompt = self.expression2str(self.get_param('prompt'))
+        resp_content_key = self.get_data("resp_content_key")
+        show_in_popup = True if 'yes' == self.get_param("show_in_popup") else False
 
-		try:
-			answer = ollama.chat(model=model, messages=[{
-				'role': role,
-				'content': prompt,
-			}])
+        try:
+            answer = ollama.chat(model=model, messages=[{
+                'role': role,
+                'content': prompt,
+            }])
 
-			message = "Q:\n" + prompt + "\nA:\n" + self._try_process_resp_json(answer)
-			logging.info(f'Q and A:\n {message}')
+            message = "Q:\n" + prompt + "\nA:\n" + self._try_process_resp_json(answer)
+            logging.info(f'Q and A:\n {message}')
 
-			if show_in_popup:
-				if wx is not None:
-					wx.MessageDialog(None, message, "AI_LLM_OLLAMA_QAND").ShowModal()
-				else:
-					logging.info(f"[Notification] AI_LLM_OLLAMA_QAND: {message}")
+            if show_in_popup:
+                if wx is not None:
+                    wx.MessageDialog(None, message, "AI_LLM_OLLAMA_QAND").ShowModal()
+                else:
+                    logging.info(f"[Notification] AI_LLM_OLLAMA_QAND: {message}")
 
-			self.populate_data(resp_content_key, answer)
-		except ollama.ResponseError as e:
-			logging.error(f'Can NOT call ollama, because: {e.error}')
+            self.populate_data(resp_content_key, answer)
+        except ollama.ResponseError as e:
+            logging.error(f'Can NOT call ollama, because: {e.error}')
 
-	def _try_process_resp_json(self, given):
-		try:
-			return json.dumps(given)
-		except Exception as e:
-			logging.error(f'Can NOT convert to json, because: {e}, will return str directly.')
-			return str(given)
+    def _try_process_resp_json(self, given):
+        try:
+            return json.dumps(given)
+        except Exception as e:
+            logging.error(f'Can NOT convert to json, because: {e}, will return str directly.')
+            return str(given)

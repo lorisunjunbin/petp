@@ -5,8 +5,8 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_KEYINProcessor(Processor):
-	TPL: str = '{"keyinby":"id|xpath|css", "identity":"", "value":"", "value_key":"", "clearb4keyin":"yes|no","wait":1}'
-	DESC = f'''
+    TPL: str = '{"keyinby":"id|xpath|css", "identity":"", "value":"", "value_key":"", "clearb4keyin":"yes|no","wait":1}'
+    DESC = f'''
     Call the Chrome driver to locate a web element, then simulate keyboard input via send_keys.
     Supports typing strings or pressing special keys (KEY_ENTER, KEY_TAB, etc.).
 
@@ -22,37 +22,37 @@ class FIND_THEN_KEYINProcessor(Processor):
     {TPL}
     '''
 
-	def get_category(self) -> str:
-		return super().CATE_SELENIUM
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
 
-	def process(self):
+    def process(self):
 
-		keyinby = self.get_param('keyinby')
-		identity = self.get_param('identity')
-		chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
-		ele = SeleniumUtil.get_element_by(chrome, keyinby, identity)
-		super().extra_wait()
+        keyinby = self.get_param('keyinby')
+        identity = self.get_param('identity')
+        chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
+        ele = SeleniumUtil.get_element_by(chrome, keyinby, identity)
+        super().extra_wait()
 
-		# to build chrome default support keys that match to selenium IDE recording.
-		avaliable_keys = {f'KEY_{key}': val for key, val in SeleniumUtil.get_chrome_keys()}
+        # to build chrome default support keys that match to selenium IDE recording.
+        avaliable_keys = {f'KEY_{key}': val for key, val in SeleniumUtil.get_chrome_keys()}
 
-		if not ele is None:
-			v: any
+        if not ele is None:
+            v: any
 
-			if self.has_param('value_key'):
-				v = self.get_deep_data(self.get_param('value_key').split(self.SEPARATOR))
-			elif self.has_param('value'):
-				v = eval("f'" + self.get_param('value') + "'")
+            if self.has_param('value_key'):
+                v = self.get_deep_data(self.get_param('value_key').split(self.SEPARATOR))
+            elif self.has_param('value'):
+                v = eval("f'" + self.get_param('value') + "'")
 
-			if (self.has_param('clearb4keyin')):
-				if "yes" == self.get_param("clearb4keyin"):
-					ele.clear()
+            if (self.has_param('clearb4keyin')):
+                if "yes" == self.get_param("clearb4keyin"):
+                    ele.clear()
 
-			logging.debug(f"send_key: {v}")
+            logging.debug(f"send_key: {v}")
 
-			ele.send_keys(avaliable_keys[v]
-						  if v in avaliable_keys.keys()
-						  else v)
+            ele.send_keys(avaliable_keys[v]
+                          if v in avaliable_keys.keys()
+                          else v)
 
-		else:
-			raise Exception(f'FIND_THEN_KEYINProcessor not able to find ele by: {identity}')
+        else:
+            raise Exception(f'FIND_THEN_KEYINProcessor not able to find ele by: {identity}')
