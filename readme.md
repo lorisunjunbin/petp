@@ -161,22 +161,6 @@ PETP uses a **modular dependency structure** — split by processor category for
 [`uv`](https://docs.astral.sh/uv/) is a fast Python package manager (10-100x faster than pip). Drop-in compatible with existing requirements files — **zero migration needed**.
 
 ```bash
-# Windows (PowerShell): install uv
-pip install -U uv
-
-# Verify installation
-uv --version
-
-# Linux/macOS: install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Verify installation
-uv --version
-
-# If you see: "No virtual environment found"
-uv venv
-# Creating virtual environment at: .venv
-# Activate with: .venv\Scripts\activate
 
 # Option A (recommended): create and use a virtual environment
 uv pip install -r requirements.txt
@@ -184,26 +168,17 @@ uv pip install -r requirements.txt
 # Option B: install into system Python explicitly
 uv pip install --system -r requirements.txt
 
-# All pip commands work as-is with uv
-uv pip install -r requirements.txt
-uv pip install -r requirements-docker.txt
-uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt
-```
-
-### Install with `pip`
-
-```bash
 # Full (GUI desktop)
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 # Background service (no GUI)
-pip install -r requirements-nogui.txt
+uv pip install -r requirements-nogui.txt
 
 # Docker (headless, no browser automation)
-pip install -r requirements-docker.txt
+uv pip install -r requirements-docker.txt
 
 # Custom combination
-pip install -r requirements/core.txt -r requirements/ssh-sftp.txt -r requirements/http-client.txt
+uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt -r requirements/http-client.txt
 ```
 
 #### Lock versions with `uv pip compile`
