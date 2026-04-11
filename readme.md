@@ -1,6 +1,6 @@
 # ![image](./image/petp_small.png) PET-P
 
-**[中文文档](./readme_cn.md)** | English
+**[中文](./readme_cn.md)** | English
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.txt)
 
