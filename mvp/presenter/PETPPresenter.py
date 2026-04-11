@@ -713,13 +713,46 @@ class PETPPresenter():
         if evt.IsChecked():
             current_desc = self.v.execution_desc.GetValue().strip()
             if not current_desc:
-                default_desc = json.dumps({"desc": "", "params": []}, indent=2)
+                default_desc = json.dumps(self._build_mcp_tool_template(name), indent=2, ensure_ascii=False)
                 self.v.execution_desc.SetValue(default_desc)
         # Sync the tool icon prefix in the dropdown immediately
         combo.set_tool_names(
             combo._tool_names | {name} if evt.IsChecked()
             else combo._tool_names - {name}
         )
+
+    @staticmethod
+    def _build_mcp_tool_template(execution_name: str) -> dict:
+        return {
+            "desc": f"<Brief description of what {execution_name} does>",
+            "inputSchema": {
+                "type": "object",
+                "title": f"{execution_name}Arguments",
+                "properties": {
+                    "param1": {
+                        "title": "Param1",
+                        "type": "string",
+                        "description": "<describe param1>"
+                    }
+                },
+                "required": [
+                    "param1"
+                ]
+            },
+            "outputSchema": {
+                "type": "object",
+                "title": f"{execution_name}Output",
+                "properties": {
+                    "result": {
+                        "title": "Result",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "result"
+                ]
+            }
+        }
 
     def _convert(self, to, put2first=False):
         tp = self.v.taskProperty

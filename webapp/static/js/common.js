@@ -4,13 +4,17 @@ function byId(id) {
 
 function load() {
     byId('fileList').innerHTML = '';
-    $.ajax('api/v1/search/files', {
-        dataType: "json",
+    $.ajax('/api/v1/search/files/', {
+        dataType: 'json',
         type: 'GET',
         data: {q: byId('search').value},
         contentType: 'application/json;charset=utf8',
         success: function (resp) {
-            byId('recordcount').innerText = `Found ${resp.length}  file${resp.length > 1 ? 's' : ''}`;
+            byId('recordcount').innerText = `Found ${resp.length} file${resp.length > 1 ? 's' : ''}`;
+            if (!resp.length) {
+                createEmptyState();
+                return;
+            }
             resp.sort().forEach((url, i) => createRowForm(url, 'f_' + i));
         }
     });
@@ -20,9 +24,9 @@ function createRowForm(url, formId) {
     let form = document.createElement('form');
     form.id = formId;
     form.action = '/shared' + (url.startsWith('/') ? url : '/' + url);
-    form.classList = ['form'];
-    form.method = "POST";
-    form.target = "_blank";
+    form.className = 'form';
+    form.method = 'POST';
+    form.target = '_blank';
 
     let a = document.createElement('a');
     a.innerHTML = url;
@@ -32,6 +36,13 @@ function createRowForm(url, formId) {
     byId('fileList').appendChild(form);
 }
 
-byId("search").addEventListener("keyup", load);
+function createEmptyState() {
+    const line = document.createElement('div');
+    line.className = 'form';
+    line.innerHTML = '<a href="javascript:void(0)" aria-disabled="true">No files found.</a>';
+    byId('fileList').appendChild(line);
+}
+
+byId('search').addEventListener('keyup', load);
 byId('search').value = new URLSearchParams(window.location.search).get('q') || '';
 load();

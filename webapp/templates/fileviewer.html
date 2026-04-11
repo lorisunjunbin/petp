@@ -1,26 +1,43 @@
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
     <title>PETP File Viewer</title>
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-siteapp"/>
-    <link href="static/favicon.ico" rel="shortcut icon"/>
-    <link href="static/css/style.css" rel="stylesheet" media="screen"/>
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <link rel="icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/genesis.css" media="screen">
 </head>
-<body id='body'>
+<body>
+<header class="top-nav">
+    <div class="shell nav-inner">
+        <div class="brand">PET<span class="brand-accent">P</span></div>
+        <nav class="nav-links">
+            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/about">About PETP</a>
+            <a class="nav-link active" href="/fileviewer">File Viewer</a>
+        </nav>
+    </div>
+</header>
 
-<div>
-    <input id="search" class="input-field" value="" style="color:#f0ab00;font-weight:bold;font-size: larger"
-           placeholder="search file"/>
-</div>
+<main class="shell page-wrap">
+    <section class="section-head">
+        <p class="overline">Shared Workspace</p>
+        <h1 class="section-title">File Viewer</h1>
+        <p class="hero-text">Search files and open any result directly from the shared PETP workspace.</p>
+    </section>
 
-<span id="recordcount" class="find-records"></span>
-<div id='fileList' class="lastsection"/>
+    <section class="card panel">
+        <div class="search-wrap">
+            <input id="search" class="input-field" value="" placeholder="Search file name..." aria-label="Search file name">
+        </div>
+        <span id="recordcount" class="find-records"></span>
+        <div id="fileList" class="result-list"></div>
+    </section>
+</main>
 
-<script src="static/js/jquery-3.7.1.min.js"></script>
-<script src="static/js/common.js"></script>
+<script src="/static/js/jquery-3.7.1.min.js"></script>
+<script src="/static/js/common.js"></script>
 </body>
 
 </html>

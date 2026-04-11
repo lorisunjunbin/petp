@@ -1,47 +1,151 @@
 <!DOCTYPE html>
-
+<html lang="en">
 <head>
+    <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>PETP - Home</title>
     <link rel="icon" href="/static/favicon.ico">
-    <link href="static/styles.css" rel="stylesheet" type="text/css"/>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="/static/css/genesis.css" type="text/css">
 </head>
-
 <body>
-<div class="flares">
-    <img src="static/images/flare-top.png" loading="lazy" sizes="(max-width: 1920px) 100vw, 1920px"
-         srcset="flare-top-500.png 500w, static/images/flare-top-800.png 800w, static/images/flare-top-1080.png 1080w, static/images/flare-top.png 1920w"
-         alt="" class="flares-top">
-    <img src="static/images/flare-right.png" loading="lazy" sizes="(max-width: 1622px) 100vw, 1622px"
-         srcset="static/images/flare-right-500.png 500w, static/images/flare-right-800.png 800w, static/images/flare-right-1080.png 1080w, static/images/flare-right.png 1622w"
-         alt="" class="new-flare-nav top-right hide-mobile">
-    <img src="static/images/flare-left.png" loading="lazy" sizes="(max-width: 1518px) 100vw, 1518px"
-         srcset="static/images/flare-left-500.png 500w, static/images/flare-left-800.png 800w, static/images/flare-left.png 1518w"
-         alt="" class="new-flare-nav top-left hide-mobile">
-</div>
-
-<div class="container">
-    <div class="hero">
-        <h1>Welcome to PETP</h1>
+<header class="top-nav">
+    <div class="shell nav-inner">
+        <div class="brand">PET<span class="brand-accent">P</span></div>
+        <nav class="nav-links">
+            <a class="nav-link active" href="/">Home</a>
+            <a class="nav-link" href="/about">About PETP</a>
+            <a class="nav-link" href="/fileviewer">File Viewer</a>
+        </nav>
     </div>
-    <div class="logo">
-        <img src="static/images/logo-192x192.png" loading="lazy" alt="">
-    </div>
+</header>
 
-    <div class="hero">
-        <h2><a href="fileviewer"> -> File Viewer(petp/petp)</a></h2>
-    </div>
+<main class="shell hero-wrap">
+    <section class="hero-card home-hero">
+        <div class="hero-copy">
+            <p class="overline">Human-Friendly Automation Experience</p>
+            <h1 class="display-title">A calm, modern workspace for everyday automation.</h1>
+            <p class="hero-text">
+                PETP helps teams turn repetitive operations into repeatable flows. Keep work organized,
+                reduce manual effort, and make daily execution more consistent across people and environments.
+            </p>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="/about">See What PETP Enables</a>
+                <a class="btn btn-secondary" href="/fileviewer">Browse Shared Files</a>
+            </div>
+            <div class="quick-metrics">
+                <div class="metric-item">
+                    <strong>Reusable</strong>
+                    <span>flows for recurring work</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Visual</strong>
+                    <span>runtime view for confidence</span>
+                </div>
+                <div class="metric-item">
+                    <strong>Flexible</strong>
+                    <span>works across operating systems</span>
+                </div>
+            </div>
+        </div>
 
-</div>
-<script type="text/javascript">
-    document.addEventListener('click', function (event) {
-        const x = event.clientX / window.innerWidth;
-        const y = event.clientY / window.innerHeight;
-        confetti({
-            origin: {x, y}
+        <div class="carousel-card" aria-label="PETP product overview">
+            <div class="carousel-track" id="overviewCarousel">
+                <figure class="carousel-slide is-active">
+                    <img src="/petp-image/PETP_overview.png" alt="PETP overview on macOS">
+                    <figcaption>Overview - macOS</figcaption>
+                </figure>
+                <figure class="carousel-slide">
+                    <img src="/petp-image/PETP_overview_windows.png" alt="PETP overview on Windows">
+                    <figcaption>Overview - Windows</figcaption>
+                </figure>
+            </div>
+            <div class="carousel-controls" id="overviewDots" role="tablist" aria-label="Overview slides">
+                <button class="dot is-active" type="button" aria-label="Show macOS overview"></button>
+                <button class="dot" type="button" aria-label="Show Windows overview"></button>
+            </div>
+        </div>
+    </section>
+
+    <section class="feature-grid home-info-grid">
+        <article class="card">
+            <h3>Built for Daily Work</h3>
+            <p>From repetitive office tasks to operation checklists, PETP keeps routines simple and reliable.</p>
+        </article>
+        <article class="card">
+            <h3>Clear Team Handover</h3>
+            <p>Shared flows make onboarding easier and reduce knowledge silos across teams.</p>
+        </article>
+        <article class="card">
+            <h3>Confidence at Scale</h3>
+            <p>Standardized execution patterns help teams run more with fewer surprises.</p>
+        </article>
+        <article class="card">
+            <h3>Agent-Ready Future</h3>
+            <p>PETP aligns with modern AI workflows while staying practical for human operators.</p>
+        </article>
+    </section>
+
+    <section class="card panel value-strip">
+        <h2>Why teams choose PETP</h2>
+        <p>
+            They want one place to organize repetitive work, keep outcomes stable, and improve delivery speed
+            without increasing cognitive load.
+        </p>
+    </section>
+</main>
+
+<script>
+(function () {
+    const slides = Array.from(document.querySelectorAll('.carousel-slide'));
+    const dots = Array.from(document.querySelectorAll('.dot'));
+    if (!slides.length || slides.length !== dots.length) {
+        return;
+    }
+
+    let active = 0;
+    let timer = null;
+
+    function resetState() {
+        slides.forEach((slide) => {
+            slide.classList.remove('is-active', 'is-prev', 'is-next');
+        });
+    }
+
+    function show(next) {
+        active = (next + slides.length) % slides.length;
+        resetState();
+        slides[active].classList.add('is-active');
+
+        if (slides.length === 2) {
+            const sideIdx = (active + 1) % 2;
+            slides[sideIdx].classList.add(active === 0 ? 'is-next' : 'is-prev');
+        } else if (slides.length > 2) {
+            const prevIdx = (active - 1 + slides.length) % slides.length;
+            const nextIdx = (active + 1) % slides.length;
+            slides[prevIdx].classList.add('is-prev');
+            slides[nextIdx].classList.add('is-next');
+        }
+
+        dots.forEach((dot, idx) => dot.classList.toggle('is-active', idx === active));
+    }
+
+    function restartAuto() {
+        if (timer) {
+            clearInterval(timer);
+        }
+        timer = setInterval(() => show(active + 1), 3800);
+    }
+
+    dots.forEach((dot, idx) => {
+        dot.addEventListener('click', () => {
+            show(idx);
+            restartAuto();
         });
     });
-    confetti();
-</script>
 
+    show(0);
+    restartAuto();
+})();
+</script>
 </body>
+</html>
