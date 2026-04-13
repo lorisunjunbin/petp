@@ -26,6 +26,7 @@ Task      1:1 Processor
 - [运行模式](#运行模式)
 - [HTTP 服务与 MCP](#http-服务与-mcp)
 - [打包与 Docker](#打包与-docker)
+- [Web App（Docker & UGOS）](#web-appdocker--ugos)
 - [项目结构](#项目结构)
 - [常见问题](#常见问题)
 - [致谢](#致谢)
@@ -320,6 +321,13 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `GET /petp/result?request_id=<id>` | 查询异步结果 |
 | `POST /mcp` | MCP 工具服务器 |
 
+## Web App（Docker & UGOS）
+
+独立 Web App（`webapp/`）提供了完整的 Docker 打包说明，包含 UGOS（`linux/amd64`）的构建、导出、导入步骤：
+
+- [`webapp/README.md`](./webapp/README.md)
+- UGOS 快速路径：使用 `buildx` 构建 `linux/amd64`，校验架构后导出 tar，并在 NAS 使用 `docker load` 导入。
+
 ---
 
 ## 项目结构
@@ -355,7 +363,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `httpservice/` | HTTP 服务器、MCP 处理器、请求路由 |
 | `mvp/` | GUI 层（Model-View-Presenter） |
 | `utils/` | 工具模块 — Selenium、Excel、Date、OS、Logger、Paramiko |
-| `webapp/` | Flask Web 应用 |
+| `webapp/` | Flask Web 应用（Docker 与 UGOS 使用说明见 [`webapp/README.md`](./webapp/README.md)） |
 | `webdriver/` | 平台 ChromeDriver 二进制文件 |
 | `resources/` | 静态资源 |
 | `download/` | 默认下载目录 |

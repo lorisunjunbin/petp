@@ -26,6 +26,7 @@ Task      1:1 Processor
 - [Running Modes](#running-modes)
 - [HTTP Service & MCP](#http-service--mcp)
 - [Build & Docker](#build--docker)
+- [Web App (Docker & UGOS)](#web-app-docker--ugos)
 - [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
 - [Acknowledgements](#acknowledgements)
@@ -320,6 +321,13 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `GET /petp/result?request_id=<id>` | Check async result |
 | `POST /mcp` | MCP Tool Server |
 
+## Web App (Docker & UGOS)
+
+The standalone Web App (`webapp/`) has its own Docker packaging guide, including UGOS (`linux/amd64`) build/export/import steps:
+
+- [`webapp/README.md`](./webapp/README.md)
+- UGOS quick path: build `linux/amd64` with `buildx`, verify architecture, export tar, then `docker load` on NAS.
+
 ---
 
 ## Project Structure
@@ -355,7 +363,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `httpservice/` | HTTP server, MCP handler, request routing |
 | `mvp/` | GUI layer (Model-View-Presenter) |
 | `utils/` | Utilities — Selenium, Excel, Date, OS, Logger, Paramiko |
-| `webapp/` | Flask web application |
+| `webapp/` | Flask web application (see [`webapp/README.md`](./webapp/README.md) for Docker and UGOS usage) |
 | `webdriver/` | Platform ChromeDriver binaries |
 | `resources/` | Static resources |
 | `download/` | Default download directory |
@@ -452,3 +460,4 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 |------|------------|
 | 2021-10 | [BEAUTIFUL_SOUPProcessor](./core/processors/BEAUTIFUL_SOUPProcessor.py) |
 | 2021-09 | Grid copy & paste |
+
