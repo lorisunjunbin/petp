@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ locale }}">
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>PETP - Home</title>
+    <title>{{ t('title_home') }}</title>
     <link rel="icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/css/genesis.css" type="text/css">
 </head>
@@ -12,38 +12,42 @@
     <div class="shell nav-inner">
         <div class="brand">PET<span class="brand-accent">P</span></div>
         <nav class="nav-links">
-            <a class="nav-link active" href="/">Home</a>
-            <a class="nav-link" href="/about">About PETP</a>
-            <a class="nav-link" href="/fileviewer">File Viewer</a>
+            <a class="nav-link active" href="/">{{ t('nav_home') }}</a>
+            <a class="nav-link" href="/about">{{ t('nav_docs') }}</a>
+            <a class="nav-link" href="/fileviewer">{{ t('nav_fileviewer') }}</a>
+            <div class="lang-switcher">
+                <a href="{{ url_lang_zh }}" class="{{ 'is-active' if locale == 'zh' else '' }}">中</a>
+                <span class="lang-sep"></span>
+                <a href="{{ url_lang_en }}" class="{{ 'is-active' if locale == 'en' else '' }}">EN</a>
+            </div>
+            <a class="nav-link nav-github" href="https://github.com/lorisunjunbin/petp" target="_blank" rel="noopener noreferrer">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                {{ t('nav_github') }}
+            </a>
         </nav>
     </div>
 </header>
 
 <main class="shell hero-wrap">
+
+    <!-- ── Hero ───────────────────────────────────────────── -->
     <section class="hero-card home-hero">
         <div class="hero-copy">
-            <p class="overline">Human-Friendly Automation Experience</p>
-            <h1 class="display-title">A calm, modern workspace for everyday automation.</h1>
-            <p class="hero-text">
-                PETP helps teams turn repetitive operations into repeatable flows. Keep work organized,
-                reduce manual effort, and make daily execution more consistent across people and environments.
-            </p>
+            <p class="overline">{{ t('index_overline') }}</p>
+            <h1 class="display-title" style="font-size:clamp(22px,3vw,34px)">{{ t('index_title') }}</h1>
+            <p class="hero-text">{{ t('index_hero_text') }}</p>
             <div class="cta-row">
-                <a class="btn btn-primary" href="/about">See What PETP Enables</a>
-                <a class="btn btn-secondary" href="/fileviewer">Browse Shared Files</a>
+                <a class="btn btn-primary" href="/about">{{ t('index_cta_primary') }}</a>
+                <a class="btn btn-secondary" href="/fileviewer">{{ t('index_cta_secondary') }}</a>
             </div>
             <div class="quick-metrics">
                 <div class="metric-item">
-                    <strong>Reusable</strong>
-                    <span>flows for recurring work</span>
+                    <strong>{{ t('metric_llm_inside') }}</strong>
+                    <span>{{ t('metric_llm_desc') }}</span>
                 </div>
                 <div class="metric-item">
-                    <strong>Visual</strong>
-                    <span>runtime view for confidence</span>
-                </div>
-                <div class="metric-item">
-                    <strong>Flexible</strong>
-                    <span>works across operating systems</span>
+                    <strong>{{ t('metric_scenario') }}</strong>
+                    <span>{{ t('metric_scenario_desc') }}</span>
                 </div>
             </div>
         </div>
@@ -58,93 +62,200 @@
                     <img src="/petp-image/PETP_overview_windows.png" alt="PETP overview on Windows">
                     <figcaption>Overview - Windows</figcaption>
                 </figure>
-            </div>
-            <div class="carousel-controls" id="overviewDots" role="tablist" aria-label="Overview slides">
-                <button class="dot is-active" type="button" aria-label="Show macOS overview"></button>
-                <button class="dot" type="button" aria-label="Show Windows overview"></button>
+                <div class="carousel-controls" id="overviewDots" role="tablist" aria-label="Overview slides">
+                    <button class="dot is-active" type="button" aria-label="Show macOS overview"></button>
+                    <button class="dot" type="button" aria-label="Show Windows overview"></button>
+                </div>
             </div>
         </div>
     </section>
 
+    <!-- ── Feature cards ──────────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('feat_divider') }}</span></div>
+
     <section class="feature-grid home-info-grid">
         <article class="card">
-            <h3>Built for Daily Work</h3>
-            <p>From repetitive office tasks to operation checklists, PETP keeps routines simple and reliable.</p>
+            <h3>{{ t('feat_orch_title') }}</h3>
+            <p>{{ t('feat_orch_desc') }}</p>
         </article>
         <article class="card">
-            <h3>Clear Team Handover</h3>
-            <p>Shared flows make onboarding easier and reduce knowledge silos across teams.</p>
+            <h3>{{ t('feat_llm_title') }}</h3>
+            <p>{{ t('feat_llm_desc') }}</p>
         </article>
         <article class="card">
-            <h3>Confidence at Scale</h3>
-            <p>Standardized execution patterns help teams run more with fewer surprises.</p>
+            <h3>{{ t('feat_toolset_title') }}</h3>
+            <p>{{ t('feat_toolset_desc') }}</p>
         </article>
         <article class="card">
-            <h3>Agent-Ready Future</h3>
-            <p>PETP aligns with modern AI workflows while staying practical for human operators.</p>
+            <h3>{{ t('feat_pe_title') }}</h3>
+            <p>{{ t('feat_pe_desc') }}</p>
         </article>
     </section>
 
-    <section class="card panel value-strip">
-        <h2>Why teams choose PETP</h2>
-        <p>
-            They want one place to organize repetitive work, keep outcomes stable, and improve delivery speed
-            without increasing cognitive load.
-        </p>
+    <!-- ── Stats ──────────────────────────────────────────── -->
+    <div class="stat-bar">
+        <div class="stat-item">
+            <div class="stat-num">10+</div>
+            <div class="stat-label">{{ t('stat_processors') }}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">GUI</div>
+            <div class="stat-label">{{ t('stat_config') }}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">MCP</div>
+            <div class="stat-label">{{ t('stat_mcp') }}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">∞</div>
+            <div class="stat-label">{{ t('stat_toolsets') }}</div>
+        </div>
+    </div>
+
+    <!-- ── Scenario showcase ──────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('scenario_divider') }}</span></div>
+
+    <section class="scenario-grid">
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon icon-indigo">📦</div>
+                <div class="scenario-name">{{ t('scenario_proc_name') }}</div>
+            </div>
+            <p>{{ t('scenario_proc_desc') }}</p>
+            <div class="scenario-tags">
+                <span class="tag tag-indigo">Selenium</span>
+                <span class="tag tag-green">LLM classify</span>
+                <span class="tag tag-slate">Email</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon icon-amber">📊</div>
+                <div class="scenario-name">{{ t('scenario_fin_name') }}</div>
+            </div>
+            <p>{{ t('scenario_fin_desc') }}</p>
+            <div class="scenario-tags">
+                <span class="tag tag-amber">SSH/SFTP</span>
+                <span class="tag tag-green">Spreadsheet</span>
+                <span class="tag tag-indigo">LLM summarise</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon icon-green">🚀</div>
+                <div class="scenario-name">{{ t('scenario_devops_name') }}</div>
+            </div>
+            <p>{{ t('scenario_devops_desc') }}</p>
+            <div class="scenario-tags">
+                <span class="tag tag-slate">HTTP API</span>
+                <span class="tag tag-green">SSH exec</span>
+                <span class="tag tag-indigo">MCP tools</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon icon-rose">🧑‍💼</div>
+                <div class="scenario-name">{{ t('scenario_pa_name') }}</div>
+            </div>
+            <p>{{ t('scenario_pa_desc') }}</p>
+            <div class="scenario-tags">
+                <span class="tag tag-rose">Local files</span>
+                <span class="tag tag-amber">Web scrape</span>
+                <span class="tag tag-indigo">LLM brief</span>
+            </div>
+        </div>
     </section>
+
+    <!-- ── MCP Tool Server highlight ─────────────────────── -->
+    <div class="section-divider"><span>MCP Tool Server</span></div>
+
+    <div class="highlight-banner">
+        <div>
+            <h3>{{ t('mcp_banner_title') }}</h3>
+            <p>{{ t('mcp_banner_text') | safe }}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <div class="metric-item" style="margin:0 0 8px;min-width:160px">
+                <strong>{{ t('mcp_server_label') }}</strong>
+                <span>{{ t('mcp_server_desc') }}</span>
+            </div>
+            <span class="tag tag-indigo">stdio transport</span>
+            <span class="tag tag-green" style="margin-top:4px;display:inline-flex">HTTP Streaming</span>
+        </div>
+    </div>
+
+    <!-- ── Architecture flow ──────────────────────────────── -->
+    <div class="arch-wrap">
+        <h3 class="arch-title">{{ t('arch_title') }}</h3>
+        <div class="arch-flow">
+            <div class="arch-node">
+                <div class="node-icon">🤖</div>
+                <div class="node-label">{{ t('arch_mcp_client') }}</div>
+                <div class="node-desc">{{ t('arch_mcp_client_desc') | safe }}</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node">
+                <div class="node-icon">🔌</div>
+                <div class="node-label">{{ t('arch_mcp_server') }}</div>
+                <div class="node-desc">tools/list · tools/call<br><span style="color:#6366f1;font-size:10px;font-weight:600">stdio</span> <span style="color:#6b6b6b;font-size:10px">·</span> <span style="color:#20970b;font-size:10px;font-weight:600">HTTP Streaming</span></div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node">
+                <div class="node-icon">⚙️</div>
+                <div class="node-label">{{ t('arch_petp_runtime') }}</div>
+                <div class="node-desc">{{ t('arch_petp_desc') }}</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node">
+                <div class="node-icon">🧩</div>
+                <div class="node-label">{{ t('arch_processors') }}</div>
+                <div class="node-desc">{{ t('arch_processors_desc') }}</div>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-node">
+                <div class="node-icon">📤</div>
+                <div class="node-label">{{ t('arch_result') }}</div>
+                <div class="node-desc">{{ t('arch_result_desc') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Bottom CTA ─────────────────────────────────────── -->
+    <section class="card panel value-strip" style="margin-top:24px">
+        <h2>{{ t('cta_home_title') }}</h2>
+        <p>{{ t('cta_home_text') }}</p>
+        <div class="cta-row" style="margin-top:16px">
+            <a class="btn btn-primary" href="/about">{{ t('cta_learn_more') }}</a>
+        </div>
+    </section>
+
 </main>
 
 <script>
 (function () {
     const slides = Array.from(document.querySelectorAll('.carousel-slide'));
     const dots = Array.from(document.querySelectorAll('.dot'));
-    if (!slides.length || slides.length !== dots.length) {
-        return;
-    }
-
-    let active = 0;
-    let timer = null;
-
-    function resetState() {
-        slides.forEach((slide) => {
-            slide.classList.remove('is-active', 'is-prev', 'is-next');
-        });
-    }
-
+    if (!slides.length || slides.length !== dots.length) return;
+    let active = 0, timer = null;
+    function resetState() { slides.forEach(s => s.classList.remove('is-active','is-prev','is-next')); }
     function show(next) {
         active = (next + slides.length) % slides.length;
         resetState();
         slides[active].classList.add('is-active');
-
         if (slides.length === 2) {
-            const sideIdx = (active + 1) % 2;
-            slides[sideIdx].classList.add(active === 0 ? 'is-next' : 'is-prev');
+            slides[(active + 1) % 2].classList.add(active === 0 ? 'is-next' : 'is-prev');
         } else if (slides.length > 2) {
-            const prevIdx = (active - 1 + slides.length) % slides.length;
-            const nextIdx = (active + 1) % slides.length;
-            slides[prevIdx].classList.add('is-prev');
-            slides[nextIdx].classList.add('is-next');
+            slides[(active - 1 + slides.length) % slides.length].classList.add('is-prev');
+            slides[(active + 1) % slides.length].classList.add('is-next');
         }
-
-        dots.forEach((dot, idx) => dot.classList.toggle('is-active', idx === active));
+        dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
     }
-
-    function restartAuto() {
-        if (timer) {
-            clearInterval(timer);
-        }
-        timer = setInterval(() => show(active + 1), 3800);
-    }
-
-    dots.forEach((dot, idx) => {
-        dot.addEventListener('click', () => {
-            show(idx);
-            restartAuto();
-        });
-    });
-
-    show(0);
-    restartAuto();
+    function restartAuto() { if (timer) clearInterval(timer); timer = setInterval(() => show(active + 1), 3800); }
+    dots.forEach((d, i) => d.addEventListener('click', () => { show(i); restartAuto(); }));
+    show(0); restartAuto();
 })();
 </script>
 </body>

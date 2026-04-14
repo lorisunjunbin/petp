@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>{{ t('title_login') }}</title>
+    <link rel="icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/genesis.css" type="text/css">
+    <style>
+        /* ── login page nav: brand fixed, links scrollable ── */
+        .login-nav {
+            display: flex;
+            align-items: center;
+            height: 56px;
+            padding: 0 24px;
+            position: relative;
+            overflow: hidden;           /* clip the fade mask */
+        }
+        .login-nav .brand {
+            flex-shrink: 0;
+            margin-right: 8px;
+            z-index: 2;
+        }
+        .login-nav-scroll {
+            flex: 1;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .login-nav-scroll::-webkit-scrollbar { display: none; }
+        .login-nav-scroll .nav-links {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+            width: max-content;
+        }
+        .login-nav-scroll .nav-link {
+            white-space: nowrap;
+        }
+        /* right fade mask */
+        .login-nav::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 56px;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to right,
+                transparent,
+                rgba(250,250,250,0.96) 70%);
+        }
+        .login-wrap {
+            min-height: calc(100vh - 56px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 16px;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 36px 32px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.07);
+        }
+        .login-logo {
+            font-family: 'General Sans', Arial, sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 6px;
+        }
+        .login-logo span { color: var(--secondary); }
+        .login-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 28px;
+        }
+        .form-field {
+            margin-bottom: 14px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .login-card .input-field {
+            width: 100%;
+        }
+        .btn-login {
+            width: 100%;
+            height: 40px;
+            margin-top: 20px;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'DM Sans', Arial, sans-serif;
+            cursor: pointer;
+            transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        }
+        .btn-login:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+            transform: translateY(-1px);
+        }
+        .btn-login:active { transform: translateY(0); }
+        .error-msg {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #b91c1c;
+            margin-bottom: 18px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--primary); }
+    </style>
+</head>
+<body>
+<header class="top-nav login-nav">
+    <div class="brand">PET<span class="brand-accent">P</span></div>
+    <div class="login-nav-scroll">
+        <nav class="nav-links">
+            <a class="nav-link" href="/">{{ t('nav_home') }}</a>
+            <a class="nav-link" href="/about">{{ t('nav_docs') }}</a>
+            <a class="nav-link active" href="/fileviewer">{{ t('nav_fileviewer') }}</a>
+            <div class="lang-switcher">
+                <a href="{{ url_lang_zh }}" class="{{ 'is-active' if locale == 'zh' else '' }}">中</a>
+                <span class="lang-sep"></span>
+                <a href="{{ url_lang_en }}" class="{{ 'is-active' if locale == 'en' else '' }}">EN</a>
+            </div>
+            <a class="nav-link nav-github" href="https://github.com/lorisunjunbin/petp" target="_blank" rel="noopener noreferrer">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                {{ t('nav_github') }}
+            </a>
+        </nav>
+    </div>
+</header>
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-logo">PET<span>P</span></div>
+        <p class="login-subtitle">{{ t('login_subtitle') }}</p>
+
+        {% if error %}
+        <div class="error-msg">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="7" stroke="#ef4444" stroke-width="1.2"/><path d="M7.5 4v4" stroke="#ef4444" stroke-width="1.4" stroke-linecap="round"/><circle cx="7.5" cy="10.5" r="0.7" fill="#ef4444"/></svg>
+            {{ t('login_error') }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <div class="form-field">
+                <label class="form-label" for="username">{{ t('login_username') }}</label>
+                <input class="input-field" type="text" id="username" name="username"
+                       placeholder="{{ t('login_username_ph') }}" autocomplete="username" autofocus required>
+            </div>
+            <div class="form-field">
+                <label class="form-label" for="password">{{ t('login_password') }}</label>
+                <input class="input-field" type="password" id="password" name="password"
+                       placeholder="{{ t('login_password_ph') }}" autocomplete="current-password" required>
+            </div>
+            <button class="btn-login" type="submit">{{ t('login_submit') }}</button>
+        </form>
+
+        <a class="back-link" href="/">{{ t('login_back') }}</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,65 +1,627 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ locale }}">
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>About PETP</title>
+    <title>{{ t('title_about') }}</title>
     <link rel="icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/css/genesis.css" type="text/css">
+    <style>
+        /* ── Page-local styles ─────────────────────────────── */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 8px 12px;
+            background: #f4f4f8;
+            border-bottom: 2px solid var(--border);
+            font-family: 'General Sans', Arial, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .data-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .data-table td:first-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: #fafafe;
+        }
+
+        .table-wrap {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .table-section-title {
+            padding: 14px 16px 4px;
+            font-family: 'General Sans', Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .endpoint-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        .method-get {
+            background: rgba(16, 185, 129, 0.12);
+            color: #059669;
+        }
+
+        .method-post {
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--primary);
+        }
+
+        .mode-grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .mode-card {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            background: var(--surface);
+        }
+
+        .mode-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .mode-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .mode-card h4 {
+            margin: 0;
+            font-family: 'General Sans', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .mode-card p {
+            margin: 0 0 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+        }
+
+        .mode-card code {
+            display: block;
+            margin-top: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.07);
+            border-radius: 5px;
+            padding: 4px 8px;
+        }
+
+        .changelog-year {
+            margin: 24px 0 10px;
+            font-family: 'General Sans', Arial, sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .dep-grid {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .dep-chip {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            background: var(--surface);
+            font-size: 13px;
+        }
+
+        .dep-chip-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--primary);
+            margin-bottom: 3px;
+        }
+
+        .dep-chip-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
 <header class="top-nav">
     <div class="shell nav-inner">
         <div class="brand">PET<span class="brand-accent">P</span></div>
         <nav class="nav-links">
-            <a class="nav-link" href="/">Home</a>
-            <a class="nav-link active" href="/about">About PETP</a>
-            <a class="nav-link" href="/fileviewer">File Viewer</a>
+            <a class="nav-link" href="/">{{ t('nav_home') }}</a>
+            <a class="nav-link active" href="/about">{{ t('nav_docs') }}</a>
+            <a class="nav-link" href="/fileviewer">{{ t('nav_fileviewer') }}</a>
+            <div class="lang-switcher">
+                <a href="{{ url_lang_zh }}" class="{{ 'is-active' if locale == 'zh' else '' }}">中</a>
+                <span class="lang-sep"></span>
+                <a href="{{ url_lang_en }}" class="{{ 'is-active' if locale == 'en' else '' }}">EN</a>
+            </div>
+            <a class="nav-link nav-github" href="https://github.com/lorisunjunbin/petp" target="_blank" rel="noopener noreferrer">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                {{ t('nav_github') }}
+            </a>
         </nav>
     </div>
 </header>
 
 <main class="shell page-wrap">
+
+    <!-- ── Header ─────────────────────────────────────────── -->
     <section class="section-head">
-        <p class="overline">Project Introduction</p>
-        <h1 class="section-title">PETP - Pipeline Execution Task Processor</h1>
-        <p class="hero-text">
-            PETP is an automation framework for engineering workflows. It unifies task orchestration,
-            execution lifecycle, and MCP tool exposure in one extensible runtime.
-        </p>
+        <p class="overline">{{ t('about_overline') }}</p>
+        <h1 class="section-title">{{ t('about_title') }}</h1>
+        <p class="hero-text">{{ t('about_hero_text') | safe }}</p>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+            <span class="tag tag-slate">Pipeline 1:n Execution</span>
+            <span class="tag tag-slate">Execution 1:n Task</span>
+            <span class="tag tag-slate">Task 1:1 Processor</span>
+        </div>
     </section>
 
-    <section class="feature-grid">
-        <article class="card">
-            <h3>Core Model</h3>
-            <p>Pipeline (1:n) Execution, Execution (1:n) Task, Task (1:1) Processor.</p>
-        </article>
-        <article class="card">
-            <h3>Automation Coverage</h3>
-            <p>Selenium, SSH/SFTP, database CRUD, files, spreadsheet, HTTP, AI/LLM and MCP.</p>
-        </article>
-        <article class="card">
-            <h3>Runtime Modes</h3>
-            <p>Desktop GUI, background no-GUI runtime, and Docker deployment for CI/CD.</p>
-        </article>
-    </section>
+    <!-- ── Running modes ──────────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('about_running_modes') }}</span></div>
 
-    <section class="card panel timeline">
-        <h2>Why PETP</h2>
-        <div class="timeline-item">
-            <h4>Configuration First</h4>
-            <p>Use YAML-defined executions and pipelines to make automation reproducible and auditable.</p>
+    <div class="mode-grid">
+        <div class="mode-card">
+            <div class="mode-card-header">
+                <div class="mode-badge icon-indigo">🖥️</div>
+                <h4>{{ t('mode_desktop_title') }}</h4>
+            </div>
+            <p>{{ t('mode_desktop_desc') }}</p>
+            <code>python PETP.py</code>
         </div>
-        <div class="timeline-item">
-            <h4>Agent Friendly</h4>
-            <p>Expose executions as MCP tools so LLM clients can discover and invoke business workflows.</p>
+        <div class="mode-card">
+            <div class="mode-card-header">
+                <div class="mode-badge icon-green">⚙️</div>
+                <h4>{{ t('mode_bg_title') }}</h4>
+            </div>
+            <p>{{ t('mode_bg_desc') }}</p>
+            <code>python PETP_backgroud.py</code>
         </div>
-        <div class="timeline-item">
-            <h4>Production Practical</h4>
-            <p>Keep one core engine while switching between local desktop operation and server-side execution.</p>
+        <div class="mode-card">
+            <div class="mode-card-header">
+                <div class="mode-badge icon-amber">🐳</div>
+                <h4>{{ t('mode_docker_title') }}</h4>
+            </div>
+            <p>{{ t('mode_docker_desc') }}</p>
+            <code>docker run -p 8866:8866 petp</code>
         </div>
-    </section>
+        <div class="mode-card">
+            <div class="mode-card-header">
+                <div class="mode-badge icon-rose">🔌</div>
+                <h4>{{ t('mode_mcp_title') }}</h4>
+            </div>
+            <p>{{ t('mode_mcp_desc') | safe }}</p>
+            <code>GET /mcp · port 8866</code>
+        </div>
+    </div>
+
+    <!-- ── Processor capabilities ─────────────────────────── -->
+    <div class="section-divider"><span>{{ t('about_processor_lib') }}</span></div>
+
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>{{ t('th_category') }}</th>
+                <th>{{ t('th_capability') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Browser Automation<br><span style="color:var(--text-secondary);font-size:11px">Selenium</span></td>
+                <td>Navigate, go back, fullscreen, close Chrome. Find element(s) then click / key-in / collect. Batch
+                    find with skip. iFrame, cookies, screenshot. Convert Selenium IDE recordings to PETP tasks.
+                </td>
+            </tr>
+            <tr>
+                <td>SSH / SFTP<br><span style="color:var(--text-secondary);font-size:11px">Paramiko</span></td>
+                <td>Create SSH / SFTP sessions. Run remote commands. Upload / download files.</td>
+            </tr>
+            <tr>
+                <td>File &amp; Folder</td>
+                <td>Open, write, delete, read text. Find files / latest file. Watch &amp; auto-move. ZIP / UNZIP.
+                    File-chooser dialog.
+                </td>
+            </tr>
+            <tr>
+                <td>Data &amp; Spreadsheet</td>
+                <td>Read CSV / Excel. Write to Excel. CSV to XLSX. Collect, filter, group-by, mapping, masking,
+                    conversion. Merge collections.
+                </td>
+            </tr>
+            <tr>
+                <td>Database CRUD</td>
+                <td>MySQL, PostgreSQL, SAP HANA, SQLite — unified <code
+                        style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">DB_ACCESS</code>
+                    processor.
+                </td>
+            </tr>
+            <tr>
+                <td>AI / LLM</td>
+                <td>DeepSeek, Google Gemini, Ollama (local), Zhipu Z.AI — each with Setup + Q&amp;A + MCP-tool calling
+                    processors.
+                </td>
+            </tr>
+            <tr>
+                <td>MCP</td>
+                <td>Expose PETP as standard MCP Tool Server (Streamable-HTTP). MCP client processors for all LLM
+                    providers.
+                </td>
+            </tr>
+            <tr>
+                <td>HTTP / Network</td>
+                <td>Configurable HTTP requests. Extract response keys. Built-in HTTP service (port 8866). OAuth2 /
+                    PKCE.
+                </td>
+            </tr>
+            <tr>
+                <td>String Utilities</td>
+                <td>Encode / decode (Base64, URL…). Hash (MD5, SHA256…).</td>
+            </tr>
+            <tr>
+                <td>Mouse &amp; GUI<br><span style="color:var(--text-secondary);font-size:11px">PyAutoGUI</span></td>
+                <td>Click, scroll, query position at absolute or relative coordinates.</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>Send email via SMTP with attachments.</td>
+            </tr>
+            <tr>
+                <td>Data Visualization</td>
+                <td>Charts and plots via Matplotlib.</td>
+            </tr>
+            <tr>
+                <td>Execution Control</td>
+                <td>Init / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON.
+                    Run shell commands. Run JavaScript.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <!-- ── HTTP Service & MCP endpoints ───────────────────── -->
+    <div class="section-divider"><span>{{ t('about_http_mcp') }}</span></div>
+
+    <div class="table-wrap">
+        <div class="table-section-title">{{ t('about_http_server_label') }}</div>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>{{ t('th_method') }}</th>
+                <th>{{ t('th_endpoint') }}</th>
+                <th>{{ t('th_description') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><span class="endpoint-badge method-get">GET</span></td>
+                <td>/</td>
+                <td>PETP HTTP service home</td>
+            </tr>
+            <tr>
+                <td><span class="endpoint-badge method-get">GET</span></td>
+                <td>/mcp</td>
+                <td>MCP Tool Server — Streamable-HTTP transport</td>
+            </tr>
+            <tr>
+                <td><span class="endpoint-badge method-get">GET</span></td>
+                <td>/health</td>
+                <td>Health check (Docker / container)</td>
+            </tr>
+            <tr>
+                <td><span class="endpoint-badge method-get">GET</span></td>
+                <td>/petp/tools</td>
+                <td>List all exposed MCP tools</td>
+            </tr>
+            <tr>
+                <td><span class="endpoint-badge method-post">POST</span></td>
+                <td>/petp/exec</td>
+                <td>Trigger execution or pipeline (async)</td>
+            </tr>
+            <tr>
+                <td><span class="endpoint-badge method-get">GET</span></td>
+                <td>/petp/result</td>
+                <td>Poll async result by <code style="font-size:12px">?request_id=&lt;id&gt;</code></td>
+            </tr>
+            <tr>
+                <td><span class="endpoint-badge method-post">POST</span></td>
+                <td>/mcp</td>
+                <td>MCP Tool Server — direct POST endpoint</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="split-panel" style="margin-top:16px">
+        <div class="split-panel-text">
+            <h3>{{ t('mcp_inspector_title') }}</h3>
+            <p>{{ t('mcp_inspector_desc') }}</p>
+            <ul class="cap-list">
+                <li>{{ t('mcp_cap_transport') | safe }}</li>
+                <li>{{ t('mcp_cap_url') | safe }}</li>
+                <li>{{ t('mcp_cap_noauth') }}</li>
+                <li>{{ t('mcp_cap_clients') }}</li>
+            </ul>
+        </div>
+        <div class="split-panel-code">
+            <pre class="code-block" style="margin:0;padding:0;background:transparent;border:none"><span class="cm"># Claude Code — add PETP as MCP server</span>
+<span class="cm"># .claude/settings.json or mcpServers config</span>
+
+<span class="st">"mcpServers"</span>: {
+  <span class="st">"petp"</span>: {
+    <span class="st">"type"</span>: <span class="st">"http"</span>,
+    <span class="st">"url"</span>: <span class="st">"http://localhost:8866/mcp"</span>
+  }
+}
+
+<span class="cm"># Or trigger via HTTP POST (no MCP client needed)</span>
+<span class="kw">POST</span> http://localhost:<span class="nu">8866</span>/petp/exec
+
+{
+  <span class="st">"wait_for_result"</span>: <span class="st">"true"</span>,
+  <span class="st">"action"</span>: <span class="st">"execution"</span>,
+  <span class="st">"params"</span>: {
+    <span class="st">"execution"</span>: <span class="st">"YOUR_EXECUTION_NAME"</span>,
+    <span class="st">"fromHTTPService"</span>: <span class="st">"true"</span>
+  }
+}</pre>
+        </div>
+    </div>
+
+    <!-- ── Dependency groups ───────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('about_dep_groups') }}</span></div>
+
+    <p class="hero-text" style="margin-top:0">
+        Modular <code style="font-size:13px;background:#f3f4f6;padding:1px 6px;border-radius:4px">requirements/</code>
+        structure — install only what you need. Uses <strong>uv</strong> (10-100× faster than pip) or standard pip.
+    </p>
+
+    <div class="dep-grid">
+        <div class="dep-chip">
+            <div class="dep-chip-name">core.txt</div>
+            <div class="dep-chip-desc">pyyaml, croniter, cryptocode</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">web-automation.txt</div>
+            <div class="dep-chip-desc">selenium, urllib3, Pillow</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">http-client.txt</div>
+            <div class="dep-chip-desc">requests, httpx, httpx-sse</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">ssh-sftp.txt</div>
+            <div class="dep-chip-desc">paramiko</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">excel-data.txt</div>
+            <div class="dep-chip-desc">openpyxl, pandas</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">database.txt</div>
+            <div class="dep-chip-desc">psycopg, mysql-connector, hdbcli</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">ai-deepseek.txt</div>
+            <div class="dep-chip-desc">openai (DeepSeek compat.)</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">ai-gemini.txt</div>
+            <div class="dep-chip-desc">google-genai</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">ai-ollama.txt</div>
+            <div class="dep-chip-desc">ollama (local LLM)</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">ai-zhipu.txt</div>
+            <div class="dep-chip-desc">zai (Zhipu Z.AI)</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">mcp.txt</div>
+            <div class="dep-chip-desc">mcp protocol</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">http-service.txt</div>
+            <div class="dep-chip-desc">fastapi, uvicorn</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">javascript.txt</div>
+            <div class="dep-chip-desc">pythonmonkey</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">gui-wxpython.txt</div>
+            <div class="dep-chip-desc">wxpython 4.3.x</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">gui-automation.txt</div>
+            <div class="dep-chip-desc">pyautogui, pyperclip</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">chart.txt</div>
+            <div class="dep-chip-desc">matplotlib</div>
+        </div>
+    </div>
+
+    <div class="split-panel" style="margin-top:16px">
+        <div class="split-panel-text">
+            <h3>{{ t('install_options_title') }}</h3>
+            <ul class="cap-list">
+                <li>Full (GUI desktop): <code
+                        style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">requirements.txt</code>
+                </li>
+                <li>Background service: <code
+                        style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">requirements-nogui.txt</code>
+                </li>
+                <li>Docker / headless: <code
+                        style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">requirements-docker.txt</code>
+                </li>
+                <li>Custom: combine any group files with <code
+                        style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">-r</code></li>
+            </ul>
+        </div>
+        <div class="split-panel-code">
+            <pre class="code-block" style="margin:0;padding:0;background:transparent;border:none"><span class="cm"># Recommended: uv (fast)</span>
+<span class="kw">pip</span> install -U uv
+<span class="kw">uv</span> pip install -r requirements.txt
+
+<span class="cm"># Custom combination</span>
+<span class="kw">uv</span> pip install \
+  -r requirements/core.txt \
+  -r requirements/mcp.txt \
+  -r requirements/http-service.txt
+
+<span class="cm"># Pin versions for reproducible builds</span>
+<span class="kw">uv</span> pip compile requirements.txt \
+  -o requirements.lock</pre>
+        </div>
+    </div>
+
+    <!-- ── Project structure ──────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('about_project_struct') }}</span></div>
+
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>{{ t('th_dir') }}</th>
+                <th>{{ t('th_description') }}</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>PETP.py</td>
+                <td>GUI desktop entry point</td>
+            </tr>
+            <tr>
+                <td>PETP_backgroud.py</td>
+                <td>Headless / background entry point</td>
+            </tr>
+            <tr>
+                <td>config/petpconfig.yaml</td>
+                <td>Main runtime configuration</td>
+            </tr>
+            <tr>
+                <td>core/executions/</td>
+                <td>YAML execution definitions</td>
+            </tr>
+            <tr>
+                <td>core/processors/</td>
+                <td>Processor implementations — one .py per task type</td>
+            </tr>
+            <tr>
+                <td>core/pipelines/</td>
+                <td>YAML pipeline definitions</td>
+            </tr>
+            <tr>
+                <td>core/runtime/</td>
+                <td>Background / no-GUI runtime logic</td>
+            </tr>
+            <tr>
+                <td>core/definition/</td>
+                <td>YAML reader, Selenium IDE converter</td>
+            </tr>
+            <tr>
+                <td>httpservice/</td>
+                <td>HTTP server, MCP handler, request routing</td>
+            </tr>
+            <tr>
+                <td>mvp/</td>
+                <td>GUI layer (Model-View-Presenter with wxPython)</td>
+            </tr>
+            <tr>
+                <td>utils/</td>
+                <td>Utilities — Selenium, Excel, Date, OS, Logger, Paramiko</td>
+            </tr>
+            <tr>
+                <td>webapp/</td>
+                <td>Flask web application (this site)</td>
+            </tr>
+            <tr>
+                <td>webdriver/</td>
+                <td>Platform ChromeDriver binaries</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Bottom CTA ─────────────────────────────────────── -->
+    <div class="highlight-banner" style="margin-top:24px">
+        <div>
+            <h3>{{ t('about_cta_title') }}</h3>
+            <p>{{ t('about_cta_text') | safe }}</p>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+            <a class="btn btn-primary" href="https://github.com/lorisunjunbin/petp" target="_blank" rel="noopener noreferrer" style="gap:6px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
+                {{ t('view_on_github') }}
+            </a>
+            <a class="btn btn-secondary" href="/">{{ t('back_to_home') }}</a>
+        </div>
+    </div>
+
 </main>
 </body>
 </html>
-

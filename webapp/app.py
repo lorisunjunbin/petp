@@ -1,16 +1,32 @@
 import os
+import secrets
 from pathlib import Path
-from flask import Flask, send_from_directory, render_template, request, jsonify, abort
+from flask import Flask, send_from_directory, render_template, request, jsonify, abort, session, redirect, url_for
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import check_password_hash
 from config import users, port, shared_folder
+from translations import get_locale, make_translator
 from utils import Utils
 
 app = Flask(__name__)
+app.secret_key = os.getenv("WEBAPP_SECRET_KEY", secrets.token_hex(32))
 auth = HTTPBasicAuth()
 WEBAPP_DIR = Path(__file__).resolve().parent
 LOCAL_IMAGE_DIR = WEBAPP_DIR / 'static' / 'images'
 PROJECT_IMAGE_DIR = (WEBAPP_DIR / '..' / 'image').resolve()
+
+
+@app.context_processor
+def inject_i18n():
+    locale = get_locale()
+    # Build lang-switch URLs that preserve the current path but swap ?lang=
+    base = request.path
+    return {
+        "t": make_translator(locale),
+        "locale": locale,
+        "url_lang_en": f"{base}?lang=en",
+        "url_lang_zh": f"{base}?lang=zh",
+    }
 
 
 # static folder for static files.
@@ -34,12 +50,23 @@ def serve_petp_image(path):
     abort(404)
 
 
-# Basic Auth for the app login.
+# Basic Auth for API routes (programmatic access).
 @auth.verify_password
 def verify_password(username, password):
     if username in users and \
             check_password_hash(users.get(username), password):
         return username
+
+
+def _session_login_required(f):
+    """Decorator: redirect to /login if the user has no active session."""
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated
 
 
 # page - home
@@ -54,21 +81,40 @@ def about():
     return render_template('about.html')
 
 
-# page - file viewer
+# page - login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if session.get('logged_in'):
+        return redirect(url_for('file_viewer'))
+    error = None
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '')
+        if username in users and check_password_hash(users[username], password):
+            session['logged_in'] = True
+            session['username'] = username
+            return redirect(url_for('file_viewer'))
+        error = 'Invalid username or password.'
+    return render_template('login.html', error=error)
+
+
+# page - logout
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
+
+
+# page - file viewer (session-protected)
 @app.route('/fileviewer')
-@auth.login_required
+@_session_login_required
 def file_viewer():
     return render_template('fileviewer.html')
 
 
-# @app.route('/<path:path>')
-# @auth.login_required
-# def all_routes(path):
-#     return redirect('/')
-
-# shared folder for file download.
+# shared folder for file download (session-protected).
 @app.route('/' + shared_folder + '/<path:path>', methods=['POST'])
-@auth.login_required
+@_session_login_required
 def serve_shared(path):
     return send_from_directory(shared_folder, path)
 

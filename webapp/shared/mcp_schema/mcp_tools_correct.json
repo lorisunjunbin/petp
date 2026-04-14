@@ -1,0 +1,214 @@
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "result": {
+    "tools": [
+      {
+        "name": "given_map_rt_map",
+        "description": "A tool that simulates processing a map and sends progress notifications",
+        "inputSchema": {
+          "properties": {
+            "params": {
+              "additionalProperties": true,
+              "title": "Params",
+              "type": "object"
+            }
+          },
+          "required": [
+            "params"
+          ],
+          "title": "given_map_rt_mapArguments",
+          "type": "object"
+        }
+      },
+      {
+        "name": "search_whether",
+        "description": "A tool that simulates searching the weather for given coordinates and city, and sends progress notifications",
+        "inputSchema": {
+          "properties": {
+            "x": {
+              "title": "X",
+              "type": "integer"
+            },
+            "y": {
+              "title": "Y",
+              "type": "integer"
+            },
+            "city": {
+              "title": "City",
+              "type": "string"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "city"
+          ],
+          "title": "search_whetherArguments",
+          "type": "object"
+        }
+      },
+      {
+        "name": "process_files",
+        "description": "A tool that simulates file processing and sends progress notifications",
+        "inputSchema": {
+          "properties": {
+            "message": {
+              "title": "Message",
+              "type": "string"
+            }
+          },
+          "required": [
+            "message"
+          ],
+          "title": "process_filesArguments",
+          "type": "object"
+        },
+        "outputSchema": {
+          "$defs": {
+            "Annotations": {
+              "additionalProperties": true,
+              "properties": {
+                "audience": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "enum": [
+                          "user",
+                          "assistant"
+                        ],
+                        "type": "string"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "title": "Audience"
+                },
+                "priority": {
+                  "anyOf": [
+                    {
+                      "maximum": 1.0,
+                      "minimum": 0.0,
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null,
+                  "title": "Priority"
+                }
+              },
+              "title": "Annotations",
+              "type": "object"
+            }
+          },
+          "additionalProperties": true,
+          "description": "Text content for a message.",
+          "properties": {
+            "type": {
+              "const": "text",
+              "title": "Type",
+              "type": "string"
+            },
+            "text": {
+              "title": "Text",
+              "type": "string"
+            },
+            "annotations": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Annotations"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "_meta": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Meta"
+            }
+          },
+          "required": [
+            "type",
+            "text"
+          ],
+          "title": "TextContent",
+          "type": "object"
+        }
+      },
+      {
+        "name": "add",
+        "description": "A simple addition tool that takes two integers and returns their sum",
+        "inputSchema": {
+          "properties": {
+            "left": {
+              "title": "Left",
+              "type": "integer"
+            },
+            "right": {
+              "title": "Right",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "left",
+            "right"
+          ],
+          "title": "addArguments",
+          "type": "object"
+        },
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "title": "Result",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "title": "addOutput",
+          "type": "object"
+        }
+      },
+      {
+        "name": "find_identify",
+        "description": "A tool that simulates finding an identity based on some criteria and sends progress notifications",
+        "inputSchema": {
+          "properties": {},
+          "title": "find_identifyArguments",
+          "type": "object"
+        },
+        "outputSchema": {
+          "properties": {
+            "result": {
+              "title": "Result",
+              "type": "string"
+            }
+          },
+          "required": [
+            "result"
+          ],
+          "title": "find_identifyOutput",
+          "type": "object"
+        }
+      }
+    ]
+  }
+}
