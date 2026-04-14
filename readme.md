@@ -7,7 +7,7 @@
 A techno-person RPA toolkit — configurable task runner, execution engine, and MCP Tool Server built with Python.
 Friendly for AI Agents, DevOps, and automation testing.
 
-**Project Sites:** [PETP Intro](https://dxp4800pro-fbb1-1.tail138025.ts.net/?lang=en) | [Web App Guide](./webapp/README.md)
+**Project Sites:** [PETP Intro](https://petp.tail138025.ts.net/?lang=en) | [Web App Guide](./webapp/README.md)
 
 **PET** = **P**ipeline-**E**xecution-**T**ask, the hierarchical execution model. The trailing **P** stands for **Processor**, which handles each task one-to-one.
 

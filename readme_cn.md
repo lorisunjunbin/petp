@@ -7,7 +7,7 @@
 一个技术人员的 RPA 工具包 — 可配置的任务运行器、执行引擎、MCP 工具服务器，基于 Python 构建。
 适用于 AI Agent、DevOps 和自动化测试。
 
-**项目站点：** [PETP 项目介绍](https://dxp4800pro-fbb1-1.tail138025.ts.net/？lang=zh) | [WebApp 使用说明](./webapp/README.md)
+**项目站点：** [PETP 项目介绍](https://petp.tail138025.ts.net/？lang=zh) | [WebApp 使用说明](./webapp/README.md)
 
 **PET** = **P**ipeline-**E**xecution-**T**ask，层级化执行模型。末尾的 **P** 代表 **Processor**，每个处理器一一对应处理具体任务。
 
