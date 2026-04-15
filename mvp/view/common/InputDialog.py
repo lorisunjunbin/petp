@@ -1,6 +1,7 @@
 import os
 
 import wx
+import wx.stc as stc
 
 
 class InputDialog(wx.Dialog):
@@ -48,12 +49,29 @@ class InputDialog(wx.Dialog):
             sizer.Add(msg_label, 0, wx.LEFT | wx.RIGHT | wx.EXPAND, PAD)
             sizer.AddSpacer(PAD // 2)
 
-        # -- Editable text area --
-        txt_style = wx.TE_MULTILINE | wx.TE_RICH2 | wx.HSCROLL
-        self._text = wx.TextCtrl(self, value=default_value, style=txt_style)
-        self._text.SetFont(
-            wx.Font(wx.FontInfo(13).Family(wx.FONTFAMILY_MODERN))
-        )
+        # -- Editable text area (Scintilla code editor) --
+        self._text = stc.StyledTextCtrl(self, style=wx.BORDER_THEME)
+        self._text.SetText(default_value)
+
+        # font
+        font = wx.Font(wx.FontInfo(13).Family(wx.FONTFAMILY_MODERN))
+        face = font.GetFaceName()
+        size = font.GetPointSize()
+        self._text.StyleSetSpec(stc.STC_STYLE_DEFAULT,
+                                f"face:{face},size:{size}")
+        self._text.StyleClearAll()
+
+        # line numbers
+        self._text.SetMarginType(0, stc.STC_MARGIN_NUMBER)
+        self._text.SetMarginWidth(0, self._text.TextWidth(stc.STC_STYLE_LINENUMBER, "9999"))
+
+        # tabs → spaces
+        self._text.SetUseTabs(False)
+        self._text.SetTabWidth(4)
+
+        # word wrap off, show horizontal scrollbar
+        self._text.SetWrapMode(stc.STC_WRAP_NONE)
+
         self._text.SetMinSize((520, 160))
         self._text.SetFocus()
         self._text.SelectAll()
@@ -79,7 +97,6 @@ class InputDialog(wx.Dialog):
     # ------------------------------------------------------------------ #
     # Helpers
     # ------------------------------------------------------------------ #
-
     def _try_set_icon(self):
         icon_path = os.path.realpath(os.path.join('.', 'image', 'petp_small.png'))
         if os.path.isfile(icon_path):
@@ -89,7 +106,7 @@ class InputDialog(wx.Dialog):
                 pass
 
     def _on_ok(self, _evt):
-        self.value = self._text.GetValue()
+        self.value = self._text.GetText()
         self.EndModal(wx.ID_OK)
 
     def GetValue(self):

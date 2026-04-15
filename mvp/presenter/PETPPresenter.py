@@ -44,6 +44,7 @@ class PETPPresenter():
     available_executions: list = []
 
     current_selected_row: int = -1
+    _pgrid_bound_row: int = -1  # row the property grid is currently showing
     is_log_content_focused: bool = False
     single_page: str = "petp"
     logger_thread = None
@@ -637,6 +638,7 @@ class PETPPresenter():
     def _load_input_taskproperty(self, current_row):
         grid = self.v.taskGrid
         self.current_selected_row = current_row
+        self._pgrid_bound_row = current_row  # lock property grid to this row
         current_input = grid.GetCellValue(current_row, 1)
         if len(current_input) > 5:
 
@@ -654,6 +656,7 @@ class PETPPresenter():
             self._fill_available_properties(current_processor, input_dict)
         else:
             self._reset_task_pgrid()
+            self._pgrid_bound_row = -1  # no valid property binding
 
     def _fill_available_properties(self, processor, input_dict):
         self.v.avaibleProperties.Clear()
@@ -812,8 +815,12 @@ class PETPPresenter():
         if not len(k) > 0:
             return
 
+        if self._pgrid_bound_row < 0:
+            logging.info('No task row bound to property grid.')
+            return
+
         grid = self.v.taskGrid
-        processor = grid.GetCellValue(self.current_selected_row, 0)
+        processor = grid.GetCellValue(self._pgrid_bound_row, 0)
         tpl_dict = json.loads(Processor.get_processor_by_type(processor).get_tpl())
 
         if not k in tpl_dict:
@@ -824,7 +831,7 @@ class PETPPresenter():
         self._append_or_update_property_to_page(k, v, self.v.taskProperty.GetPage(self.single_page))
         self._add_property(k, v)
 
-        input_dict = json.loads(grid.GetCellValue(self.current_selected_row, 1))
+        input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
         self._fill_available_properties(processor, input_dict)
 
     @reload_log_after
@@ -855,13 +862,17 @@ class PETPPresenter():
             logging.info('pls select property first.')
             return
 
+        if self._pgrid_bound_row < 0:
+            logging.info('No task row bound to property grid.')
+            return
+
         self._delete_property(prop)
         self._delete_selected_property_from_page(tp)
 
         grid = self.v.taskGrid
 
-        input_dict = json.loads(grid.GetCellValue(self.current_selected_row, 1))
-        processor = grid.GetCellValue(self.current_selected_row, 0)
+        input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
+        processor = grid.GetCellValue(self._pgrid_bound_row, 0)
         self._fill_available_properties(processor, input_dict)
 
     def _delete_selected_property_from_page(self, pgm):
@@ -904,12 +915,16 @@ class PETPPresenter():
         menu = wx.Menu()
         id_copy_name = wx.NewId()
         id_copy_value = wx.NewId()
+        id_edit_complex = wx.NewId()
 
         menu.Append(id_copy_name, "Copy Name")
         menu.Append(id_copy_value, "Copy Value")
+        menu.AppendSeparator()
+        menu.Append(id_edit_complex, "Edit Complex Value")
 
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_name, id=id_copy_name)
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_value, id=id_copy_value)
+        self.v.Bind(wx.EVT_MENU, self._on_edit_complex_value, id=id_edit_complex)
 
         self.v.PopupMenu(menu)
         menu.Destroy()
@@ -930,33 +945,70 @@ class PETPPresenter():
                 wx.TheClipboard.Close()
                 logging.info(f'Copied property value to clipboard: {value}')
 
+    @reload_log_after
+    def _on_edit_complex_value(self, evt):
+        prop = self._right_clicked_property
+        if prop is None:
+            return
+
+        prop_name = prop.GetName()
+        raw_value = prop.GetValue()
+
+        if isinstance(raw_value, str):
+            display_value = raw_value.replace('\\n', '\n').replace('\\t', '\t')
+        else:
+            display_value = str(raw_value)
+
+        task_number = (self._pgrid_bound_row or 0) + 1
+        dlg = InputDialog(self.v, title=f"Edit Complex Value - Task {task_number}",
+                          message=f"Property: {prop_name}",
+                          default_value=display_value)
+
+        if dlg.ShowModal() == wx.ID_OK:
+            new_value = dlg.GetValue()
+            stored_value = new_value.replace('\n', '\\n').replace('\t', '\\t')
+            prop.SetValue(stored_value)
+            self._modify_property(prop)
+
+        dlg.Destroy()
+
     def _add_property(self, propName, propValue):
         self._op_taskgrid_property(propName, propValue, lambda inputDict, key, value: inputDict | {key: value})
-        logging.info(f'Input property added @Task{self.current_selected_row + 1} - [ {propName} = {propValue} ]')
+        logging.info(f'Input property added @Task{self._pgrid_bound_row + 1} - [ {propName} = {propValue} ]')
 
     def _delete_property(self, prop):
         self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
                                    lambda inputDict, key, value: {k: v for k, v in inputDict.items() if not k == key})
-        logging.info(f'Input property deleted @Task{self.current_selected_row + 1} - [ {prop.GetName()} ]')
+        logging.info(f'Input property deleted @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} ]')
 
     def _modify_property(self, prop):
         self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
                                    lambda inputDict, key, value: inputDict | {key: value})
         logging.info(
-            f'Input property modified @Task{self.current_selected_row + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
+            f'Input property modified @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
 
     def _op_taskgrid_property(self, key, value, func):
         task_grid = self.v.taskGrid
         input_col = 1
 
-        if self.current_selected_row is None or key is None or value is None:
+        # Use the row the property grid was populated for, NOT the
+        # currently selected grid row — they can differ when the user
+        # clicks a new row while a property editor is still open.
+        target_row = self._pgrid_bound_row
+
+        if target_row is None or target_row < 0 or key is None or value is None:
             return
 
-        input = task_grid.GetCellValue(self.current_selected_row, input_col)
+        if target_row != self.current_selected_row:
+            logging.warning(
+                f'Property grid bound to row {target_row} but grid selection is at row '
+                f'{self.current_selected_row} — writing to row {target_row} (property grid source).')
+
+        input = task_grid.GetCellValue(target_row, input_col)
         input_dict = json.loads(input)
         input_dict = func(input_dict, key, value)
         input = json.dumps(input_dict)
-        task_grid.SetCellValue(self.current_selected_row, input_col, input)
+        task_grid.SetCellValue(target_row, input_col, input)
 
     def on_grid_cell_change4p(self, evt):
         grid = self.v.executionGrid
