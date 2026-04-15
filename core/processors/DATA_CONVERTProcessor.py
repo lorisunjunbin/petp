@@ -36,5 +36,7 @@ class DATA_CONVERTProcessor(Processor):
 
         logging.debug(f'"{target_key}" after collecting: {str(target_value)}')
 
-        self.populate_data(target_key, target_value)
+        if self.is_in_loop:
+            self.append_data_for_loop(target_key, target_value)
 
+        self.populate_data(target_key, target_value)

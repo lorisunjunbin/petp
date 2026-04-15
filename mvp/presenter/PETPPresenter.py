@@ -1,6 +1,7 @@
 import json
 import logging
 import concurrent.futures
+import time
 from threading import Thread
 
 import wx
@@ -53,6 +54,12 @@ class PETPPresenter():
         self.m = model
         self.v = view
         self.i = interactor
+
+        # Incremental log loading state
+        self._log_last_pos = 0
+        self._log_last_update = 0.0
+        self._log_throttle_sec = 0.3
+        self._log_pending = False
 
         # Upgrade choosers BEFORE the interactor binds events, so all
         self._upgrade_chooser(attr="executionChooser", tooltip="Select or search Execution (type to filter)", )
@@ -886,6 +893,43 @@ class PETPPresenter():
         evt.Skip()
         self._modify_property(prop)
 
+    def on_property_right_click4e(self, evt):
+        prop = evt.GetProperty()
+        evt.Skip()
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
+            return
+
+        self._right_clicked_property = prop
+
+        menu = wx.Menu()
+        id_copy_name = wx.NewId()
+        id_copy_value = wx.NewId()
+
+        menu.Append(id_copy_name, "Copy Name")
+        menu.Append(id_copy_value, "Copy Value")
+
+        self.v.Bind(wx.EVT_MENU, self._on_copy_property_name, id=id_copy_name)
+        self.v.Bind(wx.EVT_MENU, self._on_copy_property_value, id=id_copy_value)
+
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_copy_property_name(self, evt):
+        if self._right_clicked_property is not None:
+            name = self._right_clicked_property.GetName()
+            if wx.TheClipboard.Open():
+                wx.TheClipboard.SetData(wx.TextDataObject(str(name)))
+                wx.TheClipboard.Close()
+                logging.info(f'Copied property name to clipboard: {name}')
+
+    def _on_copy_property_value(self, evt):
+        if self._right_clicked_property is not None:
+            value = self._right_clicked_property.GetValue()
+            if wx.TheClipboard.Open():
+                wx.TheClipboard.SetData(wx.TextDataObject(str(value)))
+                wx.TheClipboard.Close()
+                logging.info(f'Copied property value to clipboard: {value}')
+
     def _add_property(self, propName, propValue):
         self._op_taskgrid_property(propName, propValue, lambda inputDict, key, value: inputDict | {key: value})
         logging.info(f'Input property added @Task{self.current_selected_row + 1} - [ {propName} = {propValue} ]')
@@ -956,6 +1000,20 @@ class PETPPresenter():
             grid.DeleteRows(pos=deleteStartRow, numRows=deleteNumber, updateLabels=True)
 
     def on_load_log_async(self):
+        """Throttled async log reload — skip if called too frequently."""
+        now = time.monotonic()
+        if now - self._log_last_update < self._log_throttle_sec:
+            if not self._log_pending:
+                self._log_pending = True
+                delay_ms = int(self._log_throttle_sec * 1000)
+                wx.CallLater(delay_ms, self._deferred_load_log)
+            return
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.submit(self.on_load_log)
+
+    def _deferred_load_log(self):
+        """Fires after throttle window expires."""
+        self._log_pending = False
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.submit(self.on_load_log)
 
@@ -970,24 +1028,43 @@ class PETPPresenter():
 
         try:
             self.isLoading = True
-
             file_size = os.path.getsize(log_path)
             max_size = 5 * 1024 * 1024  # 5MB
-            with open(log_path, 'r', encoding='utf8', errors='replace') as file:
-                if file_size > max_size:
-                    truncate_message = f"[log is too big，only show {max_size / 1024 / 1024:.1f}MB content.]\n\n"
-                    file.seek(file_size - max_size)
-                    file.readline()
-                    log_content = truncate_message + file.read()
-                else:
-                    log_content = file.read()
-                wx.CallAfter(self._update_log_content, log_content)
+
+            # File was truncated / rotated (e.g. after "Clean") → full reload
+            if file_size < self._log_last_pos:
+                self._log_last_pos = 0
+
+            if self._log_last_pos == 0:
+                # --- Full load (initial or after clean) ---
+                with open(log_path, 'r', encoding='utf8', errors='replace') as f:
+                    if file_size > max_size:
+                        truncate_message = f"[log is too big, only showing last {max_size / 1024 / 1024:.1f}MB.]\n\n"
+                        f.seek(file_size - max_size)
+                        f.readline()  # skip partial line
+                        content = truncate_message + f.read()
+                    else:
+                        content = f.read()
+                    self._log_last_pos = f.tell()
+                wx.CallAfter(self._full_update_log, content)
+            else:
+                # --- Incremental append (the fast path) ---
+                with open(log_path, 'r', encoding='utf8', errors='replace') as f:
+                    f.seek(self._log_last_pos)
+                    new_content = f.read()
+                    self._log_last_pos = f.tell()
+
+                if new_content:
+                    wx.CallAfter(self._append_log, new_content, max_size)
+
+            self._log_last_update = time.monotonic()
         except Exception as e:
             logging.error(f"Fail to load log: {str(e)}")
         finally:
             self.isLoading = False
 
-    def _update_log_content(self, content):
+    def _full_update_log(self, content):
+        """Full replacement — used only on first load or after clean."""
         try:
             self.v.logContents.Freeze()
             self.v.logContents.SetValue(content)
@@ -997,11 +1074,29 @@ class PETPPresenter():
         finally:
             self.v.logContents.Thaw()
 
+    def _append_log(self, new_content, max_size):
+        """Incremental append — much faster than full SetValue."""
+        try:
+            self.v.logContents.Freeze()
+
+            # Trim from the front if total would exceed limit
+            current_len = self.v.logContents.GetLastPosition()
+            if current_len + len(new_content) > max_size:
+                trim_amount = (current_len + len(new_content)) - max_size
+                self.v.logContents.Remove(0, trim_amount)
+
+            self.v.logContents.AppendText(new_content)
+        except Exception as e:
+            logging.error(f"Append log error from UI: {str(e)}")
+        finally:
+            self.v.logContents.Thaw()
+
     @reload_log_after
     def on_clean_log(self):
         with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
             file.write(f'Clean {self.m.app_name} log@' + DateUtil.get_now_in_str() + '\n')
         self.is_log_content_focused = False
+        self._log_last_pos = 0  # reset so next reload does a full load
 
     def on_logcontents_focused(self):
         self.is_log_content_focused = True

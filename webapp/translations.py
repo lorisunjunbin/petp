@@ -1,7 +1,7 @@
 """
 Lightweight i18n for PETP webapp.
 Locale priority: session > ?lang= query param > Accept-Language header.
-Supported locales: 'en' (default), 'zh'.
+Supported locales: 'en', 'zh' (default).
 """
 from flask import request, session
 
@@ -133,7 +133,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mode_desktop_title": {"en": "Desktop GUI",          "zh": "桌面 GUI"},
     "mode_desktop_desc":  {"en": "Full visual runtime with wxPython UI. Interactive RPA, local development, manual execution trigger.", "zh": "基于 wxPython 的完整可视化运行时。支持交互式 RPA、本地开发和手动触发执行。"},
     "mode_bg_title":      {"en": "Background / Headless","zh": "后台 / JOB模式"},
-    "mode_bg_desc":       {"en": "No GUI. Auto-detect headless Chrome. Ideal for scheduled tasks, CLI pipelines, and server automation.", "zh": "无 GUI，自动检测无头 Chrome，适用于定时任务、CLI 流水线和服务器自动化。"},
+    "mode_bg_desc":       {"en": "No GUI. Auto-detect headless Chrome. Ideal for scheduled tasks, CLI pipelines, and server automation.", "zh": "无 GUI，自动检测后台 Chrome，适用于定时任务、CLI 流水线和服务器自动化。"},
     "mode_docker_title":  {"en": "Docker",               "zh": "Docker"},
     "mode_docker_desc":   {"en": "Multi-arch image (arm64 build → amd64 run). Headless, no browser automation. Supports CI/CD and NAS deployment.", "zh": "多架构镜像（arm64 构建 → amd64 运行），无头模式，支持 CI/CD 和 NAS 部署。"},
     "mode_mcp_title":     {"en": "MCP Tool Server",      "zh": "MCP 工具服务器"},
@@ -193,7 +193,7 @@ def get_locale() -> str:
     1. session['lang']  — set by a previous ?lang= switch
     2. ?lang= query param — saves to session for subsequent requests
     3. Accept-Language header
-    4. Default: 'en'
+    4. Default: 'zh'
     """
     # 1. explicit switch via query param → persist to session
     param = request.args.get("lang", "").strip().lower()
@@ -212,7 +212,7 @@ def get_locale() -> str:
         if lang in ("zh", "en"):
             return lang
 
-    return "en"
+    return "zh"
 
 
 def make_translator(locale: str):

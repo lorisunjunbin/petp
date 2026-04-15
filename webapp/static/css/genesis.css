@@ -213,51 +213,26 @@ a {
 
 .carousel-track {
     position: relative;
-    min-height: 380px;
     background: #f4f4fa;
-    perspective: 1400px;
-    transform-style: preserve-3d;
 }
 
 .carousel-slide {
-    position: absolute;
-    inset: 0;
+    display: none;
     margin: 0;
-    opacity: 0;
-    z-index: 1;
-    pointer-events: none;
-    transform: translate3d(0, 0, -200px) rotateY(0deg) scale(0.9);
-    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.45s ease;
-    filter: saturate(0.85) brightness(0.9);
+    position: relative;
 }
 
 .carousel-slide.is-active {
-    opacity: 1;
-    z-index: 3;
-    pointer-events: auto;
-    transform: translate3d(0, 0, 0) rotateY(0deg) scale(1);
-    filter: saturate(1) brightness(1);
-}
-
-.carousel-slide.is-prev {
-    opacity: 0.88;
-    z-index: 2;
-    transform-origin: left center;
-    transform: translate3d(-30%, 0, -220px) rotateY(45deg) scale(0.88);
-}
-
-.carousel-slide.is-next {
-    opacity: 0.88;
-    z-index: 2;
-    transform-origin: right center;
-    transform: translate3d(30%, 0, -220px) rotateY(-45deg) scale(0.88);
+    display: block;
 }
 
 .carousel-slide img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    object-fit: contain;
     display: block;
+    cursor: zoom-in;
 }
 
 .carousel-slide figcaption {
@@ -284,6 +259,29 @@ a {
     background: rgba(10, 10, 10, 0.35);
     border-radius: 9999px;
     backdrop-filter: blur(4px);
+}
+
+/* ── Lightbox ──────────────────────────────────────────── */
+.lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.88);
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+}
+.lightbox.is-open {
+    display: flex;
+}
+.lightbox img {
+    max-width: 94vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 8px 48px rgba(0,0,0,0.6);
+    user-select: none;
 }
 
 .dot {
@@ -900,18 +898,6 @@ a {
 
     .quick-metrics {
         grid-template-columns: 1fr;
-    }
-
-    .carousel-track {
-        min-height: 280px;
-    }
-
-    .carousel-slide.is-prev {
-        transform: translate3d(-20%, 0, -130px) rotateY(30deg) scale(0.9);
-    }
-
-    .carousel-slide.is-next {
-        transform: translate3d(20%, 0, -130px) rotateY(-30deg) scale(0.9);
     }
 
     .nav-inner {

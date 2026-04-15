@@ -49,7 +49,7 @@ class PETPInteractor():
         logging.info('PETPInteractor installed')
 
     def bind_view_event_4_log_panel(self):
-        self.v.Bind(wx.EVT_BUTTON, self.on_load_log, self.v.loadLog)
+        self.v.Bind(wx.EVT_BUTTON, self.on_manual_reload_log, self.v.loadLog)
         self.v.Bind(wx.EVT_BUTTON, self.on_clean_log, self.v.cleanLog)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_log_level_changed, self.v.logLevelChooser)
 
@@ -85,6 +85,7 @@ class PETPInteractor():
     def bind_view_event_4e_input_editor(self):
         # input editor
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_property_change4e)
+        self.v.taskProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_property_right_click4e)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_rdir, self.v.convertRDir)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_ddir, self.v.convertDDir)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_pwd, self.v.convertPWD)
@@ -153,8 +154,16 @@ class PETPInteractor():
                 server.store_result(current_request_id, data_chain[data_chain[response_key]])
 
     def on_load_log(self, evt):
+        """Called by internal PETPEvent.LOG — incremental append."""
         evt.Skip()
         self.p.on_logcontents_unfocused()
+        self.p.on_load_log_async()
+
+    def on_manual_reload_log(self, evt):
+        """Called by the Reload button — force full reload."""
+        evt.Skip()
+        self.p.on_logcontents_unfocused()
+        self.p._log_last_pos = 0
         self.p.on_load_log_async()
 
     def on_grid_cell_right_click(self, evt):
@@ -278,6 +287,9 @@ class PETPInteractor():
 
     def on_property_change4e(self, evt):
         self.p.on_property_change4e(evt)
+
+    def on_property_right_click4e(self, evt):
+        self.p.on_property_right_click4e(evt)
 
     def on_cron_actived(self, evt):
         self.p.on_cron_actived(evt)

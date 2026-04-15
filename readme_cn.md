@@ -153,6 +153,32 @@ python PETP.py
 
 GUI 窗口将启动。首次运行会在 `./config/petpconfig.yaml` 创建默认配置。
 
+### macOS 启动脚本（建议长时间运行时使用）
+
+```bash
+chmod +x scripts/macos/start_petp.sh scripts/macos/start_petp_gui.sh scripts/macos/start_petp_background.sh
+
+# 统一入口（推荐）
+./scripts/macos/start_petp.sh gui
+./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+
+# 兼容旧脚本（仍可用）
+./scripts/macos/start_petp_gui.sh
+./scripts/macos/start_petp_background.sh --run-execution ENDECODER --no-http
+```
+
+两个脚本默认使用（仅在未预先设置时生效）：
+- `PYTHONMALLOC=malloc`
+- `PYTHONUNBUFFERED=1`
+- `PYTHONDONTWRITEBYTECODE=1`
+
+可选覆盖示例：
+
+```bash
+PYTHON_BIN=python3.14 PETP_ECHO_ENV=1 ./scripts/macos/start_petp.sh gui
+PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_PIPELINE --no-http
+```
+
 ---
 
 ## 依赖管理

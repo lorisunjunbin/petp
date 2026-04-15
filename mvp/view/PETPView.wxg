@@ -194,7 +194,7 @@
                                                                     <border>0</border>
                                                                     <object class="wxButton" name="addLoop" base="EditButton">
                                                                         <size>30, 28</size>
-                                                                        <tooltip>Add propery</tooltip>
+                                                                        <tooltip>Add property</tooltip>
                                                                         <label>+</label>
                                                                     </object>
                                                                 </object>

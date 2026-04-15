@@ -234,28 +234,66 @@
 
 </main>
 
+<!-- ── Lightbox ─────────────────────────────────────────── -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+    <img id="lightboxImg" src="" alt="">
+</div>
+
 <script>
 (function () {
+    // ── Carousel ─────────────────────────────────────────
     const slides = Array.from(document.querySelectorAll('.carousel-slide'));
-    const dots = Array.from(document.querySelectorAll('.dot'));
+    const dots   = Array.from(document.querySelectorAll('.dot'));
     if (!slides.length || slides.length !== dots.length) return;
     let active = 0, timer = null;
-    function resetState() { slides.forEach(s => s.classList.remove('is-active','is-prev','is-next')); }
+
     function show(next) {
+        slides[active].classList.remove('is-active');
+        dots[active].classList.remove('is-active');
         active = (next + slides.length) % slides.length;
-        resetState();
         slides[active].classList.add('is-active');
-        if (slides.length === 2) {
-            slides[(active + 1) % 2].classList.add(active === 0 ? 'is-next' : 'is-prev');
-        } else if (slides.length > 2) {
-            slides[(active - 1 + slides.length) % slides.length].classList.add('is-prev');
-            slides[(active + 1) % slides.length].classList.add('is-next');
-        }
-        dots.forEach((d, i) => d.classList.toggle('is-active', i === active));
+        dots[active].classList.add('is-active');
     }
-    function restartAuto() { if (timer) clearInterval(timer); timer = setInterval(() => show(active + 1), 3800); }
+    function restartAuto() {
+        if (timer) clearInterval(timer);
+        timer = setInterval(() => show(active + 1), 3800);
+    }
     dots.forEach((d, i) => d.addEventListener('click', () => { show(i); restartAuto(); }));
     show(0); restartAuto();
+
+    // ── Lightbox ──────────────────────────────────────────
+    const lightbox    = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+
+    function openLightbox(src, alt) {
+        lightboxImg.src = src;
+        lightboxImg.alt = alt || '';
+        lightbox.classList.add('is-open');
+    }
+    function closeLightbox() {
+        lightbox.classList.remove('is-open');
+    }
+
+    // Desktop: click image to open; Mobile: long-press (500 ms)
+    slides.forEach(slide => {
+        const img = slide.querySelector('img');
+        if (!img) return;
+
+        // Desktop click
+        img.addEventListener('click', () => openLightbox(img.src, img.alt));
+
+        // Mobile long-press
+        let pressTimer = null;
+        img.addEventListener('touchstart', () => {
+            pressTimer = setTimeout(() => openLightbox(img.src, img.alt), 500);
+        }, { passive: true });
+        img.addEventListener('touchend',   () => clearTimeout(pressTimer), { passive: true });
+        img.addEventListener('touchmove',  () => clearTimeout(pressTimer), { passive: true });
+    });
+
+    // Close on backdrop click or Esc
+    lightbox.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 })();
 </script>
 </body>

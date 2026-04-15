@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from datetime import datetime
 from threading import Condition
 from typing import TYPE_CHECKING, Any
@@ -63,6 +64,7 @@ class Execution:
         state: ExecutionState = ExecutionState(self.list)
         self.set_should_be_stop(False)
         self.init_run_at()
+        self._last_log_post_time = 0.0  # throttle LOG events during loops
 
         if hasattr(self, 'loops'):
             self.loops.sort(key=lambda loop: loop.get_attribute('task_start'))
@@ -102,9 +104,18 @@ class Execution:
 
         return data_chain
 
+    _LOOP_LOG_INTERVAL = 5  # seconds — minimum gap between LOG events during loops
+
     def post_log_reload(self, lp, view):
         if not lp.is_loop_execution:
+            # Outside a loop: always post
             wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
+        else:
+            # Inside a loop: throttle to avoid flooding the event queue
+            now = time.monotonic()
+            if now - self._last_log_post_time >= self._LOOP_LOG_INTERVAL:
+                self._last_log_post_time = now
+                wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
 
     def log_end_process(self, current_loop, state, processor, task, view):
         loop_cursor = self.collect_loop_cursor(current_loop, state)

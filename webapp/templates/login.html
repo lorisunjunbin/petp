@@ -7,48 +7,6 @@
     <link rel="icon" href="/static/favicon.ico">
     <link rel="stylesheet" href="/static/css/genesis.css" type="text/css">
     <style>
-        /* ── login page nav: brand fixed, links scrollable ── */
-        .login-nav {
-            display: flex;
-            align-items: center;
-            height: 56px;
-            padding: 0 24px;
-            position: relative;
-            overflow: hidden;           /* clip the fade mask */
-        }
-        .login-nav .brand {
-            flex-shrink: 0;
-            margin-right: 8px;
-            z-index: 2;
-        }
-        .login-nav-scroll {
-            flex: 1;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
-        .login-nav-scroll::-webkit-scrollbar { display: none; }
-        .login-nav-scroll .nav-links {
-            display: flex;
-            gap: 4px;
-            flex-wrap: nowrap;
-            width: max-content;
-        }
-        .login-nav-scroll .nav-link {
-            white-space: nowrap;
-        }
-        /* right fade mask */
-        .login-nav::after {
-            content: '';
-            position: absolute;
-            top: 0; right: 0;
-            width: 56px;
-            height: 100%;
-            pointer-events: none;
-            background: linear-gradient(to right,
-                transparent,
-                rgba(250,250,250,0.96) 70%);
-        }
         .login-wrap {
             min-height: calc(100vh - 56px);
             display: flex;
@@ -135,9 +93,9 @@
     </style>
 </head>
 <body>
-<header class="top-nav login-nav">
-    <div class="brand">PET<span class="brand-accent">P</span></div>
-    <div class="login-nav-scroll">
+<header class="top-nav">
+    <div class="shell nav-inner">
+        <div class="brand">PET<span class="brand-accent">P</span></div>
         <nav class="nav-links">
             <a class="nav-link" href="/">{{ t('nav_home') }}</a>
             <a class="nav-link" href="/about">{{ t('nav_docs') }}</a>

@@ -110,7 +110,7 @@ class PETPView(wx.Frame):
 
 								self.addLoop = wx.Button(self.loop_editor, wx.ID_ANY, "+")
 								self.addLoop.SetMinSize((30, 28))
-								self.addLoop.SetToolTip("Add propery")
+								self.addLoop.SetToolTip("Add property")
 								loop_editor_action_sizer.Add(self.addLoop, 0, 0, 0)
 
 								loop_editor_action_sizer.Add((5, 30), 0, 0, 0)

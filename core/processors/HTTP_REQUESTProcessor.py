@@ -72,7 +72,7 @@ class HTTP_REQUESTProcessor(Processor):
         logging.info('\n')
         logging.info('===============================================')
 
-        response = getattr(session, method)(request_url, timeout=(5, timeout), data=data, params=params,
+        response = getattr(session, method)(request_url, timeout=(timeout, timeout), data=data, params=params,
                                             headers=headers, verify=verify)
         response.encoding = 'utf-8'
 
@@ -89,6 +89,7 @@ class HTTP_REQUESTProcessor(Processor):
         logging.info('req.params - ' + str(params))
         logging.info('req.method - ' + method)
         logging.info('req.timeout - ' + str(timeout))
+        logging.info('wait2connect.timeout - ' + str(timeout))
         logging.info('===============================================\n')
 
         data_in_resp = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response)',

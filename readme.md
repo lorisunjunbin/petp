@@ -153,6 +153,32 @@ python PETP.py
 
 The GUI launches. On first run, a default config is created at `./config/petpconfig.yaml`.
 
+### macOS helper scripts (recommended for long-running sessions)
+
+```bash
+chmod +x scripts/macos/start_petp.sh scripts/macos/start_petp_gui.sh scripts/macos/start_petp_background.sh
+
+# Unified launcher (recommended)
+./scripts/macos/start_petp.sh gui
+./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+
+# Legacy wrappers (still supported)
+./scripts/macos/start_petp_gui.sh
+./scripts/macos/start_petp_background.sh --run-execution ENDECODER --no-http
+```
+
+Defaults used by both scripts (only when not already set):
+- `PYTHONMALLOC=malloc`
+- `PYTHONUNBUFFERED=1`
+- `PYTHONDONTWRITEBYTECODE=1`
+
+Optional overrides:
+
+```bash
+PYTHON_BIN=python3.14 PETP_ECHO_ENV=1 ./scripts/macos/start_petp.sh gui
+PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_PIPELINE --no-http
+```
+
 ---
 
 ## Dependency Management

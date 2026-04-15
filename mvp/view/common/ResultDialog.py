@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 
@@ -6,13 +7,18 @@ import wx
 
 class ResultDialog(wx.Dialog):
     """Enhanced result dialog with scrollable monospace content,
-    automatic JSON pretty-printing, and copy-to-clipboard."""
+    automatic JSON pretty-printing, copy-to-clipboard,
+    and conditional Save-as-JSON / Save-as-CSV export."""
 
     def __init__(self, parent=None, title="", message=""):
         style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         super().__init__(parent, title="PETP - Message Box", style=style)
 
+        self._raw_msg = message or ""
         self._display_msg = _format_message(message)
+        self._parsed_json = _try_parse_json(self._raw_msg)
+        self._parsed_2d = _try_parse_2d_array(self._parsed_json)
+
         self._build_ui(self._display_msg, title)
         self._try_set_icon()
 
@@ -61,6 +67,16 @@ class ResultDialog(wx.Dialog):
         # -- Button bar --
         btns = wx.BoxSizer(wx.HORIZONTAL)
 
+        # Save as JSON — enabled only when content is valid JSON
+        self._json_btn = wx.Button(self, label="Save as JSON")
+        self._json_btn.Bind(wx.EVT_BUTTON, self._on_save_json)
+        self._json_btn.Enable(self._parsed_json is not None)
+
+        # Save as CSV — enabled only when content is a 2-D array
+        self._csv_btn = wx.Button(self, label="Save as CSV")
+        self._csv_btn.Bind(wx.EVT_BUTTON, self._on_save_csv)
+        self._csv_btn.Enable(self._parsed_2d is not None)
+
         self._copy_btn = wx.Button(self, label="Copy")
         self._copy_btn.Bind(wx.EVT_BUTTON, self._on_copy)
 
@@ -68,13 +84,15 @@ class ResultDialog(wx.Dialog):
         ok_btn.SetDefault()
 
         btns.AddStretchSpacer()
+        btns.Add(self._json_btn, 0, wx.RIGHT, 8)
+        btns.Add(self._csv_btn, 0, wx.RIGHT, 8)
         btns.Add(self._copy_btn, 0, wx.RIGHT, 8)
         btns.Add(ok_btn)
         sizer.AddSpacer(PAD)
         sizer.Add(btns, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, PAD)
 
         self.SetSizer(sizer)
-        self.SetMinSize((560, 320))
+        self.SetMinSize((680, 320))
 
     # ------------------------------------------------------------------ #
     # Helpers
@@ -95,6 +113,48 @@ class ResultDialog(wx.Dialog):
             finally:
                 wx.TheClipboard.Close()
 
+    def _on_save_json(self, _evt):
+        """Save the parsed JSON to a .json file chosen by the user."""
+        with wx.FileDialog(self, "Save as JSON",
+                           wildcard="JSON files (*.json)|*.json",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                           defaultFile="result.json") as dlg:
+            if dlg.ShowModal() == wx.ID_CANCEL:
+                return
+            path = dlg.GetPath()
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(self._parsed_json, f, indent=2, ensure_ascii=False)
+            wx.MessageBox(f"Saved to:\n{path}", "Save as JSON",
+                          wx.OK | wx.ICON_INFORMATION, self)
+        except Exception as e:
+            wx.MessageBox(f"Failed to save:\n{e}", "Error",
+                          wx.OK | wx.ICON_ERROR, self)
+
+    def _on_save_csv(self, _evt):
+        """Save the 2-D array content as a .csv file chosen by the user."""
+        with wx.FileDialog(self, "Save as CSV",
+                           wildcard="CSV files (*.csv)|*.csv",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+                           defaultFile="result.csv") as dlg:
+            if dlg.ShowModal() == wx.ID_CANCEL:
+                return
+            path = dlg.GetPath()
+        try:
+            with open(path, 'w', encoding='utf-8-sig', newline='') as f:
+                writer = csv.writer(f)
+                for row in self._parsed_2d:
+                    writer.writerow(row)
+            wx.MessageBox(f"Saved to:\n{path}", "Save as CSV",
+                          wx.OK | wx.ICON_INFORMATION, self)
+        except Exception as e:
+            wx.MessageBox(f"Failed to save:\n{e}", "Error",
+                          wx.OK | wx.ICON_ERROR, self)
+
+
+# ------------------------------------------------------------------ #
+# Module-level helpers
+# ------------------------------------------------------------------ #
 
 def _format_message(msg):
     """Pretty-print JSON strings; return everything else unchanged."""
@@ -105,3 +165,39 @@ def _format_message(msg):
         return json.dumps(data, indent=2, ensure_ascii=False)
     except (json.JSONDecodeError, TypeError, ValueError):
         return msg
+
+
+def _try_parse_json(msg):
+    """Return parsed object if *msg* is valid JSON, else None."""
+    if not msg:
+        return None
+    try:
+        return json.loads(msg)
+    except (json.JSONDecodeError, TypeError, ValueError):
+        return None
+
+
+def _try_parse_2d_array(parsed):
+    """Return a list-of-lists if *parsed* is a 2-D array structure, else None.
+
+    Accepted shapes:
+      1. [[v, v, ...], [v, v, ...], ...]          — plain 2-D list
+      2. [{"k":"v", ...}, {"k":"v", ...}, ...]     — list of flat dicts
+         → converted to 2-D with dict keys as the header row.
+    """
+    if not isinstance(parsed, list) or len(parsed) == 0:
+        return None
+
+    # Shape 1: every element is a list/tuple
+    if all(isinstance(row, (list, tuple)) for row in parsed):
+        return [list(row) for row in parsed]
+
+    # Shape 2: every element is a flat dict
+    if all(isinstance(row, dict) for row in parsed):
+        # Collect all keys preserving insertion order
+        keys = list(dict.fromkeys(k for row in parsed for k in row))
+        header = keys
+        rows = [header] + [[row.get(k, '') for k in keys] for row in parsed]
+        return rows
+
+    return None
