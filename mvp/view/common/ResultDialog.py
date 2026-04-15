@@ -1,4 +1,5 @@
 import csv
+import io
 import json
 import os
 
@@ -17,7 +18,8 @@ class ResultDialog(wx.Dialog):
         self._raw_msg = message or ""
         self._display_msg = _format_message(message)
         self._parsed_json = _try_parse_json(self._raw_msg)
-        self._parsed_2d = _try_parse_2d_array(self._parsed_json)
+        # CSV export supports either JSON 2-D data or raw CSV text.
+        self._csv_rows = _try_parse_2d_array(self._parsed_json) or _try_parse_csv_text(self._raw_msg)
 
         self._build_ui(self._display_msg, title)
         self._try_set_icon()
@@ -72,10 +74,10 @@ class ResultDialog(wx.Dialog):
         self._json_btn.Bind(wx.EVT_BUTTON, self._on_save_json)
         self._json_btn.Enable(self._parsed_json is not None)
 
-        # Save as CSV — enabled only when content is a 2-D array
+        # Save as CSV — enabled when content can be represented as CSV rows
         self._csv_btn = wx.Button(self, label="Save as CSV")
         self._csv_btn.Bind(wx.EVT_BUTTON, self._on_save_csv)
-        self._csv_btn.Enable(self._parsed_2d is not None)
+        self._csv_btn.Enable(self._csv_rows is not None)
 
         self._copy_btn = wx.Button(self, label="Copy")
         self._copy_btn.Bind(wx.EVT_BUTTON, self._on_copy)
@@ -132,7 +134,7 @@ class ResultDialog(wx.Dialog):
                           wx.OK | wx.ICON_ERROR, self)
 
     def _on_save_csv(self, _evt):
-        """Save the 2-D array content as a .csv file chosen by the user."""
+        """Save CSV-compatible rows as a .csv file chosen by the user."""
         with wx.FileDialog(self, "Save as CSV",
                            wildcard="CSV files (*.csv)|*.csv",
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
@@ -143,7 +145,7 @@ class ResultDialog(wx.Dialog):
         try:
             with open(path, 'w', encoding='utf-8-sig', newline='') as f:
                 writer = csv.writer(f)
-                for row in self._parsed_2d:
+                for row in self._csv_rows:
                     writer.writerow(row)
             wx.MessageBox(f"Saved to:\n{path}", "Save as CSV",
                           wx.OK | wx.ICON_INFORMATION, self)
@@ -201,3 +203,35 @@ def _try_parse_2d_array(parsed):
         return rows
 
     return None
+
+
+def _try_parse_csv_text(msg):
+    """Return CSV rows parsed from raw text, else None."""
+    if not isinstance(msg, str) or not msg.strip():
+        return None
+
+    text = msg.strip('\ufeff\r\n ')
+    if not text:
+        return None
+
+    sample = text[:2048]
+    dialect = csv.excel
+    try:
+        dialect = csv.Sniffer().sniff(sample, delimiters=",;\t|")
+    except csv.Error:
+        pass
+
+    try:
+        rows = list(csv.reader(io.StringIO(text), dialect))
+    except csv.Error:
+        return None
+
+    if not rows:
+        return None
+
+    # Avoid enabling CSV save for plain single-value text.
+    if max((len(row) for row in rows), default=0) < 2:
+        return None
+
+    return rows
+
