@@ -50,3 +50,6 @@ htmlcov/
 
 # mypy
 .mypy_cache/
+/CLAUDE.md
+/webapp/CLAUDE.md
+/AGENT.md

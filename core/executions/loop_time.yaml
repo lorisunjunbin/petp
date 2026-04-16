@@ -1,4 +1,5 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: loop_time
 list:
 - !!python/object:core.task.Task
@@ -13,6 +14,6 @@ list:
 loops:
 - !!python/object:core.loop.Loop
   loop_attributes: '{"task_start":1, "task_end":1, "loop_key":"", "loop_times":5,
-    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+    "loop_index_key":"loop_idx", "item_key":"loop_item","exception_then":"break"}'
   loop_code: loop-20210906003623
 mcp_desc: ''
