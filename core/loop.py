@@ -19,7 +19,7 @@ class Loop:
         # item_key - attribute of the data_chain which represent item of data collection that pass into the loop tasks.
         # loop_index - loop cursor
         # loop_times - attribute of the data_chain which represent loop times, use this, must remove attribute loop_key
-        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break"}'
 
     def get_loop_code(self):
         return self.loop_code
@@ -41,6 +41,9 @@ class Loop:
 
     def get_item_key(self):
         return self.get_attribute('item_key')
+
+    def get_exception_then(self):
+        return self.get_attributes().get('exception_then', '')
 
     def get_attribute(self, name):
         return self.get_attributes()[name]

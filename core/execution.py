@@ -91,7 +91,28 @@ class Execution:
                 self.log_skipped_process(current_loop, state, processor, task, view)
             else:
                 # * main process *
-                processor.do_process()
+                exception_policy = current_loop.get_exception_then() if current_loop else ''
+                if exception_policy in ('continue', 'break'):
+                    try:
+                        processor.do_process()
+                    except Exception as e:
+                        logging.exception(
+                            'Loop %s exception at task %s (policy=%s): %s',
+                            current_loop.get_loop_code(), state.get_sequence(), exception_policy, e
+                        )
+                        task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
+                        self.log_end_process(current_loop, state, processor, task, view)
+                        if exception_policy == 'continue':
+                            if state.advance_loop_on_exception(data_chain):
+                                continue
+                            state.move_to_next()
+                            continue
+                        else:  # break
+                            state.force_exit_loop(data_chain)
+                            state.move_to_next()
+                            continue
+                else:
+                    processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
             self.log_end_process(current_loop, state, processor, task, view)

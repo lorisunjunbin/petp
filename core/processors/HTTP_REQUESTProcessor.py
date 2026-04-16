@@ -1,4 +1,5 @@
 import io
+import json
 import logging
 import zipfile
 
@@ -80,28 +81,36 @@ class HTTP_REQUESTProcessor(Processor):
                                             headers=headers, verify=verify)
         response.encoding = 'utf-8'
 
-        logging.info('<----------------------------------------------<')
-        # response
-        logging.info('resp.text - ' + response.text)
-        logging.info('resp.status_code - ' + str(response.status_code))
-        logging.info('resp.headers - ' + str(response.headers))
         logging.info('>---------------------------------------------->')
         # request
-        logging.info('req.url - ' + request_url)
+        logging.warning('req.url - ' + request_url)
         logging.info('req.headers - ' + str(headers))
         logging.info('req.data - ' + str(data))
         logging.info('req.params - ' + str(params))
         logging.info('req.method - ' + method)
         logging.info('req.timeout - ' + str(timeout))
         logging.info('wait2connect.timeout - ' + str(timeout))
-        logging.info('===============================================\n')
+        # response
+        logging.warning('resp.status_code - ' + str(response.status_code))
+
+        logging.info('resp.headers - ' + str(response.headers))
 
         if self.has_param('is_zip_response') and self.get_param('is_zip_response') == 'yes':
-            filter_body = self.expression2str(self.get_param('filter_func_body')) if self.has_param(
-                'filter_func_body') else 'return True'
-            convert_body = self.expression2str(self.get_param('convert_func_body')) if self.has_param(
-                'convert_func_body') else "return file_content.decode('utf-8')"
-            data_in_resp = self._extract_zip_to_dict(response, filter_body, convert_body)
+            if response.ok:
+                filter_body = self.expression2str(self.get_param('filter_func_body')) if self.has_param(
+                    'filter_func_body') else 'return True'
+                convert_body = self.expression2str(self.get_param('convert_func_body')) if self.has_param(
+                    'convert_func_body') else "return file_content.decode('utf-8')"
+                data_in_resp = self._extract_zip_to_dict(response, filter_body, convert_body)
+                if logging.getLogger().isEnabledFor(logging.DEBUG):
+                    logging.debug('resp.body - ' + response.content)
+                    logging.debug('data_in_resp - ' + json.dumps(data_in_resp))
+            else:
+                logging.error(
+                    f'ZIP response request failed, status_code={response.status_code}, '
+                    f'reason={response.reason if response.reason else "unknown reason"}'
+                )
+                data_in_resp = {}
 
         else:
             resp_fun_body = self.expression2str(self.get_param('resp_func_body')) if self.has_param(
@@ -109,6 +118,12 @@ class HTTP_REQUESTProcessor(Processor):
 
             data_in_resp = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response)',
                                                                      resp_fun_body, args=response)
+            if logging.getLogger().isEnabledFor(logging.DEBUG):
+                logging.debug('resp.text - ' + response.text)
+                logging.debug('data_in_resp - ' + resp_fun_body)
+
+        logging.info('<----------------------------------------------<')
+        logging.info('===============================================\n')
 
         self.populate_data(value_key, data_in_resp)
 
