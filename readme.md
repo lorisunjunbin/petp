@@ -414,7 +414,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 ## Acknowledgements
 
 - [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
-- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/)
+- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/) & [Selenium IDE](https://github.com/SeleniumHQ/selenium-ide/releases/)
 
 ---
 
