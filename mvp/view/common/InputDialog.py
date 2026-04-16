@@ -72,7 +72,8 @@ class InputDialog(wx.Dialog):
         # word wrap off, show horizontal scrollbar
         self._text.SetWrapMode(stc.STC_WRAP_NONE)
 
-        self._text.SetMinSize((520, 160))
+        editor_w, editor_h, dialog_w, dialog_h = self._calc_content_aware_size(default_value)
+        self._text.SetMinSize(wx.Size(editor_w, editor_h))
         self._text.SetFocus()
         self._text.SelectAll()
         sizer.Add(self._text, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, PAD)
@@ -92,7 +93,8 @@ class InputDialog(wx.Dialog):
         sizer.Add(btns, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, PAD)
 
         self.SetSizer(sizer)
-        self.SetMinSize((560, 380))
+        self.SetMinSize(wx.Size(560, 320))
+        self.SetSize(wx.Size(dialog_w, dialog_h))
 
     # ------------------------------------------------------------------ #
     # Helpers
@@ -104,6 +106,39 @@ class InputDialog(wx.Dialog):
                 self.SetIcon(wx.Icon(icon_path))
             except Exception:
                 pass
+
+    def _calc_content_aware_size(self, content):
+        lines = content.split('\n') if isinstance(content, str) and content else ['']
+        line_count = max(1, len(lines))
+        longest_line = max((len(line) for line in lines), default=1)
+
+        # Estimate editor dimensions from text density.
+        char_px = max(7, self._text.TextWidth(stc.STC_STYLE_DEFAULT, 'M'))
+        line_px = max(18, self._text.TextHeight(0))
+        line_margin_px = self._text.GetMarginWidth(0)
+
+        editor_w = int(longest_line * char_px + line_margin_px + 40)
+        editor_h = int(line_count * line_px + 24)
+
+        # Keep defaults sensible for short text while allowing larger content.
+        min_editor_w, min_editor_h = 520, 160
+        editor_w = max(min_editor_w, editor_w)
+        editor_h = max(min_editor_h, editor_h)
+
+        # Clamp to current display so the dialog remains fully reachable.
+        display_idx = wx.Display.GetFromWindow(self)
+        display = wx.Display(display_idx if display_idx != wx.NOT_FOUND else 0)
+        client = display.GetClientArea()
+
+        # Approximate non-editor chrome (header/message/buttons/padding).
+        dialog_w = min(editor_w + 40, int(client.width * 0.96))
+        dialog_h = min(editor_h + 210, int(client.height * 0.92))
+
+        # Recompute editor size to fit inside dialog chrome limits.
+        editor_w = max(min_editor_w, dialog_w - 40)
+        editor_h = max(min_editor_h, dialog_h - 210)
+
+        return editor_w, editor_h, dialog_w, dialog_h
 
     def _on_ok(self, _evt):
         self.value = self._text.GetText()

@@ -27,6 +27,9 @@ class SHOW_RESULTProcessor(Processor):
 
     def process(self):
         title = self.expression2str(self.get_param('title'))
+        task_number = getattr(self.task, 'run_sequence', None)
+        if task_number is not None:
+            title = f"Task {task_number} - {title}" if title else f"Task {task_number}"
         msg = self.expression2str(self.get_param('msg'))
 
         logging.info(f'\n\n=========\n{title}\n\n{msg}\n=========\n')

@@ -2,6 +2,7 @@ import importlib.util
 import json
 import logging
 import os
+import re
 import time
 from threading import Condition
 from typing import TYPE_CHECKING, Any
@@ -64,6 +65,8 @@ class Processor:
     # cached_processor_classes = {}
     global _cached_processor_classes
     _cached_processor_classes = {}
+
+    PARAM_PATTERN = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
 
     def process(self) -> None:
         # must be implemented in subclass
@@ -310,7 +313,61 @@ class Processor:
             result[key0value1[0]] = key0value1[1]
         return result
 
+    def feed_tpl(self, given: str, params: dict) -> str:
+        """
+        Replace placeholders in format {{key}} using values from params.
+        Keep original token when key is absent in params.
+        """
+        if not isinstance(given, str) or not given:
+            return given
+
+        if not isinstance(params, dict) or not params:
+            return given
+
+        def _replace(match):
+            key = match.group(1).strip()
+            if key not in params:
+                return match.group(0)
+            value = params.get(key)
+            return '' if value is None else str(value)
+
+        return self.PARAM_PATTERN.sub(_replace, given)
+
+    def prop2dict(self, prop_content: str) -> dict:
+        result = {}
+
+        if isinstance(prop_content, dict):
+            return dict(prop_content)
+
+        if isinstance(prop_content, (bytes, bytearray)):
+            prop_content = prop_content.decode('utf-8', errors='replace')
+
+        if not isinstance(prop_content, str) or not prop_content:
+            return result
+
+        for line in prop_content.splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+
+            if '=' not in line:
+                continue
+
+            key, value = line.split('=', 1)
+            key = key.strip()
+            if not key:
+                continue
+            result[key] = value.strip()
+
+        return result
+
     def json2dict(self, json_str: str) -> dict:
+        if isinstance(json_str, (dict, list)):
+            return json_str
+
+        if isinstance(json_str, (bytes, bytearray)):
+            json_str = json_str.decode('utf-8', errors='replace')
+
         return json.loads(json_str)
 
     def str2list(self, str) -> list:

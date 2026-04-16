@@ -29,6 +29,7 @@ from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
+from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class PETPPresenter():
@@ -380,6 +381,11 @@ class PETPPresenter():
 
             tasks.append(Task(t_type, t_input, self._check_task_skipped(t_input)))
 
+        # validate dynamic func bodies before saving
+        if not self._validate_dynamic_func_bodies(tasks, grid):
+            logging.info('Save aborted due to unresolved syntax errors.')
+            return
+
         # prepare loops
         loops = []
         itr = loop_property.GetPage(self.single_page).GetPyIterator(wx.propgrid.PG_ITERATE_ALL)
@@ -411,6 +417,80 @@ class PETPPresenter():
 
         except Exception as e:
             return False
+
+    def _validate_dynamic_func_bodies(self, tasks, grid):
+        """
+        Validate syntax of dynamic function bodies in tasks before saving.
+        If a syntax error is found, show an InputDialog for the user to edit and fix.
+        Returns True if all valid (or user fixed all), False if user cancelled.
+        """
+        for task_idx, task in enumerate(tasks):
+            task_number = task_idx + 1
+            if not task.type or not hasattr(task, 'input') or not task.input:
+                continue
+
+            try:
+                input_dict = json.loads(task.input)
+            except (json.JSONDecodeError, TypeError):
+                continue
+
+            params_to_check = CodeExplainerUtil.get_dynamic_param_specs_with_source(task.type, input_dict)
+            if not params_to_check:
+                continue
+
+            for param_name, func_args, body_prefix, spec_source in params_to_check:
+                if param_name not in input_dict or not input_dict[param_name]:
+                    continue
+
+                if spec_source == 'fallback':
+                    logging.warning(
+                        f'Dynamic param inferred by naming convention @Task{task_number} '
+                        f'[{task.type}] param="{param_name}". '
+                        f'Consider adding explicit mapping in CodeExplainerUtil.DYNAMIC_FUNC_PARAMS.'
+                    )
+
+                raw_value = input_dict[param_name]
+                if not isinstance(raw_value, str):
+                    continue
+
+                # Convert stored escape sequences to real characters for compilation
+                func_body = raw_value.replace('\\n', '\n').replace('\\t', '\t')
+                error = CodeExplainerUtil.validate_func_syntax(func_args, func_body, body_prefix)
+
+                if error is None:
+                    continue
+
+                # Syntax error found — show InputDialog for editing
+                while error is not None:
+                    dlg = InputDialog(
+                        self.v,
+                        title=f"Syntax Error — Task {task_number} [{task.type}]",
+                        message=f"Parameter: {param_name}\nError: {error}",
+                        default_value=func_body
+                    )
+
+                    if dlg.ShowModal() == wx.ID_OK:
+                        new_value = dlg.GetValue()
+                        dlg.Destroy()
+
+                        # Re-validate the edited code
+                        error = CodeExplainerUtil.validate_func_syntax(func_args, new_value, body_prefix)
+                        if error is None:
+                            # User fixed it — store back with escape sequences
+                            stored_value = new_value.replace('\n', '\\n').replace('\t', '\\t')
+                            input_dict[param_name] = stored_value
+                            task.input = json.dumps(input_dict)
+                            grid.SetCellValue(task_idx, 1, task.input)
+                            logging.info(
+                                f'Task {task_number} [{task.type}] param "{param_name}" syntax fixed and updated.')
+                        else:
+                            # Still has error — loop to let user try again
+                            func_body = new_value
+                    else:
+                        dlg.Destroy()
+                        return False  # User cancelled — abort save
+
+        return True
 
     def _save_pipeline(self, name):
         grid = self.v.executionGrid
