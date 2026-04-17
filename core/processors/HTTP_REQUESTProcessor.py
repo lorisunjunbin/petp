@@ -103,7 +103,7 @@ class HTTP_REQUESTProcessor(Processor):
                     'convert_func_body') else "return file_content.decode('utf-8')"
                 data_in_resp = self._extract_zip_to_dict(response, filter_body, convert_body)
                 if logging.getLogger().isEnabledFor(logging.DEBUG):
-                    logging.debug('resp.body - ' + response.content)
+                    logging.debug('resp.body - ' + str(response.content))
                     logging.debug('data_in_resp - ' + json.dumps(data_in_resp))
             else:
                 logging.error(
