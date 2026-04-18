@@ -73,6 +73,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_toolset_desc":     {"en": "Package a curated set of executions for a specific domain — procurement, finance, DevOps, HR — and expose them as a focused MCP tool-set.", "zh": "为特定领域（采购、财务、DevOps、HR）打包精选执行任务，作为聚焦的 MCP 工具集对外暴露。"},
     "feat_pe_title":         {"en": "Personal & Enterprise", "zh": "个人与企业"},
     "feat_pe_desc":          {"en": "Run a personal assistant on your laptop, or deploy enterprise tool-sets on Docker. Same engine, same YAML, different scale.", "zh": "在笔记本上运行个人助手，或将企业工具集部署到 Docker。同一引擎，同一 YAML，不同规模。"},
+    "feat_editor_title":     {"en": "Visual Editor with Undo / Redo", "zh": "可视化编辑器（撤销 / 重做）"},
+    "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. Edit loop attributes through a key-value dialog. Skip tasks with one click — all changes tracked and saveable.", "zh": "图形编辑器支持完整的撤销 / 重做与快照历史。通过键值表单编辑循环属性，一键跳过任务——所有变更均可追踪和保存。"},
 
     # ── Index — scenarios ────────────────────────────────────────
     "scenario_divider":    {"en": "Scenario Examples",        "zh": "场景示例"},
@@ -153,6 +155,52 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_bg":      {"en": "Background service:",  "zh": "后台服务："},
     "install_docker":  {"en": "Docker / headless:",   "zh": "Docker / 无头："},
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
+
+    # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_04_loop": {
+        "en": "Loop Editor: right-click or ⚙️ button to edit loop attributes via key-value dialog; snapshot &amp; undo / redo support for loop changes. Save button dirty-state fix for skip toggle, paste, add / delete row, and loop edits.",
+        "zh": "循环编辑器：右键或 ⚙️ 按钮打开键值表单编辑循环属性；循环变更支持快照与撤销 / 重做。修复跳过任务、粘贴、增删行、循环编辑后保存按钮未启用的问题。",
+    },
+    "cl_2026_04_undo": {
+        "en": "GUI Undo &amp; Redo &amp; snapshot history. Enhanced handy tools menu.",
+        "zh": "图形界面支持撤销、重做和快照历史。增强实用工具菜单。",
+    },
+    "cl_2026_04_i18n": {
+        "en": "Internationalization support: Chinese &amp; English.",
+        "zh": "国际化支持：中文与英文。",
+    },
+    "cl_2026_04_deps": {
+        "en": "Modular dependency management with <code>requirements/</code> groups; <code>uv</code> support.",
+        "zh": "模块化依赖管理（<code>requirements/</code> 分组）；<code>uv</code> 支持。",
+    },
+    "cl_2026_04_nogui": {
+        "en": "NO_GUI mode, <code>PETP_backgroud.py</code>, Docker support.",
+        "zh": "无 GUI 模式、<code>PETP_backgroud.py</code>、Docker 支持。",
+    },
+    "cl_2026_04_toolbar": {
+        "en": "Toolbar: append <code>date_str</code>, <code>os.sep</code>; Skip Task checkbox.",
+        "zh": "工具栏：追加 <code>date_str</code>、<code>os.sep</code>；跳过任务复选框。",
+    },
+    "cl_2026_03_wxpython": {
+        "en": "OOTB: <code>OOTB_DOWNLOAD_LATEST_WXPYTHON</code> for macOS &amp; Windows.",
+        "zh": "开箱即用：<code>OOTB_DOWNLOAD_LATEST_WXPYTHON</code>（macOS 和 Windows）。",
+    },
+    "cl_2026_03_findmulti": {
+        "en": "<code>FIND_MULTI_XXXProcessor</code> skip function.",
+        "zh": "<code>FIND_MULTI_XXXProcessor</code> 跳过功能。",
+    },
+    "cl_2026_03_timeout": {
+        "en": "Page load timeout in Selenium.",
+        "zh": "Selenium 页面加载超时支持。",
+    },
+    "cl_2026_02_mcp": {
+        "en": "MCP Tool Server (Streamable-HTTP).",
+        "zh": "MCP 工具服务器（Streamable-HTTP）。",
+    },
+    "cl_2026_01_zhipu": {
+        "en": "Zhipu Z.AI: Setup / Q&amp;A / MCP processors.",
+        "zh": "智谱 Z.AI：初始化 / 问答 / MCP 处理器。",
+    },
 
     # ── About — bottom CTA ───────────────────────────────────────
     "about_cta_title": {"en": "Python 3.14 · MIT License", "zh": "Python 3.14 · MIT 许可证"},
