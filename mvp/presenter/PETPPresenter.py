@@ -64,6 +64,11 @@ class PETPPresenter():
         self._log_throttle_sec = 0.3
         self._log_pending = False
 
+        self._snapshots = []
+        self._snapshot_cursor = -1
+        self._SNAPSHOT_MAX = int(getattr(model, 'snapshot_max', 20))
+        self._saved_snapshot = None
+
         # Upgrade choosers BEFORE the interactor binds events, so all
         self._upgrade_chooser(attr="executionChooser", tooltip=t("tip_exec_chooser"), )
         self._upgrade_chooser(attr="pipelineChooser", tooltip=t("tip_pipeline_chooser"), )
@@ -263,6 +268,7 @@ class PETPPresenter():
         if not hasattr(self, "popup_id_copy"):
             self.popup_id_copy = wx.NewId()
             self.popup_id_paste = wx.NewId()
+            self.popup_id_skip_toggle = wx.NewId()
 
         menu = wx.Menu()
 
@@ -274,6 +280,23 @@ class PETPPresenter():
 
         menu.Append(item_copy)
         menu.Append(item_paste)
+
+        menu.AppendSeparator()
+
+        row = evt.Row
+        input_json = self.v.taskGrid.GetCellValue(row, 1)
+        is_skipped = self._check_task_skipped(input_json)
+
+        label = t("menu_unskip_task") if is_skipped else t("menu_skip_task")
+        item_toggle = wx.MenuItem(menu, self.popup_id_skip_toggle, label)
+        self.v.Bind(wx.EVT_MENU, self._on_grid_row_toggle_skip, item_toggle)
+        menu.Append(item_toggle)
+
+        if self._snapshots:
+            menu.AppendSeparator()
+            id_snapshots = wx.NewId()
+            menu.Append(id_snapshots, t("menu_snapshots"))
+            self.v.Bind(wx.EVT_MENU, self._on_open_snapshots, id=id_snapshots)
 
         self.v.PopupMenu(menu)
 
@@ -288,8 +311,37 @@ class PETPPresenter():
         logging.debug("selected_row_copied" + str(self.row_copied))
 
     def _on_grid_row_paste(self, evt):
+        self._push_snapshot()
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 0, self.row_copied[0])
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 1, self.row_copied[1])
+        self._apply_row_skip_style(
+            self.selected_row_2_copied_paste,
+            self._check_task_skipped(self.row_copied[1])
+        )
+
+    def _on_grid_row_toggle_skip(self, evt):
+        row = self.selected_row_2_copied_paste
+        input_json = self.v.taskGrid.GetCellValue(row, 1)
+        self._set_task_skipped(row, not self._check_task_skipped(input_json))
+
+    def _set_task_skipped(self, row, skipped):
+        grid = self.v.taskGrid
+        input_json = grid.GetCellValue(row, 1)
+        if not input_json or len(input_json) < 2:
+            return
+        self._push_snapshot()
+        try:
+            input_dict = json.loads(input_json)
+        except (json.JSONDecodeError, TypeError):
+            return
+        input_dict["skipped"] = "yes" if skipped else "no"
+        grid.SetCellValue(row, 1, json.dumps(input_dict))
+        self._apply_row_skip_style(row, skipped)
+
+        if self._pgrid_bound_row == row:
+            page = self.v.taskProperty.GetPage(self.single_page)
+            self._append_or_update_property_to_page("skipped", input_dict["skipped"], page)
+            self.v.cb_skipped.SetValue(skipped)
 
     def _init_cron(self):
         self.cron = Cron(self.v)
@@ -428,6 +480,8 @@ class PETPPresenter():
                 if (hasattr(itm, 'input')):
                     grid.SetCellValue(idx, 1, itm.input)
 
+            self._apply_all_row_skip_styles()
+
             self._reset_loop_pgrid()
             if not hasattr(self.execution, 'loops'):
                 return
@@ -447,6 +501,10 @@ class PETPPresenter():
                 cb_astool.SetValue(self.execution.astool)
             else:
                 cb_astool.SetValue(False)
+
+            self._snapshots.clear()
+            self._snapshot_cursor = -1
+            self._mark_clean()
 
     @reload_log_after
     def on_execution_search(self, evt):
@@ -525,6 +583,35 @@ class PETPPresenter():
 
         except Exception as e:
             return False
+
+    def _apply_row_skip_style(self, row, skipped):
+        grid = self.v.taskGrid
+        if skipped:
+            normal_bg = grid.GetDefaultCellBackgroundColour()
+            normal_fg = grid.GetDefaultCellTextColour()
+            bg = wx.Colour(
+                max(0, normal_bg.Red() - 30),
+                max(0, normal_bg.Green() - 30),
+                max(0, normal_bg.Blue() - 30),
+            )
+            fg = wx.Colour(
+                normal_fg.Red() + (normal_bg.Red() - normal_fg.Red()) * 2 // 3,
+                normal_fg.Green() + (normal_bg.Green() - normal_fg.Green()) * 2 // 3,
+                normal_fg.Blue() + (normal_bg.Blue() - normal_fg.Blue()) * 2 // 3,
+            )
+        else:
+            bg = grid.GetDefaultCellBackgroundColour()
+            fg = grid.GetDefaultCellTextColour()
+        for col in range(grid.GetNumberCols()):
+            grid.SetCellBackgroundColour(row, col, bg)
+            grid.SetCellTextColour(row, col, fg)
+        grid.ForceRefresh()
+
+    def _apply_all_row_skip_styles(self):
+        grid = self.v.taskGrid
+        for row in range(grid.GetNumberRows()):
+            input_json = grid.GetCellValue(row, 1)
+            self._apply_row_skip_style(row, self._check_task_skipped(input_json))
 
     def _validate_dynamic_func_bodies(self, tasks, grid):
         """
@@ -653,6 +740,7 @@ class PETPPresenter():
             logging.warning(t("msg_execution_overwrite", name=combo.GetValue()))
 
         self._save_execcution(name)
+        self._mark_clean()
 
         # Sync tool icon prefix after save (astool may have changed)
         as_tool = self.v.cb_astool.IsChecked()
@@ -702,6 +790,20 @@ class PETPPresenter():
 
     @reload_log_after
     def on_run_execution(self, init_param: dict = None):
+        if self._is_dirty():
+            dlg = wx.MessageDialog(
+                self.v,
+                t("dlg_unsaved_msg"),
+                t("dlg_unsaved_title"),
+                wx.YES_NO | wx.ICON_WARNING,
+            )
+            dlg.SetYesNoLabels(t("btn_save_and_run"), t("btn_dismiss"))
+            result = dlg.ShowModal()
+            dlg.Destroy()
+            if result == wx.ID_NO:
+                return
+            self.on_save_execution()
+
         combo = self.v.executionChooser
         self.execution = Execution.get_execution(combo.GetValue())
 
@@ -755,6 +857,7 @@ class PETPPresenter():
     @reload_log_after
     def on_load_from_recording(self):
         if hasattr(self, 'converter') and self.converter.is_initialized():
+            self._push_snapshot()
             tasks = self.converter.convert_from_selenium_ide_recording()
 
             task_grid = self.v.taskGrid
@@ -903,6 +1006,9 @@ class PETPPresenter():
         self._convert('{os.sep}')
 
     def on_cb_astool_changed(self, evt):
+        # Snapshot for undo
+        self._push_snapshot()
+
         # When "as tool" is checked and the description field is empty,
         # pre-fill it with a default MCP tool descriptor template.
         combo = self.v.executionChooser
@@ -969,10 +1075,17 @@ class PETPPresenter():
         items = [
             ("handy_rdir", self._on_menu_convert_rdir),
             ("handy_ddir", self._on_menu_convert_ddir),
+            ("handy_get_sdir", self._on_menu_convert_sdir),
             ("handy_encrypt", self._on_menu_convert_pwd),
             None,
             ("handy_get_data", self._on_menu_convert_get_data),
             ("handy_get_deep_data", self._on_menu_convert_get_deep_data),
+            None,
+            ("handy_str2dict", self._on_menu_str2dict),
+            ("handy_str2list", self._on_menu_str2list),
+            ("handy_json2dict", self._on_menu_json2dict),
+            ("handy_prop2dict", self._on_menu_prop2dict),
+            ("handy_feed_tpl", self._on_menu_feed_tpl),
             None,
             ("handy_date_str", self._on_menu_append_date_str),
             ("handy_os_sep", self._on_menu_append_os_sep),
@@ -987,6 +1100,12 @@ class PETPPresenter():
             menu.Append(menu_id, t(key))
             self.v.Bind(wx.EVT_MENU, handler, id=menu_id)
 
+        if self._snapshots:
+            menu.AppendSeparator()
+            snap_id = wx.NewId()
+            menu.Append(snap_id, t("menu_snapshots"))
+            self.v.Bind(wx.EVT_MENU, self._on_open_snapshots, id=snap_id)
+
         self.v.PopupMenu(menu)
         menu.Destroy()
 
@@ -996,6 +1115,9 @@ class PETPPresenter():
     def _on_menu_convert_ddir(self, evt):
         self.on_convert_ddir()
 
+    def _on_menu_convert_sdir(self, evt):
+        self._convert('{self.get_sdir()}/', True)
+
     def _on_menu_convert_pwd(self, evt):
         self.on_convert_pwd()
 
@@ -1004,6 +1126,21 @@ class PETPPresenter():
 
     def _on_menu_convert_get_deep_data(self, evt):
         self.on_convert_get_deep_data()
+
+    def _on_menu_str2dict(self, evt):
+        self._convert('{self.str2dict("")}')
+
+    def _on_menu_str2list(self, evt):
+        self._convert('{self.str2list("")}')
+
+    def _on_menu_json2dict(self, evt):
+        self._convert('{self.json2dict("")}')
+
+    def _on_menu_prop2dict(self, evt):
+        self._convert('{self.prop2dict("")}')
+
+    def _on_menu_feed_tpl(self, evt):
+        self._convert('{self.feed_tpl("", {})}')
 
     def _on_menu_append_date_str(self, evt):
         self.on_append_date_str()
@@ -1089,6 +1226,8 @@ class PETPPresenter():
             self._append_or_update_property_to_page("skipped", "no", page)
             self._add_property("skipped", "no")
 
+        self._apply_row_skip_style(self.current_selected_row, evt.IsChecked())
+
     @reload_log_after
     def on_delete_property(self):
         tp = self.v.taskProperty
@@ -1157,12 +1296,46 @@ class PETPPresenter():
         menu.AppendSeparator()
         menu.Append(id_edit_complex, t("menu_edit_complex"))
 
+        can_undo = self._snapshot_cursor >= 0
+        can_redo = self._snapshot_cursor < len(self._snapshots) - 1
+        has_snapshots = len(self._snapshots) > 0
+        if can_undo or can_redo or has_snapshots:
+            menu.AppendSeparator()
+            if can_undo:
+                id_undo = wx.NewId()
+                menu.Append(id_undo, t("menu_undo"))
+                self.v.Bind(wx.EVT_MENU, self._on_undo, id=id_undo)
+            if can_redo:
+                id_redo = wx.NewId()
+                menu.Append(id_redo, t("menu_redo"))
+                self.v.Bind(wx.EVT_MENU, self._on_redo, id=id_redo)
+            if has_snapshots:
+                id_snapshots = wx.NewId()
+                menu.Append(id_snapshots, t("menu_snapshots"))
+                self.v.Bind(wx.EVT_MENU, self._on_open_snapshots, id=id_snapshots)
+
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_name, id=id_copy_name)
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_value, id=id_copy_value)
         self.v.Bind(wx.EVT_MENU, self._on_edit_complex_value, id=id_edit_complex)
 
         self.v.PopupMenu(menu)
         menu.Destroy()
+
+    def _on_undo(self, evt):
+        self._undo()
+
+    def _on_redo(self, evt):
+        self._redo()
+
+    def _on_open_snapshots(self, evt):
+        from mvp.view.common.SnapshotDialog import SnapshotDialog
+        dlg = SnapshotDialog(self.v, self._snapshots, self._snapshot_cursor)
+        if dlg.ShowModal() == wx.ID_OK:
+            idx = dlg.get_selected_index()
+            if idx is not None and 0 <= idx < len(self._snapshots):
+                self._push_snapshot()
+                self._restore_snapshot(self._snapshots[idx])
+        dlg.Destroy()
 
     def _on_copy_property_name(self, evt):
         if self._right_clicked_property is not None:
@@ -1209,17 +1382,17 @@ class PETPPresenter():
 
     def _add_property(self, propName, propValue):
         self._op_taskgrid_property(propName, propValue, lambda inputDict, key, value: inputDict | {key: value})
-        logging.info(f'Input property added @Task{self._pgrid_bound_row + 1} - [ {propName} = {propValue} ]')
+        logging.debug(f'Input property added @Task{self._pgrid_bound_row + 1} - [ {propName} = {propValue} ]')
 
     def _delete_property(self, prop):
         self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
                                    lambda inputDict, key, value: {k: v for k, v in inputDict.items() if not k == key})
-        logging.info(f'Input property deleted @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} ]')
+        logging.debug(f'Input property deleted @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} ]')
 
     def _modify_property(self, prop):
         self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
                                    lambda inputDict, key, value: inputDict | {key: value})
-        logging.info(
+        logging.debug(
             f'Input property modified @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')
 
     def _op_taskgrid_property(self, key, value, func):
@@ -1240,10 +1413,119 @@ class PETPPresenter():
                 f'{self.current_selected_row} — writing to row {target_row} (property grid source).')
 
         input = task_grid.GetCellValue(target_row, input_col)
+        self._push_snapshot()
         input_dict = json.loads(input)
         input_dict = func(input_dict, key, value)
         input = json.dumps(input_dict)
         task_grid.SetCellValue(target_row, input_col, input)
+
+    def _is_dirty(self):
+        if self._saved_snapshot is None:
+            return False
+        current = self._capture_snapshot()
+        return (
+            current["tasks"] != self._saved_snapshot["tasks"]
+            or current["loops"] != self._saved_snapshot["loops"]
+            or current["mcp_desc"] != self._saved_snapshot["mcp_desc"]
+            or current["astool"] != self._saved_snapshot["astool"]
+        )
+
+    def _update_save_button(self):
+        self.v.saveExection.Enable(self._is_dirty())
+
+    def _mark_clean(self):
+        self._saved_snapshot = self._capture_snapshot()
+        self._update_save_button()
+
+    def _capture_snapshot(self):
+        grid = self.v.taskGrid
+        tasks = []
+        for r in range(grid.GetNumberRows()):
+            t_type = grid.GetCellValue(r, 0)
+            t_input = grid.GetCellValue(r, 1)
+            if not t_type and not t_input:
+                break
+            tasks.append({"type": t_type, "input": t_input})
+
+        loops = []
+        page = self.v.loopProperty.GetPage(self.single_page)
+        for prop in page.GetPyIterator(wx.propgrid.PG_ITERATE_ALL):
+            if isinstance(prop, wx.propgrid.PropertyCategory):
+                continue
+            loops.append({"loop_code": prop.GetName(), "loop_attributes": prop.GetValue()})
+
+        return {
+            "timestamp": DateUtil.get_now_in_str("%H:%M:%S"),
+            "tasks": tasks,
+            "loops": loops,
+            "mcp_desc": self.v.execution_desc.GetValue(),
+            "astool": self.v.cb_astool.IsChecked(),
+        }
+
+    def _restore_snapshot(self, snap):
+        grid = self.v.taskGrid
+        grid.ClearGrid()
+
+        tasks = snap["tasks"]
+        while grid.GetNumberRows() < len(tasks):
+            self._insert_row(grid, self.available_processors)
+
+        for idx, task in enumerate(tasks):
+            grid.SetCellValue(idx, 0, task["type"])
+            grid.SetCellValue(idx, 1, task["input"])
+
+        self._apply_all_row_skip_styles()
+
+        self._reset_loop_pgrid()
+        loop_page = self.v.loopProperty.GetPage(self.single_page)
+        for loop in snap["loops"]:
+            self._append_or_update_property_to_page(loop["loop_code"], loop["loop_attributes"], loop_page)
+
+        self.v.execution_desc.SetValue(snap["mcp_desc"])
+        self.v.cb_astool.SetValue(snap["astool"])
+
+        combo = self.v.executionChooser
+        name = combo.GetValue()
+        combo.set_tool_names(
+            combo._tool_names | {name} if snap["astool"]
+            else combo._tool_names - {name}
+        )
+
+        self._pgrid_bound_row = -1
+        self._reset_task_pgrid()
+
+    def _push_snapshot(self):
+        snap = self._capture_snapshot()
+        del self._snapshots[self._snapshot_cursor + 1:]
+        self._snapshots.append(snap)
+        if len(self._snapshots) > self._SNAPSHOT_MAX:
+            self._snapshots.pop(0)
+        self._snapshot_cursor = len(self._snapshots) - 1
+        self._update_save_button()
+
+    @reload_log_after
+    def _undo(self):
+        if self._snapshot_cursor < 0:
+            return
+        snap = self._snapshots[self._snapshot_cursor]
+        current = self._capture_snapshot()
+        self._snapshots[self._snapshot_cursor] = current
+        self._restore_snapshot(snap)
+        self._snapshot_cursor -= 1
+        self._update_save_button()
+        logging.debug(f'Undo → snapshot @{snap["timestamp"]}')
+
+    @reload_log_after
+    def _redo(self):
+        if self._snapshot_cursor >= len(self._snapshots) - 1:
+            return
+        self._snapshot_cursor += 1
+        snap = self._snapshots[self._snapshot_cursor]
+        current = self._capture_snapshot()
+        self._snapshots[self._snapshot_cursor] = current
+        self._restore_snapshot(snap)
+        self._update_save_button()
+        logging.debug(f'Redo → snapshot @{snap["timestamp"]}')
 
     def on_grid_cell_change4p(self, evt):
         grid = self.v.executionGrid
@@ -1264,6 +1546,7 @@ class PETPPresenter():
         self._bind_grid_cell_choice_editor(insert_at_row, grid, choices)
 
     def on_add_row4e(self):
+        self._push_snapshot()
         task_grid = self.v.taskGrid
         self._insert_row(task_grid, self.available_processors)
 
@@ -1272,6 +1555,7 @@ class PETPPresenter():
         self._insert_row(execution_grid, self.available_executions)
 
     def on_delete_rows4e(self):
+        self._push_snapshot()
         self._on_delete_rows(self.v.taskGrid)
 
     def on_delete_rows4p(self):

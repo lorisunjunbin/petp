@@ -467,6 +467,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | GUI Undo & Redo & snapshot history. enhance handy tools.                                                                                                                                          |
 | 2026-04 | internationalization support: Chinese & EN                                                                                                                                                        |
 | 2026-04 | Modular dependency management with `requirements/` groups; `uv` support                                                                                                                           |
 | 2026-04 | NO_GUI mode, [`PETP_backgroud.py`](./PETP_backgroud.py), [`Docker`](./Dockerfile) support                                                                                                         |

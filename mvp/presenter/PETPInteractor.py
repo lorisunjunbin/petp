@@ -46,7 +46,22 @@ class PETPInteractor():
         # Log console
         self.bind_view_event_4_log_panel()
 
+        # Keyboard shortcuts
+        self._bind_accelerators()
+
         logging.info('PETPInteractor installed')
+
+    def _bind_accelerators(self):
+        undo_id = wx.NewId()
+        redo_id = wx.NewId()
+        self.v.Bind(wx.EVT_MENU, self.on_undo, id=undo_id)
+        self.v.Bind(wx.EVT_MENU, self.on_redo, id=redo_id)
+        accel = wx.AcceleratorTable([
+            (wx.ACCEL_CTRL, ord('Z'), undo_id),
+            (wx.ACCEL_CTRL, ord('Y'), redo_id),
+            (wx.ACCEL_CTRL | wx.ACCEL_SHIFT, ord('Z'), redo_id),
+        ])
+        self.v.SetAcceleratorTable(accel)
 
     def bind_view_event_4_log_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_manual_reload_log, self.v.loadLog)
@@ -300,6 +315,12 @@ class PETPInteractor():
     def on_handy_tools_clicked(self, evt):
         evt.Skip()
         self.p.on_handy_tools_clicked()
+
+    def on_undo(self, evt):
+        self.p._undo()
+
+    def on_redo(self, evt):
+        self.p._redo()
 
     def on_cb_astool_changed(self, evt):
         evt.Skip()

@@ -58,7 +58,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "handy_get_deep_data": {"en": "get_deep_data([\"\",\"\"])", "zh": "get_deep_data([\"\",\"\"])"},
     "handy_date_str": {"en": "Date String\t{self.get_now_str()}", "zh": "日期字符串\t{self.get_now_str()}"},
     "handy_os_sep": {"en": "OS Separator\t{os.sep}", "zh": "系统路径分隔符\t{os.sep}"},
-    "btn_handy_tools": {"en": "Handy Tools", "zh": "快捷工具"},
+    "handy_str2dict": {"en": "str2dict(\"k1|>v1\")", "zh": "str2dict(\"k1|>v1\")"},
+    "handy_feed_tpl": {"en": "feed_tpl(\"tpl\", {})", "zh": "feed_tpl(\"tpl\", {})"},
+    "handy_prop2dict": {"en": "prop2dict(\"k=v\")", "zh": "prop2dict(\"k=v\")"},
+    "handy_json2dict": {"en": "json2dict(\"json\")", "zh": "json2dict(\"json\")"},
+    "handy_str2list": {"en": "str2list(\"a|>b\")", "zh": "str2list(\"a|>b\")"},
+    "handy_get_sdir": {"en": "Shared Dir\t{self.get_sdir()}/", "zh": "共享目录\t{self.get_sdir()}/"},
+    "btn_handy_tools": {"en": "🛠▾", "zh": "🛠▾"},
 
     # === Tooltips — execution actions ===
     "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的执行"},
@@ -103,9 +109,28 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Context menu ===
     "menu_copy": {"en": "Copy", "zh": "复制"},
     "menu_paste": {"en": "Paste", "zh": "粘贴"},
+    "menu_skip_task": {"en": "Skip", "zh": "跳过"},
+    "menu_unskip_task": {"en": "Unskip", "zh": "取消跳过"},
     "menu_copy_name": {"en": "Copy Name", "zh": "复制名称"},
     "menu_copy_value": {"en": "Copy Value", "zh": "复制值"},
     "menu_edit_complex": {"en": "Edit Complex Value", "zh": "编辑复杂值"},
+    "menu_undo": {"en": "Undo\tCtrl+Z", "zh": "撤销\tCtrl+Z"},
+    "menu_redo": {"en": "Redo\tCtrl+Y", "zh": "重做\tCtrl+Y"},
+    "menu_snapshots": {"en": "Snapshots...", "zh": "快照..."},
+
+    # === Snapshot dialog ===
+    "dlg_snapshot_title": {"en": "Execution Snapshots", "zh": "执行快照"},
+    "btn_apply_snapshot": {"en": "Apply", "zh": "应用"},
+    "btn_close": {"en": "Close", "zh": "关闭"},
+
+    # === Unsaved changes dialog ===
+    "dlg_unsaved_title": {"en": "Unsaved Changes", "zh": "未保存的更改"},
+    "dlg_unsaved_msg": {
+        "en": "Current execution has unsaved changes.",
+        "zh": "当前执行有未保存的更改。",
+    },
+    "btn_dismiss": {"en": "Dismiss", "zh": "知道了"},
+    "btn_save_and_run": {"en": "Save and Run", "zh": "保存并继续运行"},
 
     # === Property grid categories ===
     "pgrid_input_editor": {"en": "Input Editor", "zh": "输入编辑器"},
