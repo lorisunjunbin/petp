@@ -465,15 +465,16 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 ### 2026
 
-| 日期 | 更新内容 |
-|------|----------|
-| 2026-04 | 模块化依赖管理（`requirements/` 分组）；`uv` 支持 |
-| 2026-04 | 无 GUI 模式、[`PETP_backgroud.py`](./PETP_backgroud.py)、[`Docker`](./Dockerfile) 支持 |
-| 2026-04 | 工具栏：追加 `date_str`、`os.sep`；**跳过任务**复选框 |
-| 2026-03 | 开箱即用：`OOTB_DOWNLOAD_LATEST_WXPYTHON`（macOS & Windows） |
-| 2026-03 | [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) 跳过功能 |
-| 2026-03 | Selenium 页面加载超时支持 |
-| 2026-02 | **MCP 工具服务器**（Streamable-HTTP）— [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py) |
+| 日期 | 更新内容                                                                                                                                                                                          |
+|------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | 国际化支持 : 中文 和 英文，界面语言可动态切换                                                                                                                                                                     |
+| 2026-04 | 模块化依赖管理（`requirements/` 分组）；`uv` 支持                                                                                                                                                           |
+| 2026-04 | 无 GUI 模式、[`PETP_backgroud.py`](./PETP_backgroud.py)、[`Docker`](./Dockerfile) 支持                                                                                                               |
+| 2026-04 | 工具栏：追加 `date_str`、`os.sep`；**跳过任务**复选框                                                                                                                                                        |
+| 2026-03 | 开箱即用：`OOTB_DOWNLOAD_LATEST_WXPYTHON`（macOS & Windows）                                                                                                                                         |
+| 2026-03 | [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) 跳过功能                                                                                                         |
+| 2026-03 | Selenium 页面加载超时支持                                                                                                                                                                             |
+| 2026-02 | **MCP 工具服务器**（Streamable-HTTP）— [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py)                                                                                                       |
 | 2026-01 | **智谱 Z.AI**：[SETUP](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) / [Q&A](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) / [MCP](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) |
 
 ### 2025
