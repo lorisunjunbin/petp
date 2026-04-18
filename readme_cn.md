@@ -179,6 +179,49 @@ PYTHON_BIN=python3.14 PETP_ECHO_ENV=1 ./scripts/macos/start_petp.sh gui
 PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_PIPELINE --no-http
 ```
 
+### Windows 启动脚本（建议长时间运行时使用）
+
+> **首次使用** — 允许 PowerShell 执行脚本（每台机器执行一次）：
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+> ```
+
+```powershell
+# 统一入口（推荐）
+.\scripts\windows\start_petp.ps1 gui
+.\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+
+# 独立快捷脚本
+.\scripts\windows\start_petp_gui.ps1
+.\scripts\windows\start_petp_background.ps1 --run-execution ENDECODER --no-http
+
+# 查看帮助
+.\scripts\windows\start_petp.ps1 help
+```
+
+默认自动应用（仅在未预先设置时生效）：
+- `PYTHONUNBUFFERED=1`
+- `PYTHONDONTWRITEBYTECODE=1`
+
+可选覆盖示例（在调用脚本前设置环境变量）：
+
+```powershell
+$env:PYTHON_BIN = '.\.venv\Scripts\python.exe'
+$env:PETP_ECHO_ENV = '1'
+.\scripts\windows\start_petp.ps1 gui
+
+# 后台模式，指定 Python 版本
+$env:PYTHON_BIN = 'python3.14'
+.\scripts\windows\start_petp.ps1 bg --run-pipeline MY_PIPELINE --no-http
+```
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `PYTHON_BIN` | `python` | Python 可执行文件路径 |
+| `PYTHONUNBUFFERED` | `1` | 实时输出日志 |
+| `PYTHONDONTWRITEBYTECODE` | `1` | 禁止生成 `.pyc` 文件 |
+| `PETP_ECHO_ENV` | _(未设置)_ | 设为 `1` 可打印运行时配置 |
+
 ---
 
 ## 依赖管理

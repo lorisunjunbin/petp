@@ -179,6 +179,49 @@ PYTHON_BIN=python3.14 PETP_ECHO_ENV=1 ./scripts/macos/start_petp.sh gui
 PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_PIPELINE --no-http
 ```
 
+### Windows helper scripts (recommended for long-running sessions)
+
+> **First-time setup** — allow PowerShell scripts to run (once per machine):
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+> ```
+
+```powershell
+# Unified launcher (recommended)
+.\scripts\windows\start_petp.ps1 gui
+.\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+
+# Dedicated wrappers
+.\scripts\windows\start_petp_gui.ps1
+.\scripts\windows\start_petp_background.ps1 --run-execution ENDECODER --no-http
+
+# Show help
+.\scripts\windows\start_petp.ps1 help
+```
+
+Defaults applied automatically (only when not already set):
+- `PYTHONUNBUFFERED=1`
+- `PYTHONDONTWRITEBYTECODE=1`
+
+Optional overrides (set env vars before calling):
+
+```powershell
+$env:PYTHON_BIN = '.\.venv\Scripts\python.exe'
+$env:PETP_ECHO_ENV = '1'
+.\scripts\windows\start_petp.ps1 gui
+
+# Background mode with custom Python
+$env:PYTHON_BIN = 'python3.14'
+.\scripts\windows\start_petp.ps1 bg --run-pipeline MY_PIPELINE --no-http
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `PYTHON_BIN` | `python` | Python executable path |
+| `PYTHONUNBUFFERED` | `1` | Real-time log output |
+| `PYTHONDONTWRITEBYTECODE` | `1` | Suppress `.pyc` generation |
+| `PETP_ECHO_ENV` | _(unset)_ | Set to `1` to print runtime settings |
+
 ---
 
 ## Dependency Management
