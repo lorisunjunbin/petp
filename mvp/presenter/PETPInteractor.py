@@ -87,13 +87,7 @@ class PETPInteractor():
         # input editor
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_property_change4e)
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_property_right_click4e)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_rdir, self.v.convertRDir)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_ddir, self.v.convertDDir)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_pwd, self.v.convertPWD)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data, self.v.convertGetData)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data, self.v.convertGetDeepData)
-        self.v.Bind(wx.EVT_BUTTON, self.on_append_date_str, self.v.appendDateStr)
-        self.v.Bind(wx.EVT_BUTTON, self.on_append_os_sep, self.v.appendOsSep)
+        self.v.Bind(wx.EVT_BUTTON, self.on_handy_tools_clicked, self.v.handy_tools)
 
         self.v.Bind(wx.EVT_CHECKBOX, self.on_cb_astool_changed, self.v.cb_astool)
 
@@ -303,33 +297,9 @@ class PETPInteractor():
         evt.Skip()
         self.p.on_cron_changed()
 
-    def on_convert_rdir(self, evt):
+    def on_handy_tools_clicked(self, evt):
         evt.Skip()
-        self.p.on_convert_rdir()
-
-    def on_convert_ddir(self, evt):
-        evt.Skip()
-        self.p.on_convert_ddir()
-
-    def on_convert_pwd(self, evt):
-        evt.Skip()
-        self.p.on_convert_pwd()
-
-    def on_convert_get_data(self, evt):
-        evt.Skip()
-        self.p.on_convert_get_data()
-
-    def on_convert_get_deep_data(self, evt):
-        evt.Skip()
-        self.p.on_convert_get_deep_data()
-
-    def on_append_date_str(self, evt):
-        evt.Skip()
-        self.p.on_append_date_str()
-
-    def on_append_os_sep(self, evt):
-        evt.Skip()
-        self.p.on_append_os_sep()
+        self.p.on_handy_tools_clicked()
 
     def on_cb_astool_changed(self, evt):
         evt.Skip()

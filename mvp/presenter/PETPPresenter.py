@@ -154,12 +154,9 @@ class PETPPresenter():
         v.addProperty.SetToolTip(t("tip_add_prop"))
         v.delProperty.SetToolTip(t("tip_delete_prop"))
         v.cb_skipped.SetToolTip(t("tip_skip_task"))
+        v.handy_tools.SetLabel(t("btn_handy_tools"))
+        v.handy_tools.SetToolTip(t("tip_handy_tools"))
         v.datepicker.SetToolTip(t("tip_fill_date"))
-
-        # Handy buttons
-        v.convertRDir.SetToolTip(t("tip_rdir"))
-        v.convertDDir.SetToolTip(t("tip_ddir"))
-        v.convertPWD.SetToolTip(t("tip_pwd"))
 
         # Execution description & MCP tool
         v.execution_desc.SetToolTip(t("tip_exec_desc"))
@@ -195,6 +192,25 @@ class PETPPresenter():
         v.stopCurrentCron.SetToolTip(t("tip_stop_cron"))
         v.stopAll.SetLabel(t("btn_stop_all"))
         v.stopAll.SetToolTip(t("tip_stop_all_cron"))
+
+        # Property grid category labels
+        self._update_pgrid_category(
+            v.taskProperty,
+            t("pgrid_input_editor_of") + str(self._pgrid_bound_row + 1)
+            if self._pgrid_bound_row >= 0 else t("pgrid_input_editor")
+        )
+        self._update_pgrid_category(v.loopProperty, t("pgrid_loop_editor"))
+
+    @staticmethod
+    def _update_pgrid_category(pgm, label):
+        page = pgm.GetPage(0)
+        if page is None:
+            return
+        for prop in page.GetPyIterator(wx.propgrid.PG_ITERATE_ALL):
+            if isinstance(prop, wx.propgrid.PropertyCategory):
+                prop.SetLabel(label)
+                break
+        pgm.Refresh()
 
     def _load_config(self):
         # load_executeonstartup
@@ -946,6 +962,54 @@ class PETPPresenter():
         else:
             prop.SetValue(current_value + to)
         self._modify_property(prop)
+
+    def on_handy_tools_clicked(self):
+        menu = wx.Menu()
+
+        items = [
+            ("handy_rdir", self._on_menu_convert_rdir),
+            ("handy_ddir", self._on_menu_convert_ddir),
+            ("handy_encrypt", self._on_menu_convert_pwd),
+            None,
+            ("handy_get_data", self._on_menu_convert_get_data),
+            ("handy_get_deep_data", self._on_menu_convert_get_deep_data),
+            None,
+            ("handy_date_str", self._on_menu_append_date_str),
+            ("handy_os_sep", self._on_menu_append_os_sep),
+        ]
+
+        for item in items:
+            if item is None:
+                menu.AppendSeparator()
+                continue
+            key, handler = item
+            menu_id = wx.NewId()
+            menu.Append(menu_id, t(key))
+            self.v.Bind(wx.EVT_MENU, handler, id=menu_id)
+
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_menu_convert_rdir(self, evt):
+        self.on_convert_rdir()
+
+    def _on_menu_convert_ddir(self, evt):
+        self.on_convert_ddir()
+
+    def _on_menu_convert_pwd(self, evt):
+        self.on_convert_pwd()
+
+    def _on_menu_convert_get_data(self, evt):
+        self.on_convert_get_data()
+
+    def _on_menu_convert_get_deep_data(self, evt):
+        self.on_convert_get_deep_data()
+
+    def _on_menu_append_date_str(self, evt):
+        self.on_append_date_str()
+
+    def _on_menu_append_os_sep(self, evt):
+        self.on_append_os_sep()
 
     @reload_log_after
     def on_convert_rdir(self):

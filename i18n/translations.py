@@ -45,9 +45,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "tip_fill_date": {"en": "Fill date to selected property", "zh": "将日期填入选中属性"},
 
     # === Tooltips — handy buttons ===
+    "tip_handy_tools": {"en": "Quick insert helpers", "zh": "快捷插入工具"},
     "tip_rdir": {"en": "get resources dir ", "zh": "获取资源目录"},
     "tip_ddir": {"en": "get download dir ", "zh": "获取下载目录"},
     "tip_pwd": {"en": "Prevent to save password into files", "zh": "防止将密码保存到文件中"},
+
+    # === Handy tools menu items ===
+    "handy_rdir": {"en": "Resources Dir\t{self.get_rdir()}/", "zh": "资源目录\t{self.get_rdir()}/"},
+    "handy_ddir": {"en": "Download Dir\t{self.get_ddir()}/", "zh": "下载目录\t{self.get_ddir()}/"},
+    "handy_encrypt": {"en": "Encrypt / Decrypt Password", "zh": "加密 / 解密密码"},
+    "handy_get_data": {"en": "get_data(\"\")", "zh": "get_data(\"\")"},
+    "handy_get_deep_data": {"en": "get_deep_data([\"\",\"\"])", "zh": "get_deep_data([\"\",\"\"])"},
+    "handy_date_str": {"en": "Date String\t{self.get_now_str()}", "zh": "日期字符串\t{self.get_now_str()}"},
+    "handy_os_sep": {"en": "OS Separator\t{os.sep}", "zh": "系统路径分隔符\t{os.sep}"},
+    "btn_handy_tools": {"en": "Handy Tools", "zh": "快捷工具"},
 
     # === Tooltips — execution actions ===
     "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的执行"},
