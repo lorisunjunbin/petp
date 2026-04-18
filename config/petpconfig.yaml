@@ -1,6 +1,6 @@
 application:
   app_name: petp
-  author: lorisunjunbin@DalianChina
+  author: sunjunbin@DalianChina
   cell: +86-13478653323
   email: 6099012@qq.com
   enable_windows_hdpi: false
@@ -13,4 +13,5 @@ application:
   log_level: INFO
   nogui_enabled: true
   nogui_ui_processor_policy: skip
+  snapshot_max: 20
   version: 1.2.0
