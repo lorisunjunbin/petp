@@ -12,6 +12,7 @@ from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from httpservice.HttpServer import HttpServer
 from utils.OSUtils import OSUtils
+from i18n.translations import set_locale
 from utils.SystemConfig import SystemConfig
 
 
@@ -86,6 +87,7 @@ def start_app():
         _set_macos_app_name('PETP')
 
     model: PETPModel = build_model()
+    set_locale(getattr(model, 'language', 'zh'))
     view: PETPView = build_view()
     presenter: PETPPresenter = build_presenter(model, view)
 

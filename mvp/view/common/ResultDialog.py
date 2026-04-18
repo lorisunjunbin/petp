@@ -5,6 +5,8 @@ import os
 
 import wx
 
+from i18n.translations import t
+
 
 class ResultDialog(wx.Dialog):
     """Enhanced result dialog with scrollable monospace content,
@@ -13,7 +15,7 @@ class ResultDialog(wx.Dialog):
 
     def __init__(self, parent=None, title="", message=""):
         style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-        super().__init__(parent, title="PETP - Message Box", style=style)
+        super().__init__(parent, title=t("dlg_result_title"), style=style)
 
         self._raw_msg = message or ""
         self._display_msg = _format_message(message)
@@ -70,19 +72,19 @@ class ResultDialog(wx.Dialog):
         btns = wx.BoxSizer(wx.HORIZONTAL)
 
         # Save as JSON — enabled only when content is valid JSON
-        self._json_btn = wx.Button(self, label="Save as JSON")
+        self._json_btn = wx.Button(self, label=t("dlg_save_json"))
         self._json_btn.Bind(wx.EVT_BUTTON, self._on_save_json)
         self._json_btn.Enable(self._parsed_json is not None)
 
         # Save as CSV — enabled when content can be represented as CSV rows
-        self._csv_btn = wx.Button(self, label="Save as CSV")
+        self._csv_btn = wx.Button(self, label=t("dlg_save_csv"))
         self._csv_btn.Bind(wx.EVT_BUTTON, self._on_save_csv)
         self._csv_btn.Enable(self._csv_rows is not None)
 
-        self._copy_btn = wx.Button(self, label="Copy")
+        self._copy_btn = wx.Button(self, label=t("dlg_copy"))
         self._copy_btn.Bind(wx.EVT_BUTTON, self._on_copy)
 
-        ok_btn = wx.Button(self, wx.ID_OK, "&OK")
+        ok_btn = wx.Button(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
 
         btns.AddStretchSpacer()
@@ -117,7 +119,7 @@ class ResultDialog(wx.Dialog):
 
     def _on_save_json(self, _evt):
         """Save the parsed JSON to a .json file chosen by the user."""
-        with wx.FileDialog(self, "Save as JSON",
+        with wx.FileDialog(self, t("dlg_save_json"),
                            wildcard="JSON files (*.json)|*.json",
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            defaultFile="result.json") as dlg:
@@ -127,15 +129,15 @@ class ResultDialog(wx.Dialog):
         try:
             with open(path, 'w', encoding='utf-8') as f:
                 json.dump(self._parsed_json, f, indent=2, ensure_ascii=False)
-            wx.MessageBox(f"Saved to:\n{path}", "Save as JSON",
+            wx.MessageBox(t("dlg_saved_to", path=path), t("dlg_save_json"),
                           wx.OK | wx.ICON_INFORMATION, self)
         except Exception as e:
-            wx.MessageBox(f"Failed to save:\n{e}", "Error",
+            wx.MessageBox(t("dlg_failed_to_save", error=e), t("dlg_error"),
                           wx.OK | wx.ICON_ERROR, self)
 
     def _on_save_csv(self, _evt):
         """Save CSV-compatible rows as a .csv file chosen by the user."""
-        with wx.FileDialog(self, "Save as CSV",
+        with wx.FileDialog(self, t("dlg_save_csv"),
                            wildcard="CSV files (*.csv)|*.csv",
                            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
                            defaultFile="result.csv") as dlg:
@@ -147,10 +149,10 @@ class ResultDialog(wx.Dialog):
                 writer = csv.writer(f)
                 for row in self._csv_rows:
                     writer.writerow(row)
-            wx.MessageBox(f"Saved to:\n{path}", "Save as CSV",
+            wx.MessageBox(t("dlg_saved_to", path=path), t("dlg_save_csv"),
                           wx.OK | wx.ICON_INFORMATION, self)
         except Exception as e:
-            wx.MessageBox(f"Failed to save:\n{e}", "Error",
+            wx.MessageBox(t("dlg_failed_to_save", error=e), t("dlg_error"),
                           wx.OK | wx.ICON_ERROR, self)
 
 

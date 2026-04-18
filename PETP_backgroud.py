@@ -10,6 +10,7 @@ import utils.Logger as Logger
 from core.runtime.BackgroundRuntime import BackgroundRuntime
 from core.runtime.UiProcessorPolicy import normalize_policy
 from httpservice.BackgroundHttpServer import BackgroundHttpServer
+from i18n.translations import set_locale
 from mvp.model.PETPModel import PETPModel
 from utils.DateUtil import DateUtil
 from utils.SystemConfig import SystemConfig
@@ -88,6 +89,7 @@ def _run_immediate(runtime: BackgroundRuntime, cfg: dict) -> None:
 def start_background_app() -> None:
     init_log()
     model = build_model()
+    set_locale(getattr(model, 'language', 'zh'))
     args = parse_args()
     cfg = _merge_config(args, model)
 

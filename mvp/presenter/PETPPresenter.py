@@ -30,10 +30,11 @@ from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.CodeExplainerUtil import CodeExplainerUtil
+from i18n.translations import t, set_locale
 
 
 class PETPPresenter():
-    CRON_INVALID: str = "Invalid CRON"
+    CRON_INVALID: str = "msg_cron_invalid"
 
     cron: Cron
     execution: Execution
@@ -64,8 +65,8 @@ class PETPPresenter():
         self._log_pending = False
 
         # Upgrade choosers BEFORE the interactor binds events, so all
-        self._upgrade_chooser(attr="executionChooser", tooltip="Select or search Execution (type to filter)", )
-        self._upgrade_chooser(attr="pipelineChooser", tooltip="Select or search Pipeline (type to filter)", )
+        self._upgrade_chooser(attr="executionChooser", tooltip=t("tip_exec_chooser"), )
+        self._upgrade_chooser(attr="pipelineChooser", tooltip=t("tip_pipeline_chooser"), )
 
         self.i.install(self, view)
 
@@ -79,6 +80,7 @@ class PETPPresenter():
         self._init_cron()
         self._init_property_grid()
 
+        self._apply_i18n()
         self._load_config()
 
     def _upgrade_chooser(self, attr: str, tooltip: str = ""):
@@ -120,6 +122,80 @@ class PETPPresenter():
             logging.info(f"execute on startup is enabled, will run execution: {self.m.last_run}")
             self.on_run_execution()
 
+    def _apply_i18n(self):
+        v = self.v
+
+        # Window title
+        v.SetTitle(t("win_title"))
+
+        # Notebook tabs
+        v.notebook.SetPageText(0, t("tab_executions"))
+        v.notebook.SetPageText(1, t("tab_pipelines"))
+
+        # --- Execution tab: task editor ---
+        v.addRow4E.SetToolTip(t("tip_add_row"))
+        v.delRow4E.SetToolTip(t("tip_delete_row"))
+        v.selectRecording.SetLabel(t("btn_select"))
+        v.selectRecording.SetToolTip(t("tip_select_recording"))
+        v.testChooser.SetToolTip(t("tip_select_test"))
+        v.loadRecording.SetLabel(t("btn_convert"))
+        v.loadRecording.SetToolTip(t("tip_convert_recording"))
+
+        # Task grid headers
+        v.taskGrid.SetColLabelValue(0, t("grid_task_chooser"))
+        v.taskGrid.SetColLabelValue(1, t("grid_input"))
+
+        # Loop editor
+        v.addLoop.SetToolTip(t("tip_add_property"))
+        v.delLoop.SetToolTip(t("tip_delete_property"))
+
+        # Input editor
+        v.avaibleProperties.SetToolTip(t("tip_available_properties"))
+        v.addProperty.SetToolTip(t("tip_add_prop"))
+        v.delProperty.SetToolTip(t("tip_delete_prop"))
+        v.cb_skipped.SetToolTip(t("tip_skip_task"))
+        v.datepicker.SetToolTip(t("tip_fill_date"))
+
+        # Handy buttons
+        v.convertRDir.SetToolTip(t("tip_rdir"))
+        v.convertDDir.SetToolTip(t("tip_ddir"))
+        v.convertPWD.SetToolTip(t("tip_pwd"))
+
+        # Execution description & MCP tool
+        v.execution_desc.SetToolTip(t("tip_exec_desc"))
+        v.cb_astool.SetLabel(t("tip_as_mcp_tool"))
+
+        # Execution action buttons
+        v.delExection.SetLabel(t("btn_delete"))
+        v.delExection.SetToolTip(t("tip_delete_execution"))
+        v.saveExection.SetLabel(t("btn_save"))
+        v.saveExection.SetToolTip(t("tip_save_execution"))
+        v.stopExection.SetLabel(t("btn_stop"))
+        v.runExecution.SetLabel(t("btn_run_execution"))
+        v.checkbox_executeonstartup.SetToolTip(t("tip_execute_on_startup"))
+        v.langChooser.SetToolTip(t("tip_change_lang"))
+        v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
+        v.loadLog.SetLabel(t("btn_reload"))
+        v.loadLog.SetToolTip(t("tip_reload_log"))
+        v.cleanLog.SetLabel(t("btn_clean"))
+        v.cleanLog.SetToolTip(t("tip_clean_log"))
+
+        # --- Pipeline tab ---
+        v.addRow4P.SetToolTip(t("tip_add_row_p"))
+        v.delRow4P.SetToolTip(t("tip_delete_row_p"))
+        v.executionGrid.SetColLabelValue(0, t("grid_exec_chooser"))
+        v.executionGrid.SetColLabelValue(1, t("grid_input"))
+        v.delPipeline.SetLabel(t("btn_delete"))
+        v.delPipeline.SetToolTip(t("tip_delete_pipeline"))
+        v.savePipeline.SetLabel(t("btn_save"))
+        v.savePipeline.SetToolTip(t("tip_save_pipeline"))
+        v.runPipeline.SetLabel(t("btn_run_pipeline"))
+        v.asCronChecbox.SetLabel(t("cb_as_cron"))
+        v.stopCurrentCron.SetLabel(t("btn_stop"))
+        v.stopCurrentCron.SetToolTip(t("tip_stop_cron"))
+        v.stopAll.SetLabel(t("btn_stop_all"))
+        v.stopAll.SetToolTip(t("tip_stop_all_cron"))
+
     def _load_config(self):
         # load_executeonstartup
         if self.m.execute_on_startup is not None:
@@ -128,6 +204,10 @@ class PETPPresenter():
         # load_log_level
         if self.m.log_level is not None:
             self.v.logLevelChooser.SetValue(self.m.log_level)
+
+        # load_language
+        lang = getattr(self.m, 'language', 'zh')
+        self.v.langChooser.SetValue("中文" if lang == "zh" else "EN")
 
         # load http_port, as part of title
         self.v.SetTitle(self.v.GetTitle() + " [ " + str(self.m.http_port) + " ]")
@@ -140,10 +220,10 @@ class PETPPresenter():
 
     def _init_property_grid(self):
         self.v.taskProperty.AddPage(self.single_page)
-        self._append_property_category(self.v.taskProperty, "Input Editor")
+        self._append_property_category(self.v.taskProperty, t("pgrid_input_editor"))
 
         self.v.loopProperty.AddPage(self.single_page)
-        self._append_property_category(self.v.loopProperty, "Loop Editor")
+        self._append_property_category(self.v.loopProperty, t("pgrid_loop_editor"))
 
     def _append_property_category(self, propgrid_manager, category_name):
         page = propgrid_manager.GetPage(self.single_page)
@@ -152,12 +232,12 @@ class PETPPresenter():
     def _reset_task_pgrid(self, task_number=0):
         self.v.taskProperty.ClearPage(self.v.taskProperty.GetPageByName(self.single_page))
         self._append_property_category(self.v.taskProperty,
-                                       "Input Editor of T" + str(
-                                           task_number) if task_number > 0 else "Input Editor")
+                                       t("pgrid_input_editor_of") + str(
+                                           task_number) if task_number > 0 else t("pgrid_input_editor"))
 
     def _reset_loop_pgrid(self):
         self.v.loopProperty.ClearPage(self.v.loopProperty.GetPageByName(self.single_page))
-        self._append_property_category(self.v.loopProperty, "Loop Editor")
+        self._append_property_category(self.v.loopProperty, t("pgrid_loop_editor"))
 
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
@@ -170,10 +250,10 @@ class PETPPresenter():
 
         menu = wx.Menu()
 
-        item_copy = wx.MenuItem(menu, self.popup_id_copy, "Copy")
+        item_copy = wx.MenuItem(menu, self.popup_id_copy, t("menu_copy"))
         self.v.Bind(wx.EVT_MENU, self._on_grid_row_copy, item_copy)
 
-        item_paste = wx.MenuItem(menu, self.popup_id_paste, "Paste")
+        item_paste = wx.MenuItem(menu, self.popup_id_paste, t("menu_paste"))
         self.v.Bind(wx.EVT_MENU, self._on_grid_row_paste, item_paste)
 
         menu.Append(item_copy)
@@ -263,6 +343,18 @@ class PETPPresenter():
 
         logging.getLogger().setLevel(logging.getLevelName(log_level))
         getattr(logging, log_level.lower())('Set log level to <' + log_level + '> successfully.')
+
+    @reload_log_after
+    def on_lang_changed(self):
+        combo = self.v.langChooser
+        locale = "zh" if combo.GetValue() == "中文" else "en"
+
+        if getattr(self.m, 'language', 'zh') != locale:
+            self.m.language = locale
+            self.m.set_config('language', locale)
+
+        set_locale(locale)
+        self._apply_i18n()
 
     @reload_log_after
     def on_execution_pipeline_changed(self):
@@ -383,7 +475,7 @@ class PETPPresenter():
 
         # validate dynamic func bodies before saving
         if not self._validate_dynamic_func_bodies(tasks, grid):
-            logging.info('Save aborted due to unresolved syntax errors.')
+            logging.info(t("msg_save_aborted"))
             return
 
         # prepare loops
@@ -509,14 +601,14 @@ class PETPPresenter():
 
         if (len(list) > 0):
             if self.v.asCronChecbox.IsChecked():
-                if not self.CRON_INVALID == self.v.lableCronExplain.GetLabel():
+                if not t(self.CRON_INVALID) == self.v.lableCronExplain.GetLabel():
                     Pipeline(name, list, self.v.asCronChecbox.IsChecked(), self.v.cronInput.GetValue()).save()
                 else:
-                    logging.warning('CRON is invalid, cron can not be saved')
+                    logging.warning(t("msg_cron_cannot_save"))
             else:
                 Pipeline(name, list).save()
         else:
-            logging.warning('Execution list should NOT be empty')
+            logging.warning(t("msg_exec_list_empty"))
 
     @reload_log_after
     def on_save_pipeline(self):
@@ -524,13 +616,13 @@ class PETPPresenter():
         name = combo.GetValue()
 
         if (len(name) == 0):
-            logging.info(f'Pipeline: cron name should not be empty')
+            logging.info(t("msg_pipeline_name_empty"))
             return
 
         if combo.FindString(name) == -1:
             combo.Insert(name, 0)
         else:
-            logging.warning(f'Pipeline: {combo.GetValue()} already existed, overwrite!')
+            logging.warning(t("msg_pipeline_overwrite", name=combo.GetValue()))
 
         self._save_pipeline(name)
 
@@ -542,7 +634,7 @@ class PETPPresenter():
         if combo.FindString(name) == -1:
             combo.Insert(name, 0)
         else:
-            logging.warning(f'Execution: {combo.GetValue()} already existed, overrwrite!')
+            logging.warning(t("msg_execution_overwrite", name=combo.GetValue()))
 
         self._save_execcution(name)
 
@@ -587,7 +679,7 @@ class PETPPresenter():
     def on_run_pipeline(self):
         combo = self.v.pipelineChooser
         self.pipeline = Pipeline.get_pipeline(combo.GetValue())
-        if self.v.asCronChecbox.IsChecked() and not self.CRON_INVALID == self.v.cronInput.GetValue():
+        if self.v.asCronChecbox.IsChecked() and not t(self.CRON_INVALID) == self.v.cronInput.GetValue():
             self.cron.add_one(self.pipeline)
         else:
             Thread(target=self.pipeline.run, args=({"__m": self.m, "__p": self}, self.v), daemon=True).start()
@@ -618,13 +710,13 @@ class PETPPresenter():
         for executor in self.executors:
             if executor.is_alive():
                 executor.execution.set_should_be_stop(True)
-                logging.info(f'Execution: [ {executor.execution.execution} ] is manually stopping.')
+                logging.info(t("msg_execution_stopping", name=executor.execution.execution))
 
         self.executors = []
 
     @reload_log_after
     def on_select_recording(self):
-        with wx.FileDialog(self.v, "Open Selenium IDE recording file", wildcard="recording files (*.side)|*.side",
+        with wx.FileDialog(self.v, t("fdlg_open_recording"), wildcard="recording files (*.side)|*.side",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
             if fileDialog.ShowModal() == wx.ID_CANCEL:
@@ -662,10 +754,9 @@ class PETPPresenter():
                     task_grid.SetCellValue(insert_at, 1, t.input)
 
             logging.info(
-                f'Successfully convert from Selenium IDE recording: {self.converter.file_path}, {self.converter.test_name}')
+                t("msg_convert_success", file_path=self.converter.file_path, test_name=self.converter.test_name))
         else:
-            logging.warning(
-                'Recording location and test name should not be empty, also able to select the row where start to load.')
+            logging.warning(t("msg_recording_empty"))
 
     def _bind_grid_cell_choice_editor(self, rowAt, grid, choices):
         # Prefer searchable choice editor to improve UX when choice lists are long.
@@ -876,7 +967,7 @@ class PETPPresenter():
         current_value = prop.GetValue()
 
         if not type(current_value) is str:
-            logging.info('please select a string property.')
+            logging.info(t("msg_select_string_prop"))
             return
 
         if current_value.startswith(prefix) and current_value.endswith(suffix):
@@ -896,7 +987,7 @@ class PETPPresenter():
             return
 
         if self._pgrid_bound_row < 0:
-            logging.info('No task row bound to property grid.')
+            logging.info(t("msg_no_task_row_bound"))
             return
 
         grid = self.v.taskGrid
@@ -918,7 +1009,7 @@ class PETPPresenter():
     def on_skip_task_changed(self, evt):
         # Guard: a task row must be selected before toggling skip state
         if self.current_selected_row < 0:
-            logging.info('Please select a task row first before toggling skip.')
+            logging.info(t("msg_select_task_row_first"))
             return
 
         page = self.v.taskProperty.GetPage(self.single_page)
@@ -939,11 +1030,11 @@ class PETPPresenter():
         tp = self.v.taskProperty
         prop = tp.GetSelection()
         if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
-            logging.info('pls select property first.')
+            logging.info(t("msg_select_property_first"))
             return
 
         if self._pgrid_bound_row < 0:
-            logging.info('No task row bound to property grid.')
+            logging.info(t("msg_no_task_row_bound"))
             return
 
         self._delete_property(prop)
@@ -958,7 +1049,7 @@ class PETPPresenter():
     def _delete_selected_property_from_page(self, pgm):
         prop = pgm.GetSelection()
         if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
-            logging.info('pls select value property first.')
+            logging.info(t("msg_select_value_property"))
             return
         pgm.DeleteProperty(prop.GetName())
 
@@ -975,8 +1066,8 @@ class PETPPresenter():
         try:
             return str(ExpressionDescriptor(cron))
         except Exception as e:
-            logging.error(f"{self.CRON_INVALID}: [ " + cron + " ] just try [ 0 * * * * ]")
-            return self.CRON_INVALID
+            logging.error(t("msg_cron_invalid_hint", cron_invalid=t(self.CRON_INVALID), cron=cron))
+            return t(self.CRON_INVALID)
 
     @reload_log_after
     def on_property_change4e(self, evt):
@@ -997,10 +1088,10 @@ class PETPPresenter():
         id_copy_value = wx.NewId()
         id_edit_complex = wx.NewId()
 
-        menu.Append(id_copy_name, "Copy Name")
-        menu.Append(id_copy_value, "Copy Value")
+        menu.Append(id_copy_name, t("menu_copy_name"))
+        menu.Append(id_copy_value, t("menu_copy_value"))
         menu.AppendSeparator()
-        menu.Append(id_edit_complex, "Edit Complex Value")
+        menu.Append(id_edit_complex, t("menu_edit_complex"))
 
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_name, id=id_copy_name)
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_value, id=id_copy_value)
@@ -1246,7 +1337,7 @@ class PETPPresenter():
         elif data['chart_type'] == 'LINE':
             PETP_LINE_CHARTView(self.v, wx.ID_ANY, data=data).Show()
         else:
-            logging.warning(f'Unsupported chart type: {data["chart_type"]}')
+            logging.warning(t("msg_unsupported_chart", chart_type=data["chart_type"]))
 
     def on_handle_open_input_dialog(self, evt: PETPEvent):
         advance_dialog = InputDialog(self.v, evt.data['title'], evt.data['msg'], evt.data['default_value'])
@@ -1279,7 +1370,7 @@ class PETPPresenter():
                 request_id = params.get(request_id_key)
                 server = HttpRequestHandler.get_server()
                 if request_id and server:
-                    server.store_result(request_id, {"error": f"Execution '{exection_name}' is not available as a tool (astool=false)"})
+                    server.store_result(request_id, {"error": t("msg_exec_not_tool", name=exection_name)})
         logging.info(f'\nHTTP request be handled - action: {action}, params: {params}\n')
 
     def get_tools(self):

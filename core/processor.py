@@ -130,7 +130,14 @@ class Processor:
 
     def get_desc(self):
         return f'''
-        ----------------------------------------------------{self.DESC}    ----------------------------------------------------'''
+        ----------------------------------------------------{self.get_localized_desc()}    ----------------------------------------------------'''
+
+    @classmethod
+    def get_localized_desc(cls):
+        from i18n.translations import t
+        key = f"desc_{cls.__name__.replace('Processor', '')}"
+        translated = t(key)
+        return translated if translated != key else cls.DESC
 
     def get_now_with_delta_in_str(self, delta=0, df="%Y-%m-%d %H:%M:%S"):
         return DateUtil.get_now_with_delta_in_str(delta, df)

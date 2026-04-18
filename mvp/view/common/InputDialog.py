@@ -3,6 +3,8 @@ import os
 import wx
 import wx.stc as stc
 
+from i18n.translations import t
+
 
 class InputDialog(wx.Dialog):
     """Input dialog with scrollable multi-line text entry,
@@ -10,7 +12,7 @@ class InputDialog(wx.Dialog):
 
     def __init__(self, parent=None, title="", message="", default_value=""):
         style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
-        super().__init__(parent, title="PETP - Input", style=style)
+        super().__init__(parent, title=t("dlg_input_title"), style=style)
 
         self.value = default_value
         self._build_ui(title, message, default_value)
@@ -81,8 +83,8 @@ class InputDialog(wx.Dialog):
         # -- Button bar --
         btns = wx.BoxSizer(wx.HORIZONTAL)
 
-        cancel_btn = wx.Button(self, wx.ID_CANCEL, "&Cancel")
-        ok_btn = wx.Button(self, wx.ID_OK, "&OK")
+        cancel_btn = wx.Button(self, wx.ID_CANCEL, t("dlg_cancel"))
+        ok_btn = wx.Button(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
         ok_btn.Bind(wx.EVT_BUTTON, self._on_ok)
 
