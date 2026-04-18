@@ -467,6 +467,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | Loop Editor: right-click or ⚙️ button to edit loop attributes via key-value dialog; snapshot & undo/redo support for loop changes. Save button dirty-state fix for skip toggle, paste, add/delete row, and loop edits. |
 | 2026-04 | GUI Undo & Redo & snapshot history. enhance handy tools.                                                                                                                                          |
 | 2026-04 | internationalization support: Chinese & EN                                                                                                                                                        |
 | 2026-04 | Modular dependency management with `requirements/` groups; `uv` support                                                                                                                           |
