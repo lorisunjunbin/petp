@@ -153,6 +153,9 @@ class PETPPresenter():
         # Loop editor
         v.addLoop.SetToolTip(t("tip_add_property"))
         v.delLoop.SetToolTip(t("tip_delete_property"))
+        v.editLoop.SetLabel(t("btn_edit_loop"))
+        v.editLoop.SetToolTip(t("tip_edit_loop"))
+        v.editLoop.Enable(False)
 
         # Input editor
         v.avaibleProperties.SetToolTip(t("tip_available_properties"))
@@ -318,6 +321,7 @@ class PETPPresenter():
             self.selected_row_2_copied_paste,
             self._check_task_skipped(self.row_copied[1])
         )
+        self._update_save_button()
 
     def _on_grid_row_toggle_skip(self, evt):
         row = self.selected_row_2_copied_paste
@@ -337,6 +341,7 @@ class PETPPresenter():
         input_dict["skipped"] = "yes" if skipped else "no"
         grid.SetCellValue(row, 1, json.dumps(input_dict))
         self._apply_row_skip_style(row, skipped)
+        self._update_save_button()
 
         if self._pgrid_bound_row == row:
             page = self.v.taskProperty.GetPage(self.single_page)
@@ -371,15 +376,72 @@ class PETPPresenter():
             self._bind_grid_cell_choice_editor(row, task_grid, self.available_processors)
 
     def on_add_loop(self):
+        self._push_snapshot()
         loop_code = 'loop-' + DateUtil.get_now_in_str()
         loop_tpl = Loop.tpl()
         page = self.v.loopProperty.GetPage(self.single_page)
         self._append_or_update_property_to_page(loop_code, loop_tpl, page)
         page.FitColumns()
+        self._update_save_button()
 
     def on_del_loop(self):
+        self._push_snapshot()
         page = self.v.loopProperty.GetPage(self.single_page)
         self._delete_selected_property_from_page(page)
+        self._update_save_button()
+
+    def on_edit_loop(self):
+        prop = self.v.loopProperty.GetSelection()
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
+            logging.info(t("msg_select_property_first"))
+            return
+        self._right_clicked_loop_property = prop
+        self._on_edit_loop_value(None)
+
+    def on_loop_property_selected4e(self, evt):
+        evt.Skip()
+        prop = evt.GetProperty()
+        is_real_prop = prop is not None and not isinstance(prop, wx.propgrid.PropertyCategory)
+        self.v.editLoop.Enable(is_real_prop)
+
+    def on_loop_property_changing4e(self, evt):
+        evt.Skip()
+        self._push_snapshot()
+
+    def on_loop_property_change4e(self, evt):
+        evt.Skip()
+        self._update_save_button()
+
+    def on_loop_property_right_click4e(self, evt):
+        prop = evt.GetProperty()
+        evt.Skip()
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
+            return
+
+        self._right_clicked_loop_property = prop
+
+        menu = wx.Menu()
+        id_edit = wx.NewId()
+        menu.Append(id_edit, t("menu_edit_loop"))
+        self.v.Bind(wx.EVT_MENU, self._on_edit_loop_value, id=id_edit)
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
+    @reload_log_after
+    def _on_edit_loop_value(self, evt):
+        from mvp.view.common.LoopEditDialog import LoopEditDialog
+        prop = getattr(self, '_right_clicked_loop_property', None)
+        if prop is None:
+            return
+        loop_code = prop.GetName()
+        loop_attributes_json = prop.GetValue()
+        dlg = LoopEditDialog(self.v, loop_code, loop_attributes_json)
+        if dlg.ShowModal() == wx.ID_OK:
+            new_json = dlg.get_result_json()
+            self._push_snapshot()
+            prop.SetValue(new_json)
+            self._update_save_button()
+        dlg.Destroy()
 
     def on_convert_get_deep_data_4loop(self):
         """ NOT IMPLEMENTED YET """
@@ -874,6 +936,7 @@ class PETPPresenter():
 
             logging.info(
                 t("msg_convert_success", file_path=self.converter.file_path, test_name=self.converter.test_name))
+            self._update_save_button()
         else:
             logging.warning(t("msg_recording_empty"))
 
@@ -1418,6 +1481,7 @@ class PETPPresenter():
         input_dict = func(input_dict, key, value)
         input = json.dumps(input_dict)
         task_grid.SetCellValue(target_row, input_col, input)
+        self._update_save_button()
 
     def _is_dirty(self):
         if self._saved_snapshot is None:
@@ -1549,6 +1613,7 @@ class PETPPresenter():
         self._push_snapshot()
         task_grid = self.v.taskGrid
         self._insert_row(task_grid, self.available_processors)
+        self._update_save_button()
 
     def on_add_row4p(self):
         execution_grid = self.v.executionGrid
@@ -1557,6 +1622,7 @@ class PETPPresenter():
     def on_delete_rows4e(self):
         self._push_snapshot()
         self._on_delete_rows(self.v.taskGrid)
+        self._update_save_button()
 
     def on_delete_rows4p(self):
         self._on_delete_rows(self.v.executionGrid)

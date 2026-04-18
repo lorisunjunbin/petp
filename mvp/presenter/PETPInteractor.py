@@ -128,8 +128,13 @@ class PETPInteractor():
     def bind_view_event_4e_loop_editor(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_add_loop, self.v.addLoop)
         self.v.Bind(wx.EVT_BUTTON, self.on_del_loop, self.v.delLoop)
+        self.v.Bind(wx.EVT_BUTTON, self.on_edit_loop, self.v.editLoop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data_4loop, self.v.convertGetDeepData4Loop)
         self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data_4loop, self.v.convertGetData4Loop)
+        self.v.loopProperty.Bind(wx.propgrid.EVT_PG_CHANGING, self.on_loop_property_changing4e)
+        self.v.loopProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_loop_property_change4e)
+        self.v.loopProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_loop_property_right_click4e)
+        self.v.loopProperty.Bind(wx.propgrid.EVT_PG_SELECTED, self.on_loop_property_selected4e)
 
     def on_handle_display_in_matplotlib_view(self, evt: PETPEvent):
         self.p.on_handle_display_in_matplotlib_view(evt)
@@ -198,6 +203,24 @@ class PETPInteractor():
     def on_del_loop(self, evt):
         evt.Skip()
         self.p.on_del_loop()
+
+    def on_edit_loop(self, evt):
+        evt.Skip()
+        self.p.on_edit_loop()
+
+    def on_loop_property_changing4e(self, evt):
+        evt.Skip()
+        self.p.on_loop_property_changing4e(evt)
+
+    def on_loop_property_change4e(self, evt):
+        self.p.on_loop_property_change4e(evt)
+
+    def on_loop_property_right_click4e(self, evt):
+        self.p.on_loop_property_right_click4e(evt)
+
+    def on_loop_property_selected4e(self, evt):
+        evt.Skip()
+        self.p.on_loop_property_selected4e(evt)
 
     def on_convert_get_data_4loop(self, evt):
         evt.Skip()

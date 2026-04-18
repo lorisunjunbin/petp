@@ -36,6 +36,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Tooltips — loop editor ===
     "tip_add_property": {"en": "Add property", "zh": "添加属性"},
     "tip_delete_property": {"en": "delete selected property", "zh": "删除选中属性"},
+    "tip_edit_loop": {"en": "Edit selected loop", "zh": "编辑选中循环"},
+    "btn_edit_loop": {"en": "⚙️", "zh": "⚙️"},
 
     # === Tooltips — input editor ===
     "tip_available_properties": {"en": "Available Properties", "zh": "可用属性"},
@@ -114,6 +116,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "menu_copy_name": {"en": "Copy Name", "zh": "复制名称"},
     "menu_copy_value": {"en": "Copy Value", "zh": "复制值"},
     "menu_edit_complex": {"en": "Edit Complex Value", "zh": "编辑复杂值"},
+    "menu_edit_loop": {"en": "Edit Loop...", "zh": "编辑循环..."},
+    "loop_dlg_title": {"en": "Loop Editor", "zh": "循环编辑器"},
+    "loop_dlg_col_key": {"en": "Key", "zh": "键"},
+    "loop_dlg_col_value": {"en": "Value", "zh": "值"},
     "menu_undo": {"en": "Undo\tCtrl+Z", "zh": "撤销\tCtrl+Z"},
     "menu_redo": {"en": "Redo\tCtrl+Y", "zh": "重做\tCtrl+Y"},
     "menu_snapshots": {"en": "Snapshots...", "zh": "快照..."},
