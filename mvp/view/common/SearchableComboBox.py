@@ -219,12 +219,13 @@ class SearchableComboBox(wx.ComboBox):
         if _IS_WINDOWS:
             if hasattr(self, '_filter_timer'):
                 self._filter_timer.Stop()
-            wx.CallAfter(self._deferred_select_restore)
-        else:
-            selected = self.GetValue()
-            self._sync(self._all_choices, selected)
-            self._is_selecting = False
+        selected = self.GetValue()
+        self._sync(self._all_choices, selected)
+        wx.CallAfter(self._finish_selecting)
         evt.Skip()
+
+    def _finish_selecting(self):
+        self._is_selecting = False
 
     def _on_kill_focus(self, evt):
         if _IS_WINDOWS and hasattr(self, '_filter_timer'):
