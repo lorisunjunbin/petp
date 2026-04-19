@@ -257,6 +257,13 @@ class SearchableComboBox(wx.ComboBox):
         needle = keyword.lower()
         return [name for name in self._all_choices if needle in name.lower()]
 
+    def _set_cursor_end(self):
+        if _IS_WINDOWS:
+            n = len(super().GetValue())
+            self.SetTextSelection(n, n)
+        else:
+            self.SetInsertionPointEnd()
+
     def _rebuild_dropdown_with_highlight(self):
         items = self._filtered if self._filtered else self._all_choices
         display_items = []
@@ -271,7 +278,7 @@ class SearchableComboBox(wx.ComboBox):
                 self.ChangeValue(self._typed_keyword)
             else:
                 super().SetValue(self._typed_keyword)
-            self.SetInsertionPointEnd()
+            self._set_cursor_end()
         finally:
             self.Thaw()
             if _IS_WINDOWS:
@@ -289,7 +296,7 @@ class SearchableComboBox(wx.ComboBox):
                 self.ChangeValue(keyword)
             else:
                 super().SetValue(keyword)
-            self.SetInsertionPointEnd()
+            self._set_cursor_end()
         finally:
             self.Thaw()
             if _IS_WINDOWS:
@@ -308,7 +315,7 @@ class SearchableComboBox(wx.ComboBox):
                 self.ChangeValue(display_value)
             else:
                 super().SetValue(display_value)
-            self.SetInsertionPointEnd()
+            self._set_cursor_end()
         finally:
             self.Thaw()
             if _IS_WINDOWS:
