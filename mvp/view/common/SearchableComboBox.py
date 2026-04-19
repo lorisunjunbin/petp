@@ -319,12 +319,6 @@ class SearchableComboBox(wx.ComboBox):
     def _finish_sync(self):
         self._is_syncing = False
 
-    def _deferred_select_restore(self):
-        selected = self.GetValue()
-        if self.GetCount() != len(self._all_choices):
-            self._sync(self._all_choices, selected)
-        self._is_selecting = False
-
     def _post_combobox_event(self):
         event = wx.CommandEvent(wx.wxEVT_COMBOBOX, self.GetId())
         event.SetEventObject(self)
