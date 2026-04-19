@@ -12,6 +12,9 @@ class SearchableComboBox(wx.ComboBox):
 
     Up/Down keys move a visible marker in the dropdown list without
     changing the text input.  Only Enter confirms the marked item.
+
+    On Windows, filtering and navigation are disabled — behaves as a
+    standard wx.ComboBox with tool icon prefix support only.
     """
 
     def __init__(self, parent, id=wx.ID_ANY, value="", choices=None, **kwargs):
@@ -21,22 +24,17 @@ class SearchableComboBox(wx.ComboBox):
         self._all_choices: list = list(choices or [])
         self._tool_names: set = set()
 
-        self._is_syncing = False
-        self._is_selecting = False
+        if not _IS_WINDOWS:
+            self._is_syncing = False
+            self._is_selecting = False
+            self._highlight_idx = -1
+            self._typed_keyword = ""
+            self._filtered: list = []
 
-        self._highlight_idx = -1
-        self._typed_keyword = ""
-        self._filtered: list = []
-
-        if _IS_WINDOWS:
-            self._filter_timer = wx.Timer(self)
-            self._pending_keyword = ""
-            self.Bind(wx.EVT_TIMER, self._on_filter_timer, self._filter_timer)
-
-        self.Bind(wx.EVT_TEXT, self._on_text)
-        self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
-        self.Bind(wx.EVT_COMBOBOX, self._on_combobox_select)
-        self.Bind(wx.EVT_KILL_FOCUS, self._on_kill_focus)
+            self.Bind(wx.EVT_TEXT, self._on_text)
+            self.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
+            self.Bind(wx.EVT_COMBOBOX, self._on_combobox_select)
+            self.Bind(wx.EVT_KILL_FOCUS, self._on_kill_focus)
 
     # ------------------------------------------------------------------
     # Tool icon prefix API
@@ -66,31 +64,29 @@ class SearchableComboBox(wx.ComboBox):
         return self._unprefix(super().GetValue())
 
     def SetValue(self, value: str):
-        self._is_syncing = True
-        try:
-            if _IS_WINDOWS:
-                self.ChangeValue(self._display(value))
-            else:
+        if _IS_WINDOWS:
+            super().SetValue(self._display(value))
+        else:
+            self._is_syncing = True
+            try:
                 super().SetValue(self._display(value))
-        finally:
-            if _IS_WINDOWS:
-                wx.CallAfter(self._finish_sync)
-            else:
+            finally:
                 self._is_syncing = False
 
     def AppendItems(self, items):
         self._all_choices.extend(items)
         self._all_choices.sort(key=str.lower)
-        self._is_syncing = True
-        try:
-            self.Freeze()
+        if _IS_WINDOWS:
             super().Clear()
             super().AppendItems([self._display(i) for i in self._all_choices])
-        finally:
-            self.Thaw()
-            if _IS_WINDOWS:
-                wx.CallAfter(self._finish_sync)
-            else:
+        else:
+            self._is_syncing = True
+            try:
+                self.Freeze()
+                super().Clear()
+                super().AppendItems([self._display(i) for i in self._all_choices])
+            finally:
+                self.Thaw()
                 self._is_syncing = False
 
     def Clear(self):
@@ -118,44 +114,22 @@ class SearchableComboBox(wx.ComboBox):
             self._all_choices.pop(n)
         super().Delete(n)
 
-    def Destroy(self):
-        if _IS_WINDOWS and hasattr(self, '_filter_timer'):
-            self._filter_timer.Stop()
-        return super().Destroy()
-
     # ------------------------------------------------------------------
-    # Internal event handlers
+    # macOS-only: Internal event handlers
     # ------------------------------------------------------------------
 
     def _on_text(self, evt):
         if self._is_syncing or self._is_selecting:
             evt.Skip()
             return
-
-        raw = super().GetValue()
-        keyword = self._unprefix(raw)
-
-        if _IS_WINDOWS:
-            self._pending_keyword = keyword
-            self._filter_timer.Stop()
-            self._filter_timer.StartOnce(200)
-            evt.Skip()
-            return
-
+        keyword = self._unprefix(super().GetValue())
         self._apply_filter(keyword)
         evt.Skip()
-
-    def _on_filter_timer(self, _evt):
-        if self._is_syncing or self._is_selecting:
-            return
-        self._apply_filter(self._pending_keyword)
 
     def _on_key_down(self, evt):
         keycode = evt.GetKeyCode()
 
         if keycode in (wx.WXK_DOWN, wx.WXK_UP):
-            if _IS_WINDOWS and hasattr(self, '_filter_timer'):
-                self._filter_timer.Stop()
             if not self._filtered:
                 self._filtered = list(self._all_choices)
                 self._typed_keyword = self.GetValue()
@@ -187,8 +161,6 @@ class SearchableComboBox(wx.ComboBox):
             return
 
         if keycode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            if _IS_WINDOWS and hasattr(self, '_filter_timer'):
-                self._filter_timer.Stop()
             items = self._filtered if self._filtered else self._all_choices
             if 0 <= self._highlight_idx < len(items):
                 selected = items[self._highlight_idx]
@@ -198,20 +170,19 @@ class SearchableComboBox(wx.ComboBox):
             self._filtered = []
             self._is_selecting = True
             self._sync(self._all_choices, selected)
+            self._is_selecting = False
             self.Dismiss()
-            wx.CallAfter(self._finish_selecting_and_fire)
+            self._post_combobox_event()
             return
 
         if keycode == wx.WXK_ESCAPE:
-            if _IS_WINDOWS and hasattr(self, '_filter_timer'):
-                self._filter_timer.Stop()
             self._highlight_idx = -1
             self._filtered = []
             current = self.GetValue()
             self._is_selecting = True
             self._sync(self._all_choices, current)
+            self._is_selecting = False
             self.Dismiss()
-            wx.CallAfter(self._finish_selecting)
             return
 
         evt.Skip()
@@ -220,16 +191,12 @@ class SearchableComboBox(wx.ComboBox):
         self._highlight_idx = -1
         self._filtered = []
         self._is_selecting = True
-        if _IS_WINDOWS and hasattr(self, '_filter_timer'):
-            self._filter_timer.Stop()
         selected = self.GetValue()
         self._sync(self._all_choices, selected)
         wx.CallAfter(self._finish_selecting)
         evt.Skip()
 
     def _on_kill_focus(self, evt):
-        if _IS_WINDOWS and hasattr(self, '_filter_timer'):
-            self._filter_timer.Stop()
         self._highlight_idx = -1
         self._filtered = []
         if self.GetCount() != len(self._all_choices):
@@ -240,7 +207,7 @@ class SearchableComboBox(wx.ComboBox):
         evt.Skip()
 
     # ------------------------------------------------------------------
-    # Internal helpers
+    # macOS-only: Internal helpers
     # ------------------------------------------------------------------
 
     def _apply_filter(self, keyword):
@@ -257,13 +224,6 @@ class SearchableComboBox(wx.ComboBox):
         needle = keyword.lower()
         return [name for name in self._all_choices if needle in name.lower()]
 
-    def _set_cursor_end(self):
-        if _IS_WINDOWS:
-            n = len(super().GetValue())
-            self.SetTextSelection(n, n)
-        else:
-            self.SetInsertionPointEnd()
-
     def _rebuild_dropdown_with_highlight(self):
         items = self._filtered if self._filtered else self._all_choices
         display_items = []
@@ -274,17 +234,11 @@ class SearchableComboBox(wx.ComboBox):
             self.Freeze()
             super().Clear()
             super().AppendItems(display_items)
-            if _IS_WINDOWS:
-                self.ChangeValue(self._typed_keyword)
-            else:
-                super().SetValue(self._typed_keyword)
-            self._set_cursor_end()
+            super().SetValue(self._typed_keyword)
+            self.SetInsertionPointEnd()
         finally:
             self.Thaw()
-            if _IS_WINDOWS:
-                wx.CallAfter(self._finish_sync)
-            else:
-                self._is_syncing = False
+            self._is_syncing = False
 
     def _rebuild_list(self, items: list, keyword: str):
         self._is_syncing = True
@@ -292,46 +246,35 @@ class SearchableComboBox(wx.ComboBox):
             self.Freeze()
             super().Clear()
             super().AppendItems([self._display(i) for i in items])
-            if _IS_WINDOWS:
-                self.ChangeValue(keyword)
-            else:
-                super().SetValue(keyword)
-            self._set_cursor_end()
+            super().SetValue(keyword)
+            self.SetInsertionPointEnd()
         finally:
             self.Thaw()
-            if _IS_WINDOWS:
-                wx.CallAfter(self._finish_sync)
-            else:
-                self._is_syncing = False
+            self._is_syncing = False
 
     def _sync(self, items: list, value: str):
-        self._is_syncing = True
-        try:
+        if _IS_WINDOWS:
             self.Freeze()
-            super().Clear()
-            super().AppendItems([self._display(i) for i in items])
-            display_value = self._display(value) if value else value
-            if _IS_WINDOWS:
-                self.ChangeValue(display_value)
-            else:
-                super().SetValue(display_value)
-            self._set_cursor_end()
-        finally:
-            self.Thaw()
-            if _IS_WINDOWS:
-                wx.CallAfter(self._finish_sync)
-            else:
+            try:
+                super().Clear()
+                super().AppendItems([self._display(i) for i in items])
+                super().SetValue(self._display(value) if value else value)
+            finally:
+                self.Thaw()
+        else:
+            self._is_syncing = True
+            try:
+                self.Freeze()
+                super().Clear()
+                super().AppendItems([self._display(i) for i in items])
+                super().SetValue(self._display(value) if value else value)
+                self.SetInsertionPointEnd()
+            finally:
+                self.Thaw()
                 self._is_syncing = False
-
-    def _finish_sync(self):
-        self._is_syncing = False
 
     def _finish_selecting(self):
         self._is_selecting = False
-
-    def _finish_selecting_and_fire(self):
-        self._is_selecting = False
-        self._post_combobox_event()
 
     def _post_combobox_event(self):
         event = wx.CommandEvent(wx.wxEVT_COMBOBOX, self.GetId())
