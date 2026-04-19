@@ -68,7 +68,10 @@ class SearchableComboBox(wx.ComboBox):
     def SetValue(self, value: str):
         self._is_syncing = True
         try:
-            super().SetValue(self._display(value))
+            if _IS_WINDOWS:
+                self.ChangeValue(self._display(value))
+            else:
+                super().SetValue(self._display(value))
         finally:
             if _IS_WINDOWS:
                 wx.CallAfter(self._finish_sync)
@@ -129,14 +132,16 @@ class SearchableComboBox(wx.ComboBox):
             evt.Skip()
             return
 
+        raw = super().GetValue()
+        keyword = self._unprefix(raw)
+
         if _IS_WINDOWS:
-            self._pending_keyword = self._unprefix(super().GetValue())
+            self._pending_keyword = keyword
             self._filter_timer.Stop()
             self._filter_timer.StartOnce(200)
             evt.Skip()
             return
 
-        keyword = self._unprefix(super().GetValue())
         self._apply_filter(keyword)
         evt.Skip()
 
@@ -193,9 +198,8 @@ class SearchableComboBox(wx.ComboBox):
             self._filtered = []
             self._is_selecting = True
             self._sync(self._all_choices, selected)
-            self._is_selecting = False
             self.Dismiss()
-            self._post_combobox_event()
+            wx.CallAfter(self._finish_selecting_and_fire)
             return
 
         if keycode == wx.WXK_ESCAPE:
@@ -206,8 +210,8 @@ class SearchableComboBox(wx.ComboBox):
             current = self.GetValue()
             self._is_selecting = True
             self._sync(self._all_choices, current)
-            self._is_selecting = False
             self.Dismiss()
+            wx.CallAfter(self._finish_selecting)
             return
 
         evt.Skip()
@@ -216,16 +220,12 @@ class SearchableComboBox(wx.ComboBox):
         self._highlight_idx = -1
         self._filtered = []
         self._is_selecting = True
-        if _IS_WINDOWS:
-            if hasattr(self, '_filter_timer'):
-                self._filter_timer.Stop()
+        if _IS_WINDOWS and hasattr(self, '_filter_timer'):
+            self._filter_timer.Stop()
         selected = self.GetValue()
         self._sync(self._all_choices, selected)
         wx.CallAfter(self._finish_selecting)
         evt.Skip()
-
-    def _finish_selecting(self):
-        self._is_selecting = False
 
     def _on_kill_focus(self, evt):
         if _IS_WINDOWS and hasattr(self, '_filter_timer'):
@@ -236,7 +236,7 @@ class SearchableComboBox(wx.ComboBox):
             current = self.GetValue()
             self._is_selecting = True
             self._sync(self._all_choices, current)
-            self._is_selecting = False
+            wx.CallAfter(self._finish_selecting)
         evt.Skip()
 
     # ------------------------------------------------------------------
@@ -318,6 +318,13 @@ class SearchableComboBox(wx.ComboBox):
 
     def _finish_sync(self):
         self._is_syncing = False
+
+    def _finish_selecting(self):
+        self._is_selecting = False
+
+    def _finish_selecting_and_fire(self):
+        self._is_selecting = False
+        self._post_combobox_event()
 
     def _post_combobox_event(self):
         event = wx.CommandEvent(wx.wxEVT_COMBOBOX, self.GetId())
