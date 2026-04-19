@@ -6,7 +6,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_MULTI_THEN_CLICKProcessor(Processor):
-    TPL: str = '{"skip_fn":"return ele is None","findby":"xpath|css","identity":"", "wait":3, "timeout":10}'
+    TPL: str = '{"skip_fn":"return ele is None","findby":"xpath|css","identity":"", "wait":3, "timeout":10, "chrome_name":"chrome"}'
 
     DESC = f'''
         Find multiple elements via selenium within timeout, then click on them one by one.

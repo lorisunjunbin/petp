@@ -5,7 +5,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_KEYINProcessor(Processor):
-    TPL: str = '{"keyinby":"id|xpath|css", "identity":"", "value":"", "value_key":"", "clearb4keyin":"yes|no","wait":1}'
+    TPL: str = '{"keyinby":"id|xpath|css", "identity":"", "value":"", "value_key":"", "clearb4keyin":"yes|no","wait":1, "chrome_name":"chrome"}'
     DESC = f'''
     Call the Chrome driver to locate a web element, then simulate keyboard input via send_keys.
     Supports typing strings or pressing special keys (KEY_ENTER, KEY_TAB, etc.).

@@ -3,7 +3,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class SCREENSHOTProcessor(Processor):
-    TPL: str = '{"xpath":"", "crop":"left;top;right;bottom","format":"png", "show":"yes|no", "filepath":"", "filepath_key":"","data_key":"","wait": 3}'
+    TPL: str = '{"xpath":"", "crop":"left;top;right;bottom","format":"png", "show":"yes|no", "filepath":"", "filepath_key":"","data_key":"","wait": 3, "chrome_name":"chrome"}'
     DESC: str = f'''
         Take a screenshot of the web page via selenium. Supports full page, element by xpath, or cropped region.
 

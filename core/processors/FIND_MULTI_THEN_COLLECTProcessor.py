@@ -6,7 +6,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_MULTI_THEN_COLLECTProcessor(Processor):
-    TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value|ele|_any property or attribute_", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None","sort_lambda":"item", "sort_reverse":"no"}'
+    TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value|ele|_any property or attribute_", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None","sort_lambda":"item", "sort_reverse":"no", "chrome_name":"chrome"}'
 
     DESC = f'''
         Find multiple elements via selenium and collect their text, value, or any property/attribute into a list.

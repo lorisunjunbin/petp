@@ -353,7 +353,6 @@ class PETPPresenter():
 
     def _load_available_executions(self):
         self.available_executions = Execution.get_available_executions()
-        self._execution_all_items = list(self.available_executions)
         self.v.executionChooser.AppendItems(self.available_executions)
         # Mark tool executions so they display with a 🔧 prefix
         tool_names = Execution.get_tool_execution_names()
@@ -567,32 +566,6 @@ class PETPPresenter():
             self._snapshots.clear()
             self._snapshot_cursor = -1
             self._mark_clean()
-
-    @reload_log_after
-    def on_execution_search(self, evt):
-        # Use GetValue() which strips the tool-icon prefix, instead of raw evt.String
-        combo = self.v.executionChooser
-        search_value = combo.GetValue()
-        search_text = search_value.lower()
-        all_executions = Execution.get_available_executions()
-
-        if search_value in all_executions:
-            self._reload_executions(all_executions, search_value)
-            combo.Dismiss()
-            return
-
-        filtered_executions = [exec_name for exec_name in all_executions if search_text in exec_name.lower()]
-        exact_match = len(filtered_executions) == 1 and search_text == filtered_executions[0].lower()
-
-        if exact_match:
-            self._reload_executions(all_executions, filtered_executions[0])
-            combo.Dismiss()
-        else:
-            self._reload_executions(filtered_executions or all_executions, search_value)
-            combo.Popup()
-
-    def _reload_executions(self, items, value):
-        self.v.executionChooser.Reload(items, value)
 
     def _save_execcution(self, name):
         grid = self.v.taskGrid

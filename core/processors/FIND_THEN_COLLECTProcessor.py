@@ -5,7 +5,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_COLLECTProcessor(Processor):
-    TPL: str = '{"collectby":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10}'
+    TPL: str = '{"collectby":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10, "chrome_name":"chrome"}'
 
     DESC = f'''
         Find a single element via selenium and collect its text, value, or any property/attribute, then store to data_chain.

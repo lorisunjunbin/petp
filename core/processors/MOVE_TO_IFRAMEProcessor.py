@@ -3,7 +3,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class MOVE_TO_IFRAMEProcessor(Processor):
-    TPL: str = '{"frame_ids":["at least give one"]}'
+    TPL: str = '{"frame_ids":["at least give one"], "chrome_name":"chrome"}'
     DESC: str = f'''
         Switch chrome driver context into specific iframe, supports nested iframes by providing multiple frame IDs.
 

@@ -5,7 +5,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_CLICKProcessor(Processor):
-    TPL: str = '{"clickby":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no"}'
+    TPL: str = '{"clickby":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "chrome_name":"chrome"}'
 
     DESC: str = f'''
         Find a web element via Selenium using the specified locator strategy and click it.
