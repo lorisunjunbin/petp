@@ -315,6 +315,21 @@ class PETPPresenter():
         ]
         logging.debug("selected_row_copied" + str(self.row_copied))
 
+    def on_task_grid_copy(self):
+        if self.current_selected_row < 0:
+            return
+        self.row_copied = [
+            self.v.taskGrid.GetCellValue(self.current_selected_row, 0),
+            self.v.taskGrid.GetCellValue(self.current_selected_row, 1)
+        ]
+        logging.debug("row copied via shortcut: " + str(self.row_copied))
+
+    def on_task_grid_paste(self):
+        if self.current_selected_row < 0 or not hasattr(self, 'row_copied') or not self.row_copied:
+            return
+        self.selected_row_2_copied_paste = self.current_selected_row
+        self._on_grid_row_paste(None)
+
     def _on_grid_row_paste(self, evt):
         self._push_snapshot()
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 0, self.row_copied[0])
@@ -587,8 +602,7 @@ class PETPPresenter():
                     grid.SetCellValue(idx, 1, itm.input)
 
             self._apply_all_row_skip_styles()
-
-            self._reset_loop_pgrid()
+            self._autosize_input_col()
             if not hasattr(self.execution, 'loops'):
                 return
 
@@ -611,6 +625,10 @@ class PETPPresenter():
             self._snapshots.clear()
             self._snapshot_cursor = -1
             self._mark_clean()
+
+            if self.v.taskGrid.GetNumberRows() > 0:
+                self.v.taskGrid.SelectRow(0)
+                self._load_input_taskproperty(0)
 
     def _save_execcution(self, name):
         grid = self.v.taskGrid
@@ -692,6 +710,11 @@ class PETPPresenter():
         for row in range(grid.GetNumberRows()):
             input_json = grid.GetCellValue(row, 1)
             self._apply_row_skip_style(row, self._check_task_skipped(input_json))
+
+    def _autosize_input_col(self):
+        grid = self.v.taskGrid
+        grid.AutoSizeColumn(0, setAsMin=False)
+        grid.AutoSizeColumn(1, setAsMin=False)
 
     def _validate_dynamic_func_bodies(self, tasks, grid):
         """
@@ -1058,7 +1081,7 @@ class PETPPresenter():
             page = self.v.taskProperty.GetPage(self.single_page)
             self._reset_task_pgrid(current_row + 1)
 
-            for k in sorted(input_dict.keys()):
+            for k in input_dict.keys():
                 v = input_dict[k]
                 self._append_or_update_property_to_page(k, v, page)
 
@@ -1333,7 +1356,6 @@ class PETPPresenter():
         page = self.v.taskProperty.GetPage(self.single_page)
         self._append_or_update_property_to_page(k, v, page)
         self._add_property(k, v)
-        self._resort_pgrid_page(page)
 
         input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
         self._fill_available_properties(processor, input_dict)
@@ -1374,7 +1396,6 @@ class PETPPresenter():
 
         self._delete_property(prop)
         self._delete_selected_property_from_page(tp)
-        self._resort_pgrid_page(tp.GetPage(self.single_page))
 
         grid = self.v.taskGrid
 
@@ -1382,18 +1403,39 @@ class PETPPresenter():
         processor = grid.GetCellValue(self._pgrid_bound_row, 0)
         self._fill_available_properties(processor, input_dict)
 
-    def _resort_pgrid_page(self, page):
-        props = {}
-        it = page.GetFirstProperty()
-        while it is not None:
-            if not isinstance(it, wx.propgrid.PropertyCategory):
-                props[it.GetName()] = it.GetValue()
-            it = page.GetNextProperty(it)
-        for name in list(props.keys()):
+    def _move_pgrid_property(self, direction):
+        tp = self.v.taskProperty
+        page = tp.GetPage(self.single_page)
+        prop = tp.GetSelection()
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
+            return
+        selected_name = prop.GetName()
+        props = [
+            (p.GetName(), p.GetValue())
+            for p in page.GetPyVIterator(wx.propgrid.PG_ITERATE_PROPERTIES)
+            if not isinstance(p, wx.propgrid.PropertyCategory)
+        ]
+        idx = next((i for i, (n, _) in enumerate(props) if n == selected_name), None)
+        if idx is None:
+            return
+        new_idx = idx + direction
+        if new_idx < 0 or new_idx >= len(props):
+            return
+        props[idx], props[new_idx] = props[new_idx], props[idx]
+        for name, _ in props:
             page.DeleteProperty(name)
-        for name in sorted(props.keys()):
-            self._append_or_update_property_to_page(name, props[name], page)
+        for name, value in props:
+            self._append_or_update_property_to_page(name, value, page)
         page.FitColumns()
+        tp.SelectProperty(page.GetPropertyByName(selected_name))
+
+        grid = self.v.taskGrid
+        if self._pgrid_bound_row >= 0:
+            input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
+            ordered = {name: input_dict[name] for name, _ in props if name in input_dict}
+            rest = {k: v for k, v in input_dict.items() if k not in ordered}
+            grid.SetCellValue(self._pgrid_bound_row, 1, json.dumps(ordered | rest))
+            self._update_save_button()
 
     def _delete_selected_property_from_page(self, pgm):
         prop = pgm.GetSelection()
@@ -1435,12 +1477,24 @@ class PETPPresenter():
         menu = wx.Menu()
         id_copy_name = wx.NewId()
         id_copy_value = wx.NewId()
+        id_copy_pair = wx.NewId()
+        id_paste_pair = wx.NewId()
         id_edit_complex = wx.NewId()
+        id_rename_key = wx.NewId()
+        id_move_up = wx.NewId()
+        id_move_down = wx.NewId()
 
         menu.Append(id_copy_name, t("menu_copy_name"))
         menu.Append(id_copy_value, t("menu_copy_value"))
+        menu.Append(id_copy_pair, t("menu_copy_pair"))
+        menu.Append(id_paste_pair, t("menu_paste_pair"))
+        menu.Enable(id_paste_pair, self._clipboard_has_property_pair())
         menu.AppendSeparator()
+        menu.Append(id_rename_key, t("menu_rename_key"))
         menu.Append(id_edit_complex, t("menu_edit_complex"))
+        menu.AppendSeparator()
+        menu.Append(id_move_up, t("menu_move_up"))
+        menu.Append(id_move_down, t("menu_move_down"))
 
         can_undo = self._snapshot_cursor >= 0
         can_redo = self._snapshot_cursor < len(self._snapshots) - 1
@@ -1462,7 +1516,12 @@ class PETPPresenter():
 
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_name, id=id_copy_name)
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_value, id=id_copy_value)
+        self.v.Bind(wx.EVT_MENU, self._on_copy_property_pair, id=id_copy_pair)
+        self.v.Bind(wx.EVT_MENU, self._on_paste_property_pair, id=id_paste_pair)
         self.v.Bind(wx.EVT_MENU, self._on_edit_complex_value, id=id_edit_complex)
+        self.v.Bind(wx.EVT_MENU, self._on_rename_property_key, id=id_rename_key)
+        self.v.Bind(wx.EVT_MENU, lambda e: self._move_pgrid_property(-1), id=id_move_up)
+        self.v.Bind(wx.EVT_MENU, lambda e: self._move_pgrid_property(1), id=id_move_down)
 
         self.v.PopupMenu(menu)
         menu.Destroy()
@@ -1490,6 +1549,88 @@ class PETPPresenter():
                 wx.TheClipboard.SetData(wx.TextDataObject(str(name)))
                 wx.TheClipboard.Close()
                 logging.info(f'Copied property name to clipboard: {name}')
+
+    def _on_copy_property_pair(self, evt):
+        prop = self._right_clicked_property
+        if prop is None:
+            return
+        pair = json.dumps({prop.GetName(): prop.GetValue()})
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(pair))
+            wx.TheClipboard.Close()
+            logging.info(f'Copied property pair to clipboard: {pair}')
+
+    def _clipboard_has_property_pair(self):
+        if not wx.TheClipboard.Open():
+            return False
+        data = wx.TextDataObject()
+        success = wx.TheClipboard.GetData(data)
+        wx.TheClipboard.Close()
+        if not success:
+            return False
+        try:
+            parsed = json.loads(data.GetText())
+            return isinstance(parsed, dict) and len(parsed) > 0
+        except (json.JSONDecodeError, ValueError):
+            return False
+
+    def _on_paste_property_pair(self, evt):
+        if self._pgrid_bound_row < 0:
+            return
+        if not wx.TheClipboard.Open():
+            return
+        data = wx.TextDataObject()
+        success = wx.TheClipboard.GetData(data)
+        wx.TheClipboard.Close()
+        if not success:
+            return
+        try:
+            pair = json.loads(data.GetText())
+            if not isinstance(pair, dict):
+                return
+        except (json.JSONDecodeError, ValueError):
+            return
+        page = self.v.taskProperty.GetPage(self.single_page)
+        for k, v in pair.items():
+            self._append_or_update_property_to_page(k, v, page)
+            self._add_property(k, v)
+        logging.info(f'Pasted property pair: {pair}')
+
+    def _on_rename_property_key(self, evt):
+        prop = self._right_clicked_property
+        if prop is None or self._pgrid_bound_row < 0:
+            return
+        old_name = prop.GetName()
+        dlg = InputDialog(self.v, title=t("dlg_rename_key_title"),
+                          message=t("dlg_rename_key_msg"), default_value=old_name)
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        new_name = dlg.GetValue().strip()
+        dlg.Destroy()
+        if not new_name or new_name == old_name:
+            return
+
+        tp = self.v.taskProperty
+        page = tp.GetPage(self.single_page)
+        props = [
+            (p.GetName(), p.GetValue())
+            for p in page.GetPyVIterator(wx.propgrid.PG_ITERATE_PROPERTIES)
+            if not isinstance(p, wx.propgrid.PropertyCategory)
+        ]
+        for name, _ in props:
+            page.DeleteProperty(name)
+        for name, value in props:
+            self._append_or_update_property_to_page(new_name if name == old_name else name, value, page)
+        page.FitColumns()
+        tp.SelectProperty(page.GetPropertyByName(new_name))
+
+        grid = self.v.taskGrid
+        input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
+        renamed = {(new_name if k == old_name else k): v for k, v in input_dict.items()}
+        grid.SetCellValue(self._pgrid_bound_row, 1, json.dumps(renamed))
+        self._update_save_button()
+        logging.info(f'Renamed property key: {old_name} → {new_name}')
 
     def _on_copy_property_value(self, evt):
         if self._right_clicked_property is not None:
@@ -1610,6 +1751,7 @@ class PETPPresenter():
         }
 
     def _restore_snapshot(self, snap):
+        prev_row = self.current_selected_row
         grid = self.v.taskGrid
         grid.ClearGrid()
 
@@ -1640,6 +1782,10 @@ class PETPPresenter():
 
         self._pgrid_bound_row = -1
         self._reset_task_pgrid()
+
+        if prev_row >= 0 and prev_row < grid.GetNumberRows():
+            grid.SelectRow(prev_row)
+            self._load_input_taskproperty(prev_row)
 
     def _push_snapshot(self):
         snap = self._capture_snapshot()

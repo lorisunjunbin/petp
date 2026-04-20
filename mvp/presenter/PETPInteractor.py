@@ -102,6 +102,7 @@ class PETPInteractor():
         # input editor
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_property_change4e)
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_property_right_click4e)
+        self.v.taskProperty.GetGrid().Bind(wx.EVT_KEY_DOWN, self.on_task_property_key_down)
         self.v.Bind(wx.EVT_BUTTON, self.on_handy_tools_clicked, self.v.handy_tools)
 
         self.v.Bind(wx.EVT_CHECKBOX, self.on_cb_astool_changed, self.v.cb_astool)
@@ -124,6 +125,7 @@ class PETPInteractor():
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.on_grid_cell_change4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_grid_cell_select4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_grid_cell_right_click)
+        self.v.taskGrid.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.on_task_grid_key_down)
 
     def bind_view_event_4e_loop_editor(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_add_loop, self.v.addLoop)
@@ -327,6 +329,26 @@ class PETPInteractor():
 
     def on_property_right_click4e(self, evt):
         self.p.on_property_right_click4e(evt)
+
+    def on_task_property_key_down(self, evt):
+        if evt.ShiftDown():
+            if evt.GetKeyCode() == wx.WXK_UP:
+                self.p._move_pgrid_property(-1)
+                return
+            if evt.GetKeyCode() == wx.WXK_DOWN:
+                self.p._move_pgrid_property(1)
+                return
+        evt.Skip()
+
+    def on_task_grid_key_down(self, evt):
+        if evt.ControlDown():
+            if evt.GetKeyCode() == ord('C'):
+                self.p.on_task_grid_copy()
+                return
+            if evt.GetKeyCode() == ord('V'):
+                self.p.on_task_grid_paste()
+                return
+        evt.Skip()
 
     def on_cron_actived(self, evt):
         self.p.on_cron_actived(evt)

@@ -7,7 +7,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === Buttons — Execution tab ===
     "btn_delete": {"en": "🗑", "zh": "🗑"},
-    "btn_copy": {"en": "📑", "zh": "📑"},
+    "btn_copy": {"en": "📋", "zh": "📋"},
     "btn_save": {"en": "Save", "zh": "保存"},
     "btn_run_execution": {"en": "Run Execution", "zh": "开始运行"},
     "btn_run_pipeline": {"en": "Run Pipeline", "zh": "运行流水线"},
@@ -69,7 +69,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "handy_json_loads": {"en": "json.loads(str)", "zh": "json.loads(str)"},
     "handy_str2list": {"en": "str2list(\"a|>b\")", "zh": "str2list(\"a|>b\")"},
     "handy_get_sdir": {"en": "Shared Dir\t{self.get_sdir()}/", "zh": "共享目录\t{self.get_sdir()}/"},
-    "btn_handy_tools": {"en": "🛠▾", "zh": "🛠▾"},
+    "btn_handy_tools": {"en": "🧰▾", "zh": "🧰▾"},
 
     # === Tooltips — execution actions ===
     "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的Execution"},
@@ -117,9 +117,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "menu_paste": {"en": "Paste", "zh": "粘贴"},
     "menu_skip_task": {"en": "Skip", "zh": "跳过"},
     "menu_unskip_task": {"en": "Unskip", "zh": "取消跳过"},
-    "menu_copy_name": {"en": "Copy Name", "zh": "复制名称"},
+    "menu_copy_name": {"en": "Copy Name", "zh": "复制名"},
     "menu_copy_value": {"en": "Copy Value", "zh": "复制值"},
+    "menu_copy_pair": {"en": "Copy Name+Value", "zh": "复制Name+Value"},
+    "menu_paste_pair": {"en": "Paste Name+Value", "zh": "粘贴Name+Value"},
     "menu_edit_complex": {"en": "Edit Complex Value", "zh": "编辑复杂值"},
+    "menu_rename_key": {"en": "Edit Name", "zh": "修改名"},
+    "dlg_rename_key_title": {"en": "Edit Property Name", "zh": "修改属性名"},
+    "dlg_rename_key_msg": {"en": "New name:", "zh": "新名："},
+    "menu_move_up": {"en": "Move Up\tShift+Up", "zh": "上移\tShift+Up"},
+    "menu_move_down": {"en": "Move Down\tShift+Down", "zh": "下移\tShift+Down"},
     "menu_edit_loop": {"en": "Edit Loop...", "zh": "编辑循环..."},
     "loop_dlg_title": {"en": "Loop Editor", "zh": "循环编辑器"},
     "loop_dlg_col_key": {"en": "Key", "zh": "键"},
