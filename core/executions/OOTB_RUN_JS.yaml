@@ -8,7 +8,7 @@ list:
   skipped: false
   type: RUN_JAVASCRIPT
 - !!python/object:core.task.Task
-  input: '{"title": "JS\u6587\u4ef6\u8fd0\u884c\u7ed3\u679c\uff1a", "msg": "{method_result}"}'
+  input: '{"title": "JS\u6587\u4ef6\u7684\u8fd0\u884c\u7ed3\u679c", "msg": "{method_result}"}'
   skipped: false
   type: SHOW_RESULT
 loops: []

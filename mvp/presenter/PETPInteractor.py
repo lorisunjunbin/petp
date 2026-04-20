@@ -377,5 +377,7 @@ class PETPInteractor():
         self.p.on_logcontents_unfocused()
 
     def on_close_window(self, evt):
-        evt.Skip()
-        self.p.on_close_window()
+        if self.p.on_close_window(evt):
+            evt.Skip()
+        else:
+            evt.Veto()

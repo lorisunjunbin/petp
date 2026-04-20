@@ -463,10 +463,42 @@ class PETPPresenter():
         """ NOT IMPLEMENTED YET """
         pass
 
-    def on_close_window(self):
+    def on_close_window(self, evt=None):
+        if self._is_dirty():
+            dlg = wx.Dialog(self.v, title=t("dlg_unsaved_title"))
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(wx.StaticText(dlg, label=t("dlg_unsaved_on_close_msg")), 0, wx.ALL, 12)
+            btn_sizer = wx.StdDialogButtonSizer()
+            btn_save = wx.Button(dlg, wx.ID_ANY, t("btn_save_and_exit"))
+            btn_exit = wx.Button(dlg, wx.ID_ANY, t("btn_exit_without_save"))
+            btn_cancel = wx.Button(dlg, wx.ID_CANCEL, t("btn_cancel_exit"))
+            btn_sizer.Add(btn_save, 0, wx.ALL, 4)
+            btn_sizer.Add(btn_exit, 0, wx.ALL, 4)
+            btn_sizer.Add(btn_cancel, 0, wx.ALL, 4)
+            sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.BOTTOM, 8)
+            dlg.SetSizerAndFit(sizer)
+
+            result = [None]
+            btn_save.Bind(wx.EVT_BUTTON, lambda e: result.__setitem__(0, "save") or dlg.EndModal(wx.ID_OK))
+            btn_exit.Bind(wx.EVT_BUTTON, lambda e: result.__setitem__(0, "exit") or dlg.EndModal(wx.ID_OK))
+
+            dlg.ShowModal()
+            dlg.Destroy()
+
+            if result[0] == "save":
+                self.on_save_execution()
+            elif result[0] != "exit":
+                return False
+
         self.logger_thread = None
         self.keep_running = False
-        self.v.tbicon.Destroy()
+        if hasattr(self.v, 'tbicon') and self.v.tbicon:
+            try:
+                self.v.tbicon.Destroy()
+            except RuntimeError:
+                pass
+            self.v.tbicon = None
+        return True
 
     def on_notebook_page_changed(self, evt):
         # switch notebook tab from execution to pipeline
@@ -1026,7 +1058,7 @@ class PETPPresenter():
             page = self.v.taskProperty.GetPage(self.single_page)
             self._reset_task_pgrid(current_row + 1)
 
-            for k in input_dict:
+            for k in sorted(input_dict.keys()):
                 v = input_dict[k]
                 self._append_or_update_property_to_page(k, v, page)
 
@@ -1298,8 +1330,10 @@ class PETPPresenter():
         else:
             v = tpl_dict[k]
 
-        self._append_or_update_property_to_page(k, v, self.v.taskProperty.GetPage(self.single_page))
+        page = self.v.taskProperty.GetPage(self.single_page)
+        self._append_or_update_property_to_page(k, v, page)
         self._add_property(k, v)
+        self._resort_pgrid_page(page)
 
         input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
         self._fill_available_properties(processor, input_dict)
@@ -1340,12 +1374,26 @@ class PETPPresenter():
 
         self._delete_property(prop)
         self._delete_selected_property_from_page(tp)
+        self._resort_pgrid_page(tp.GetPage(self.single_page))
 
         grid = self.v.taskGrid
 
         input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
         processor = grid.GetCellValue(self._pgrid_bound_row, 0)
         self._fill_available_properties(processor, input_dict)
+
+    def _resort_pgrid_page(self, page):
+        props = {}
+        it = page.GetFirstProperty()
+        while it is not None:
+            if not isinstance(it, wx.propgrid.PropertyCategory):
+                props[it.GetName()] = it.GetValue()
+            it = page.GetNextProperty(it)
+        for name in list(props.keys()):
+            page.DeleteProperty(name)
+        for name in sorted(props.keys()):
+            self._append_or_update_property_to_page(name, props[name], page)
+        page.FitColumns()
 
     def _delete_selected_property_from_page(self, pgm):
         prop = pgm.GetSelection()

@@ -141,6 +141,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "btn_dismiss": {"en": "Dismiss", "zh": "知道了"},
     "btn_save_and_run": {"en": "Save and Run", "zh": "保存并继续运行"},
+    "dlg_unsaved_on_close_msg": {
+        "en": "Current execution has unsaved changes. What would you like to do?",
+        "zh": "当前Execution有未保存的更改，是否继续退出？",
+    },
+    "btn_save_and_exit": {"en": "Save and Exit", "zh": "保存并退出"},
+    "btn_exit_without_save": {"en": "Exit Without Saving", "zh": "直接退出"},
+    "btn_cancel_exit": {"en": "Cancel", "zh": "取消退出"},
 
     # === Property grid categories ===
     "pgrid_input_editor": {"en": "Input Editor", "zh": "输入编辑器"},
