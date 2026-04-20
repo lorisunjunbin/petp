@@ -18,24 +18,29 @@ list:
   skipped: false
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
-  input: '{"skipped": "no", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
+  input: '{"skipped": "yes", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
     "msg": "{earth_quake_info}"}'
-  skipped: false
+  skipped: true
   type: SHOW_RESULT
 - !!python/object:core.task.Task
   input: '{"http_response_key": "earth_quake_info"}'
   skipped: false
   type: HTTP_RESPONSE_KEY
 loops: []
-mcp_desc: "{\n\u201Cdesc\u201D:\u201Dinquire about the information of recent earthquakes
-  that have occurred.date format: yyyy-mm-dd hh:mm:ss, able to sort by: magnitude
-  or or id(means timeline)\u201D,\n\u201CinputSchema\u201D : {\n      \u201Ctitle\u201D:
-  \u201CT_CENC_EARTHQUAKE_SEARCHArguments\u201D,\n      \u201Ctype\u201D: \u201Cobject\u201D,\n
-  \     \u201Cproperties\u201D: {\n      \t\t\u201CorderBy\u201D:{\u201Ctitle\u201D:
-  \u201CorderBy\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CisAsc\u201D:{\u201Ctitle\u201D:
-  \u201CisAsc\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CstartMg\u201D:{\u201Ctitle\u201D:
-  \u201CstartMg\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CendMg\u201D:{\u201Ctitle\u201D:
-  \u201CendMg\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CstartTime\u201D:{\u201Ctitle\u201D:
-  \u201CstartTime\u201D, \u201Ctype\u201D: \u201Cstring\u201D},\n      \t\t\u201CendTime\u201D:{\u201Ctitle\u201D:
-  \u201CendTime\u201D, \u201Ctype\u201D: \u201Cstring\u201D}\n      },\n      \u201Crequired\u201D:
-  []\n   }\n}"
+mcp_desc: "{\n  \"desc\": \"inquire about the information of recent earthquakes that
+  have occurred.date format: yyyy-mm-dd hh:mm:ss, able to sort by: magnitude or or
+  id(means timeline)\",\n  \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\":
+  \"T_CENC_EARTHQUAKE_SEARCHArguments\",\n    \"properties\": {\n      \"orderBy\":
+  {\n        \"title\": \"orderBy\",\n        \"type\": \"string\",\n        \"description\":
+  \"\"\n      },\n      \"isAsc\": {\n        \"title\": \"isAsc\",\n        \"type\":
+  \"string\",\n        \"description\": \"\"\n      },\n      \"startMg\": {\n        \"title\":
+  \"startMg\",\n        \"type\": \"string\",\n        \"description\": \"\"\n      },\n
+  \     \"endMg\": {\n        \"title\": \"endMg\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\"\n      },\n      \"startTime\": {\n        \"title\":
+  \"startTime\",\n        \"type\": \"string\",\n        \"description\": \"\"\n      },\n
+  \     \"endTime\": {\n        \"title\": \"endTime\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\"\n      }\n    },\n    \"required\": []\n  },\n  \"outputSchema\":
+  {\n    \"type\": \"object\",\n    \"title\": \"T_CENC_EARTHQUAKE_SEARCHOutput\",\n
+  \   \"properties\": {\n      \"result\": {\n        \"title\": \"result\",\n        \"type\":
+  \"string\",\n        \"description\": \"\"\n      }\n    },\n    \"required\": [\n
+  \     \"result\"\n    ]\n  }\n}"

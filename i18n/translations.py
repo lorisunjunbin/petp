@@ -2,8 +2,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === Window / Tab ===
     "win_title": {"en": "PET-P", "zh": "PET-P"},
-    "tab_executions": {"en": "Executions", "zh": "Execution页"},
-    "tab_pipelines": {"en": "Pipelines", "zh": "Pipeline页"},
+    "tab_executions": {"en": "Executions", "zh": "Executions"},
+    "tab_pipelines": {"en": "Pipelines", "zh": "Pipelines"},
 
     # === Buttons — Execution tab ===
     "btn_delete": {"en": "🗑", "zh": "🗑"},
@@ -85,6 +85,21 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Check to make current Execution as PETP MCP tool ",
         "zh": "勾选以将当前Execution设为 PETP MCP 工具",
     },
+
+    # === MCP Description Editor ===
+    "mcp_lbl_tool_desc": {"en": "Tool Description:", "zh": "工具描述："},
+    "mcp_lbl_input_params": {"en": "Input Parameters:", "zh": "输入参数："},
+    "mcp_lbl_output_params": {"en": "Output Parameters:", "zh": "输出参数："},
+    "mcp_col_name": {"en": "Name", "zh": "名称"},
+    "mcp_col_type": {"en": "Type", "zh": "类型"},
+    "mcp_col_desc": {"en": "Description", "zh": "描述"},
+    "mcp_col_required": {"en": "Required", "zh": "必填"},
+    "mcp_tip_add_input": {"en": "Add input parameter", "zh": "添加输入参数"},
+    "mcp_tip_del_input": {"en": "Remove selected input parameter", "zh": "删除选中的输入参数"},
+    "mcp_tip_add_output": {"en": "Add output parameter", "zh": "添加输出参数"},
+    "mcp_tip_del_output": {"en": "Remove selected output parameter", "zh": "删除选中的输出参数"},
+    "mcp_tip_tool_desc": {"en": "Brief description of what this tool does", "zh": "简要描述此工具的功能"},
+    "mcp_tip_preview_json": {"en": "Preview generated JSON", "zh": "预览生成的JSON"},
 
     # === Tooltips — pipeline actions ===
     "tip_add_row_p": {"en": "Add row", "zh": "添加行"},
