@@ -1,0 +1,15 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: OOTB_RUN_JS
+list:
+- !!python/object:core.task.Task
+  input: '{"params": "{\"pyKey\":1, \"pyKey2\":\"dididadida\"}", "data_key": "method_result",
+    "js_file": "{self.get_tdir()}/jsmodule/processViaJS.js"}'
+  skipped: false
+  type: RUN_JAVASCRIPT
+- !!python/object:core.task.Task
+  input: '{"title": "JS\u6587\u4ef6\u8fd0\u884c\u7ed3\u679c\uff1a", "msg": "{method_result}"}'
+  skipped: false
+  type: SHOW_RESULT
+loops: []
+mcp_desc: ''
