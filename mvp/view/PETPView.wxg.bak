@@ -487,7 +487,7 @@
                                             <object class="sizeritem">
                                                 <option>0</option>
                                                 <border>0</border>
-                                                <object class="wxButton" name="delExection" base="EditButton">
+                                                <object class="wxButton" name="delExecution" base="EditButton">
                                                     <size>75, 28</size>
                                                     <tooltip>Delete selected Execution</tooltip>
                                                     <label>Delete</label>

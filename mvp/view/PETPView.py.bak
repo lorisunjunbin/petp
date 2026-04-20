@@ -227,10 +227,10 @@ class PETPView(wx.Frame):
 								actionPanelSizer_e = wx.BoxSizer(wx.HORIZONTAL)
 								e_main_Sizer.Add(actionPanelSizer_e, 0, wx.EXPAND, 0)
 
-								self.delExection = wx.Button(self.nbFirstPage, wx.ID_ANY, "Delete")
-								self.delExection.SetMinSize((75, 28))
-								self.delExection.SetToolTip("Delete selected Execution")
-								actionPanelSizer_e.Add(self.delExection, 0, 0, 0)
+								self.delExecution = wx.Button(self.nbFirstPage, wx.ID_ANY, "Delete")
+								self.delExecution.SetMinSize((75, 28))
+								self.delExecution.SetToolTip("Delete selected Execution")
+								actionPanelSizer_e.Add(self.delExecution, 0, 0, 0)
 
 								actionPanelSizer_e.Add((5, 30), 0, 0, 0)
 

@@ -89,7 +89,8 @@ class PETPInteractor():
 
     def bind_view_event_4e_execution_action_panel(self):
         # Execution action panel
-        self.v.Bind(wx.EVT_BUTTON, self.on_delete_execution, self.v.delExection)
+        self.v.Bind(wx.EVT_BUTTON, self.on_delete_execution, self.v.delExecution)
+        self.v.Bind(wx.EVT_BUTTON, self.on_copy_execution, self.v.copyExecution)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_task_execution_changed, self.v.executionChooser)
 
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
@@ -272,6 +273,10 @@ class PETPInteractor():
     def on_delete_execution(self, evt):
         evt.Skip()
         self.p.on_delete_execution()
+
+    def on_copy_execution(self, evt):
+        evt.Skip()
+        self.p.on_copy_execution()
 
     def on_run_execution(self, evt):
         evt.Skip()

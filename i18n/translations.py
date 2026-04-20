@@ -6,14 +6,15 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "tab_pipelines": {"en": "Pipelines", "zh": "Pipeline页"},
 
     # === Buttons — Execution tab ===
+    "btn_delete": {"en": "🗑", "zh": "🗑"},
+    "btn_copy": {"en": "📑", "zh": "📑"},
     "btn_save": {"en": "Save", "zh": "保存"},
-    "btn_delete": {"en": "Delete", "zh": "删除"},
     "btn_run_execution": {"en": "Run Execution", "zh": "开始运行"},
     "btn_run_pipeline": {"en": "Run Pipeline", "zh": "运行流水线"},
     "btn_stop": {"en": "Stop", "zh": "停止"},
     "btn_stop_all": {"en": "Stop All", "zh": "全部停止"},
-    "btn_reload": {"en": "Reload", "zh": "重新加载"},
-    "btn_clean": {"en": "Clean", "zh": "清空"},
+    "btn_reload": {"en": "Reload", "zh": "重载日志"},
+    "btn_clean": {"en": "Clean", "zh": "清空日志"},
     "btn_select": {"en": "Select", "zh": "选择"},
     "btn_convert": {"en": "Convert", "zh": "转换"},
 
@@ -72,6 +73,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === Tooltips — execution actions ===
     "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的Execution"},
+    "tip_copy_execution": {"en": "Copy selected Execution", "zh": "复制选中Execution"},
     "tip_save_execution": {"en": "Save or Update selected Execution", "zh": "保存或更新选中的Execution"},
     "tip_execute_on_startup": {"en": "Execute on startup", "zh": "启动时运行"},
     "tip_change_log_level": {"en": "Change Log Level", "zh": "更改日志级别"},
@@ -148,6 +150,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Dialog titles ===
     "dlg_input_title": {"en": "PETP - Input", "zh": "PETP - 请输入"},
     "dlg_result_title": {"en": "PETP - Message Box", "zh": "PETP - 消息框"},
+    "dlg_copy_exec_title": {"en": "Copy Execution", "zh": "复制Execution"},
+    "dlg_copy_exec_msg": {"en": "Enter name for the copy:", "zh": "请输入副本名称："},
+    "dlg_copy_exec_dup": {"en": "Name already exists, please choose a different name.", "zh": "名称已存在，请选择其他名称。"},
+    "dlg_delete_exec_title": {"en": "Delete Execution", "zh": "删除Execution"},
+    "dlg_delete_exec_msg": {
+        "en": "Delete \"{name}\"?\n\nThe file will be moved to core/executions/trash/ and can be restored manually.",
+        "zh": "确定删除 \"{name}\"？\n\n文件将移至 core/executions/trash/，可手动恢复。",
+    },
 
     # === Dialog buttons ===
     "dlg_save_json": {"en": "Save as JSON", "zh": "另存为 JSON"},

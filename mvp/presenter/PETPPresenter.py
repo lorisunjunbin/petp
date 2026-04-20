@@ -171,8 +171,10 @@ class PETPPresenter():
         v.cb_astool.SetLabel(t("tip_as_mcp_tool"))
 
         # Execution action buttons
-        v.delExection.SetLabel(t("btn_delete"))
-        v.delExection.SetToolTip(t("tip_delete_execution"))
+        v.delExecution.SetLabel(t("btn_delete"))
+        v.delExecution.SetToolTip(t("tip_delete_execution"))
+        v.copyExecution.SetLabel(t("btn_copy"))
+        v.copyExecution.SetToolTip(t("tip_copy_execution"))
         v.saveExection.SetLabel(t("btn_save"))
         v.saveExection.SetToolTip(t("tip_save_execution"))
         v.stopExection.SetLabel(t("btn_stop"))
@@ -358,6 +360,17 @@ class PETPPresenter():
         tool_names = Execution.get_tool_execution_names()
         if tool_names:
             self.v.executionChooser.set_tool_names(tool_names)
+
+    def _refresh_execution_chooser(self, selected_name=''):
+        combo = self.v.executionChooser
+        combo.Clear()
+        self.available_executions = Execution.get_available_executions()
+        combo.AppendItems(self.available_executions)
+        tool_names = Execution.get_tool_execution_names()
+        if tool_names:
+            combo.set_tool_names(tool_names)
+        if selected_name:
+            combo.SetValue(selected_name)
 
     def _load_available_pipelines(self):
         self.v.pipelineChooser.AppendItems(Pipeline.get_available_pipelines())
@@ -769,22 +782,13 @@ class PETPPresenter():
         combo = self.v.executionChooser
         name = combo.GetValue()
 
-        if combo.FindString(name) == -1:
-            combo.Insert(name, 0)
-        else:
+        is_new = combo.FindString(name) == -1
+        if not is_new:
             logging.warning(t("msg_execution_overwrite", name=combo.GetValue()))
 
         self._save_execcution(name)
         self._mark_clean()
-
-        # Sync tool icon prefix after save (astool may have changed)
-        as_tool = self.v.cb_astool.IsChecked()
-        tools = combo._tool_names
-        if as_tool:
-            tools = tools | {name}
-        else:
-            tools = tools - {name}
-        combo.set_tool_names(tools)
+        self._refresh_execution_chooser(name)
 
     @reload_log_after
     def on_delete_pipeline(self):
@@ -798,12 +802,62 @@ class PETPPresenter():
     @reload_log_after
     def on_delete_execution(self):
         combo = self.v.executionChooser
-        found = combo.FindString(combo.GetValue())
+        name = combo.GetValue()
+        found = combo.FindString(name)
 
-        if not found == -1:
-            self.execution.delete()
-            combo.Delete(found)
-            combo.SetValue('')
+        if found == -1:
+            return
+
+        dlg = wx.MessageDialog(
+            self.v,
+            t("dlg_delete_exec_msg", name=name),
+            t("dlg_delete_exec_title"),
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+        )
+        result = dlg.ShowModal()
+        dlg.Destroy()
+
+        if result != wx.ID_YES:
+            return
+
+        self.execution.delete()
+        self._refresh_execution_chooser('')
+
+    @reload_log_after
+    def on_copy_execution(self):
+        combo = self.v.executionChooser
+        name = combo.GetValue()
+        if not name:
+            return
+        source = Execution.get_execution(name)
+        if source is None:
+            return
+
+        existing = set(Execution.get_available_executions())
+        new_name = name + '_copy'
+
+        while True:
+            dlg = wx.TextEntryDialog(self.v, t("dlg_copy_exec_msg"),
+                                     t("dlg_copy_exec_title"), new_name)
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
+            new_name = dlg.GetValue().strip()
+            dlg.Destroy()
+
+            if not new_name or new_name in existing:
+                wx.MessageBox(t("dlg_copy_exec_dup"), t("dlg_copy_exec_title"),
+                              wx.OK | wx.ICON_WARNING, self.v)
+                continue
+            break
+
+        copy = Execution(new_name, list(source.list),
+                         source.mcp_desc if hasattr(source, 'mcp_desc') else '',
+                         source.astool if hasattr(source, 'astool') else False,
+                         list(source.loops) if hasattr(source, 'loops') else [])
+        copy.save()
+        self._refresh_execution_chooser(new_name)
+        self.on_task_execution_changed()
 
     @reload_log_after
     def on_stop_all(self):
