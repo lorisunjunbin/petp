@@ -24,5 +24,9 @@ list:
   input: '{"http_response_key":"ipfilter_location"}'
   skipped: false
   type: HTTP_RESPONSE_KEY
-loops: []
-mcp_desc: "{\n\u201Cdesc\u201D:\u201DIP Filter file creation\u201D,\n\u201Cparams\u201D\uFF1A[]\n}"
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":18, "task_end":32, "loop_key":"published_contract_id_title",
+    "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20231213163631
+mcp_desc: "{\n  \"desc\": \"\u751F\u6210cloud\u7CFB\u7EDF\u8FDC\u7A0B\u8BBF\u95EE\u7684IPFilter\u6587\u4EF6\"\n}"

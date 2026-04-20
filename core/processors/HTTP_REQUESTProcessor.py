@@ -1,6 +1,9 @@
+import base64
+import hashlib
 import io
 import json
 import logging
+import time
 import zipfile
 
 import requests
@@ -10,10 +13,10 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class HTTP_REQUESTProcessor(Processor):
-    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N", "is_zip_response":"yes|no", "filter_func_body":"return True", "convert_func_body":"return file_content.decode(\'utf-8\')"}'
+    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N", "is_zip_response":"yes|no", "filter_func_body":"return True", "convert_func_body":"return file_content.decode(\'utf-8\')", "basic_auth_user":"", "basic_auth_pwd":"", "oauth_token_url":"", "oauth_client_id":"", "oauth_client_secret":"", "oauth_scope":"", "oauth_token":""}'
     DESC: str = f'''
         Send HTTP request (get/post/etc.) to request_url, process response via resp_func_body, then store to value_key.
-        Supports session persistence via session_key.
+        Supports session persistence via session_key, built-in Basic Auth and OAuth authentication.
 
         - timeout: request timeout in seconds (default: 60)
         - session_key: key of data_chain to store/retrieve requests.Session for persistent connections (default: "__session_key")
@@ -30,9 +33,20 @@ class HTTP_REQUESTProcessor(Processor):
         - is_zip_response: "yes" to treat response as a zip file and extract contents, "no" to use resp_func_body (default: "no")
         - filter_func_body: when is_zip_response is "yes", Python function body string to filter zip entries by filename; parameter is 'filename', should return bool (default: "return True")
         - convert_func_body: when is_zip_response is "yes", Python function body string to convert file bytes; parameter is 'file_content' (bytes), should return converted value (default: "return file_content.decode('utf-8')")
+        - basic_auth_user: Basic Auth username (supports expression, e.g. "{{user}}"). When set with basic_auth_pwd, auto base64-encodes and sets Authorization header.
+        - basic_auth_pwd: Basic Auth password (supports expression and encrypted values, e.g. "{{self.decrypt(\"...\")}}").
+        - oauth_token_url: OAuth token endpoint URL. When set, fetches Bearer token via client_credentials grant using oauth_client_id/oauth_client_secret. Token is cached in data_chain and reused until expired. (supports expression)
+        - oauth_client_id: OAuth client_id (supports expression)
+        - oauth_client_secret: OAuth client_secret (supports expression and encrypted values)
+        - oauth_scope: OAuth scope, optional (supports expression)
+        - oauth_token: dual-purpose: if oauth_token_url is set, serves as cache key for the fetched token; if oauth_token_url is not set, used directly as Bearer token value (supports expression)
+
+        Auth priority: OAuth > Basic Auth > manual Authorization header.
 
         {TPL}
     '''
+
+    _OAUTH2_EXPIRY_MARGIN_SECONDS = 30
 
     def get_category(self) -> str:
         return super().CATE_HTTP
@@ -56,7 +70,6 @@ class HTTP_REQUESTProcessor(Processor):
             session = requests.Session()
 
         if self.has_param('headers'):
-            headers.update(session.headers)
             headers = self.str2dict(self.expression2str(self.get_param('headers')))
 
         if self.has_param('params'):
@@ -76,6 +89,12 @@ class HTTP_REQUESTProcessor(Processor):
 
         logging.info('\n')
         logging.info('===============================================')
+
+        if self.has_param('basic_auth_user') and self.has_param('oauth_token_url'):
+            logging.warning('auth - Both basicAuth and oAuth configured; oAuth Bearer token will take precedence')
+
+        self._apply_basic_auth(headers)
+        self._apply_oauth2_auth(headers)
 
         response = getattr(session, method)(request_url, timeout=(timeout, timeout), data=data, params=params,
                                             headers=headers, verify=verify)
@@ -126,6 +145,90 @@ class HTTP_REQUESTProcessor(Processor):
         logging.info('===============================================\n')
 
         self.populate_data(value_key, data_in_resp)
+
+    def _apply_basic_auth(self, headers: dict) -> None:
+        if not self.has_param('basic_auth_user') or not self.has_param('basic_auth_pwd'):
+            return
+
+        user = self.expression2str(self.get_param('basic_auth_user'))
+        pwd = self.expression2str(self.get_param('basic_auth_pwd'))
+        credentials = f'{user}:{pwd}'
+        encoded = base64.b64encode(credentials.encode('utf-8')).decode('ascii')
+        headers['Authorization'] = f'Basic {encoded}'
+        logging.info('auth.basic - Applied Basic Auth for user: %s', user)
+
+    def _apply_oauth2_auth(self, headers: dict) -> None:
+        if self.has_param('oauth_token_url'):
+            self._fetch_oauth2_token(headers)
+        elif self.has_param('oauth_token'):
+            token = self.expression2str(self.get_param('oauth_token'))
+            headers['Authorization'] = f'Bearer {token}'
+            logging.info('auth.oauth2 - Applied direct Bearer token')
+
+    def _fetch_oauth2_token(self, headers: dict) -> None:
+        token_url = self.expression2str(self.get_param('oauth_token_url'))
+        client_id = self.expression2str(self.get_param('oauth_client_id'))
+        client_secret = self.expression2str(self.get_param('oauth_client_secret'))
+        scope = (self.expression2str(self.get_param('oauth_scope'))
+                 if self.has_param('oauth_scope') else None)
+
+        cache_key = self._get_oauth2_cache_key(token_url, client_id)
+
+        cached = self.get_data(cache_key) if self.has_data(cache_key) else None
+        if cached and time.monotonic() < cached['expires_at'] - self._OAUTH2_EXPIRY_MARGIN_SECONDS:
+            remaining = cached['expires_at'] - time.monotonic()
+            logging.info('auth.oauth2 - Using cached token (expires in %.0fs)', remaining)
+            token_type = cached.get('token_type', 'Bearer')
+            headers['Authorization'] = f'{token_type} {cached["access_token"]}'
+            return
+
+        logging.info('auth.oauth2 - Fetching new token from %s', token_url)
+        token_data = {
+            'grant_type': 'client_credentials',
+            'client_id': client_id,
+            'client_secret': client_secret,
+        }
+        if scope:
+            token_data['scope'] = scope
+
+        try:
+            token_response = requests.post(token_url, data=token_data, timeout=30)
+        except requests.RequestException as e:
+            raise RuntimeError(f'auth.oauth2 - Token request failed: {e}') from e
+
+        if not token_response.ok:
+            error_body = token_response.text[:500]
+            logging.error('auth.oauth2 - Token request failed: status=%d body=%s',
+                          token_response.status_code, error_body)
+            raise RuntimeError(
+                f'auth.oauth2 - Token request failed with status {token_response.status_code}: {error_body}'
+            )
+
+        token_json = token_response.json()
+        if 'access_token' not in token_json:
+            raise RuntimeError(f'auth.oauth2 - Token response missing access_token: {token_json}')
+
+        access_token = token_json['access_token']
+        expires_in = int(token_json.get('expires_in', 3600))
+        token_type = token_json.get('token_type', 'Bearer')
+        token_type = token_type.title() if token_type else 'Bearer'
+
+        token_cache = {
+            'access_token': access_token,
+            'expires_at': time.monotonic() + expires_in,
+            'token_type': token_type,
+        }
+        self.task.data_chain[cache_key] = token_cache
+
+        logging.info('auth.oauth2 - Token obtained, expires in %ds, cached as %s',
+                     expires_in, cache_key)
+        headers['Authorization'] = f'{token_type} {access_token}'
+
+    @staticmethod
+    def _get_oauth2_cache_key(token_url: str, client_id: str) -> str:
+        raw = f'{token_url}|{client_id}'
+        short_hash = hashlib.md5(raw.encode('utf-8')).hexdigest()[:12]
+        return f'__oauth2_token__{short_hash}'
 
     def _extract_zip_to_dict(self, response, filter_func_body="return True",
                              convert_func_body="return file_content.decode('utf-8')"):
