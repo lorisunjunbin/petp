@@ -1120,21 +1120,46 @@ class PETPPresenter():
         # Snapshot for undo
         self._push_snapshot()
 
-        # When "as tool" is checked and the description field is empty,
-        # pre-fill it with a default MCP tool descriptor template.
         combo = self.v.executionChooser
         name = combo.GetValue()
         self.v.execution_desc.set_execution_name(name)
         if evt.IsChecked():
             current_desc = self.v.execution_desc.GetValue().strip()
             if not current_desc:
-                default_desc = json.dumps(self._build_mcp_tool_template(name), indent=2, ensure_ascii=False)
+                tpl = self._build_mcp_tool_template(name)
+                initial_params = self._extract_initial_params()
+                if initial_params:
+                    props = {}
+                    for key in initial_params:
+                        props[key] = {"title": key, "type": "string", "description": ""}
+                    tpl["inputSchema"]["properties"] = props
+                    tpl["inputSchema"]["required"] = list(initial_params.keys())
+                default_desc = json.dumps(tpl, indent=2, ensure_ascii=False)
                 self.v.execution_desc.SetValue(default_desc)
         # Sync the tool icon prefix in the dropdown immediately
         combo.set_tool_names(
             combo._tool_names | {name} if evt.IsChecked()
             else combo._tool_names - {name}
         )
+
+    def _extract_initial_params(self):
+        grid = self.v.taskGrid
+        if grid.GetNumberRows() == 0:
+            return None
+        first_type = grid.GetCellValue(0, 0).strip()
+        if first_type != "INITIAL_PARAMS":
+            return None
+        first_input = grid.GetCellValue(0, 1).strip()
+        if not first_input:
+            return None
+        try:
+            params = json.loads(first_input)
+            if isinstance(params, dict) and params:
+                skipped = params.pop("skipped", None)
+                return params if params else None
+            return None
+        except (json.JSONDecodeError, TypeError):
+            return None
 
     @staticmethod
     def _build_mcp_tool_template(execution_name: str) -> dict:
