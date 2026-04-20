@@ -2,8 +2,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === Window / Tab ===
     "win_title": {"en": "PET-P", "zh": "PET-P"},
-    "tab_executions": {"en": "Executions", "zh": "执行"},
-    "tab_pipelines": {"en": "Pipelines", "zh": "流水线"},
+    "tab_executions": {"en": "Executions", "zh": "Execution页"},
+    "tab_pipelines": {"en": "Pipelines", "zh": "Pipeline页"},
 
     # === Buttons — Execution tab ===
     "btn_save": {"en": "Save", "zh": "保存"},
@@ -64,22 +64,24 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "handy_feed_tpl": {"en": "feed_tpl(\"tpl\", {})", "zh": "feed_tpl(\"tpl\", {})"},
     "handy_prop2dict": {"en": "prop2dict(\"k=v\")", "zh": "prop2dict(\"k=v\")"},
     "handy_json2dict": {"en": "json2dict(\"json\")", "zh": "json2dict(\"json\")"},
+    "handy_json_dumps": {"en": "json.dumps(obj)", "zh": "json.dumps(obj)"},
+    "handy_json_loads": {"en": "json.loads(str)", "zh": "json.loads(str)"},
     "handy_str2list": {"en": "str2list(\"a|>b\")", "zh": "str2list(\"a|>b\")"},
     "handy_get_sdir": {"en": "Shared Dir\t{self.get_sdir()}/", "zh": "共享目录\t{self.get_sdir()}/"},
     "btn_handy_tools": {"en": "🛠▾", "zh": "🛠▾"},
 
     # === Tooltips — execution actions ===
-    "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的执行"},
-    "tip_save_execution": {"en": "Save or Update selected Execution", "zh": "保存或更新选中的执行"},
+    "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的Execution"},
+    "tip_save_execution": {"en": "Save or Update selected Execution", "zh": "保存或更新选中的Execution"},
     "tip_execute_on_startup": {"en": "Execute on startup", "zh": "启动时运行"},
     "tip_change_log_level": {"en": "Change Log Level", "zh": "更改日志级别"},
     "tip_reload_log": {"en": "reload log ", "zh": "重新加载日志"},
     "tip_clean_log": {"en": "Clean log console", "zh": "清空日志控制台"},
     "tip_change_lang": {"en": "Change Language", "zh": "切换语言"},
-    "tip_exec_desc": {"en": "Execution description", "zh": "执行描述"},
+    "tip_exec_desc": {"en": "Execution description", "zh": "Execution描述"},
     "tip_as_mcp_tool": {
         "en": "Check to make current Execution as PETP MCP tool ",
-        "zh": "勾选以将当前执行设为 PETP MCP 工具",
+        "zh": "勾选以将当前Execution设为 PETP MCP 工具",
     },
 
     # === Tooltips — pipeline actions ===
@@ -96,17 +98,17 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Tooltips — chooser ===
     "tip_exec_chooser": {
         "en": "Select or search Execution (type to filter)",
-        "zh": "选择或搜索执行（输入以筛选）",
+        "zh": "选择或搜索Execution（输入以筛选）",
     },
     "tip_pipeline_chooser": {
         "en": "Select or search Pipeline (type to filter)",
-        "zh": "选择或搜索流水线（输入以筛选）",
+        "zh": "选择或搜索Pipeline（输入以筛选）",
     },
 
     # === Grid column headers ===
-    "grid_task_chooser": {"en": "Task Chooser", "zh": "任务选择"},
+    "grid_task_chooser": {"en": "Task Chooser", "zh": "Task选择"},
     "grid_input": {"en": "Input", "zh": "输入"},
-    "grid_exec_chooser": {"en": "Execution Chooser", "zh": "执行选择"},
+    "grid_exec_chooser": {"en": "Execution Chooser", "zh": "Execution选择"},
 
     # === Context menu ===
     "menu_copy": {"en": "Copy", "zh": "复制"},
@@ -125,7 +127,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "menu_snapshots": {"en": "Snapshots...", "zh": "快照..."},
 
     # === Snapshot dialog ===
-    "dlg_snapshot_title": {"en": "Execution Snapshots", "zh": "执行快照"},
+    "dlg_snapshot_title": {"en": "Execution Snapshots", "zh": "Execution快照"},
     "btn_apply_snapshot": {"en": "Apply", "zh": "应用"},
     "btn_close": {"en": "Close", "zh": "关闭"},
 
@@ -133,7 +135,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "dlg_unsaved_title": {"en": "Unsaved Changes", "zh": "未保存的更改"},
     "dlg_unsaved_msg": {
         "en": "Current execution has unsaved changes.",
-        "zh": "当前执行有未保存的更改。",
+        "zh": "当前Execution有未保存的更改。",
     },
     "btn_dismiss": {"en": "Dismiss", "zh": "知道了"},
     "btn_save_and_run": {"en": "Save and Run", "zh": "保存并继续运行"},
@@ -173,7 +175,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "msg_exec_list_empty": {
         "en": "Execution list should NOT be empty",
-        "zh": "执行列表不能为空",
+        "zh": "Execution列表不能为空",
     },
     "msg_pipeline_name_empty": {
         "en": "Pipeline: cron name should not be empty",
@@ -185,11 +187,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "msg_execution_overwrite": {
         "en": "Execution: {name} already existed, overwrite!",
-        "zh": "执行：{name} 已存在，将覆盖！",
+        "zh": "Execution：{name} 已存在，将覆盖！",
     },
     "msg_execution_stopping": {
         "en": "Execution: [ {name} ] is manually stopping.",
-        "zh": "执行：[ {name} ] 正在手动停止。",
+        "zh": "Execution：[ {name} ] 正在手动停止。",
     },
     "msg_save_aborted": {
         "en": "Save aborted due to unresolved syntax errors.",
@@ -229,7 +231,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "msg_exec_not_tool": {
         "en": "Execution '{name}' is not available as a tool (astool=false)",
-        "zh": "执行 '{name}' 不可用作工具（astool=false）",
+        "zh": "Execution '{name}' 不可用作工具（astool=false）",
     },
     "msg_unsupported_chart": {
         "en": "Unsupported chart type: {chart_type}",

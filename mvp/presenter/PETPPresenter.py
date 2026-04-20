@@ -1120,6 +1120,8 @@ class PETPPresenter():
             ("handy_str2dict", self._on_menu_str2dict),
             ("handy_str2list", self._on_menu_str2list),
             ("handy_json2dict", self._on_menu_json2dict),
+            ("handy_json_dumps", self._on_menu_json_dumps),
+            ("handy_json_loads", self._on_menu_json_loads),
             ("handy_prop2dict", self._on_menu_prop2dict),
             ("handy_feed_tpl", self._on_menu_feed_tpl),
             None,
@@ -1171,6 +1173,12 @@ class PETPPresenter():
 
     def _on_menu_json2dict(self, evt):
         self._convert('{self.json2dict("")}')
+
+    def _on_menu_json_dumps(self, evt):
+        self._convert('{json.dumps()}')
+
+    def _on_menu_json_loads(self, evt):
+        self._convert('{json.loads("")}')
 
     def _on_menu_prop2dict(self, evt):
         self._convert('{self.prop2dict("")}')
@@ -1616,7 +1624,7 @@ class PETPPresenter():
             if not self._log_pending:
                 self._log_pending = True
                 delay_ms = int(self._log_throttle_sec * 1000)
-                wx.CallLater(delay_ms, self._deferred_load_log)
+                wx.CallAfter(lambda: wx.CallLater(delay_ms, self._deferred_load_log))
             return
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.submit(self.on_load_log)
