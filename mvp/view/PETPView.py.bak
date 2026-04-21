@@ -147,10 +147,10 @@ class PETPView(wx.Frame):
 								input_editor_action_sizer = wx.BoxSizer(wx.HORIZONTAL)
 								input_editor_sizer.Add(input_editor_action_sizer, 0, wx.ALL | wx.EXPAND, 0)
 
-								self.avaibleProperties = wx.ComboBox(self.input_editor_panel, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER)
-								self.avaibleProperties.SetMinSize((100, -1))
-								self.avaibleProperties.SetToolTip("Available Properties")
-								input_editor_action_sizer.Add(self.avaibleProperties, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 1)
+								self.availableProperties = wx.ComboBox(self.input_editor_panel, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER)
+								self.availableProperties.SetMinSize((100, -1))
+								self.availableProperties.SetToolTip("Available Properties")
+								input_editor_action_sizer.Add(self.availableProperties, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 1)
 
 								self.addProperty = wx.Button(self.input_editor_panel, wx.ID_ANY, "+")
 								self.addProperty.SetMinSize((30, 28))

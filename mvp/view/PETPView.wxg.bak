@@ -284,7 +284,7 @@
                                                                     <option>0</option>
                                                                     <border>1</border>
                                                                     <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-                                                                    <object class="wxComboBox" name="avaibleProperties" base="EditComboBox">
+                                                                    <object class="wxComboBox" name="availableProperties" base="EditComboBox">
                                                                         <id>wxID_ANY</id>
                                                                         <size>100, -1</size>
                                                                         <tooltip>Available Properties</tooltip>

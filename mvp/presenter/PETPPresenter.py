@@ -83,6 +83,7 @@ class PETPPresenter():
         self._init_executiongrid_choice_editor()
         self._init_cron()
         self._init_property_grid()
+        self._init_handy_tools()
 
         self._apply_i18n()
         self._load_config()
@@ -123,12 +124,10 @@ class PETPPresenter():
         v.editLoop.Enable(False)
 
         # Input editor
-        v.avaibleProperties.SetToolTip(t("tip_available_properties"))
+        v.availableProperties.SetToolTip(t("tip_available_properties"))
         v.addProperty.SetToolTip(t("tip_add_prop"))
         v.delProperty.SetToolTip(t("tip_delete_prop"))
         v.cb_skipped.SetToolTip(t("tip_skip_task"))
-        v.handy_tools.SetLabel(t("btn_handy_tools"))
-        v.handy_tools.SetToolTip(t("tip_handy_tools"))
         v.datepicker.SetToolTip(t("tip_fill_date"))
 
         # Execution description & MCP tool
@@ -435,14 +434,6 @@ class PETPPresenter():
             self._update_save_button()
         dlg.Destroy()
 
-    def on_convert_get_deep_data_4loop(self):
-        """ NOT IMPLEMENTED YET """
-        pass
-
-    def on_convert_get_data_4loop(self):
-        """ NOT IMPLEMENTED YET """
-        pass
-
     def on_close_window(self, evt=None):
         if self._is_dirty():
             dlg = wx.Dialog(self.v, title=t("dlg_unsaved_title"))
@@ -538,7 +529,7 @@ class PETPPresenter():
 
     def _reset_property_grid(self):
         self._reset_task_pgrid()
-        self.v.avaibleProperties.Clear()
+        self.v.availableProperties.Clear()
 
     @reload_log_after
     def on_task_execution_changed(self):
@@ -1060,10 +1051,16 @@ class PETPPresenter():
             self._pgrid_bound_row = -1  # no valid property binding
 
     def _fill_available_properties(self, processor, input_dict):
-        self.v.avaibleProperties.Clear()
+        self.v.availableProperties.Clear()
         tpl_dict = json.loads(Processor.get_processor_by_type(processor).get_tpl())
         available_processors = [k for k in tpl_dict.keys() if not k in input_dict]
-        self.v.avaibleProperties.AppendItems(available_processors)
+        self.v.availableProperties.AppendItems(available_processors)
+
+        combo = self.v.availableProperties
+        if available_processors:
+            max_w = max(combo.GetTextExtent(s)[0] for s in available_processors)
+            combo.SetMinSize((max(max_w + 30, 100), -1))
+            combo.GetParent().Layout()
 
         # Sync the "skipped" checkbox to reflect the current task's skipped state.
         skipped_value = str(input_dict.get("skipped", "")).lower()
@@ -1103,18 +1100,6 @@ class PETPPresenter():
         if prop is not None:
             prop.SetValue(prop.GetValue() + date_str)
             self._modify_property(prop)
-
-    def on_convert_get_data(self):
-        self._convert('{self.get_data("")}')
-
-    def on_convert_get_deep_data(self):
-        self._convert('{self.get_deep_data(["",""])}')
-
-    def on_append_date_str(self):
-        self._convert('{self.get_now_str()}')
-
-    def on_append_os_sep(self):
-        self._convert('{os.sep}')
 
     def on_cb_astool_changed(self, evt):
         # Snapshot for undo
@@ -1194,140 +1179,28 @@ class PETPPresenter():
             }
         }
 
-    def _convert(self, to, put2first=False):
-        tp = self.v.taskProperty
-        prop = tp.GetSelection()
-        if prop is None:
-            return
-        current_value = prop.GetValue()
-        if put2first:
-            prop.SetValue(to + current_value)
-        else:
-            prop.SetValue(current_value + to)
-        self._modify_property(prop)
+    def _init_handy_tools(self):
+        def get_value():
+            prop = self.v.taskProperty.GetSelection()
+            return prop.GetValue() if prop else None
 
-    def on_handy_tools_clicked(self):
-        menu = wx.Menu()
+        def set_value(value):
+            prop = self.v.taskProperty.GetSelection()
+            if prop is None:
+                return
+            prop.SetValue(value)
+            self._modify_property(prop)
 
-        items = [
-            ("handy_rdir", self._on_menu_convert_rdir),
-            ("handy_ddir", self._on_menu_convert_ddir),
-            ("handy_get_sdir", self._on_menu_convert_sdir),
-            ("handy_encrypt", self._on_menu_convert_pwd),
-            None,
-            ("handy_get_data", self._on_menu_convert_get_data),
-            ("handy_get_deep_data", self._on_menu_convert_get_deep_data),
-            None,
-            ("handy_str2dict", self._on_menu_str2dict),
-            ("handy_str2list", self._on_menu_str2list),
-            ("handy_json2dict", self._on_menu_json2dict),
-            ("handy_json_dumps", self._on_menu_json_dumps),
-            ("handy_json_loads", self._on_menu_json_loads),
-            ("handy_prop2dict", self._on_menu_prop2dict),
-            ("handy_feed_tpl", self._on_menu_feed_tpl),
-            None,
-            ("handy_date_str", self._on_menu_append_date_str),
-            ("handy_os_sep", self._on_menu_append_os_sep),
-        ]
+        def extra_items():
+            if not self._snapshots:
+                return []
+            return [("menu_snapshots", self._on_open_snapshots)]
 
-        for item in items:
-            if item is None:
-                menu.AppendSeparator()
-                continue
-            key, handler = item
-            menu_id = wx.NewId()
-            menu.Append(menu_id, t(key))
-            self.v.Bind(wx.EVT_MENU, handler, id=menu_id)
-
-        if self._snapshots:
-            menu.AppendSeparator()
-            snap_id = wx.NewId()
-            menu.Append(snap_id, t("menu_snapshots"))
-            self.v.Bind(wx.EVT_MENU, self._on_open_snapshots, id=snap_id)
-
-        self.v.PopupMenu(menu)
-        menu.Destroy()
-
-    def _on_menu_convert_rdir(self, evt):
-        self.on_convert_rdir()
-
-    def _on_menu_convert_ddir(self, evt):
-        self.on_convert_ddir()
-
-    def _on_menu_convert_sdir(self, evt):
-        self._convert('{self.get_sdir()}/', True)
-
-    def _on_menu_convert_pwd(self, evt):
-        self.on_convert_pwd()
-
-    def _on_menu_convert_get_data(self, evt):
-        self.on_convert_get_data()
-
-    def _on_menu_convert_get_deep_data(self, evt):
-        self.on_convert_get_deep_data()
-
-    def _on_menu_str2dict(self, evt):
-        self._convert('{self.str2dict("")}')
-
-    def _on_menu_str2list(self, evt):
-        self._convert('{self.str2list("")}')
-
-    def _on_menu_json2dict(self, evt):
-        self._convert('{self.json2dict("")}')
-
-    def _on_menu_json_dumps(self, evt):
-        self._convert('{json.dumps()}')
-
-    def _on_menu_json_loads(self, evt):
-        self._convert('{json.loads("")}')
-
-    def _on_menu_prop2dict(self, evt):
-        self._convert('{self.prop2dict("")}')
-
-    def _on_menu_feed_tpl(self, evt):
-        self._convert('{self.feed_tpl("", {})}')
-
-    def _on_menu_append_date_str(self, evt):
-        self.on_append_date_str()
-
-    def _on_menu_append_os_sep(self, evt):
-        self.on_append_os_sep()
-
-    @reload_log_after
-    def on_convert_rdir(self):
-        self._convert('{self.get_rdir()}/', True)
-
-    @reload_log_after
-    def on_convert_ddir(self):
-        self._convert('{self.get_ddir()}/', True)
-
-    @reload_log_after
-    def on_convert_pwd(self):
-        prefix = '{self.decrypt("'
-        suffix = '")}'
-        tp = self.v.taskProperty
-        prop = tp.GetSelection()
-        if prop is None:
-            return
-
-        current_value = prop.GetValue()
-
-        if not type(current_value) is str:
-            logging.info(t("msg_select_string_prop"))
-            return
-
-        if current_value.startswith(prefix) and current_value.endswith(suffix):
-            current_value = current_value.replace(prefix, '')
-            current_value = current_value.replace(suffix, '')
-            prop.SetValue(Processor.decrypt_pwd(current_value))
-        else:
-            prop.SetValue(prefix + Processor.encrypt_pwd(current_value) + suffix)
-
-        self._modify_property(prop)
+        self.v.handy_tools.bind_accessors(get_value, set_value, extra_items=extra_items)
 
     @reload_log_after
     def on_add_property(self):
-        k = self.v.avaibleProperties.GetValue()
+        k = self.v.availableProperties.GetValue()
 
         if not len(k) > 0:
             return

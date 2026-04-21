@@ -103,7 +103,6 @@ class PETPInteractor():
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_property_change4e)
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_property_right_click4e)
         self.v.taskProperty.GetGrid().Bind(wx.EVT_KEY_DOWN, self.on_task_property_key_down)
-        self.v.Bind(wx.EVT_BUTTON, self.on_handy_tools_clicked, self.v.handy_tools)
 
         self.v.Bind(wx.EVT_CHECKBOX, self.on_cb_astool_changed, self.v.cb_astool)
 
@@ -131,8 +130,6 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_add_loop, self.v.addLoop)
         self.v.Bind(wx.EVT_BUTTON, self.on_del_loop, self.v.delLoop)
         self.v.Bind(wx.EVT_BUTTON, self.on_edit_loop, self.v.editLoop)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_deep_data_4loop, self.v.convertGetDeepData4Loop)
-        self.v.Bind(wx.EVT_BUTTON, self.on_convert_get_data_4loop, self.v.convertGetData4Loop)
         self.v.loopProperty.Bind(wx.propgrid.EVT_PG_CHANGING, self.on_loop_property_changing4e)
         self.v.loopProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_loop_property_change4e)
         self.v.loopProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_loop_property_right_click4e)
@@ -223,14 +220,6 @@ class PETPInteractor():
     def on_loop_property_selected4e(self, evt):
         evt.Skip()
         self.p.on_loop_property_selected4e(evt)
-
-    def on_convert_get_data_4loop(self, evt):
-        evt.Skip()
-        self.p.on_convert_get_data_4loop()
-
-    def on_convert_get_deep_data_4loop(self, evt):
-        evt.Skip()
-        self.p.on_convert_get_deep_data_4loop()
 
     def on_add_row4e(self, evt):
         evt.Skip()
@@ -356,10 +345,6 @@ class PETPInteractor():
     def on_cron_changed(self, evt):
         evt.Skip()
         self.p.on_cron_changed()
-
-    def on_handy_tools_clicked(self, evt):
-        evt.Skip()
-        self.p.on_handy_tools_clicked()
 
     def on_undo(self, evt):
         self.p._undo()
