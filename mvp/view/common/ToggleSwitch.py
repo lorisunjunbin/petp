@@ -59,6 +59,7 @@ class ToggleSwitch(wx.Control):
         self._on_label = on_label
         self._off_label = off_label
         self._sync_label()
+        self.Refresh()
 
     def _sync_label(self):
         if self._on_label or self._off_label:
