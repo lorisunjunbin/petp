@@ -34,6 +34,7 @@ class RunButton(wx.Control):
         self.Bind(wx.EVT_LEFT_DOWN, self._on_left_down)
         self.Bind(wx.EVT_LEFT_UP, self._on_left_up)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self._on_destroy)
 
     def SetLabel(self, label):
         self._label = label
@@ -146,6 +147,8 @@ class RunButton(wx.Control):
         tw, th = gc.GetTextExtent(self._label)[:2]
         gc.DrawText(self._label, (w - tw) / 2, (h - th) / 2)
 
-    def __del__(self):
-        if hasattr(self, '_timer') and self._timer.IsRunning():
-            self._timer.Stop()
+    def _on_destroy(self, evt):
+        evt.Skip()
+        if evt.GetEventObject() is not self:
+            return
+        self._timer.Stop()

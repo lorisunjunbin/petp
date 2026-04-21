@@ -32,6 +32,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self.Bind(wx.EVT_TIMER, self._on_text_snapshot_timer, self._text_snapshot_timer)
         self._build_ui()
         self._bind_events()
+        self.Bind(wx.EVT_WINDOW_DESTROY, self._on_destroy)
 
     # ------------------------------------------------------------------ #
     # Public API (matches wx.TextCtrl interface used by the presenter)
@@ -417,6 +418,12 @@ class McpDescEditor(wx.ScrolledWindow):
 
     def _on_child_mousewheel(self, evt):
         self.GetEventHandler().ProcessEvent(evt)
+
+    def _on_destroy(self, evt):
+        evt.Skip()
+        if evt.GetEventObject() is not self:
+            return
+        self._text_snapshot_timer.Stop()
 
     def _resize_desc_column(self, grid, desc_col_idx):
         available = self.GetClientSize().width - 6
