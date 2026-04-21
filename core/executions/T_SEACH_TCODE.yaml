@@ -1,5 +1,5 @@
 !!python/object:core.execution.Execution
-astool: true
+astool: false
 execution: T_SEACH_TCODE
 list:
 - !!python/object:core.task.Task
@@ -31,15 +31,7 @@ list:
   input: '{"http_response_key": "dataset_of_sqlite"}'
   skipped: false
   type: HTTP_RESPONSE_KEY
-loops:
-- !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start": 1, "task_end": 1, "loop_key": "", "loop_times":
-    5, "loop_index_key": "loop_idx", "item_key": "loop_item", "exception_then": "break"}'
-  loop_code: loop-20210906003623
-- !!python/object:core.loop.Loop
-  loop_attributes: '{"task_start":18, "task_end":32, "loop_key":"published_contract_id_title",
-    "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
-  loop_code: loop-20231213163631
+loops: []
 mcp_desc: "{\n  \"desc\": \"\u7528\u4E8E\u67E5\u8BE2 SAP transacation, Tcode\u7684\u63CF\u8FF0\",\n
   \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"T_SEACH_TCODEArguments\",\n
   \   \"properties\": {\n      \"tcode\": {\n        \"title\": \"tcode\",\n        \"type\":
