@@ -82,8 +82,20 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "tip_change_lang": {"en": "Change Language", "zh": "切换语言"},
     "tip_exec_desc": {"en": "Execution description", "zh": "Execution描述"},
     "tip_as_mcp_tool": {
-        "en": "Check to make current Execution as PETP MCP tool ",
-        "zh": "勾选以将当前Execution设为 PETP MCP 工具",
+        "en": "Publish current Execution as PETP MCP tool ",
+        "zh": "发布当前Execution PETP MCP Tool",
+    },
+    "astool_on": {
+        "en": "Published as MCP Tool",
+        "zh": "已发布为 MCP Tool",
+    },
+    "astool_off": {
+        "en": "Not published as MCP Tool",
+        "zh": "尚未发布为 MCP Tool",
+    },
+    "warn_missing_response_key": {
+        "en": "The last Task should be HTTP_RESPONSE_KEY to provide the final result. Continue anyway?",
+        "zh": "最后一个 Task 应为 HTTP_RESPONSE_KEY 以提供最终结果。是否仍然继续？",
     },
 
     # === MCP Description Editor ===

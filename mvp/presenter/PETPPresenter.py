@@ -132,7 +132,8 @@ class PETPPresenter():
 
         # Execution description & MCP tool
         v.execution_desc.apply_i18n()
-        v.cb_astool.SetLabel(t("tip_as_mcp_tool"))
+        v.cb_astool.set_state_labels(t("astool_on"), t("astool_off"))
+        v.cb_astool.SetToolTip(t("tip_as_mcp_tool"))
 
         # Execution action buttons
         v.delExecution.SetLabel(t("btn_delete"))
@@ -1106,6 +1107,19 @@ class PETPPresenter():
         name = combo.GetValue()
         self.v.execution_desc.set_execution_name(name)
         if evt.IsChecked():
+            if not self._check_last_task_is_response_key():
+                dlg = wx.MessageDialog(
+                    self.v,
+                    t("warn_missing_response_key"),
+                    "Warning",
+                    wx.YES_NO | wx.ICON_WARNING,
+                )
+                result = dlg.ShowModal()
+                dlg.Destroy()
+                if result == wx.ID_NO:
+                    self.v.cb_astool.SetValue(False)
+                    return
+
             current_desc = self.v.execution_desc.GetValue().strip()
             if not current_desc:
                 tpl = self._build_mcp_tool_template(name)
@@ -1123,6 +1137,14 @@ class PETPPresenter():
             combo._tool_names | {name} if evt.IsChecked()
             else combo._tool_names - {name}
         )
+
+    def _check_last_task_is_response_key(self) -> bool:
+        grid = self.v.taskGrid
+        for row in range(grid.GetNumberRows() - 1, -1, -1):
+            task_type = grid.GetCellValue(row, 0).strip()
+            if task_type:
+                return task_type == "HTTP_RESPONSE_KEY"
+        return False
 
     def _extract_initial_params(self):
         grid = self.v.taskGrid
