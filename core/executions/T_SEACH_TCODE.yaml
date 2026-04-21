@@ -8,9 +8,9 @@ list:
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
   input: '{"title": "\u8f93\u5165", "msg": "\u9700\u8981\u67e5\u627e\u54ea\u4e2aTcode",
-    "value_key": "tcode", "stop_on_cancel": "yes", "skipped": "yes", "default_value":
+    "value_key": "tcode", "stop_on_cancel": "yes", "skipped": "no", "default_value":
     "{tcode}"}'
-  skipped: true
+  skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"param_not_empty": "tcode"}'
@@ -24,14 +24,18 @@ list:
   type: DB_ACCESS
 - !!python/object:core.task.Task
   input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_of_sqlite\")}",
-    "skipped": "yes"}'
-  skipped: true
+    "skipped": "no"}'
+  skipped: false
   type: SHOW_RESULT
 - !!python/object:core.task.Task
   input: '{"http_response_key": "dataset_of_sqlite"}'
   skipped: false
   type: HTTP_RESPONSE_KEY
 loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start": 1, "task_end": 1, "loop_key": "", "loop_times":
+    5, "loop_index_key": "loop_idx", "item_key": "loop_item", "exception_then": "break"}'
+  loop_code: loop-20210906003623
 - !!python/object:core.loop.Loop
   loop_attributes: '{"task_start":18, "task_end":32, "loop_key":"published_contract_id_title",
     "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'

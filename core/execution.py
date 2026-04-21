@@ -128,15 +128,14 @@ class Execution:
     _LOOP_LOG_INTERVAL = 5  # seconds — minimum gap between LOG events during loops
 
     def post_log_reload(self, lp, view):
+        evt_data = {"execution": self.execution, "task_index": lp.get_current_index()}
         if not lp.is_loop_execution:
-            # Outside a loop: always post
-            wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
+            wx.PostEvent(view, PETPEvent(PETPEvent.LOG, data=evt_data))
         else:
-            # Inside a loop: throttle to avoid flooding the event queue
             now = time.monotonic()
             if now - self._last_log_post_time >= self._LOOP_LOG_INTERVAL:
                 self._last_log_post_time = now
-                wx.PostEvent(view, PETPEvent(PETPEvent.LOG))
+                wx.PostEvent(view, PETPEvent(PETPEvent.LOG, data=evt_data))
 
     def log_end_process(self, current_loop, state, processor, task, view):
         loop_cursor = self.collect_loop_cursor(current_loop, state)

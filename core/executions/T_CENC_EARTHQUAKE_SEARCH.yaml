@@ -18,9 +18,9 @@ list:
   skipped: false
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
-  input: '{"skipped": "yes", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
+  input: '{"skipped": "no", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
     "msg": "{earth_quake_info}"}'
-  skipped: true
+  skipped: false
   type: SHOW_RESULT
 - !!python/object:core.task.Task
   input: '{"http_response_key": "earth_quake_info"}'

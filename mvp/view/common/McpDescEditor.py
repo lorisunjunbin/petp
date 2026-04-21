@@ -193,6 +193,7 @@ class McpDescEditor(wx.ScrolledWindow):
         ]:
             for i, label in enumerate(cols):
                 grid.SetColLabelValue(i, label)
+            grid.ForceRefresh()
 
     # ------------------------------------------------------------------ #
     # UI construction

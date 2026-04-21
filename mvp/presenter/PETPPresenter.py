@@ -1717,6 +1717,23 @@ class PETPPresenter():
             deleteNumber = len(rows_be_deleted) if len(rows_be_deleted) > 0 else 1
             grid.DeleteRows(pos=deleteStartRow, numRows=deleteNumber, updateLabels=True)
 
+    def highlight_running_task(self, data):
+        if not isinstance(data, dict):
+            return
+        exec_name = data.get("execution")
+        task_index = data.get("task_index")
+        if exec_name is None or task_index is None:
+            return
+        if exec_name != self.v.executionChooser.GetValue():
+            return
+        grid = self.v.taskGrid
+        if 0 <= task_index < grid.GetNumberRows():
+            grid.SelectRow(task_index)
+            grid.MakeCellVisible(task_index, 0)
+
+    def clear_running_task_highlight(self):
+        self.v.taskGrid.ClearSelection()
+
     def on_load_log_async(self):
         """Throttled async log reload — skip if called too frequently."""
         now = time.monotonic()

@@ -152,6 +152,7 @@ class PETPInteractor():
     def on_handle_done(self, evt: PETPEvent):
         execution = evt.data[0]
         logging.info(f"{execution} is DONE.")
+        self.p.clear_running_task_highlight()
         self.on_load_log(evt)
 
         data_chain = evt.data[1]
@@ -171,6 +172,7 @@ class PETPInteractor():
     def on_load_log(self, evt):
         """Called by internal PETPEvent.LOG — incremental append."""
         evt.Skip()
+        self.p.highlight_running_task(evt.data)
         self.p.on_logcontents_unfocused()
         self.p.on_load_log_async()
 
