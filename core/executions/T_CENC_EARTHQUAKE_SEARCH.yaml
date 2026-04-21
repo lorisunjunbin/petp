@@ -39,8 +39,4 @@ mcp_desc: "{\n  \"desc\": \"inquire about the information of recent earthquakes 
   \       \"description\": \"\"\n      },\n      \"startTime\": {\n        \"title\":
   \"startTime\",\n        \"type\": \"string\",\n        \"description\": \"\"\n      },\n
   \     \"endTime\": {\n        \"title\": \"endTime\",\n        \"type\": \"string\",\n
-  \       \"description\": \"\"\n      }\n    },\n    \"required\": []\n  },\n  \"outputSchema\":
-  {\n    \"type\": \"object\",\n    \"title\": \"T_CENC_EARTHQUAKE_SEARCHOutput\",\n
-  \   \"properties\": {\n      \"result\": {\n        \"title\": \"result\",\n        \"type\":
-  \"string\",\n        \"description\": \"\"\n      }\n    },\n    \"required\": [\n
-  \     \"result\"\n    ]\n  }\n}"
+  \       \"description\": \"\"\n      }\n    },\n    \"required\": []\n  }\n}"

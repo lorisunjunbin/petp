@@ -9,9 +9,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "btn_delete": {"en": "🗑", "zh": "🗑"},
     "btn_copy": {"en": "📋", "zh": "📋"},
     "btn_save": {"en": "Save", "zh": "保存"},
-    "btn_run_execution": {"en": "Run Execution", "zh": "开始运行"},
-    "btn_run_pipeline": {"en": "Run Pipeline", "zh": "运行流水线"},
-    "btn_stop": {"en": "Stop", "zh": "停止"},
+    "btn_run_execution": {"en": "Execute", "zh": "运 行"},
+    "btn_run_pipeline": {"en": "Execute", "zh": "运 行"},
+    "btn_stop": {"en": "Stop", "zh": "停 止"},
     "btn_stop_all": {"en": "Stop All", "zh": "全部停止"},
     "btn_reload": {"en": "Reload", "zh": "重载日志"},
     "btn_clean": {"en": "Clean", "zh": "清空日志"},
@@ -148,10 +148,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "loop_dlg_col_value": {"en": "Value", "zh": "值"},
     "menu_undo": {"en": "Undo\tCtrl+Z", "zh": "撤销\tCtrl+Z"},
     "menu_redo": {"en": "Redo\tCtrl+Y", "zh": "重做\tCtrl+Y"},
-    "menu_snapshots": {"en": "Snapshots...", "zh": "快照..."},
+    "menu_snapshots": {"en": "Snapshots", "zh": "快 照"},
+    "tip_snapshots": {"en": "View and apply editing snapshots", "zh": "查看并应用编辑快照"},
 
     # === Snapshot dialog ===
-    "dlg_snapshot_title": {"en": "Execution Snapshots", "zh": "Execution快照"},
+    "dlg_snapshot_title": {"en": "Execution Snapshots", "zh": "Execution 快照"},
     "btn_apply_snapshot": {"en": "Apply", "zh": "应用"},
     "btn_close": {"en": "Close", "zh": "关闭"},
 

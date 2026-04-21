@@ -476,8 +476,11 @@ class HttpServer:
                 tool["description"] = desc
 
             input_schema = self._build_input_schema(key, parsed)
-            if input_schema:
-                tool["inputSchema"] = input_schema
+            tool["inputSchema"] = input_schema or {
+                "type": "object",
+                "title": f"{key}Arguments",
+                "properties": {},
+            }
 
             output_schema = self._build_output_schema(key, parsed)
             if output_schema:

@@ -65,13 +65,12 @@ class McpDescEditor(wx.ScrolledWindow):
             properties[name] = {"title": name, "type": ptype, "description": pdesc}
             if is_req:
                 required.append(name)
-        if properties:
-            result["inputSchema"] = {
-                "type": "object",
-                "title": f"{exec_name}Arguments",
-                "properties": properties,
-                "required": required,
-            }
+        result["inputSchema"] = {
+            "type": "object",
+            "title": f"{exec_name}Arguments",
+            "properties": properties,
+            "required": required,
+        }
 
         out_properties = {}
         out_required = []

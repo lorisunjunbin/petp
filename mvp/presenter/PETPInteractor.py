@@ -96,6 +96,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_stop_execution, self.v.stopExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_run_execution, self.v.runExecution)
+        self.v.Bind(wx.EVT_BUTTON, self.on_open_snapshots, self.v.snapshots)
         self.v.Bind(wx.EVT_CHECKBOX, self.on_executeonstartup_changed, self.v.checkbox_executeonstartup)
 
     def bind_view_event_4e_input_editor(self):
@@ -280,6 +281,10 @@ class PETPInteractor():
     def on_stop_execution(self, evt):
         evt.Skip()
         self.p.on_stop_execution()
+
+    def on_open_snapshots(self, evt):
+        evt.Skip()
+        self.p._on_open_snapshots(evt)
 
     def on_save_pipeline(self, evt):
         evt.Skip()

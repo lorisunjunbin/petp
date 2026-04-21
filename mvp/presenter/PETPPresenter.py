@@ -143,6 +143,8 @@ class PETPPresenter():
         v.saveExection.SetToolTip(t("tip_save_execution"))
         v.stopExection.SetLabel(t("btn_stop"))
         v.runExecution.SetLabel(t("btn_run_execution"))
+        v.snapshots.SetLabel(t("menu_snapshots"))
+        v.snapshots.SetToolTip(t("tip_snapshots"))
         v.checkbox_executeonstartup.SetToolTip(t("tip_execute_on_startup"))
         v.langChooser.SetToolTip(t("tip_change_lang"))
         v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
@@ -260,12 +262,6 @@ class PETPPresenter():
         item_toggle = wx.MenuItem(menu, self.popup_id_skip_toggle, label)
         self.v.Bind(wx.EVT_MENU, self._on_grid_row_toggle_skip, item_toggle)
         menu.Append(item_toggle)
-
-        if self._snapshots:
-            menu.AppendSeparator()
-            id_snapshots = wx.NewId()
-            menu.Append(id_snapshots, t("menu_snapshots"))
-            self.v.Bind(wx.EVT_MENU, self._on_open_snapshots, id=id_snapshots)
 
         self.v.PopupMenu(menu)
 
@@ -1191,12 +1187,7 @@ class PETPPresenter():
             prop.SetValue(value)
             self._modify_property(prop)
 
-        def extra_items():
-            if not self._snapshots:
-                return []
-            return [("menu_snapshots", self._on_open_snapshots)]
-
-        self.v.handy_tools.bind_accessors(get_value, set_value, extra_items=extra_items)
+        self.v.handy_tools.bind_accessors(get_value, set_value)
 
     @reload_log_after
     def on_add_property(self):
@@ -1363,8 +1354,7 @@ class PETPPresenter():
 
         can_undo = self._snapshot_cursor >= 0
         can_redo = self._snapshot_cursor < len(self._snapshots) - 1
-        has_snapshots = len(self._snapshots) > 0
-        if can_undo or can_redo or has_snapshots:
+        if can_undo or can_redo:
             menu.AppendSeparator()
             if can_undo:
                 id_undo = wx.NewId()
@@ -1374,10 +1364,6 @@ class PETPPresenter():
                 id_redo = wx.NewId()
                 menu.Append(id_redo, t("menu_redo"))
                 self.v.Bind(wx.EVT_MENU, self._on_redo, id=id_redo)
-            if has_snapshots:
-                id_snapshots = wx.NewId()
-                menu.Append(id_snapshots, t("menu_snapshots"))
-                self.v.Bind(wx.EVT_MENU, self._on_open_snapshots, id=id_snapshots)
 
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_name, id=id_copy_name)
         self.v.Bind(wx.EVT_MENU, self._on_copy_property_value, id=id_copy_value)
@@ -1585,6 +1571,7 @@ class PETPPresenter():
 
     def _update_save_button(self):
         self.v.saveExection.Enable(self._is_dirty())
+        self.v.snapshots.Enable(len(self._snapshots) > 0)
 
     def _mark_clean(self):
         self._saved_snapshot = self._capture_snapshot()
