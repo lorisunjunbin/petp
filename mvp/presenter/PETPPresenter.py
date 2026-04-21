@@ -523,13 +523,14 @@ class PETPPresenter():
                 if 'input' in itm:
                     grid.SetCellValue(idx, 1, itm['input'])
 
-    def _reset_property_grid(self):
+    def _reset_grids(self):
         self._reset_task_pgrid()
+        self._reset_loop_pgrid()
         self.v.availableProperties.Clear()
 
     @reload_log_after
     def on_task_execution_changed(self):
-        self._reset_property_grid()
+        self._reset_grids()
         combo = self.v.executionChooser
         grid = self.v.taskGrid
         grid.ClearGrid()
