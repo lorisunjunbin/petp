@@ -99,7 +99,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
 
     # === MCP Description Editor ===
-    "mcp_lbl_tool_desc": {"en": "Tool Description:", "zh": "工具描述："},
+    "mcp_lbl_tool_desc": {"en": "Description:", "zh": "工具描述："},
     "mcp_lbl_input_params": {"en": "Input Parameters:", "zh": "输入参数："},
     "mcp_lbl_output_params": {"en": "Output Parameters:", "zh": "输出参数："},
     "mcp_col_name": {"en": "Name", "zh": "名称"},
