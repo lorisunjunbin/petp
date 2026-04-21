@@ -13,7 +13,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class HTTP_REQUESTProcessor(Processor):
-    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N", "is_zip_response":"yes|no", "filter_func_body":"return True", "convert_func_body":"return file_content.decode(\'utf-8\')", "basic_auth_user":"", "basic_auth_pwd":"", "oauth_token_url":"", "oauth_client_id":"", "oauth_client_secret":"", "oauth_scope":"", "oauth_token":""}'
+    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N", "is_zip_response":"yes|no", "filter_func_body":"return True", "convert_func_body":"return file_content.decode(\'utf-8\')", "basic_auth_user":"", "basic_auth_pwd":"", "oauth_token_url":"", "oauth_client_id":"", "oauth_client_secret":"", "oauth_scope":"", "oauth_token":"", "xsrf_token_url":"", "xsrf_token_header":"X-CSRF-Token"}'
     DESC: str = f'''
         Send HTTP request (get/post/etc.) to request_url, process response via resp_func_body, then store to value_key.
         Supports session persistence via session_key, built-in Basic Auth and OAuth authentication.
@@ -40,6 +40,8 @@ class HTTP_REQUESTProcessor(Processor):
         - oauth_client_secret: OAuth client_secret (supports expression and encrypted values)
         - oauth_scope: OAuth scope, optional (supports expression)
         - oauth_token: dual-purpose: if oauth_token_url is set, serves as cache key for the fetched token; if oauth_token_url is not set, used directly as Bearer token value (supports expression)
+        - xsrf_token_url: URL to fetch XSRF/CSRF token via GET request with "X-CSRF-Token: Fetch" header. Requires OAuth Bearer token from prior auth. Token is cached in data_chain and attached to all subsequent requests. Response header updates refresh the cache. (supports expression)
+        - xsrf_token_header: custom header name for the XSRF token (default: "X-CSRF-Token")
 
         Auth priority: OAuth > Basic Auth > manual Authorization header.
 
@@ -95,10 +97,13 @@ class HTTP_REQUESTProcessor(Processor):
 
         self._apply_basic_auth(headers)
         self._apply_oauth2_auth(headers)
+        self._apply_xsrf_token(headers)
 
         response = getattr(session, method)(request_url, timeout=(timeout, timeout), data=data, params=params,
                                             headers=headers, verify=verify)
         response.encoding = 'utf-8'
+
+        self._update_xsrf_token_from_response(response)
 
         logging.info('>---------------------------------------------->')
         # request
@@ -229,6 +234,60 @@ class HTTP_REQUESTProcessor(Processor):
         raw = f'{token_url}|{client_id}'
         short_hash = hashlib.md5(raw.encode('utf-8')).hexdigest()[:12]
         return f'__oauth2_token__{short_hash}'
+
+    _XSRF_CACHE_KEY = '__xsrf_token_cache'
+
+    def _get_xsrf_header_name(self) -> str:
+        if self.has_param('xsrf_token_header'):
+            return self.expression2str(self.get_param('xsrf_token_header'))
+        return 'X-CSRF-Token'
+
+    def _apply_xsrf_token(self, headers: dict) -> None:
+        if not self.has_param('xsrf_token_url'):
+            return
+
+        header_name = self._get_xsrf_header_name()
+        cached = self.get_data(self._XSRF_CACHE_KEY) if self.has_data(self._XSRF_CACHE_KEY) else None
+        if cached:
+            headers[header_name] = cached
+            logging.info('auth.xsrf - Using cached XSRF token')
+            return
+
+        token_url = self.expression2str(self.get_param('xsrf_token_url'))
+        fetch_headers = {header_name: 'Fetch'}
+        if 'Authorization' in headers:
+            fetch_headers['Authorization'] = headers['Authorization']
+
+        logging.info('auth.xsrf - Fetching XSRF token from %s', token_url)
+        try:
+            resp = requests.get(token_url, headers=fetch_headers, timeout=30)
+        except requests.RequestException as e:
+            raise RuntimeError(f'auth.xsrf - XSRF token fetch failed: {e}') from e
+
+        if not resp.ok:
+            raise RuntimeError(
+                f'auth.xsrf - XSRF token fetch failed with status {resp.status_code}: {resp.text[:500]}'
+            )
+
+        token = resp.headers.get(header_name)
+        if not token:
+            raise RuntimeError(f'auth.xsrf - Response missing {header_name} header')
+
+        self.task.data_chain[self._XSRF_CACHE_KEY] = token
+        headers[header_name] = token
+        logging.info('auth.xsrf - Token fetched and cached')
+
+    def _update_xsrf_token_from_response(self, response) -> None:
+        if not self.has_param('xsrf_token_url'):
+            return
+
+        header_name = self._get_xsrf_header_name()
+        new_token = response.headers.get(header_name)
+        if new_token and new_token != 'Required':
+            old = self.get_data(self._XSRF_CACHE_KEY) if self.has_data(self._XSRF_CACHE_KEY) else None
+            if new_token != old:
+                self.task.data_chain[self._XSRF_CACHE_KEY] = new_token
+                logging.info('auth.xsrf - Token refreshed from response header')
 
     def _extract_zip_to_dict(self, response, filter_func_body="return True",
                              convert_func_body="return file_content.decode('utf-8')"):
