@@ -1867,13 +1867,14 @@ class PETPPresenter():
     @reload_log_after
     def on_handle_http_request(self, evt: PETPEvent):
         action = evt.data['action']
+        is_internal = evt.data.get('source') == 'internal'
 
         if action == 'execution':
             params = evt.data['params']
             exection_name = params['execution']
             execution: Execution = Execution.get_execution(params['execution'])
 
-            if hasattr(execution, 'astool') and execution.astool:
+            if is_internal or (hasattr(execution, 'astool') and execution.astool):
                 self.v.executionChooser.SetValue(exection_name)
                 self.on_task_execution_changed()
                 self.on_run_execution(params)

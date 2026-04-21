@@ -38,6 +38,7 @@ class RUN_EXECUTIONProcessor(Processor):
             if wx is not None:
                 wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.HTTP_REQUEST, {
                     "action": "execution",
+                    "source": "internal",
                     "params": params
                 }))
             else:
