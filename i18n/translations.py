@@ -56,6 +56,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Handy tools menu items ===
     "handy_rdir": {"en": "Resources Dir\t{self.get_rdir()}/", "zh": "资源目录\t{self.get_rdir()}/"},
     "handy_ddir": {"en": "Download Dir\t{self.get_ddir()}/", "zh": "下载目录\t{self.get_ddir()}/"},
+    "handy_tdir": {"en": "Test Dir\t{self.get_tdir()}/", "zh": "测试目录\t{self.get_tdir()}/"},
     "handy_encrypt": {"en": "Encrypt / Decrypt Password", "zh": "加密 / 解密密码"},
     "handy_get_data": {"en": "get_data(\"\")", "zh": "get_data(\"\")"},
     "handy_get_deep_data": {"en": "get_deep_data([\"\",\"\"])", "zh": "get_deep_data([\"\",\"\"])"},
@@ -144,6 +145,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "menu_paste": {"en": "Paste", "zh": "粘贴"},
     "menu_skip_task": {"en": "Skip", "zh": "跳过"},
     "menu_unskip_task": {"en": "Unskip", "zh": "取消跳过"},
+    "menu_view_processor_usage": {"en": "View Processor Usage", "zh": "查看Processor用法"},
+    "menu_find_referencing_executions": {"en": "Find References of {name}", "zh": "查找{name}的引用"},
+    "dlg_processor_usage_title": {"en": "Processor Usage", "zh": "Processor 用法"},
+    "dlg_referencing_executions_title": {"en": "References of {name}", "zh": "{name}的引用"},
+    "dlg_no_referencing_executions": {"en": "No executions reference {name}.",
+                                      "zh": "没有Execution引用{name}。"},
     "menu_copy_name": {"en": "Copy Name", "zh": "复制名"},
     "menu_copy_value": {"en": "Copy Value", "zh": "复制值"},
     "menu_copy_pair": {"en": "Copy Name+Value", "zh": "复制Name+Value"},
@@ -194,7 +201,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "dlg_result_title": {"en": "PETP - Message Box", "zh": "PETP - 消息框"},
     "dlg_copy_exec_title": {"en": "Copy Execution", "zh": "复制Execution"},
     "dlg_copy_exec_msg": {"en": "Enter name for the copy:", "zh": "请输入副本名称："},
-    "dlg_copy_exec_dup": {"en": "Name already exists, please choose a different name.", "zh": "名称已存在，请选择其他名称。"},
+    "dlg_copy_exec_dup": {"en": "Name already exists, please choose a different name.",
+                          "zh": "名称已存在，请选择其他名称。"},
     "dlg_delete_exec_title": {"en": "Delete Execution", "zh": "删除Execution"},
     "dlg_delete_exec_msg": {
         "en": "Delete \"{name}\"?\n\nThe file will be moved to core/executions/trash/ and can be restored manually.",
@@ -293,23 +301,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Checkbox labels ===
     "cb_as_cron": {"en": "as cron", "zh": "定时任务"},
 
-    # === Processor DESC translations ===
-    "desc_FIND_MULTI_THEN_CLICK": {
-        "en": "Find multiple elements via selenium within timeout, then click on them one by one.",
-        "zh": "通过 Selenium 在超时范围内查找多个元素，然后逐个点击。",
-    },
-    "desc_FIND_MULTI_THEN_COLLECT": {
-        "en": "Find multiple elements via selenium and collect their text, value, or any property/attribute into a list.",
-        "zh": "通过 Selenium 查找多个元素，将其文本、值或属性收集到列表中。",
-    },
-    "desc_FIND_THEN_COLLECT": {
-        "en": "Find a single element via selenium and collect its text, value, or any property/attribute, then store to data_chain.",
-        "zh": "通过 Selenium 查找单个元素，收集其文本、值或属性，然后存储到 data_chain。",
-    },
-    "desc_FIND_THEN_KEYIN": {
-        "en": "Call the Chrome driver to locate a web element, then simulate keyboard input via send_keys.",
-        "zh": "调用 Chrome 驱动定位网页元素，然后通过 send_keys 模拟键盘输入。",
-    },
 }
 
 _current_locale = "zh"

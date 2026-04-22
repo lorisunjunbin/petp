@@ -6,6 +6,7 @@ from i18n.translations import t
 _HANDY_ITEMS = [
     ("handy_rdir", '{self.get_rdir()}/', True),
     ("handy_ddir", '{self.get_ddir()}/', True),
+    ("handy_tdir", '{self.get_tdir()}/', True),
     ("handy_get_sdir", '{self.get_sdir()}/', True),
     ("handy_encrypt", None, False),
     None,

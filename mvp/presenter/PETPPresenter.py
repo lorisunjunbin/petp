@@ -241,6 +241,8 @@ class PETPPresenter():
             self.popup_id_copy = wx.NewId()
             self.popup_id_paste = wx.NewId()
             self.popup_id_skip_toggle = wx.NewId()
+            self.popup_id_view_processor_usage = wx.NewId()
+            self.popup_id_find_referencing_executions = wx.NewId()
 
         menu = wx.Menu()
 
@@ -264,9 +266,82 @@ class PETPPresenter():
         self.v.Bind(wx.EVT_MENU, self._on_grid_row_toggle_skip, item_toggle)
         menu.Append(item_toggle)
 
+        processor_name = self.v.taskGrid.GetCellValue(row, 0).strip()
+        if processor_name and processor_name in self.available_processors:
+            menu.AppendSeparator()
+
+            item_usage = wx.MenuItem(menu, self.popup_id_view_processor_usage, t("menu_view_processor_usage"))
+            self.v.Bind(wx.EVT_MENU, self._on_view_processor_usage, item_usage)
+            menu.Append(item_usage)
+
+            item_refs = wx.MenuItem(menu, self.popup_id_find_referencing_executions,
+                                    t("menu_find_referencing_executions").format(name=processor_name))
+            self.v.Bind(wx.EVT_MENU, self._on_find_referencing_executions, item_refs)
+            menu.Append(item_refs)
+
         self.v.PopupMenu(menu)
 
         menu.Destroy()
+
+    def _on_view_processor_usage(self, evt):
+        row = self.selected_row_2_copied_paste
+        processor_name = self.v.taskGrid.GetCellValue(row, 0).strip()
+        if not processor_name:
+            return
+        try:
+            p = Processor.get_processor_by_type(processor_name)
+            category = p.get_category() if hasattr(p, 'get_category') else 'N/A'
+            tpl = p.get_tpl()
+            desc = p.get_localized_desc() if hasattr(p, 'get_localized_desc') else p.get_desc()
+            content = f"[{category}]  {processor_name}\n{'=' * 60}\n\n"
+            content += f"TPL:\n{self._format_tpl(tpl)}\n\n"
+            content += f"Description:\n{desc.strip()}"
+        except Exception as e:
+            content = f"Failed to load processor info: {e}"
+
+        from mvp.view.common.ResultDialog import ResultDialog
+        dlg = ResultDialog(self.v, title=processor_name, message=content)
+        dlg.ShowModal()
+        dlg.Destroy()
+
+    @staticmethod
+    def _format_tpl(tpl_str):
+        try:
+            tpl_dict = json.loads(tpl_str)
+            lines = []
+            for k, v in tpl_dict.items():
+                lines.append(f"  {k}: {v}")
+            return "\n".join(lines)
+        except Exception:
+            return tpl_str
+
+    def _on_find_referencing_executions(self, evt):
+        row = self.selected_row_2_copied_paste
+        processor_name = self.v.taskGrid.GetCellValue(row, 0).strip()
+        if not processor_name:
+            return
+
+        refs = []
+        for exec_name in Execution.get_available_executions():
+            try:
+                execution = Execution.get_execution(exec_name)
+                if execution and hasattr(execution, 'list') and execution.list:
+                    for i, task in enumerate(execution.list):
+                        if hasattr(task, 'type') and task.type == processor_name:
+                            refs.append(f"{exec_name}  (Task #{i + 1})")
+            except Exception:
+                continue
+
+        if refs:
+            content = f"Executions referencing [{processor_name}]:\n{'=' * 60}\n\n"
+            content += "\n".join(f"  {r}" for r in refs)
+        else:
+            content = t("dlg_no_referencing_executions").format(name=processor_name)
+
+        from mvp.view.common.ResultDialog import ResultDialog
+        dlg = ResultDialog(self.v, title=t("dlg_referencing_executions_title").format(name=processor_name), message=content)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     @reload_log_after
     def _on_grid_row_copy(self, evt):
