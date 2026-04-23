@@ -43,7 +43,7 @@ class MysqlDBAccess(BaseDBAccess):
     def execute(self, sql, param):
         if not hasattr(self, 'cnx'):
             logging.error("Mysql database is not connected, can NOT run sql: " + sql)
-            return
+            return []
 
         cur = self.cnx.cursor(dictionary=True)
         dataset = []

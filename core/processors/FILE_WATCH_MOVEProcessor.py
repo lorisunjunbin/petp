@@ -26,7 +26,7 @@ class FILE_WATCH_MOVEProcessor(Processor):
         target_file = self.expression2str(self.get_param('targetfile'))
         filepath_key = self.expression2str(self.get_param('filepath_key'))
 
-        timeout = self.get_param('timeout') if self.has_param('timeout') else 30
+        timeout = int(self.expression2str(self.get_param('timeout'))) if self.has_param('timeout') else 30
 
         found = OSUtils.wait_for_file_within_seconds(source_file, timeout)
         if found:

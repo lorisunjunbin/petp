@@ -632,10 +632,8 @@ class PETPPresenter():
 
             self._apply_all_row_skip_styles()
             self._autosize_input_col()
-            if not hasattr(self.execution, 'loops'):
-                return
 
-            if len(self.execution.loops) > 0:
+            if hasattr(self.execution, 'loops') and len(self.execution.loops) > 0:
                 for idx, itm in enumerate(self.execution.loops):
                     self._append_or_update_property_to_page(
                         itm.loop_code,
@@ -664,6 +662,31 @@ class PETPPresenter():
         grid = self.v.taskGrid
         loop_property = self.v.loopProperty
 
+        as_tool = self.v.cb_astool.IsChecked()
+        if as_tool and not self._check_last_task_is_response_key() and not self._has_output_schema_properties():
+            wx.MessageBox(
+                t("warn_astool_no_output_config"),
+                "Warning",
+                wx.OK | wx.ICON_WARNING,
+                self.v,
+            )
+            logging.warning(t("warn_astool_no_output_config"))
+            return False
+
+        if as_tool and not self._check_first_task_is_initial_params():
+            input_params = self._extract_input_params_from_desc()
+            if input_params:
+                dlg = wx.MessageDialog(
+                    self.v,
+                    t("prompt_sync_initial_params"),
+                    "Sync",
+                    wx.YES_NO | wx.ICON_QUESTION,
+                )
+                answer = dlg.ShowModal()
+                dlg.Destroy()
+                if answer == wx.ID_YES:
+                    self._insert_initial_params_task(input_params)
+
         # prepare tasks
         tasks = []
         for row in range(0, grid.GetNumberRows()):
@@ -678,7 +701,7 @@ class PETPPresenter():
         # validate dynamic func bodies before saving
         if not self._validate_dynamic_func_bodies(tasks, grid):
             logging.info(t("msg_save_aborted"))
-            return
+            return False
 
         # prepare loops
         loops = []
@@ -867,11 +890,13 @@ class PETPPresenter():
         combo = self.v.executionChooser
         name = combo.GetValue()
 
+        if self._save_execcution(name) is False:
+            return
+
         is_new = combo.FindString(name) == -1
         if not is_new:
             logging.warning(t("msg_execution_overwrite", name=combo.GetValue()))
 
-        self._save_execcution(name)
         self._mark_clean()
         self._refresh_execution_chooser(name)
 
@@ -1144,15 +1169,13 @@ class PETPPresenter():
         prop = page.GetPropertyByName(k)
 
         if prop is not None:
-            prop.SetValue(v)
+            prop.SetValue(str(v) if type(v) is int else v)
             return False
 
-        if type(v) is str:
-            page.Append(wx.propgrid.StringProperty(label=k, name=k, value=v))
-        elif type(v) is int:
-            page.Append(wx.propgrid.IntProperty(label=k, name=k, value=v))
-        elif type(v) is list:
+        if type(v) is list:
             page.Append(wx.propgrid.ArrayStringProperty(label=k, name=k, value=v))
+        elif type(v) in (str, int):
+            page.Append(wx.propgrid.StringProperty(label=k, name=k, value=str(v) if type(v) is int else v))
         else:
             raise AttributeError('Unsupported property type:' + str(type(v)))
         page.FitColumns()
@@ -1182,18 +1205,13 @@ class PETPPresenter():
         name = combo.GetValue()
         self.v.execution_desc.set_execution_name(name)
         if evt.IsChecked():
-            if not self._check_last_task_is_response_key():
-                dlg = wx.MessageDialog(
-                    self.v,
+            if not self._check_last_task_is_response_key() and not self._has_output_schema_properties():
+                wx.MessageBox(
                     t("warn_missing_response_key"),
-                    "Warning",
-                    wx.YES_NO | wx.ICON_WARNING,
+                    "Info",
+                    wx.OK | wx.ICON_INFORMATION,
+                    self.v,
                 )
-                result = dlg.ShowModal()
-                dlg.Destroy()
-                if result == wx.ID_NO:
-                    self.v.cb_astool.SetValue(False)
-                    return
 
             current_desc = self.v.execution_desc.GetValue().strip()
             if not current_desc:
@@ -1201,12 +1219,28 @@ class PETPPresenter():
                 initial_params = self._extract_initial_params()
                 if initial_params:
                     props = {}
-                    for key in initial_params:
-                        props[key] = {"title": key, "type": "string", "description": ""}
+                    for key, value in initial_params.items():
+                        prop = {"title": key, "type": "string", "description": ""}
+                        if value:
+                            prop["default"] = str(value)
+                        props[key] = prop
                     tpl["inputSchema"]["properties"] = props
                     tpl["inputSchema"]["required"] = list(initial_params.keys())
                 default_desc = json.dumps(tpl, indent=2, ensure_ascii=False)
                 self.v.execution_desc.SetValue(default_desc)
+        else:
+            input_params = self._extract_input_params_from_desc()
+            if input_params and not self._check_first_task_is_initial_params():
+                dlg = wx.MessageDialog(
+                    self.v,
+                    t("prompt_sync_initial_params"),
+                    "Info",
+                    wx.YES_NO | wx.ICON_INFORMATION,
+                )
+                result = dlg.ShowModal()
+                dlg.Destroy()
+                if result == wx.ID_YES:
+                    self._insert_initial_params_task(input_params)
         # Sync the tool icon prefix in the dropdown immediately
         combo.set_tool_names(
             combo._tool_names | {name} if evt.IsChecked()
@@ -1220,6 +1254,65 @@ class PETPPresenter():
             if task_type:
                 return task_type == "HTTP_RESPONSE_KEY"
         return False
+
+    def _has_output_schema_properties(self) -> bool:
+        desc_str = self.v.execution_desc.GetValue().strip()
+        if not desc_str:
+            return False
+        try:
+            parsed = json.loads(desc_str)
+        except (json.JSONDecodeError, TypeError):
+            return False
+        output_schema = parsed.get("outputSchema")
+        return isinstance(output_schema, dict) and bool(output_schema.get("properties"))
+
+    def _check_first_task_is_initial_params(self) -> bool:
+        grid = self.v.taskGrid
+        for row in range(grid.GetNumberRows()):
+            task_type = grid.GetCellValue(row, 0).strip()
+            if task_type:
+                return task_type == "INITIAL_PARAMS"
+        return False
+
+    def _extract_input_params_from_desc(self):
+        desc_str = self.v.execution_desc.GetValue().strip()
+        if not desc_str:
+            return None
+        try:
+            parsed = json.loads(desc_str)
+        except (json.JSONDecodeError, TypeError):
+            return None
+        input_schema = parsed.get("inputSchema")
+        if not isinstance(input_schema, dict):
+            return None
+        props = input_schema.get("properties", {})
+        if not props:
+            return None
+        return {name: spec.get("default", "") for name, spec in props.items()}
+
+    def _insert_initial_params_task(self, params: dict):
+        grid = self.v.taskGrid
+        grid.InsertRows(0, 1)
+        grid.SetCellValue(0, 0, "INITIAL_PARAMS")
+        grid.SetCellValue(0, 1, json.dumps(params, ensure_ascii=False))
+        self._offset_loop_indices(1)
+
+    def _offset_loop_indices(self, offset: int):
+        page = self.v.loopProperty.GetPage(self.single_page)
+        for prop in page.GetPyIterator(wx.propgrid.PG_ITERATE_ALL):
+            if isinstance(prop, wx.propgrid.PropertyCategory):
+                continue
+            try:
+                attrs = json.loads(prop.GetValue())
+            except (json.JSONDecodeError, TypeError):
+                continue
+            changed = False
+            for key in ("task_start", "task_end"):
+                if key in attrs:
+                    attrs[key] = int(attrs[key]) + offset
+                    changed = True
+            if changed:
+                prop.SetValue(json.dumps(attrs, ensure_ascii=False))
 
     def _extract_initial_params(self):
         grid = self.v.taskGrid
@@ -1247,29 +1340,14 @@ class PETPPresenter():
             "inputSchema": {
                 "type": "object",
                 "title": f"{execution_name}Arguments",
-                "properties": {
-                    "param1": {
-                        "title": "Param1",
-                        "type": "string",
-                        "description": "<describe param1>"
-                    }
-                },
-                "required": [
-                    "param1"
-                ]
+                "properties": {},
+                "required": []
             },
             "outputSchema": {
                 "type": "object",
                 "title": f"{execution_name}Output",
-                "properties": {
-                    "result": {
-                        "title": "Result",
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "result"
-                ]
+                "properties": {},
+                "required": []
             }
         }
 
@@ -1626,7 +1704,13 @@ class PETPPresenter():
         logging.debug(f'Input property deleted @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} ]')
 
     def _modify_property(self, prop):
-        self._op_taskgrid_property(prop.GetName(), prop.GetValue(),
+        value = prop.GetValue()
+        if isinstance(value, str):
+            try:
+                value = int(value)
+            except (ValueError, TypeError):
+                pass
+        self._op_taskgrid_property(prop.GetName(), value,
                                    lambda inputDict, key, value: inputDict | {key: value})
         logging.debug(
             f'Input property modified @Task{self._pgrid_bound_row + 1} - [ {prop.GetName()} = {prop.GetValue()} ]')

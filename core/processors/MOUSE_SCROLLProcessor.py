@@ -32,10 +32,10 @@ class MOUSE_SCROLLProcessor(Processor):
         return super().CATE_MOUSE
 
     def process(self):
-        x = self.get_param('x')
-        y = self.get_param('y')
-        vertical = self.get_param('vertical')
-        
+        x = int(self.expression2str(self.get_param('x')))
+        y = int(self.expression2str(self.get_param('y')))
+        vertical = int(self.expression2str(self.get_param('vertical')))
+
         if (x == -1 and y == -1) or (x is None and y is None):
             x_at = self.get_data(self.get_param('x_from'))
             y_at = self.get_data(self.get_param('y_from'))
@@ -43,5 +43,5 @@ class MOUSE_SCROLLProcessor(Processor):
         else:
             pyautogui.scroll(vertical, x=x, y=y)
 
-        wait = self.get_param('wait')
+        wait = int(self.expression2str(self.get_param('wait')))
         time.sleep(wait)

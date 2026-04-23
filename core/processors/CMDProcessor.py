@@ -33,7 +33,7 @@ class CMDProcessor(Processor):
 
         _encoding = self.expression2str(self.get_param("encoding")) if self.has_param("encoding") else 'utf-8'
 
-        _timeout = self.get_param("timeout") if self.has_param("timeout") else None
+        _timeout = int(self.expression2str(self.get_param("timeout"))) if self.has_param("timeout") else None
 
         logging.debug(f'>{cmdstr}, in folder {_cwd}')
 

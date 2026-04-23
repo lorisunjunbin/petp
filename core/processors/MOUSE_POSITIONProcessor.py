@@ -32,8 +32,8 @@ class MOUSE_POSITIONProcessor(Processor):
         return super().CATE_MOUSE
 
     def process(self):
-        wait = self.get_param('wait')
-        if not wait is None and wait > 0:
+        wait = int(self.expression2str(self.get_param('wait')))
+        if wait is not None and wait > 0:
             time.sleep(wait)
 
         data_key_x = self.get_param('data_key_x')

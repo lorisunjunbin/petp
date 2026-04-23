@@ -70,7 +70,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "handy_json_loads": {"en": "json.loads(str)", "zh": "json.loads(str)"},
     "handy_str2list": {"en": "str2list(\"a|>b\")", "zh": "str2list(\"a|>b\")"},
     "handy_get_sdir": {"en": "Shared Dir\t{self.get_sdir()}/", "zh": "共享目录\t{self.get_sdir()}/"},
-    "btn_handy_tools": {"en": "🧰▾", "zh": "🧰▾"},
+    "btn_handy_tools": {"en": "🧰", "zh": "🧰"},
 
     # === Tooltips — execution actions ===
     "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的Execution"},
@@ -95,8 +95,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": "尚未发布为 MCP Tool",
     },
     "warn_missing_response_key": {
-        "en": "The last Task should be HTTP_RESPONSE_KEY to provide the final result. Continue anyway?",
-        "zh": "最后一个 Task 应为 HTTP_RESPONSE_KEY 以提供最终结果。是否仍然继续？",
+        "en": "The last Task should be HTTP_RESPONSE_KEY to provide the final result, otherwise please specify Output Parameters instead.",
+        "zh": "最后一个 Task 应为 HTTP_RESPONSE_KEY 以提供最终结果，或者请配置输出参数作为替代。",
+    },
+    "warn_astool_no_output_config": {
+        "en": "This execution is marked as MCP tool but has neither HTTP_RESPONSE_KEY as last task nor Output Parameters configured. Please add one of them before saving.",
+        "zh": "此执行被标记为 MCP 工具，但既没有 HTTP_RESPONSE_KEY 作为最后一个 Task，也没有配置输出参数。请先添加其中之一再保存。",
+    },
+    "prompt_sync_initial_params": {
+        "en": "The first task is not INITIAL_PARAMS. Convert Input Parameters to an INITIAL_PARAMS task as the first task?",
+        "zh": "第一个 Task 不是 INITIAL_PARAMS。是否将输入参数转换为首个 INITIAL_PARAMS Task？",
     },
 
     # === MCP Description Editor ===
@@ -107,6 +115,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mcp_col_type": {"en": "Type", "zh": "类型"},
     "mcp_col_desc": {"en": "Description", "zh": "描述"},
     "mcp_col_required": {"en": "Required", "zh": "必填"},
+    "mcp_col_default": {"en": "Default", "zh": "默认值"},
+    "mcp_col_map_key": {"en": "Map To DataChain Key", "zh": "映射DataChain键"},
     "mcp_tip_add_input": {"en": "Add input parameter", "zh": "添加输入参数"},
     "mcp_tip_del_input": {"en": "Remove selected input parameter", "zh": "删除选中的输入参数"},
     "mcp_tip_add_output": {"en": "Add output parameter", "zh": "添加输出参数"},

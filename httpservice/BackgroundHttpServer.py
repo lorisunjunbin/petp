@@ -208,9 +208,19 @@ class BackgroundHttpServer:
                     "params": {"level": "info", "data": info},
                 })
 
-                result = self.runtime.run_execution(tool_exec_name, arguments)
-                extracted_result = self._extract_business_response(result)
-                client_result = self._strip_meta_for_client(extracted_result)
+                merged_args = self._apply_input_defaults(tool_exec_name, arguments)
+                result = self.runtime.run_execution(tool_exec_name, merged_args)
+
+                output_schema = self._get_output_schema(tool_exec_name)
+                if output_schema and isinstance(result, dict) and result.get("ok"):
+                    data = result.get("data", {}) if isinstance(result.get("data"), dict) else {}
+                    client_result = self._build_output_from_schema(data, output_schema)
+                    structured_content = client_result
+                else:
+                    extracted_result = self._extract_business_response(result)
+                    client_result = self._strip_meta_for_client(extracted_result)
+                    structured_content = self._to_mcp_structured_content(client_result)
+
                 content_text = self._to_mcp_text(client_result)
                 if isinstance(result, dict) and result.get("meta") is not None:
                     logging.info("MCP tools/call meta for %s: %s", tool_name,
@@ -220,7 +230,7 @@ class BackgroundHttpServer:
                     "id": request_id,
                     "result": {
                         "content": [{"type": "text", "text": f" {info} -> {content_text}"}],
-                        "structuredContent": self._to_mcp_structured_content(client_result),
+                        "structuredContent": structured_content,
                         "isError": not bool(result.get("ok", False)) if isinstance(result, dict) else True,
                     },
                 })
@@ -279,20 +289,38 @@ class BackgroundHttpServer:
         tools = []
         for name, raw_value in tools_petp.items():
             parsed = BackgroundHttpServer._parse_tool_value(raw_value)
-            raw_params = parsed.get("params") if isinstance(parsed.get("params"), list) else []
-            params_list = cast(list[Any], raw_params)
-            clean_params = [p for p in params_list if isinstance(p, str) and p.strip()]
-            tools.append(
-                {
-                    "name": name,
-                    "description": parsed.get("desc") or name,
-                    "inputSchema": {
-                        "type": "object",
-                        "properties": {k: {"type": "string", "title": k} for k in clean_params},
-                        "required": clean_params,
-                    },
+            tool: dict = {"name": name, "description": parsed.get("desc") or name}
+
+            input_schema = parsed.get("inputSchema")
+            if isinstance(input_schema, dict):
+                tool["inputSchema"] = input_schema
+            else:
+                raw_params = parsed.get("params") if isinstance(parsed.get("params"), list) else []
+                params_list = cast(list[Any], raw_params)
+                clean_params = [p for p in params_list if isinstance(p, str) and p.strip()]
+                tool["inputSchema"] = {
+                    "type": "object",
+                    "title": f"{name}Arguments",
+                    "properties": {k: {"type": "string", "title": k} for k in clean_params},
+                    "required": clean_params,
                 }
-            )
+
+            output_schema = parsed.get("outputSchema")
+            if isinstance(output_schema, dict) and output_schema.get("properties"):
+                tool["outputSchema"] = BackgroundHttpServer._strip_map_keys(output_schema)
+            else:
+                out_params = parsed.get("outParams")
+                if isinstance(out_params, list):
+                    clean_out = [p for p in out_params if isinstance(p, str) and p.strip()]
+                    if clean_out:
+                        tool["outputSchema"] = {
+                            "title": f"{name}Output",
+                            "type": "object",
+                            "properties": {p: {"title": p, "type": "string"} for p in clean_out},
+                            "required": clean_out,
+                        }
+
+            tools.append(tool)
         return tools
 
     @staticmethod
@@ -309,6 +337,54 @@ class BackgroundHttpServer:
             "annotations": None,
             "_meta": None,
         }
+
+    @staticmethod
+    def _strip_map_keys(schema: dict) -> dict:
+        if not schema or "properties" not in schema:
+            return schema
+        cleaned = dict(schema)
+        cleaned["properties"] = {
+            name: {k: v for k, v in prop.items() if k != "mapKey"}
+            for name, prop in schema.get("properties", {}).items()
+        }
+        return cleaned
+
+    @staticmethod
+    def _build_output_from_schema(data: dict, output_schema: dict) -> dict:
+        properties = output_schema.get("properties", {})
+        result = {}
+        for prop_name, prop_spec in properties.items():
+            dc_key = prop_spec.get("mapKey") or prop_name
+            if dc_key in data:
+                result[prop_name] = data[dc_key]
+        return result
+
+    def _get_output_schema(self, tool_name: str):
+        tools = self.runtime.get_tools()
+        raw = tools.get(tool_name)
+        if not raw:
+            return None
+        parsed = self._parse_tool_value(raw)
+        schema = parsed.get("outputSchema")
+        if isinstance(schema, dict) and schema.get("properties"):
+            return schema
+        return None
+
+    def _apply_input_defaults(self, tool_name: str, arguments: dict) -> dict:
+        tools = self.runtime.get_tools()
+        raw = tools.get(tool_name)
+        if not raw:
+            return arguments
+        parsed = self._parse_tool_value(raw)
+        input_schema = parsed.get("inputSchema")
+        if not isinstance(input_schema, dict):
+            return arguments
+        props = input_schema.get("properties", {})
+        merged = dict(arguments)
+        for name, spec in props.items():
+            if name not in merged and "default" in spec:
+                merged[name] = spec["default"]
+        return merged
 
     @staticmethod
     def _strip_meta_for_client(result: Any) -> Any:

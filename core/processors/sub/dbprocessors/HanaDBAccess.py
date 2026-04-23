@@ -28,7 +28,7 @@ class HanaDBAccess(BaseDBAccess):
     def execute(self, sql, param):
         if not hasattr(self, 'cnx'):
             logging.error("Hana database is not connected, can NOT run sql: " + sql)
-            return
+            return []
 
         cur = self.cnx.cursor()
         dataset = []
@@ -42,7 +42,7 @@ class HanaDBAccess(BaseDBAccess):
             for data in cur:
                 dataset.append(data)
 
-            logging.debug("Mysql execute successfully.")
+            logging.debug("Hana execute successfully.")
         finally:
             if self.require_commit(sql):
                 self.cnx.commit()

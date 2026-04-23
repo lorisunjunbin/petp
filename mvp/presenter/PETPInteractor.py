@@ -161,13 +161,34 @@ class PETPInteractor():
         request_id_key = HttpRequestHandler.get_request_id_key()
         response_key = HttpRequestHandler.get_response_key()
 
-        # Safely check if request_id exists in the dictionary
-        if request_id_key in data_chain and response_key in data_chain:
+        if request_id_key not in data_chain:
+            return
 
-            current_request_id = data_chain[request_id_key]
-            server = HttpRequestHandler.get_server()
-            if current_request_id and server:
-                server.store_result(current_request_id, data_chain[data_chain[response_key]])
+        current_request_id = data_chain[request_id_key]
+        server = HttpRequestHandler.get_server()
+        if not current_request_id or not server:
+            return
+
+        if response_key in data_chain:
+            server.store_result(current_request_id, data_chain[data_chain[response_key]])
+        else:
+            output_schema = self._get_output_schema_for(execution)
+            if output_schema:
+                from httpservice.HttpServer import HttpServer
+                shaped = HttpServer._build_output_from_schema(data_chain, output_schema)
+                server.store_result(current_request_id, shaped)
+
+    def _get_output_schema_for(self, execution_name: str):
+        tools = self.p.get_tools()
+        raw = tools.get(execution_name)
+        if not raw:
+            return None
+        from httpservice.HttpServer import HttpServer
+        parsed = HttpServer._parse_tool_value(raw)
+        schema = parsed.get("outputSchema")
+        if isinstance(schema, dict) and schema.get("properties"):
+            return schema
+        return None
 
     def on_load_log(self, evt):
         """Called by internal PETPEvent.LOG — incremental append."""

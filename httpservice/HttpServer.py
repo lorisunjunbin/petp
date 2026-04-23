@@ -364,21 +364,29 @@ class HttpServer:
             })
 
             # Execute the PETP event and emit the final result
+            merged_args = self._apply_input_defaults(action, arguments)
             petp_param: dict = {"execution": action}
-            petp_param.update(arguments)
+            petp_param.update(merged_args)
             result = self._handle_petp_event(handler, {
                 "action": "execution",
                 "params": petp_param,
             })
 
-            client_result = self._strip_meta_for_client(result)
+            output_schema = self._get_output_schema(action)
+            if output_schema and isinstance(result, dict) and not self._is_mcp_error_result(result):
+                client_result = result
+                structured_content = client_result
+            else:
+                client_result = self._strip_meta_for_client(result)
+                structured_content = self._to_mcp_structured_content(client_result)
+
             content_text = self._to_mcp_text(client_result)
             yield self._sse_event({
                 "jsonrpc": "2.0",
                 "id": request_id,
                 "result": {
                     "content": [{"type": "text", "text": f" {question_info} -> {content_text}"}],
-                    "structuredContent": self._to_mcp_structured_content(client_result),
+                    "structuredContent": structured_content,
                     "isError": self._is_mcp_error_result(result),
                 },
             })
@@ -484,7 +492,7 @@ class HttpServer:
 
             output_schema = self._build_output_schema(key, parsed)
             if output_schema:
-                tool["outputSchema"] = output_schema
+                tool["outputSchema"] = self._strip_map_keys(output_schema)
 
             result.append(tool)
         return result
@@ -573,6 +581,54 @@ class HttpServer:
             "annotations": None,
             "_meta": None,
         }
+
+    @staticmethod
+    def _strip_map_keys(schema: dict) -> dict:
+        if not schema or "properties" not in schema:
+            return schema
+        cleaned = dict(schema)
+        cleaned["properties"] = {
+            name: {k: v for k, v in prop.items() if k != "mapKey"}
+            for name, prop in schema.get("properties", {}).items()
+        }
+        return cleaned
+
+    @staticmethod
+    def _build_output_from_schema(data: dict, output_schema: dict) -> dict:
+        properties = output_schema.get("properties", {})
+        result = {}
+        for prop_name, prop_spec in properties.items():
+            dc_key = prop_spec.get("mapKey") or prop_name
+            if dc_key in data:
+                result[prop_name] = data[dc_key]
+        return result
+
+    def _get_output_schema(self, tool_name: str):
+        tools = self.p.get_tools()
+        raw = tools.get(tool_name)
+        if not raw:
+            return None
+        parsed = self._parse_tool_value(raw)
+        schema = parsed.get("outputSchema")
+        if isinstance(schema, dict) and schema.get("properties"):
+            return schema
+        return None
+
+    def _apply_input_defaults(self, tool_name: str, arguments: dict) -> dict:
+        tools = self.p.get_tools()
+        raw = tools.get(tool_name)
+        if not raw:
+            return arguments
+        parsed = self._parse_tool_value(raw)
+        input_schema = parsed.get("inputSchema")
+        if not isinstance(input_schema, dict):
+            return arguments
+        props = input_schema.get("properties", {})
+        merged = dict(arguments)
+        for name, spec in props.items():
+            if name not in merged and "default" in spec:
+                merged[name] = spec["default"]
+        return merged
 
     @staticmethod
     def _strip_meta_for_client(result: Any) -> Any:

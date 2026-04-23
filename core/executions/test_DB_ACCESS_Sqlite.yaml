@@ -1,11 +1,27 @@
 !!python/object:core.execution.Execution
+astool: true
 execution: test_DB_ACCESS_Sqlite
 list:
 - !!python/object:core.task.Task
-  input: '{"database": "{self.get_tdir()}/sqlite/test_sqlite.db", "sql": "select *
-    from user where id > ?", "data_key": "dataset_sqlite", "param": "0", "type": "Sqlite"}'
+  input: '{"database": "{self.get_tdir()}/sqlite/test_sqlite.db", "sql": "{sql}",
+    "data_key": "dataset_sqlite", "type": "Sqlite", "param": "{param}"}'
+  skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task
-  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}"}'
+  input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}",
+    "skipped": "yes"}'
+  skipped: true
   type: SHOW_RESULT
 loops: []
+mcp_desc: "{\n  \"desc\": \"Execute sql to find data from database\",\n  \"inputSchema\":
+  {\n    \"type\": \"object\",\n    \"title\": \"test_DB_ACCESS_SqliteArguments\",\n
+  \   \"properties\": {\n      \"sql\": {\n        \"title\": \"sql\",\n        \"type\":
+  \"string\",\n        \"description\": \"sql with param ?\",\n        \"default\":
+  \"select * from user where id > ?\"\n      },\n      \"param\": {\n        \"title\":
+  \"param\",\n        \"type\": \"string\",\n        \"description\": \"parameters
+  separated by comma, \"\n      }\n    },\n    \"required\": [\n      \"sql\"\n    ]\n
+  \ },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"test_DB_ACCESS_SqliteOutput\",\n
+  \   \"properties\": {\n      \"data\": {\n        \"title\": \"data\",\n        \"type\":
+  \"string\",\n        \"description\": \"result of search\",\n        \"mapKey\":
+  \"dataset_sqlite\"\n      }\n    },\n    \"required\": [\n      \"data\"\n    ]\n
+  \ }\n}"

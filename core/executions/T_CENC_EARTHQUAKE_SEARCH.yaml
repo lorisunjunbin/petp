@@ -22,21 +22,24 @@ list:
     "msg": "{earth_quake_info}"}'
   skipped: false
   type: SHOW_RESULT
-- !!python/object:core.task.Task
-  input: '{"http_response_key": "earth_quake_info"}'
-  skipped: false
-  type: HTTP_RESPONSE_KEY
 loops: []
 mcp_desc: "{\n  \"desc\": \"inquire about the information of recent earthquakes that
   have occurred.date format: yyyy-mm-dd hh:mm:ss, able to sort by: magnitude or or
   id(means timeline)\",\n  \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\":
   \"T_CENC_EARTHQUAKE_SEARCHArguments\",\n    \"properties\": {\n      \"orderBy\":
   {\n        \"title\": \"orderBy\",\n        \"type\": \"string\",\n        \"description\":
-  \"\"\n      },\n      \"isAsc\": {\n        \"title\": \"isAsc\",\n        \"type\":
-  \"string\",\n        \"description\": \"\"\n      },\n      \"startMg\": {\n        \"title\":
-  \"startMg\",\n        \"type\": \"string\",\n        \"description\": \"\"\n      },\n
-  \     \"endMg\": {\n        \"title\": \"endMg\",\n        \"type\": \"string\",\n
-  \       \"description\": \"\"\n      },\n      \"startTime\": {\n        \"title\":
-  \"startTime\",\n        \"type\": \"string\",\n        \"description\": \"\"\n      },\n
-  \     \"endTime\": {\n        \"title\": \"endTime\",\n        \"type\": \"string\",\n
-  \       \"description\": \"\"\n      }\n    },\n    \"required\": []\n  }\n}"
+  \"magnitude or id (means timeline)\"\n      },\n      \"isAsc\": {\n        \"title\":
+  \"isAsc\",\n        \"type\": \"string\",\n        \"description\": \"true means
+  sort asc, otherwise desc\"\n      },\n      \"startMg\": {\n        \"title\": \"startMg\",\n
+  \       \"type\": \"string\",\n        \"description\": \" min of magnitude\"\n
+  \     },\n      \"endMg\": {\n        \"title\": \"endMg\",\n        \"type\": \"string\",\n
+  \       \"description\": \"max of magnitude\"\n      },\n      \"startTime\": {\n
+  \       \"title\": \"startTime\",\n        \"type\": \"string\",\n        \"description\":
+  \"start time of date range\"\n      },\n      \"endTime\": {\n        \"title\":
+  \"endTime\",\n        \"type\": \"string\",\n        \"description\": \" end time
+  of date range\"\n      }\n    },\n    \"required\": []\n  },\n  \"outputSchema\":
+  {\n    \"type\": \"object\",\n    \"title\": \"T_CENC_EARTHQUAKE_SEARCHOutput\",\n
+  \   \"properties\": {\n      \"eq_info\": {\n        \"title\": \"eq_info\",\n        \"type\":
+  \"string\",\n        \"description\": \"found earth quake information\",\n        \"mapKey\":
+  \"earth_quake_info\"\n      }\n    },\n    \"required\": [\n      \"eq_info\"\n
+  \   ]\n  }\n}"

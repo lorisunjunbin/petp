@@ -24,7 +24,7 @@ class CREATE_SFTP_CLIENTProcessor(Processor):
         pwd = self.expression2str(self.get_param("pwd"))
 
         dk = self.get_param("sftp_client_key")
-        port = self.get_param("sftp_port")
+        port = int(self.expression2str(self.get_param("sftp_port")))
 
         sftp_client = ParamikoUtil.get_sftp_client(ip, uname, pwd, port)
 

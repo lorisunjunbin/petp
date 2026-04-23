@@ -42,7 +42,7 @@ class PostgresDBAccess(BaseDBAccess):
     def execute(self, sql, param):
         if not hasattr(self, 'cnx'):
             logging.error("Postgres database is not connected, can NOT run sql: " + sql)
-            return
+            return []
 
         cur = None
         dataset = []

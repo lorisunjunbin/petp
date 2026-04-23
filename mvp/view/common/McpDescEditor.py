@@ -62,8 +62,12 @@ class McpDescEditor(wx.ScrolledWindow):
                 continue
             ptype = self._input_grid.GetCellValue(row, 1) or "string"
             is_req = self._input_grid.GetCellValue(row, 2) == "1"
-            pdesc = self._input_grid.GetCellValue(row, 3)
-            properties[name] = {"title": name, "type": ptype, "description": pdesc}
+            default_val = self._input_grid.GetCellValue(row, 3).strip()
+            pdesc = self._input_grid.GetCellValue(row, 4)
+            prop = {"title": name, "type": ptype, "description": pdesc}
+            if default_val:
+                prop["default"] = default_val
+            properties[name] = prop
             if is_req:
                 required.append(name)
         result["inputSchema"] = {
@@ -80,8 +84,12 @@ class McpDescEditor(wx.ScrolledWindow):
             if not name:
                 continue
             ptype = self._output_grid.GetCellValue(row, 1) or "string"
-            pdesc = self._output_grid.GetCellValue(row, 2)
-            out_properties[name] = {"title": name, "type": ptype, "description": pdesc}
+            map_key = self._output_grid.GetCellValue(row, 2).strip()
+            pdesc = self._output_grid.GetCellValue(row, 3)
+            prop = {"title": name, "type": ptype, "description": pdesc}
+            if map_key and map_key != name:
+                prop["mapKey"] = map_key
+            out_properties[name] = prop
             out_required.append(name)
         if out_properties:
             result["outputSchema"] = {
@@ -115,6 +123,7 @@ class McpDescEditor(wx.ScrolledWindow):
                     self._add_input_row(
                         name, spec.get("type", "string"),
                         spec.get("description", ""), name in req_list,
+                        spec.get("default", ""),
                     )
             elif "params" in parsed:
                 params = parsed["params"]
@@ -128,7 +137,9 @@ class McpDescEditor(wx.ScrolledWindow):
                 props = output_schema.get("properties", {})
                 for name, spec in props.items():
                     self._add_output_row(
-                        name, spec.get("type", "string"), spec.get("description", ""),
+                        name, spec.get("type", "string"),
+                        spec.get("mapKey", ""),
+                        spec.get("description", ""),
                     )
             elif "outParams" in parsed:
                 out_params = parsed["outParams"]
@@ -185,10 +196,11 @@ class McpDescEditor(wx.ScrolledWindow):
         for grid, cols in [
             (self._input_grid, [
                 t("mcp_col_name"), t("mcp_col_type"),
-                t("mcp_col_required"), t("mcp_col_desc"),
+                t("mcp_col_required"), t("mcp_col_default"), t("mcp_col_desc"),
             ]),
             (self._output_grid, [
-                t("mcp_col_name"), t("mcp_col_type"), t("mcp_col_desc"),
+                t("mcp_col_name"), t("mcp_col_type"),
+                t("mcp_col_map_key"), t("mcp_col_desc"),
             ]),
         ]:
             for i, label in enumerate(cols):
@@ -226,10 +238,11 @@ class McpDescEditor(wx.ScrolledWindow):
         inp_hdr.Add(self._btn_del_input, 0, wx.ALIGN_CENTER_VERTICAL)
         main.Add(inp_hdr, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 3)
 
-        self._input_grid = self._create_grid(4, [
+        self._input_grid = self._create_grid(5, [
             (t("mcp_col_name"), 80),
             (t("mcp_col_type"), 70),
             (t("mcp_col_required"), 60),
+            (t("mcp_col_default"), 80),
             (t("mcp_col_desc"), 80),
         ])
         main.Add(self._input_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
@@ -247,9 +260,10 @@ class McpDescEditor(wx.ScrolledWindow):
         out_hdr.Add(self._btn_del_output, 0, wx.ALIGN_CENTER_VERTICAL)
         main.Add(out_hdr, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 3)
 
-        self._output_grid = self._create_grid(3, [
+        self._output_grid = self._create_grid(4, [
             (t("mcp_col_name"), 80),
             (t("mcp_col_type"), 70),
+            (t("mcp_col_map_key"), 140),
             (t("mcp_col_desc"), 80),
         ])
         main.Add(self._output_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
@@ -299,7 +313,7 @@ class McpDescEditor(wx.ScrolledWindow):
     # Grid row helpers
     # ------------------------------------------------------------------ #
 
-    def _add_input_row(self, name="", ptype="string", desc="", required=True):
+    def _add_input_row(self, name="", ptype="string", desc="", required=True, default_value=""):
         grid = self._input_grid
         row = grid.GetNumberRows()
         grid.AppendRows(1)
@@ -310,17 +324,19 @@ class McpDescEditor(wx.ScrolledWindow):
         grid.SetCellEditor(row, 2, wx.grid.GridCellBoolEditor())
         grid.SetCellAlignment(row, 2, wx.ALIGN_CENTRE, wx.ALIGN_CENTRE)
         grid.SetCellValue(row, 2, "1" if required else "")
-        grid.SetCellValue(row, 3, desc)
+        grid.SetCellValue(row, 3, default_value)
+        grid.SetCellValue(row, 4, desc)
         self._fit_grid_height(grid)
 
-    def _add_output_row(self, name="", ptype="string", desc=""):
+    def _add_output_row(self, name="", ptype="string", map_key="", desc=""):
         grid = self._output_grid
         row = grid.GetNumberRows()
         grid.AppendRows(1)
         grid.SetCellValue(row, 0, name)
         grid.SetCellEditor(row, 1, wx.grid.GridCellChoiceEditor(_TYPE_CHOICES))
         grid.SetCellValue(row, 1, ptype)
-        grid.SetCellValue(row, 2, desc)
+        grid.SetCellValue(row, 2, map_key)
+        grid.SetCellValue(row, 3, desc)
         self._fit_grid_height(grid)
 
     def _del_selected_row(self, grid):
@@ -414,8 +430,8 @@ class McpDescEditor(wx.ScrolledWindow):
 
     def _on_resize(self, evt):
         evt.Skip()
-        self._resize_desc_column(self._input_grid, 3)
-        self._resize_desc_column(self._output_grid, 2)
+        self._resize_desc_column(self._input_grid, 4)
+        self._resize_desc_column(self._output_grid, 3)
 
     def _on_child_mousewheel(self, evt):
         self.GetEventHandler().ProcessEvent(evt)

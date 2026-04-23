@@ -29,7 +29,7 @@ class OPEN_FILEProcessor(Processor):
             file_path_key = self.expression2str(self.get_param('file_path_key'))
             file_path = self.get_data(file_path_key)
 
-        timeout = self.get_param('timeout') if self.has_param('timeout') else 10
+        timeout = int(self.expression2str(self.get_param('timeout'))) if self.has_param('timeout') else 10
         found = OSUtils.wait_for_file_within_seconds(file_path, timeout)
         if found:
             logging.debug(f'=========\n going to open file: \n{file_path}\n===========================')

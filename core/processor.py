@@ -263,7 +263,7 @@ class Processor:
 
         return result
 
-    def expression2str(self, expression):
+    def expression2str(self, expression, none_if_not_matched=False):
         """
         Evaluate an expression as an f-string against the current data_chain context.
 
@@ -281,9 +281,8 @@ class Processor:
         if expression is None:
             return None
 
-        if not isinstance(expression, str):
-            logging.error(f"expression2str NOT isinstance str {expression!r}")
-            return expression
+        if isinstance(expression, (int, float)):
+            return str(expression)
 
         local_vars = {'self': self, 'os': os, 'json': json}
         try:
@@ -310,6 +309,9 @@ class Processor:
             return eval("f" + expression, {}, local_vars)
         except Exception as e:
             logging.error(f"expression2str attempt-3 failed for expression={expression!r}: {e}")
+
+        if none_if_not_matched:
+            return None
 
         return expression
 

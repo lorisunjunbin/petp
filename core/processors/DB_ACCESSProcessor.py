@@ -47,14 +47,18 @@ class DB_ACCESSProcessor(Processor):
         sql = self.expression2str(self.get_param('sql'))
 
         param_str = self.get_data(self.get_param('param_key')) if self.has_param('param_key') \
-            else self.expression2str(self.get_param('param'))
+            else self.expression2str(self.get_param('param'), none_if_not_matched=True) if self.has_param('param') else None
+
+        params = tuple(map(str.strip, param_str.split(','))) \
+            if param_str is not None and len(str(param_str).strip()) > 0 else None
 
         data_set = []
         dbAccess: BaseDBAccess = None
         try:
             dbAccess: BaseDBAccess = BaseDBAccess.get_dbaccess_by_type(type)
             dbAccess.connect(host, port, database, user, pwd)
-            data_set = dbAccess.execute(sql, tuple(map(str, param_str.split(','))) if param_str is not None and len(param_str) >0 else '')
+            logging.info(f'Connected to {type} database at {host}:{port}, executing SQL: "{sql}" with params: {params}')
+            data_set = dbAccess.execute(sql, params)
         finally:
             if dbAccess is not None:
                 dbAccess.disconnect()

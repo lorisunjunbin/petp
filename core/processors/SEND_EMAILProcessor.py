@@ -29,7 +29,7 @@ class SEND_EMAILProcessor(Processor):
 
     def process(self):
         smtp = self.expression2str(self.get_param("smtp"))
-        port = self.get_param("port")
+        port = int(self.expression2str(self.get_param("port")))
         name = self.expression2str(self.get_param("name"))
         pwd = self.expression2str(self.get_param("pwd"))
         to = self.expression2str(self.get_param("to"))
