@@ -13,8 +13,8 @@ list:
   skipped: true
   type: SHOW_RESULT
 loops: []
-mcp_desc: "{\n  \"desc\": \"Execute sql to find data from database\",\n  \"inputSchema\":
-  {\n    \"type\": \"object\",\n    \"title\": \"test_DB_ACCESS_SqliteArguments\",\n
+mcp_desc: "{\n  \"desc\": \"Execute sql to insert or find data from database\",\n
+  \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"test_DB_ACCESS_SqliteArguments\",\n
   \   \"properties\": {\n      \"sql\": {\n        \"title\": \"sql\",\n        \"type\":
   \"string\",\n        \"description\": \"sql with param ?\",\n        \"default\":
   \"select * from user where id > ?\"\n      },\n      \"param\": {\n        \"title\":
