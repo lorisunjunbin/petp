@@ -9,8 +9,8 @@ list:
   type: DB_ACCESS
 - !!python/object:core.task.Task
   input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}",
-    "skipped": "yes"}'
-  skipped: true
+    "skipped": "no"}'
+  skipped: false
   type: SHOW_RESULT
 loops: []
 mcp_desc: "{\n  \"desc\": \"Execute sql to insert or find data from database\",\n
@@ -19,9 +19,9 @@ mcp_desc: "{\n  \"desc\": \"Execute sql to insert or find data from database\",\
   \"string\",\n        \"description\": \"sql with param ?\",\n        \"default\":
   \"select * from user where id > ?\"\n      },\n      \"param\": {\n        \"title\":
   \"param\",\n        \"type\": \"string\",\n        \"description\": \"parameters
-  separated by comma, \"\n      }\n    },\n    \"required\": [\n      \"sql\"\n    ]\n
-  \ },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"test_DB_ACCESS_SqliteOutput\",\n
-  \   \"properties\": {\n      \"data\": {\n        \"title\": \"data\",\n        \"type\":
-  \"string\",\n        \"description\": \"result of search\",\n        \"mapKey\":
-  \"dataset_sqlite\"\n      }\n    },\n    \"required\": [\n      \"data\"\n    ]\n
-  \ }\n}"
+  separated by comma, \",\n        \"default\": \"0\"\n      }\n    },\n    \"required\":
+  [\n      \"sql\"\n    ]\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n
+  \   \"title\": \"test_DB_ACCESS_SqliteOutput\",\n    \"properties\": {\n      \"data\":
+  {\n        \"title\": \"data\",\n        \"type\": \"string\",\n        \"description\":
+  \"result of search\",\n        \"mapKey\": \"dataset_sqlite\"\n      }\n    },\n
+  \   \"required\": [\n      \"data\"\n    ]\n  }\n}"
