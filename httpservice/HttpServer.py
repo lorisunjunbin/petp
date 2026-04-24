@@ -11,12 +11,13 @@ from typing import Any, Callable, Generator, Optional, Union
 import wx
 
 from decorators.decorators import reload_http_log_after
+from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 from mvp.presenter import PETPPresenter
 from mvp.presenter.event.PETPEvent import PETPEvent
 
 
-class HttpServer:
+class HttpServer(McpMixin):
     """Embedded HTTP server that exposes PETP executions as REST and MCP endpoints.
 
     Supports two API styles:
@@ -272,63 +273,29 @@ class HttpServer:
             return handler_fn(handler, params)
 
         logging.warning("_handle_mcp unsupported method: %s", method)
-        return {"error": f"Unsupported method: {method}"}, 400
+        session_id: Optional[str] = self._extract_session_id(handler)
+        return self._mcp_method_not_found(params.get("id"), method, session_id)
 
     # ---- MCP protocol handlers ----
 
     def _mcp_initialize(
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
-        """Handle MCP ``initialize``: respond with server capabilities via SSE."""
-        request_id = params.get("id")
-        session_id: str = uuid.uuid4().hex + uuid.uuid4().hex  # 64-char session ID
+        session_id: str = uuid.uuid4().hex + uuid.uuid4().hex
         protocol_version: str = handler.headers.get("mcp-protocol-version") or "2025-11-25"
-
-        resp = {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {
-                "protocolVersion": protocol_version,
-                "capabilities": {
-                    "experimental": {},
-                    "prompts": {"listChanged": False},
-                    "resources": {"subscribe": False, "listChanged": False},
-                    "tools": {"listChanged": False},
-                },
-                "serverInfo": {"name": "PETP MCP server", "version": "1.0.0"},
-            },
-        }
-
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_initialize_response(params.get("id"), protocol_version, session_id, "PETP MCP server")
 
     def _mcp_initialized(
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
-        """Handle ``notifications/initialized`` acknowledgement (HTTP 202)."""
         session_id: Optional[str] = self._extract_session_id(handler)
-        return StreamingResponseData(
-            self._single_sse_chunk({}),
-            self._build_sse_headers(session_id),
-            content_type="text/event-stream",
-            status_code=202,
-        )
+        return self._mcp_initialized_response(session_id)
 
     def _mcp_tools_list(
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
-        """Handle ``tools/list``: return available tools as a single SSE message."""
-        request_id = params.get("id")
         session_id: Optional[str] = self._extract_session_id(handler)
-        tools_payload: list[dict] = self._normalize_tools(self.p.get_tools())
-
-        resp = {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": {"tools": tools_payload},
-        }
-        logging.info("PETP MCP Tools: %s", json.dumps(resp))
-
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_tools_list_response(params.get("id"), session_id, self.p.get_tools())
 
     def _mcp_tools_call(
         self, handler: HttpRequestHandler, payload: dict
@@ -378,8 +345,7 @@ class HttpServer:
                 structured_content = client_result
             else:
                 client_result = self._strip_meta_for_client(result)
-                structured_content = self._to_mcp_structured_content(client_result)
-
+                structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
             content_text = self._to_mcp_text(client_result)
             yield self._sse_event({
                 "jsonrpc": "2.0",
@@ -400,212 +366,17 @@ class HttpServer:
     def _mcp_prompts_list(
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
-        """Handle ``prompts/list`` — currently returns an empty list."""
-        request_id = params.get("id")
         session_id: Optional[str] = self._extract_session_id(handler)
-        resp = {"jsonrpc": "2.0", "id": request_id, "result": {"prompts": []}}
-        logging.debug("PETP MCP prompts: %s", json.dumps(resp))
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_empty_list_response(params.get("id"), session_id, "prompts")
 
     def _mcp_resources_list(
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
-        """Handle ``resources/list`` — currently returns an empty list."""
-        request_id = params.get("id")
         session_id: Optional[str] = self._extract_session_id(handler)
-        resp = {"jsonrpc": "2.0", "id": request_id, "result": {"resources": []}}
-        logging.debug("PETP MCP resources: %s", json.dumps(resp))
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_empty_list_response(params.get("id"), session_id, "resources")
 
-    # ------------------------------------------------------------------
-    # SSE (Server-Sent Events) helpers
-    # ------------------------------------------------------------------
-
-    def _extract_session_id(self, handler: HttpRequestHandler) -> Optional[str]:
-        """Best-effort retrieval of the MCP session ID from request headers."""
-        return (
-            handler.headers.get("mcp-session-id")
-            or handler.headers.get("MCP-Session-Id")
-            or handler.headers.get("Mcp-Session-Id")
-        )
-
-    def _sse_event(self, payload: dict) -> str:
-        """Wrap a JSON payload as a single SSE ``event: message`` chunk."""
-        return f"event: message\ndata: {json.dumps(payload)}\n\n"
-
-    def _single_sse_chunk(self, payload: dict) -> Generator[str, None, None]:
-        """Yield exactly one SSE chunk for *payload*."""
-        yield self._sse_event(payload)
-
-    def _single_sse_response(
-        self, resp: dict, session_id: Optional[str]
-    ) -> StreamingResponseData:
-        """Build a ``StreamingResponseData`` that emits one SSE event."""
-        return StreamingResponseData(
-            self._single_sse_chunk(resp),
-            self._build_sse_headers(session_id),
-            content_type="text/event-stream",
-        )
-
-    def _build_sse_headers(self, session_id: Optional[str]) -> dict[str, str]:
-        """Return standard SSE headers, echoing the session ID when present."""
-        headers: dict[str, str] = {
-            "Cache-Control": "no-cache, no-transform",
-            "Connection": "keep-alive",
-            "Content-Type": "text/event-stream",
-            "Transfer-Encoding": "chunked",
-            "X-Accel-Buffering": "no",
-        }
-        if session_id:
-            headers["mcp-session-id"] = session_id
-        return headers
-
-    # ------------------------------------------------------------------
-    # Tool normalization (PETP internal -> MCP tools/list schema)
-    # ------------------------------------------------------------------
-
-    def _normalize_tools(self, tools_petp: Any) -> list[dict]:
-        """Convert the PETP tools dict into a list of MCP tool definitions.
-
-        Each entry becomes ``{"name": key, "description": ..., "inputSchema": ..., "outputSchema": ...}``.
-
-        Returns an empty list when *tools_petp* is not a dict.
-        """
-        if not isinstance(tools_petp, dict):
-            return []
-
-        result: list[dict] = []
-        for key, value in tools_petp.items():
-            tool: dict = {"name": key}
-            parsed: dict = self._parse_tool_value(value)
-
-            desc = self._extract_description(key, parsed)
-            if desc:
-                tool["description"] = desc
-
-            input_schema = self._build_input_schema(key, parsed)
-            tool["inputSchema"] = input_schema or {
-                "type": "object",
-                "title": f"{key}Arguments",
-                "properties": {},
-            }
-
-            output_schema = self._build_output_schema(key, parsed)
-            if output_schema:
-                tool["outputSchema"] = self._strip_map_keys(output_schema)
-
-            result.append(tool)
-        return result
-
-    @staticmethod
-    def _parse_tool_value(value: Any) -> dict:
-        """Parse a tool's raw value into a dict.
-
-        Handles dicts, JSON strings (including those with Chinese quotation marks),
-        and gracefully returns an empty dict on failure.
-        """
-        if isinstance(value, dict):
-            return value
-        if not isinstance(value, str) or not value.strip():
-            return {}
-
-        # Normalize Chinese punctuation to ASCII equivalents
-        normalized: str = (
-            value.replace("\u201c", '"')   # left double quotation mark
-            .replace("\u201d", '"')        # right double quotation mark
-            .replace("\n", "")
-            .replace("\uff1a", ":")        # fullwidth colon
-        )
-        try:
-            return json.loads(normalized)
-        except json.JSONDecodeError:
-            logging.exception("Failed to parse tool value")
-            return {}
-
-    @staticmethod
-    def _extract_description(key: str, parsed: dict) -> Optional[str]:
-        """Return the tool description, falling back to *key*."""
-        return key if parsed.get("desc") is None else parsed.get("desc")
-
-    @staticmethod
-    def _build_input_schema(key: str, parsed: dict) -> Optional[dict]:
-        """Build an ``inputSchema`` from explicit schema or a flat ``params`` list."""
-        if parsed.get("inputSchema"):
-            return parsed["inputSchema"]
-
-        params = parsed.get("params")
-        if isinstance(params, list):
-            # Filter out empty / blank entries
-            clean_params: list[str] = [
-                p for p in params if isinstance(p, str) and p.strip()
-            ]
-            properties: dict = {p: {"title": p, "type": "string"} for p in clean_params}
-            return {
-                "title": f"{key}Arguments",
-                "type": "object",
-                "properties": properties,
-                "required": clean_params,
-            }
-        return None
-
-    @staticmethod
-    def _build_output_schema(key: str, parsed: dict) -> Optional[dict]:
-        """Build an ``outputSchema`` from explicit schema or a flat ``outParams`` list."""
-        if parsed.get("outputSchema"):
-            return parsed["outputSchema"]
-
-        out_params = parsed.get("outParams")
-        if isinstance(out_params, list):
-            clean_params: list[str] = [
-                p for p in out_params if isinstance(p, str) and p.strip()
-            ]
-            properties: dict = {p: {"title": p, "type": "string"} for p in clean_params}
-            return {
-                "title": f"{key}Output",
-                "properties": properties,
-                "required": clean_params,
-            }
-        return None
-
-    @staticmethod
-    def _to_mcp_text(payload: Any) -> str:
-        if isinstance(payload, str):
-            return payload
-        return json.dumps(payload, ensure_ascii=False, default=str)
-
-    @staticmethod
-    def _to_mcp_structured_content(payload: Any) -> dict[str, Any]:
-        return {
-            "type": "text",
-            "text": payload,
-            "annotations": None,
-            "_meta": None,
-        }
-
-    @staticmethod
-    def _strip_map_keys(schema: dict) -> dict:
-        if not schema or "properties" not in schema:
-            return schema
-        cleaned = dict(schema)
-        cleaned["properties"] = {
-            name: {k: v for k, v in prop.items() if k != "mapKey"}
-            for name, prop in schema.get("properties", {}).items()
-        }
-        return cleaned
-
-    @staticmethod
-    def _build_output_from_schema(data: dict, output_schema: dict) -> dict:
-        properties = output_schema.get("properties", {})
-        result = {}
-        for prop_name, prop_spec in properties.items():
-            dc_key = prop_spec.get("mapKey") or prop_name
-            if dc_key in data:
-                result[prop_name] = data[dc_key]
-        return result
-
-    def _get_output_schema(self, tool_name: str):
-        tools = self.p.get_tools()
-        raw = tools.get(tool_name)
+    def _get_output_schema(self, tool_name: str) -> Optional[dict]:
+        raw = self.p.get_tools().get(tool_name)
         if not raw:
             return None
         parsed = self._parse_tool_value(raw)
@@ -615,8 +386,7 @@ class HttpServer:
         return None
 
     def _apply_input_defaults(self, tool_name: str, arguments: dict) -> dict:
-        tools = self.p.get_tools()
-        raw = tools.get(tool_name)
+        raw = self.p.get_tools().get(tool_name)
         if not raw:
             return arguments
         parsed = self._parse_tool_value(raw)
@@ -629,21 +399,6 @@ class HttpServer:
             if name not in merged and "default" in spec:
                 merged[name] = spec["default"]
         return merged
-
-    @staticmethod
-    def _strip_meta_for_client(result: Any) -> Any:
-        if not isinstance(result, dict):
-            return result
-        return {k: v for k, v in result.items() if k != "meta"}
-
-    @staticmethod
-    def _is_mcp_error_result(result: Any) -> bool:
-        if isinstance(result, dict):
-            if "ok" in result:
-                return not bool(result.get("ok"))
-            if result.get("error"):
-                return True
-        return False
 
     # ------------------------------------------------------------------
     # Result store (async execution support)
@@ -704,11 +459,6 @@ class HttpServer:
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
-
-    @staticmethod
-    def _generate_request_id() -> str:
-        """Generate a unique request ID (UUID4)."""
-        return str(uuid.uuid4())
 
     def _get_and_remove_result(self, request_id: str, timeout: int = 600) -> Any:
         """Block until the result for *request_id* is available or *timeout* elapses.

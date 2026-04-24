@@ -673,20 +673,6 @@ class PETPPresenter():
             logging.warning(t("warn_astool_no_output_config"))
             return False
 
-        if as_tool and not self._check_first_task_is_initial_params():
-            input_params = self._extract_input_params_from_desc()
-            if input_params:
-                dlg = wx.MessageDialog(
-                    self.v,
-                    t("prompt_sync_initial_params"),
-                    "Sync",
-                    wx.YES_NO | wx.ICON_QUESTION,
-                )
-                answer = dlg.ShowModal()
-                dlg.Destroy()
-                if answer == wx.ID_YES:
-                    self._insert_initial_params_task(input_params)
-
         # prepare tasks
         tasks = []
         for row in range(0, grid.GetNumberRows()):

@@ -12,5 +12,12 @@ list:
   skipped: false
   type: HTTP_RESPONSE_KEY
 loops: []
-mcp_desc: "{\n\u201Cdesc\u201D:\u201Dsupport encode and decode inbound string with
-  algorithms\u201D,\n\u201Cparams\u201D\uFF1A[\u201Ctype\u201D,\u201Dalgorithms\u201D,\u201Dinbound\u201D]\n}"
+mcp_desc: "{\n  \"desc\": \"support encode and decode inbound string with algorithms\",\n
+  \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"ENDECODERArguments\",\n
+  \   \"properties\": {\n      \"type\": {\n        \"title\": \"type\",\n        \"type\":
+  \"string\",\n        \"description\": \"\"\n      },\n      \"algorithms\": {\n
+  \       \"title\": \"algorithms\",\n        \"type\": \"string\",\n        \"description\":
+  \"base64 | base85 | hexlify | a85 | base16 | base32 | base32hex \"\n      },\n      \"inbound\":
+  {\n        \"title\": \"inbound\",\n        \"type\": \"string\",\n        \"description\":
+  \"\"\n      }\n    },\n    \"required\": [\n      \"type\",\n      \"algorithms\",\n
+  \     \"inbound\"\n    ]\n  }\n}"
