@@ -467,6 +467,14 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | Unified MCP handling logic between GUI and BG modes via `McpMixin`; fixed `structuredContent` format; `outputSchema` supports `mapKey` field mapping |
+| 2026-04 | MCP tool schema supports `default` values for inputs and `mapKey` output field mapping; `McpDescEditor` enhancements |
+| 2026-04 | Task grid right-click menu adds "View Processor Usage" and "Find Referencing Executions" options |
+| 2026-04 | MCP tool toggle replaced with custom `ToggleSwitch`; added state labels and response-key warning |
+| 2026-04 | Execution description editor replaced with structured `McpDescEditor` for visual MCP tool schema editing |
+| 2026-04 | `HTTP_REQUEST` processor: built-in Basic Auth, OAuth2, and XSRF/CSRF token support |
+| 2026-04 | New `RUN_JAVASCRIPT` processor (PythonMonkey) for executing JS functions |
+| 2026-04 | Execution snapshots button; `SearchableComboBox` real-time filter and keyboard navigation with tool/nav icon prefixes |
 | 2026-04 | Loop Editor: right-click or ⚙️ button to edit loop attributes via key-value dialog; snapshot & undo/redo support for loop changes. Save button dirty-state fix for skip toggle, paste, add/delete row, and loop edits. |
 | 2026-04 | GUI Undo & Redo & snapshot history. enhance handy tools.                                                                                                                                          |
 | 2026-04 | internationalization support: Chinese & EN                                                                                                                                                        |
