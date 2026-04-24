@@ -26,6 +26,10 @@ class BackgroundRuntime:
             return self._result(False, {}, f"Execution not found: {execution_name}", started)
 
         data_chain = dict(init_data or {})
+        mcp_defaults = execution.expand_mcp_defaults(data_chain)
+        for k, v in mcp_defaults.items():
+            if k not in data_chain:
+                data_chain[k] = v
         data_chain.update({"__m": self.model, "__p": self})
         cond = Condition()
         skipped_tasks = []

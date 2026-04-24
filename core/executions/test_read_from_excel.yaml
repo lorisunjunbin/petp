@@ -3,8 +3,8 @@ astool: true
 execution: test_read_from_excel
 list:
 - !!python/object:core.task.Task
-  input: '{"file_path": "{file_path}", "skip_first": "no", "data_key": "list", "end_at":
-    4, "sheet_index": "{sheet_index}"}'
+  input: '{"file_path": "{filePath}", "skip_first": "no", "data_key": "list", "end_at":
+    4, "sheet_index": "{sheetIndex}"}'
   skipped: false
   type: READ_EXCEL
 - !!python/object:core.task.Task
@@ -14,12 +14,12 @@ list:
 loops: []
 mcp_desc: "{\n  \"desc\": \"read content to array from given file path\",\n  \"inputSchema\":
   {\n    \"type\": \"object\",\n    \"title\": \"test_read_from_excelArguments\",\n
-  \   \"properties\": {\n      \"file_path\": {\n        \"title\": \"file_path\",\n
+  \   \"properties\": {\n      \"filePath\": {\n        \"title\": \"filePath\",\n
   \       \"type\": \"string\",\n        \"description\": \"execl path on this local
   disk\",\n        \"default\": \"{self.get_tdir()}/excel/test.xlsx\"\n      },\n
-  \     \"sheet_index\": {\n        \"title\": \"sheet_index\",\n        \"type\":
-  \"integer\",\n        \"description\": \"\",\n        \"default\": \"0\"\n      }\n
-  \   },\n    \"required\": []\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n
-  \   \"title\": \"test_read_from_excelOutput\",\n    \"properties\": {\n      \"list\":
-  {\n        \"title\": \"list\",\n        \"type\": \"string\",\n        \"description\":
-  \"\"\n      }\n    },\n    \"required\": [\n      \"list\"\n    ]\n  }\n}"
+  \     \"sheetIndex\": {\n        \"title\": \"sheetIndex\",\n        \"type\": \"integer\",\n
+  \       \"description\": \"\",\n        \"default\": \"0\"\n      }\n    },\n    \"required\":
+  []\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"test_read_from_excelOutput\",\n
+  \   \"properties\": {\n      \"list\": {\n        \"title\": \"list\",\n        \"type\":
+  \"string\",\n        \"description\": \"\"\n      }\n    },\n    \"required\": [\n
+  \     \"list\"\n    ]\n  }\n}"

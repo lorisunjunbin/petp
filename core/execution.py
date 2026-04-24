@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import time
@@ -61,6 +62,10 @@ class Execution:
 
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
+        mcp_defaults = self.expand_mcp_defaults(data_chain)
+        for k, v in mcp_defaults.items():
+            if k not in data_chain:
+                data_chain[k] = v
         state: ExecutionState = ExecutionState(self.list)
         self.set_should_be_stop(False)
         self.init_run_at()
@@ -188,6 +193,48 @@ class Execution:
                 return loop
 
         return None
+
+    def get_mcp_input_defaults(self) -> dict:
+        """Return raw default values from mcp_desc.inputSchema for executions marked as astool.
+
+        Only applies when the first non-empty task is NOT INITIAL_PARAMS (i.e. defaults
+        are not already covered by an explicit task). Returns an empty dict otherwise.
+        """
+        if not getattr(self, 'astool', False):
+            return {}
+        mcp_desc = getattr(self, 'mcp_desc', None)
+        if not mcp_desc:
+            return {}
+        tasks = getattr(self, 'list', [])
+        for task in tasks:
+            if hasattr(task, 'type') and task.type.strip():
+                if task.type.strip() == "INITIAL_PARAMS":
+                    return {}
+                break
+        try:
+            parsed = json.loads(mcp_desc)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+        props = parsed.get("inputSchema", {}).get("properties", {})
+        return {name: spec["default"] for name, spec in props.items() if "default" in spec}
+
+    def expand_mcp_defaults(self, data_chain: dict) -> dict:
+        """Return MCP input defaults with expressions expanded using a Processor context.
+
+        Creates a temporary Processor+Task so that expressions like {self.get_tdir()}
+        are resolved through Processor.expression2str which has full context.
+        """
+        raw = self.get_mcp_input_defaults()
+        if not raw:
+            return {}
+        tmp_task = Task(type="INITIAL_PARAMS", input="{}")
+        tmp_task.data_chain = data_chain
+        processor = Processor()
+        processor.set_task(tmp_task)
+        return {
+            name: processor.expression2str(val) if isinstance(val, str) else val
+            for name, val in raw.items()
+        }
 
     def _get_file_path(self):
         return f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{self.execution}.yaml'

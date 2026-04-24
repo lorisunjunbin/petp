@@ -331,9 +331,8 @@ class HttpServer(McpMixin):
             })
 
             # Execute the PETP event and emit the final result
-            merged_args = self._apply_input_defaults(action, arguments)
             petp_param: dict = {"execution": action}
-            petp_param.update(merged_args)
+            petp_param.update(arguments)
             result = self._handle_petp_event(handler, {
                 "action": "execution",
                 "params": petp_param,
@@ -384,21 +383,6 @@ class HttpServer(McpMixin):
         if isinstance(schema, dict) and schema.get("properties"):
             return schema
         return None
-
-    def _apply_input_defaults(self, tool_name: str, arguments: dict) -> dict:
-        raw = self.p.get_tools().get(tool_name)
-        if not raw:
-            return arguments
-        parsed = self._parse_tool_value(raw)
-        input_schema = parsed.get("inputSchema")
-        if not isinstance(input_schema, dict):
-            return arguments
-        props = input_schema.get("properties", {})
-        merged = dict(arguments)
-        for name, spec in props.items():
-            if name not in merged and "default" in spec:
-                merged[name] = spec["default"]
-        return merged
 
     # ------------------------------------------------------------------
     # Result store (async execution support)

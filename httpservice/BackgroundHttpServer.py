@@ -185,8 +185,7 @@ class BackgroundHttpServer(McpMixin):
                     "params": {"level": "info", "data": info},
                 })
 
-                merged_args = self._apply_input_defaults(tool_exec_name, arguments)
-                result = self.runtime.run_execution(tool_exec_name, merged_args)
+                result = self.runtime.run_execution(tool_exec_name, arguments)
 
                 client_result, structured_content = self._build_tools_call_result(
                     tool_exec_name, result, self.runtime.get_tools
@@ -210,21 +209,6 @@ class BackgroundHttpServer(McpMixin):
                                          "text/event-stream", 200)
 
         return self._mcp_method_not_found(params.get("id"), method, session_id)
-
-    def _apply_input_defaults(self, tool_name: str, arguments: dict) -> dict:
-        raw = self.runtime.get_tools().get(tool_name)
-        if not raw:
-            return arguments
-        parsed = self._parse_tool_value(raw)
-        input_schema = parsed.get("inputSchema")
-        if not isinstance(input_schema, dict):
-            return arguments
-        props = input_schema.get("properties", {})
-        merged = dict(arguments)
-        for name, spec in props.items():
-            if name not in merged and "default" in spec:
-                merged[name] = spec["default"]
-        return merged
 
     @staticmethod
     def _status_code_for_result(result: Any) -> int:

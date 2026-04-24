@@ -999,7 +999,7 @@ class PETPPresenter():
 
         fresh_init = dict(init_param) if init_param else {}
         if not init_param and self._should_inject_mcp_defaults(self.execution):
-            mcp_defaults = self._extract_mcp_input_defaults(self.execution)
+            mcp_defaults = self._extract_mcp_input_defaults(self.execution, fresh_init)
             if mcp_defaults:
                 fresh_init.update(mcp_defaults)
         fresh_init.update({"__m": self.m, "__p": self})
@@ -1324,31 +1324,11 @@ class PETPPresenter():
             return None
 
     def _should_inject_mcp_defaults(self, execution) -> bool:
-        if not getattr(execution, 'astool', False):
-            return False
-        if not getattr(execution, 'mcp_desc', None):
-            return False
-        tasks = getattr(execution, 'list', [])
-        for task in tasks:
-            if hasattr(task, 'type') and task.type.strip():
-                return task.type.strip() != "INITIAL_PARAMS"
-        return True
+        return bool(execution.get_mcp_input_defaults())
 
     @staticmethod
-    def _extract_mcp_input_defaults(execution) -> dict:
-        try:
-            parsed = json.loads(execution.mcp_desc)
-        except (json.JSONDecodeError, TypeError):
-            return {}
-        input_schema = parsed.get("inputSchema")
-        if not isinstance(input_schema, dict):
-            return {}
-        props = input_schema.get("properties", {})
-        defaults = {}
-        for name, spec in props.items():
-            if "default" in spec:
-                defaults[name] = spec["default"]
-        return defaults
+    def _extract_mcp_input_defaults(execution, data_chain: dict = None) -> dict:
+        return execution.expand_mcp_defaults(data_chain or {})
 
     @staticmethod
     def _build_mcp_tool_template(execution_name: str) -> dict:

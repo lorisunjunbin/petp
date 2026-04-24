@@ -53,11 +53,16 @@ class Pipeline(RunnableAsCron):
         logging.info(f'<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline: {self.pipeline} - >>>>>>>>>>>>>>>>>>>>>')
 
         for idx, executionDic in enumerate(self.list, start=1):
+            execution: Execution = Execution.get_execution(executionDic['execution'])
+
             executionInitData: dict = self.load_proper_input(executionDic)
 
-            data_chain = data_chain | executionInitData
+            mcp_defaults = execution.expand_mcp_defaults(data_chain)
+            for k, v in mcp_defaults.items():
+                if k not in data_chain and k not in executionInitData:
+                    executionInitData[k] = v
 
-            execution: Execution = Execution.get_execution(executionDic['execution'])
+            data_chain = data_chain | executionInitData
 
             logging.info(
                 f'[ {self.pipeline} ]>>{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} >============> Execution {idx}: {execution.execution}')
