@@ -286,6 +286,8 @@ uv pip compile requirements.txt -o requirements.lock
 | `ai-ollama.txt` | Ollama 本地 LLM | ollama |
 | `ai-zhipu.txt` | 智谱 Z.AI | zai |
 | `mcp.txt` | MCP 协议 | mcp |
+| `ocr.txt` | OCR 识别 | rapidocr-onnxruntime, numpy, scipy（paddleocr、easyocr 可选） |
+| `captcha.txt` | 验证码识别 | ddddocr |
 | `javascript.txt` | JS 引擎 | pythonmonkey |
 | `video-download.txt` | 视频下载 | pytube |
 | `http-service.txt` | HTTP 服务端 | fastapi, uvicorn |
