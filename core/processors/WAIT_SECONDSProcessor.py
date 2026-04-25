@@ -17,5 +17,5 @@ class WAIT_SECONDSProcessor(Processor):
         return super().CATE_GENERAL
 
     def process(self):
-        wait_seconds = self.get_param('wait_seconds')
-        time.sleep(int(wait_seconds))
+        wait_seconds = self.explain_param_as_int('wait_seconds', 0)
+        time.sleep(wait_seconds)
