@@ -57,7 +57,7 @@ class HTTP_REQUESTProcessor(Processor):
 
         request_url = self.expression2str(self.get_param('request_url'))
         value_key = self.expression2str(self.get_param('value_key'))
-        timeout = self.explain_param_or_default('timeout', 60)
+        timeout = int(self.explain_param_or_default('timeout', 60))
 
         headers: dict = {}
         params: dict = {}
