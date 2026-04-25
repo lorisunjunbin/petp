@@ -25,7 +25,16 @@ class GO_TO_TASKProcessor(Processor):
     def process(self):
         super().process()
 
-        target = int(self.expression2str(self.get_param('target_task')))
+        if not self.has_param('target_task'):
+            logging.warning('GO_TO_TASK: target_task is required but not provided, skipping jump')
+            return
+
+        target_str = self.expression2str(self.get_param('target_task')).strip()
+        if not target_str or not target_str.lstrip('-').isdigit():
+            logging.warning('GO_TO_TASK: target_task "%s" is not a valid integer, skipping jump', target_str)
+            return
+
+        target = int(target_str)
         condition_body = self.explain_param_or_default('condition_fn', 'return True')
 
         cond_fn = CodeExplainerUtil.create_and_execute_func(

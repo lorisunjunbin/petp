@@ -141,9 +141,13 @@ class Execution:
 
             goto_target = data_chain.pop('__goto_task', None)
             if goto_target is not None:
-                state.current_index = int(goto_target) - 1
-                logging.info('GO_TO_TASK: jumping to task %s', goto_target)
-                continue
+                idx = int(goto_target) - 1
+                if 0 <= idx < len(self.list):
+                    state.current_index = idx
+                    logging.info('GO_TO_TASK: jumping to task %s', goto_target)
+                    continue
+                else:
+                    logging.warning('GO_TO_TASK: target %s out of range (1-%s), ignoring', goto_target, len(self.list))
 
             state.move_to_next()
 

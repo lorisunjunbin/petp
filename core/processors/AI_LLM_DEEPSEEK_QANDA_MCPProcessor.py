@@ -61,7 +61,7 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
         # get params
         petp_mcp_url = self.get_param('petp_mcp_url')
         prompt = self.expression2str(self.get_param('prompt'))
-        resp_content_key = self.get_data("resp_content_key")
+        resp_content_key = self.explain_param_or_default('resp_content_key', '')
         convert_resp_2_json = self.get_param("convert_resp_2_json") == 'yes'
         show_in_popup = self.get_param("show_in_popup") == 'yes'
         model = self.get_param('model')

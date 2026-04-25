@@ -53,7 +53,7 @@ class AI_LLM_OLLAMA_QANDAProcessor(Processor):
         model = self.get_param('model')
         role = self.get_param('role')
         prompt = self.expression2str(self.get_param('prompt'))
-        resp_content_key = self.get_data("resp_content_key")
+        resp_content_key = self.explain_param_or_default('resp_content_key', '')
         show_in_popup = True if 'yes' == self.get_param("show_in_popup") else False
 
         try:

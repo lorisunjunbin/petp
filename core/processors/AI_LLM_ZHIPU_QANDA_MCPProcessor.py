@@ -62,7 +62,7 @@ class AI_LLM_ZHIPU_QANDA_MCPProcessor(Processor):
 
         prompt = self.expression2str(self.get_param('prompt'))
         petp_mcp_url = self.get_param('petp_mcp_url')
-        resp_content_key = self.get_data("resp_content_key")
+        resp_content_key = self.explain_param_or_default('resp_content_key', '')
         convert_resp_2_json = self.get_param("convert_resp_2_json") == 'yes'
         show_thinking = self.get_param("show_thinking") == 'yes'
         show_in_popup = self.get_param("show_in_popup") == 'yes'

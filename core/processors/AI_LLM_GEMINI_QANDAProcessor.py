@@ -44,7 +44,7 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
         llm_data_key = self.get_param('llm_data_key')
         existed_llm = self.get_data(llm_data_key)
         prompt = self.expression2str(self.get_param('prompt'))
-        resp_content_key = self.get_data("resp_content_key")
+        resp_content_key = self.explain_param_or_default('resp_content_key', '')
         convert_resp_2_json = True if 'yes' == self.get_param("convert_resp_2_json") else False
         show_in_popup = True if 'yes' == self.get_param("show_in_popup") else False
 
