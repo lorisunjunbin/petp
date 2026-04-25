@@ -331,9 +331,18 @@
                 <td>Charts and plots via Matplotlib.</td>
             </tr>
             <tr>
+                <td>OCR</td>
+                <td>Extract text from images (no API key). Backends: <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">paddleocr</code>, <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">rapidocr</code>, <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">easyocr</code>. Image preprocessing: binarize, denoise, sharpen, upscale, adaptive, auto.</td>
+            </tr>
+            <tr>
+                <td>Captcha</td>
+                <td>Captcha recognition via <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">ddddocr</code> — text OCR, slider, object-detection modes.</td>
+            </tr>
+            <tr>
                 <td>Execution Control</td>
                 <td>Init / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON.
-                    Run shell commands. Run JavaScript.
+                    Run shell commands. Run JavaScript (PythonMonkey). Conditional task jump (<code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">GO_TO_TASK</code>).
+                    Loop <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">loop_condition</code> for programmatic break / continue.
                 </td>
             </tr>
             </tbody>
@@ -484,6 +493,14 @@
             <div class="dep-chip-desc">mcp protocol</div>
         </div>
         <div class="dep-chip">
+            <div class="dep-chip-name">ocr.txt</div>
+            <div class="dep-chip-desc">rapidocr-onnxruntime, numpy, scipy</div>
+        </div>
+        <div class="dep-chip">
+            <div class="dep-chip-name">captcha.txt</div>
+            <div class="dep-chip-desc">ddddocr</div>
+        </div>
+        <div class="dep-chip">
             <div class="dep-chip-name">http-service.txt</div>
             <div class="dep-chip-desc">fastapi, uvicorn</div>
         </div>
@@ -621,6 +638,17 @@
             </tr>
             </thead>
             <tbody>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_goto_loopond') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_ocr_captcha') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_log_search') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_mcp_unify') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_mcp_schema') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_taskgrid_menu') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_mcp_toggle') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_mcp_desc_editor') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_http_auth') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_js') | safe }}</td></tr>
+            <tr><td>2026-04</td><td>{{ t('cl_2026_04_snapshot_combo') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_loop') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_undo') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_i18n') | safe }}</td></tr>

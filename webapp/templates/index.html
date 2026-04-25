@@ -76,7 +76,7 @@
     <section class="feature-grid home-info-grid">
         <article class="card">
             <h3>{{ t('feat_orch_title') }}</h3>
-            <p>{{ t('feat_orch_desc') }}</p>
+            <p>{{ t('feat_orch_desc') | safe }}</p>
         </article>
         <article class="card">
             <h3>{{ t('feat_llm_title') }}</h3>
@@ -88,14 +88,14 @@
         </article>
         <article class="card">
             <h3>{{ t('feat_editor_title') }}</h3>
-            <p>{{ t('feat_editor_desc') }}</p>
+            <p>{{ t('feat_editor_desc') | safe }}</p>
         </article>
     </section>
 
     <!-- ── Stats ──────────────────────────────────────────── -->
     <div class="stat-bar">
         <div class="stat-item">
-            <div class="stat-num">10+</div>
+            <div class="stat-num">80+</div>
             <div class="stat-label">{{ t('stat_processors') }}</div>
         </div>
         <div class="stat-item">
@@ -165,6 +165,19 @@
                 <span class="tag tag-rose">Local files</span>
                 <span class="tag tag-amber">Web scrape</span>
                 <span class="tag tag-indigo">LLM brief</span>
+            </div>
+        </div>
+
+        <div class="scenario-card">
+            <div class="scenario-header">
+                <div class="scenario-icon icon-green">🔍</div>
+                <div class="scenario-name">{{ t('scenario_ocr_name') }}</div>
+            </div>
+            <p>{{ t('scenario_ocr_desc') }}</p>
+            <div class="scenario-tags">
+                <span class="tag tag-slate">OCR / Captcha</span>
+                <span class="tag tag-indigo">Selenium</span>
+                <span class="tag tag-amber">GO_TO_TASK</span>
             </div>
         </div>
     </section>

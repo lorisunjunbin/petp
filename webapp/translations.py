@@ -23,8 +23,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": "将任意工作流变成 MCP 工具 — 可被任何 Agent 调用。",
     },
     "index_hero_text": {
-        "en": "PETP is a pipeline execution runtime that exposes every automation as a typed MCP tool. AI agents can discover, invoke, and chain your real business operations — while processors inside each task can call LLMs themselves for intelligent decision-making.",
-        "zh": "PETP 是一个流水线执行运行时，将每个自动化任务暴露为带类型的 MCP 工具。AI Agent 可以发现、调用并编排你的真实业务操作——同时任务内部的处理器也可以自主调用 LLM 进行智能决策。",
+        "en": "PETP is a pipeline execution runtime that exposes every automation as a typed MCP tool. AI agents can discover, invoke, and chain your real business operations — while processors inside each task can call LLMs themselves for intelligent decision-making. Now with built-in OCR, captcha handling, and conditional flow control.",
+        "zh": "PETP 是一个流水线执行运行时，将每个自动化任务暴露为带类型的 MCP 工具。AI Agent 可以发现、调用并编排你的真实业务操作——同时任务内部的处理器也可以自主调用 LLM 进行智能决策。现已内置 OCR、验证码处理与条件流程控制。",
     },
     "index_cta_primary":   {"en": "Explore Architecture", "zh": "了解架构"},
     "index_cta_secondary": {"en": "Browse Shared Files",  "zh": "浏览共享文件"},
@@ -66,7 +66,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # ── Index — feature cards ────────────────────────────────────
     "feat_divider":          {"en": "Core Capabilities",      "zh": "核心能力"},
     "feat_orch_title":       {"en": "Flexible Orchestration", "zh": "灵活编排"},
-    "feat_orch_desc":        {"en": "Chain any mix of processors in a single execution. Branch on LLM output, loop over lists, retry on error — all in YAML, no code required.", "zh": "在单次执行中自由组合任意处理器。基于 LLM 输出分支、循环列表、错误重试——全部用 YAML 配置，无需编写代码。"},
+    "feat_orch_desc":        {"en": "Chain any mix of processors in a single execution. Conditional jump with <code>GO_TO_TASK</code>, loop with programmatic break / continue via <code>loop_condition</code>, or branch on LLM output — all in YAML, no code required.", "zh": "在单次执行中自由组合任意处理器。通过 <code>GO_TO_TASK</code> 条件跳转、<code>loop_condition</code> 编程式 break / continue，或基于 LLM 输出分支——全部用 YAML 配置，无需编写代码。"},
     "feat_llm_title":        {"en": "LLM Inside Tasks",       "zh": "任务内置 LLM"},
     "feat_llm_desc":         {"en": "Any task step can invoke an LLM processor: summarise, classify, generate, or decide. Results flow as variables into downstream steps.", "zh": "任意任务步骤均可调用 LLM 处理器：摘要、分类、生成或决策。结果作为变量流入下游步骤。"},
     "feat_toolset_title":    {"en": "Tool-Set per Scenario",  "zh": "场景化工具集"},
@@ -74,7 +74,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_pe_title":         {"en": "Personal & Enterprise", "zh": "个人与企业"},
     "feat_pe_desc":          {"en": "Run a personal assistant on your laptop, or deploy enterprise tool-sets on Docker. Same engine, same YAML, different scale.", "zh": "在笔记本上运行个人助手，或将企业工具集部署到 Docker。同一引擎，同一 YAML，不同规模。"},
     "feat_editor_title":     {"en": "Visual Editor with Undo / Redo", "zh": "可视化编辑器（撤销 / 重做）"},
-    "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. Edit loop attributes through a key-value dialog. Skip tasks with one click — all changes tracked and saveable.", "zh": "图形编辑器支持完整的撤销 / 重做与快照历史。通过键值表单编辑循环属性，一键跳过任务——所有变更均可追踪和保存。"},
+    "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. Search &amp; highlight logs with prev / next navigation (Ctrl+F). Right-click the task grid for processor usage and reference lookup. Edit loop attributes through a key-value dialog.", "zh": "图形编辑器支持完整撤销 / 重做与快照历史。日志搜索高亮 + 上下导航（Ctrl+F）。任务网格右键可查看处理器用法与引用查找。通过键值表单编辑循环属性。"},
 
     # ── Index — scenarios ────────────────────────────────────────
     "scenario_divider":    {"en": "Scenario Examples",        "zh": "场景示例"},
@@ -86,6 +86,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "scenario_devops_desc":{"en": "Expose CI pipeline triggers, deployment scripts, log fetchers, and health-checks as MCP tools. Let Copilot or a chat agent coordinate complex release workflows.", "zh": "将 CI 触发、部署脚本、日志拉取和健康检查暴露为 MCP 工具，让 Copilot 或对话 Agent 协调复杂发布流程。"},
     "scenario_pa_name":    {"en": "Personal Productivity",    "zh": "个人生产力"},
     "scenario_pa_desc":    {"en": "A lightweight personal MCP tool-set on your MacBook: web scraping, local file management, calendar data extraction, and LLM-powered daily brief generation.", "zh": "MacBook 上的轻量个人 MCP 工具集：网页抓取、本地文件管理、日历数据提取与 LLM 驱动的每日简报生成。"},
+    "scenario_ocr_name":   {"en": "Web Form & Captcha Bot",   "zh": "表单填写与验证码自动化"},
+    "scenario_ocr_desc":   {"en": "Use OCR to extract text from scanned documents or screen captures, and the CAPTCHA processor to handle login gates. Combine with Selenium and GO_TO_TASK to automate form workflows end-to-end — retrying on failure without writing a line of code.", "zh": "通过 OCR 从扫描件或截图中提取文字，CAPTCHA 处理器应对登录验证码。结合 Selenium 与 GO_TO_TASK 实现端到端表单自动化——失败自动重试，无需编写一行代码。"},
 
     # ── Index — stats ────────────────────────────────────────────
     "stat_processors": {"en": "Built-in processor types", "zh": "内置处理器类型"},
@@ -157,6 +159,50 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_04_goto_loopond": {
+        "en": "<code>GO_TO_TASK</code> processor: conditional jump to any task within an execution; <code>loop_condition</code> attribute for programmatic break / continue based on data state; dynamic function caching in <code>CodeExplainerUtil</code>.",
+        "zh": "<code>GO_TO_TASK</code> 处理器：条件跳转到执行内任意 task；<code>loop_condition</code> 属性支持编程式 break / continue；<code>CodeExplainerUtil</code> 动态函数缓存优化。",
+    },
+    "cl_2026_04_ocr_captcha": {
+        "en": "<code>OCR</code> image preprocessing (binarize, denoise, sharpen, upscale, adaptive, auto); <code>CAPTCHA</code> processor (ddddocr: ocr / slide / det modes).",
+        "zh": "<code>OCR</code> 图像预处理（二值化、去噪、锐化、放大、自适应、自动）；新增 <code>CAPTCHA</code> 处理器（ddddocr：ocr / slide / det 模式）。",
+    },
+    "cl_2026_04_log_search": {
+        "en": "Log panel: search &amp; highlight with prev / next navigation (Ctrl+F / Cmd+F); property hint popup via right-click; <code>FIND_THEN_CLICK</code> <code>by_condition</code> parameter.",
+        "zh": "日志面板：搜索高亮 + 上/下一个导航（Ctrl+F / Cmd+F）；属性介绍右键弹窗；<code>FIND_THEN_CLICK</code> 新增 <code>by_condition</code> 参数。",
+    },
+    "cl_2026_04_mcp_unify": {
+        "en": "Unified MCP handling between GUI and BG modes via <code>McpMixin</code>; fixed <code>structuredContent</code> format; <code>outputSchema</code> supports <code>mapKey</code> field mapping.",
+        "zh": "GUI 与 BG 模式 MCP 处理逻辑统一，提取 <code>McpMixin</code>；修复 <code>structuredContent</code> 格式；<code>outputSchema</code> 支持 <code>mapKey</code> 字段映射。",
+    },
+    "cl_2026_04_mcp_schema": {
+        "en": "MCP tool schema supports <code>default</code> values for inputs and <code>mapKey</code> output field mapping; <code>McpDescEditor</code> enhancements.",
+        "zh": "MCP 工具 schema 支持输入 <code>default</code> 默认值与输出 <code>mapKey</code> 字段映射；<code>McpDescEditor</code> 编辑器增强。",
+    },
+    "cl_2026_04_taskgrid_menu": {
+        "en": "Task grid right-click menu: <em>View Processor Usage</em> and <em>Find Referencing Executions</em> options.",
+        "zh": "任务网格右键菜单新增「查看处理器用法」与「查找引用执行」选项。",
+    },
+    "cl_2026_04_mcp_toggle": {
+        "en": "MCP tool toggle replaced with custom <code>ToggleSwitch</code>; added state labels and response-key warning.",
+        "zh": "MCP 工具开关改为自定义 <code>ToggleSwitch</code> 组件；新增状态标签与响应键警告提示。",
+    },
+    "cl_2026_04_mcp_desc_editor": {
+        "en": "Execution description editor replaced with structured <code>McpDescEditor</code> for visual MCP tool schema editing.",
+        "zh": "Execution 描述编辑器改为结构化 <code>McpDescEditor</code>，支持 MCP 工具 schema 可视化编辑。",
+    },
+    "cl_2026_04_http_auth": {
+        "en": "<code>HTTP_REQUEST</code> processor: built-in Basic Auth, OAuth2, and XSRF / CSRF token support.",
+        "zh": "<code>HTTP_REQUEST</code> 处理器新增内置 Basic Auth、OAuth2 与 XSRF / CSRF token 支持。",
+    },
+    "cl_2026_04_js": {
+        "en": "New <code>RUN_JAVASCRIPT</code> processor (PythonMonkey) for executing JS functions.",
+        "zh": "新增 <code>RUN_JAVASCRIPT</code> 处理器（基于 PythonMonkey），支持执行 JS 函数。",
+    },
+    "cl_2026_04_snapshot_combo": {
+        "en": "Execution snapshots button; <code>SearchableComboBox</code> real-time filter and keyboard navigation with tool / nav icon prefixes.",
+        "zh": "新增执行快照按钮；<code>SearchableComboBox</code> 支持实时过滤与键盘导航，工具 / 导航图标前缀。",
+    },
     "cl_2026_04_loop": {
         "en": "Loop Editor: right-click or ⚙️ button to edit loop attributes via key-value dialog; snapshot &amp; undo / redo support for loop changes. Save button dirty-state fix for skip toggle, paste, add / delete row, and loop edits.",
         "zh": "循环编辑器：右键或 ⚙️ 按钮打开键值表单编辑循环属性；循环变更支持快照与撤销 / 重做。修复跳过任务、粘贴、增删行、循环编辑后保存按钮未启用的问题。",
