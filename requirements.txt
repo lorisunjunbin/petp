@@ -20,6 +20,8 @@
 -r requirements/ai-zhipu.txt
 -r requirements/mcp.txt
 -r requirements/javascript.txt
+-r requirements/ocr.txt
+-r requirements/captcha.txt
 -r requirements/video-download.txt
 -r requirements/http-service.txt
 -r requirements/webapp.txt
