@@ -1,0 +1,3 @@
+# [Captcha] 验证码识别
+# Processors: CAPTCHA
+ddddocr                   # 验证码OCR/滑块/目标检测 (CAPTCHAProcessor)
