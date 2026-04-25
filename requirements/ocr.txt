@@ -1,0 +1,14 @@
+# [OCR] 光学字符识别
+# Processors: OCR
+# Backends: paddleocr (default x86), rapidocr (default ARM), easyocr (manual)
+# Note: install ONE backend matching your platform, or all three.
+#       backend="auto" selects paddleocr (x86) or rapidocr (ARM).
+numpy                     # 图像预处理 (OCRProcessor)
+scipy                     # 自适应预处理 adaptive mode (OCRProcessor)
+# --- paddleocr backend (Windows/Linux x86_64, Intel Mac) ---
+# paddlepaddle            # PaddlePaddle 深度学习框架
+# paddleocr               # 百度PaddleOCR
+# --- rapidocr backend (ARM/Apple Silicon, lightweight) ---
+rapidocr-onnxruntime      # PaddleOCR ONNX 轻量推理
+# --- easyocr backend (high accuracy, large model) ---
+# easyocr                 # EasyOCR (需手动指定 backend="easyocr")
