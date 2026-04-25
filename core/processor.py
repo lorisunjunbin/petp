@@ -170,6 +170,12 @@ class Processor:
     def explain_param_or_default(self, name, default=''):
         return self.expression2str(self.get_param(name)) if self.has_param(name) else default
 
+    def explain_param_as_int(self, name, default=0):
+        return int(self.expression2str(self.get_param(name))) if self.has_param(name) else default
+
+    def explain_param_as_float(self, name, default=0.0):
+        return float(self.expression2str(self.get_param(name))) if self.has_param(name) else default
+
     def get_param(self, name):
         if self.has_param(name):
             return self.input_param[name]

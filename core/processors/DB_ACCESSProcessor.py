@@ -38,7 +38,7 @@ class DB_ACCESSProcessor(Processor):
     def process(self):
         type = self.expression2str(self.get_param('type'))
         host = self.expression2str(self.get_param('host'))
-        port = self.expression2str(self.get_param('port'))
+        port = self.explain_param_as_int('port', 0)
         database = self.expression2str(self.get_param('database'))
         user = self.expression2str(self.get_param('user'))
         pwd = self.expression2str(self.get_param('pwd'))
