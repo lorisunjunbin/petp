@@ -28,7 +28,9 @@ class RUN_SSH_COMMANDProcessor(Processor):
             cmd = self.expression2str(self.get_param("cmd"))
             output_key = self.get_param("output_key")
 
+            logging.info('SSH CMD: %s', cmd)
             output = ParamikoUtil.run_ssh_cmd(ssh_client, cmd)
+            logging.debug('SSH output: %s', output)
             self.populate_data(output_key, output)
 
             close_after_run = True if self.get_param("close_after_run") == "yes" else False

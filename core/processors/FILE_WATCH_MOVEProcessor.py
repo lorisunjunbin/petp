@@ -1,3 +1,4 @@
+import logging
 import os.path
 
 from core.processor import Processor
@@ -32,5 +33,8 @@ class FILE_WATCH_MOVEProcessor(Processor):
         if found:
             OSUtils.create_folder_if_not_existed(os.path.dirname(target_file))
             OSUtils.copy_file(source_file, target_file)
+            logging.info('File copied: %s -> %s', source_file, target_file)
+        else:
+            logging.warning('File not found within %ds: %s', timeout, source_file)
 
         self.populate_data(filepath_key, target_file)

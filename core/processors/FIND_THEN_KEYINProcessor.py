@@ -42,7 +42,7 @@ class FIND_THEN_KEYINProcessor(Processor):
             if self.has_param('value_key'):
                 v = self.get_deep_data(self.get_param('value_key').split(self.SEPARATOR))
             elif self.has_param('value'):
-                v = eval("f'" + self.get_param('value') + "'")
+                v = self.expression2str(self.get_param('value'))
 
             if (self.has_param('clearb4keyin')):
                 if "yes" == self.get_param("clearb4keyin"):

@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.OSUtils import OSUtils
 
@@ -15,8 +17,6 @@ class FILE_DELETEProcessor(Processor):
         return super().CATE_FILE
 
     def process(self):
-        OSUtils.delete_file_if_existed(
-            self.expression2str(
-                self.get_param('file_path')
-            )
-        )
+        fp = self.expression2str(self.get_param('file_path'))
+        logging.info('Deleting file: %s', fp)
+        OSUtils.delete_file_if_existed(fp)

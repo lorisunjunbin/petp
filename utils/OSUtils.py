@@ -22,6 +22,17 @@ class OSUtils:
         return sys.platform
 
     @staticmethod
+    def get_machine():
+        """
+        Return the CPU architecture string (lowercased), e.g.:
+          'arm64'  -> Apple Silicon (M1/M2/M3) or ARM64 Linux
+          'x86_64' -> Intel/AMD 64-bit
+          'amd64'  -> Intel/AMD 64-bit (Windows variant)
+          'i386'   -> 32-bit x86
+        """
+        return platform.machine().lower()
+
+    @staticmethod
     def ensure_hdpi():
         if platform.system() == "Windows":
             ctypes.windll.shcore.SetProcessDpiAwareness(2)

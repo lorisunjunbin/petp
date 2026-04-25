@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.ExcelUtil import ExcelUtil
 
@@ -25,4 +27,5 @@ class CSV_2_XLSXProcessor(Processor):
         dlr = self.expression2str(self.get_param('dlr'))
 
         ExcelUtil.convert_csv_to_xlsx(csv_file_path, xlsx_file_path, dlr)
+        logging.info('Converted CSV to XLSX: %s -> %s', csv_file_path, xlsx_file_path)
         self.populate_data(target_xlsx_key, xlsx_file_path)

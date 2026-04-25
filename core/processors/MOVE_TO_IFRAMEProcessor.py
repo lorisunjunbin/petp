@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.SeleniumUtil import SeleniumUtil
 
@@ -17,4 +19,6 @@ class MOVE_TO_IFRAMEProcessor(Processor):
 
     def process(self):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
-        SeleniumUtil.move_to_target_frame(chrome, self.get_param('frame_ids'))
+        frame_ids = self.get_param('frame_ids')
+        logging.debug('Moving to iframe: %s', frame_ids)
+        SeleniumUtil.move_to_target_frame(chrome, frame_ids)

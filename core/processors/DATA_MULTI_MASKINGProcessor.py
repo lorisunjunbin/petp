@@ -62,10 +62,13 @@ class DATA_MULTI_MASKINGProcessor(Processor):
                     masking_dict[masking_columnnum_str][masking_column_content] = masking_func(
                         masking_dict[masking_columnnum_str], row, rownum, masking_columnnum)
 
-                    logging.info(
-                        f'"{masking_column_content}" -> {str(masking_dict[masking_columnnum_str][masking_column_content])}')
+                    logging.debug(
+                        '"%s" -> %s', masking_column_content, str(masking_dict[masking_columnnum_str][masking_column_content]))
 
                 row[masking_columnnum] = masking_dict[masking_columnnum_str][masking_column_content]
+
+        total_unique = sum(len(v) for v in masking_dict.values())
+        logging.info('Masking complete: %d columns, %d unique values masked', len(masking_columns), total_unique)
 
         if masking_dict_name:
             if masking_dict_inverted:

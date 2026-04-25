@@ -14,12 +14,20 @@ class Loop:
 
     @staticmethod
     def tpl():
-        # task_start / task_end - task number in task grid
-        # loop_key - attribute of the data_chain which represent data collection
-        # item_key - attribute of the data_chain which represent item of data collection that pass into the loop tasks.
-        # loop_index - loop cursor
-        # loop_times - attribute of the data_chain which represent loop times, use this, must remove attribute loop_key
-        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break"}'
+        # task_start      - task number (1-based row in task grid) where the loop body begins
+        # task_end        - task number (1-based row in task grid) where the loop body ends (inclusive)
+        # loop_key        - data_chain key whose value is the collection to iterate over;
+        #                   mutually exclusive with loop_times (set loop_times to "0" when using loop_key)
+        # loop_times      - fixed number of iterations; set to "0" to use loop_key instead
+        # loop_index_key  - data_chain key that receives the current 0-based iteration index
+        # item_key        - data_chain key that receives the current collection item each iteration
+        # exception_then  - behaviour when a task inside the loop raises an exception:
+        #                   "break" stops the loop, "continue" skips to the next iteration
+        # loop_condition  - optional Python function body (data_chain); evaluated at the end of each iteration:
+        #                   return True,'break'    → exit the loop after this iteration
+        #                   return True,'continue' → skip to the next iteration immediately
+        #                   return False,''        → normal flow, loop continues as before
+        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break", "loop_condition":""}'
 
     def get_loop_code(self):
         return self.loop_code
@@ -44,6 +52,9 @@ class Loop:
 
     def get_exception_then(self):
         return self.get_attributes().get('exception_then', '')
+
+    def get_loop_condition(self):
+        return self.get_attributes().get('loop_condition', '')
 
     def get_attribute(self, name):
         return self.get_attributes()[name]

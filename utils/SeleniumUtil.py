@@ -359,22 +359,26 @@ class SeleniumUtil:
         logging.debug('Capture full screenshot to: ' + filepath)
 
     @staticmethod
-    def screenshot_by_x_path(chrome, xpath, filepath, tmppic_path):
-
+    def screenshot_by_x_path(chrome, xpath, filepath, tmppic_path, padding=0):
         SeleniumUtil.wait_for_element_xpath_visible(chrome, xpath)
-        element = chrome.find_element(By.XPATH, xpath)
-        location = element.location
-        size = element.size
+
+        rect = chrome.execute_script("""
+            var el = document.evaluate(arguments[0], document, null,
+                XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            return el ? el.getBoundingClientRect() : null;
+        """, xpath)
+
+        if rect is None:
+            raise Exception(f'screenshot_by_x_path: element not found for xpath: {xpath}')
+
+        dpr = chrome.execute_script("return window.devicePixelRatio") or 1
+        x      = int((rect['x']                    - padding) * dpr)
+        y      = int((rect['y']                    - padding) * dpr)
+        right  = int((rect['x'] + rect['width']    + padding) * dpr)
+        bottom = int((rect['y'] + rect['height']   + padding) * dpr)
 
         chrome.save_screenshot(tmppic_path)
-
-        # crop image
-        x = location['x']
-        y = location['y']
-        width = location['x'] + size['width']
-        height = location['y'] + size['height']
-
-        SeleniumUtil.image_crop(tmppic_path, filepath, x, y, width, height)
+        SeleniumUtil.image_crop(tmppic_path, filepath, x, y, right, bottom)
 
     @staticmethod
     def screenshot_with_crop(chrome, left, top, right, bottom, filepath, tmppic_path, show=False, format=None):

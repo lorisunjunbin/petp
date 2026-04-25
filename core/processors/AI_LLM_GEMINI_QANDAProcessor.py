@@ -61,7 +61,8 @@ class AI_LLM_GEMINI_QANDAProcessor(Processor):
         content = self.read_json_from_markdown(answer.content) if convert_resp_2_json else answer.content
         content_text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
         message = "Q:\n" + prompt + "\nA:\n" + content_text
-        logging.info(f'Q and A:\n {message}')
+        logging.info('Gemini response received')
+        logging.debug('Q and A:\n%s', message)
 
         if show_in_popup:
             if wx is not None:

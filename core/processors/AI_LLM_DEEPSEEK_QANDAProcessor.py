@@ -74,7 +74,8 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
 
             content = self.read_json_from_markdown(answer.content) if convert_resp_2_json else answer.content
             message = "Q:\n" + prompt + "\nA:\n" + content
-            logging.info(f'Q and A:\n {message}')
+            logging.info('DeepSeek response received (model=%s)', model)
+            logging.debug('Q and A:\n%s', message)
 
             if show_in_popup:
                 if wx is not None:

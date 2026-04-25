@@ -1,3 +1,4 @@
+import logging
 import time
 import pyautogui
 pyautogui.PAUSE = 0.5
@@ -40,8 +41,10 @@ class MOUSE_SCROLLProcessor(Processor):
             x_at = self.get_data(self.get_param('x_from'))
             y_at = self.get_data(self.get_param('y_from'))
             pyautogui.scroll(vertical, x=x_at, y=y_at)
+            logging.debug('Mouse scrolled %s at (%s, %s)', vertical, x_at, y_at)
         else:
             pyautogui.scroll(vertical, x=x, y=y)
+            logging.debug('Mouse scrolled %s at (%s, %s)', vertical, x, y)
 
         wait = int(self.expression2str(self.get_param('wait')))
         time.sleep(wait)

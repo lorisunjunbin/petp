@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.ParamikoUtil import ParamikoUtil
 
@@ -31,4 +33,5 @@ class CREATE_SFTP_CLIENTProcessor(Processor):
         if sftp_client is None:
             raise Exception(f'sftp_client is NOT able to create.')
 
+        logging.info('SFTP client created for %s@%s:%d', uname, ip, port)
         self.populate_data(dk, sftp_client)

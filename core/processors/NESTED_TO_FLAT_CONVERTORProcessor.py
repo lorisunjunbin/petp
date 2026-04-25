@@ -1,4 +1,6 @@
 import json
+import logging
+
 from core.processor import Processor
 
 
@@ -23,11 +25,12 @@ class NESTED_TO_FLAT_CONVERTORProcessor(Processor):
 
         data_nested = self.expression2str(self.get_param('data_key')) if self.has_param('data_key') else json.loads(self.get_param('data'))
         
-        prefix = self.expression2str(self.get_param('prefix')) if self.has_param('prefix') else ''
-        separator = self.expression2str(self.get_param('separator')) if self.has_param('separator') else '.'
+        prefix = self.explain_param_or_default('prefix', '')
+        separator = self.explain_param_or_default('separator', '.')
         
         data_flat = {}
         self.convertNestedToFlat(data_nested, data_flat, separator, prefix)
+        logging.debug('Converted nested to flat: %d keys', len(data_flat))
         self.populate_data(self.get_param('data_flat_key'), data_flat)
         
     def convertNestedToFlat(self, nested:dict, flat:dict, separator='.', prefix=''):

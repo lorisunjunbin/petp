@@ -88,7 +88,8 @@ class AI_LLM_GEMINI_QANDA_MCPProcessor(Processor):
             content = self.read_json_from_markdown(final_answer) if convert_resp_2_json else final_answer
             content_text = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False)
             alert_message = f"Q:\n{prompt}\n\nA:\n{content_text}"
-            logging.info(f'Final Q and A:\n {alert_message}')
+            logging.info('Gemini MCP response received')
+            logging.debug('Final Q and A:\n%s', alert_message)
 
             if show_in_popup and wx is not None:
                 dlg = wx.MessageDialog(None, alert_message, "AI LLM GEMINI Q&A (MCP)")

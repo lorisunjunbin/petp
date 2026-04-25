@@ -34,6 +34,7 @@ class RUN_SFTP_PUTProcessor(Processor):
             sftp_put_file_key = self.get_param("sftp_put_file_key")
 
             ParamikoUtil.run_sftp_put(sftp_client, from_local, to_remote)
+            logging.info('SFTP PUT: %s -> %s', from_local, to_remote)
             self.populate_data(sftp_put_file_key, to_remote)
 
             if close_after_run:

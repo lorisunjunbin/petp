@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.ExcelUtil import ExcelUtil
 
@@ -38,8 +40,10 @@ class READ_EXCELProcessor(Processor):
                 not skipFirst and \
                 fields_str is not None and \
                 len(fields_str) > 0:
-
             fields: [str] = fields_str.split(self.SEPARATOR)
-            self.populate_data(self.get_param('data_key'), ExcelUtil.filter_by_fields(fields, data))
+            result = ExcelUtil.filter_by_fields(fields, data)
         else:
-            self.populate_data(self.get_param('data_key'), data)
+            result = data
+
+        logging.info('Read Excel: %s (sheet=%d, %d rows)', fp, sheet_index, len(result))
+        self.populate_data(self.get_param('data_key'), result)

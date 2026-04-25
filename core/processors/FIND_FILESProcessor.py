@@ -33,6 +33,7 @@ class FIND_FILESProcessor(Processor):
 
         found = OSUtils.collect_files(path_to_find, depth_lambda, file_name_lambda)
 
-        logging.info(f"Found {len(found)} files: {str(found)}")
+        logging.info('Found %d files in: %s', len(found), path_to_find)
+        logging.debug('Found files: %s', found)
 
         self.populate_data(found_file_key, found)

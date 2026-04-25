@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 
 
@@ -20,4 +22,6 @@ class READ_TEXT_FROM_FILEProcessor(Processor):
         data_key = self.expression2str(self.get_param('data_key'))
 
         with open(file_path, "r+", encoding='utf8') as text_file:
-            self.populate_data(data_key, text_file.read())
+            content = text_file.read()
+        logging.info('Read text file: %s (%d chars)', file_path, len(content))
+        self.populate_data(data_key, content)

@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.ExcelUtil import ExcelUtil
 
@@ -29,5 +31,5 @@ class WRITE_TO_EXCELProcessor(Processor):
             else {value_key: value_data} if type(value_data) == list else {}
 
         ExcelUtil.write_dict_to_excel(file_path, sheetname2list)
-
+        logging.info('Written Excel: %s (%d sheets)', file_path, len(sheetname2list))
         self.populate_data(data_key, file_path)

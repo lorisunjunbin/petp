@@ -1,4 +1,5 @@
 import json
+import logging
 
 from jsonpath import JSONPath
 
@@ -29,7 +30,6 @@ class READ_JSONProcessor(Processor):
 
         with open(file_path, "rb") as file:
             fileContent = json.load(file)
-
             data = fileContent if json_path is None else JSONPath(json_path).parse(fileContent)
-
+            logging.info('Read JSON: %s', file_path)
             self.populate_data(self.get_param('data_key'), data)

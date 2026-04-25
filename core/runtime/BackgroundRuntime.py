@@ -110,8 +110,28 @@ class BackgroundRuntime:
                 task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
                 self._log_end_process(current_loop, state, processor, task)
 
+                # loop_condition: evaluate after every task inside a loop
+                if state.is_loop_execution and current_loop:
+                    cond_action = Execution._eval_loop_condition(current_loop, data_chain)
+                    if cond_action == 'break':
+                        state.force_exit_loop(data_chain)
+                        state.move_to_next()
+                        continue
+                    elif cond_action == 'continue':
+                        if state.advance_loop_on_exception(data_chain):
+                            continue
+                        state.move_to_next()
+                        continue
+
                 if state.is_loop_end and state.setup_loop_end_then_continue(data_chain):
                     continue
+
+                goto_target = data_chain.pop('__goto_task', None)
+                if goto_target is not None:
+                    state.current_index = int(goto_target) - 1
+                    logging.info('GO_TO_TASK: jumping to task %s', goto_target)
+                    continue
+
                 state.move_to_next()
         except Exception as e:
             logging.exception("Execution failed: %s", execution_name)

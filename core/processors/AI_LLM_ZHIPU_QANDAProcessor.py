@@ -81,7 +81,8 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
             content = self.read_json_from_markdown(
                 answer.reasoning_content) if convert_resp_2_json else answer.reasoning_content
             message = "Q:\n" + prompt + "\nA:\n" + content
-            logging.info(f'Q and A:\n {message}')
+            logging.info('Zhipu response received (model=%s)', model)
+            logging.debug('Q and A:\n%s', message)
 
             if show_in_popup:
                 if wx is not None:

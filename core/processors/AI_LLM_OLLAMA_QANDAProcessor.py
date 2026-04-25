@@ -63,7 +63,8 @@ class AI_LLM_OLLAMA_QANDAProcessor(Processor):
             }])
 
             message = "Q:\n" + prompt + "\nA:\n" + self._try_process_resp_json(answer)
-            logging.info(f'Q and A:\n {message}')
+            logging.info('Ollama response received (model=%s)', model)
+            logging.debug('Q and A:\n%s', message)
 
             if show_in_popup:
                 if wx is not None:

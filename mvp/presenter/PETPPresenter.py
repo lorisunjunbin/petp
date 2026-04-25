@@ -67,6 +67,10 @@ class PETPPresenter():
         self._snapshot_cursor = -1
         self._SNAPSHOT_MAX = int(getattr(model, 'snapshot_max', 20))
         self._saved_snapshot = None
+        self._param_hint_dlg = None
+        self._log_search_keyword = ''
+        self._log_match_positions = []
+        self._log_match_cursor = -1
 
         self.i.install(self, view)
 
@@ -153,6 +157,7 @@ class PETPPresenter():
         v.loadLog.SetToolTip(t("tip_reload_log"))
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
+        v.logSearchCtrl.SetDescriptiveText(t("tip_log_search"))
 
         # --- Pipeline tab ---
         v.addRow4P.SetToolTip(t("tip_add_row_p"))
@@ -1512,6 +1517,7 @@ class PETPPresenter():
         id_rename_key = wx.NewId()
         id_move_up = wx.NewId()
         id_move_down = wx.NewId()
+        id_param_hint = wx.NewId()
 
         menu.Append(id_copy_name, t("menu_copy_name"))
         menu.Append(id_copy_value, t("menu_copy_value"))
@@ -1521,6 +1527,18 @@ class PETPPresenter():
         menu.AppendSeparator()
         menu.Append(id_rename_key, t("menu_rename_key"))
         menu.Append(id_edit_complex, t("menu_edit_complex"))
+        menu.Append(id_param_hint, t("menu_param_hint"))
+        processor_name = self.v.taskGrid.GetCellValue(self.current_selected_row, 0).strip()
+        hint_available = False
+        if processor_name and processor_name != 'INITIAL_PARAMS' and self._right_clicked_property:
+            try:
+                p = Processor.get_processor_by_type(processor_name)
+                desc = p.get_localized_desc() if hasattr(p, 'get_localized_desc') else p.DESC
+                hint_available = bool(self._extract_param_hint(desc, self._right_clicked_property.GetName()))
+            except Exception:
+                pass
+        hint_enabled = bool(hint_available or (self._param_hint_dlg and self._param_hint_dlg.IsShown()))
+        menu.Enable(id_param_hint, hint_enabled)
         menu.AppendSeparator()
         menu.Append(id_move_up, t("menu_move_up"))
         menu.Append(id_move_down, t("menu_move_down"))
@@ -1544,11 +1562,75 @@ class PETPPresenter():
         self.v.Bind(wx.EVT_MENU, self._on_paste_property_pair, id=id_paste_pair)
         self.v.Bind(wx.EVT_MENU, self._on_edit_complex_value, id=id_edit_complex)
         self.v.Bind(wx.EVT_MENU, self._on_rename_property_key, id=id_rename_key)
+        self.v.Bind(wx.EVT_MENU, self._on_show_param_hint, id=id_param_hint)
         self.v.Bind(wx.EVT_MENU, lambda e: self._move_pgrid_property(-1), id=id_move_up)
         self.v.Bind(wx.EVT_MENU, lambda e: self._move_pgrid_property(1), id=id_move_down)
 
         self.v.PopupMenu(menu)
         menu.Destroy()
+
+    def on_task_property_selected4e(self, evt):
+        evt.Skip()
+        prop = evt.GetProperty()
+        if prop is None or isinstance(prop, wx.propgrid.PropertyCategory):
+            return
+        if self._param_hint_dlg and self._param_hint_dlg.IsShown():
+            self._show_param_hint_for_prop(prop)
+
+    def _on_show_param_hint(self, evt):
+        self._show_param_hint_for_prop(self._right_clicked_property)
+
+    def _show_param_hint_for_prop(self, prop):
+        if prop is None:
+            return
+        param_name = prop.GetName()
+        processor_name = self.v.taskGrid.GetCellValue(self.current_selected_row, 0).strip()
+        if not processor_name or processor_name == 'INITIAL_PARAMS':
+            return
+        try:
+            p = Processor.get_processor_by_type(processor_name)
+            desc = p.get_localized_desc() if hasattr(p, 'get_localized_desc') else p.DESC
+        except Exception:
+            return
+        hint = self._extract_param_hint(desc, param_name)
+        if self._param_hint_dlg and self._param_hint_dlg.IsShown():
+            self._param_hint_dlg.SetTitle(param_name)
+            self._param_hint_dlg._txt.SetValue(hint if hint else t('param_hint_not_found', name=param_name))
+            self._param_hint_dlg.Raise()
+        else:
+            if not hint:
+                return
+            dlg = wx.Dialog(self.v, title=param_name, style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
+            txt = wx.TextCtrl(dlg, value=hint,
+                              style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2 | wx.TE_AUTO_URL)
+            txt.SetMinSize(wx.Size(480, 120))
+            btn_close = wx.Button(dlg, wx.ID_CLOSE, t("btn_close"))
+            btn_close.Bind(wx.EVT_BUTTON, lambda e: dlg.Hide())
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(txt, 1, wx.EXPAND | wx.ALL, 8)
+            sizer.Add(btn_close, 0, wx.ALIGN_RIGHT | wx.RIGHT | wx.BOTTOM, 8)
+            dlg.SetSizerAndFit(sizer)
+            dlg._txt = txt
+            self._param_hint_dlg = dlg
+            dlg.Show()
+
+    @staticmethod
+    def _extract_param_hint(desc: str, param_name: str) -> str:
+        lines = desc.splitlines()
+        collecting = False
+        parts = []
+        for line in lines:
+            stripped = line.strip()
+            if not collecting:
+                if stripped.startswith(f'- {param_name}:') or stripped.startswith(f'- {param_name} '):
+                    parts.append(stripped[2:].strip())
+                    collecting = True
+            else:
+                if stripped.startswith('- '):
+                    break
+                if stripped:
+                    parts.append(stripped)
+        return '\n'.join(parts)
 
     def _on_undo(self, evt):
         self._undo()
@@ -1987,6 +2069,8 @@ class PETPPresenter():
             logging.error(f"Update log error from UI: {str(e)}")
         finally:
             self.v.logContents.Thaw()
+        if self._log_search_keyword:
+            self._highlight_log_matches()
 
     def _append_log(self, new_content, max_size):
         """Incremental append — much faster than full SetValue."""
@@ -2004,6 +2088,8 @@ class PETPPresenter():
             logging.error(f"Append log error from UI: {str(e)}")
         finally:
             self.v.logContents.Thaw()
+        if self._log_search_keyword:
+            self._highlight_log_matches()
 
     @reload_log_after
     def on_clean_log(self):
@@ -2017,6 +2103,98 @@ class PETPPresenter():
 
     def on_logcontents_unfocused(self):
         self.is_log_content_focused = False
+
+    def on_search_log(self):
+        keyword = self.v.logSearchCtrl.GetValue().strip()
+        self._log_search_keyword = keyword
+        if keyword:
+            self._highlight_log_matches()
+        else:
+            self._clear_log_highlights()
+
+    def on_clear_log_search(self):
+        self._log_search_keyword = ''
+        self.v.logSearchCtrl.SetValue('')
+        self._clear_log_highlights()
+
+    def _highlight_log_matches(self):
+        keyword = self._log_search_keyword
+        if not keyword:
+            return
+        lc = self.v.logContents
+        text = lc.GetValue()
+        text_lower = text.lower()
+        keyword_lower = keyword.lower()
+        kw_len = len(keyword_lower)
+
+        positions = []
+        lc.Freeze()
+        try:
+            default_attr = wx.TextAttr(wx.Colour(0, 255, 0), wx.Colour(78, 78, 78))
+            lc.SetStyle(0, lc.GetLastPosition(), default_attr)
+
+            highlight_attr = wx.TextAttr(wx.BLACK, wx.YELLOW)
+            start = 0
+            while True:
+                pos = text_lower.find(keyword_lower, start)
+                if pos < 0:
+                    break
+                lc.SetStyle(pos, pos + kw_len, highlight_attr)
+                positions.append(pos)
+                start = pos + kw_len
+
+            self._log_match_positions = positions
+            self._log_match_cursor = -1
+            count = len(positions)
+            self.v.logMatchCount.SetLabel(t('log_match_count', count=count) if count > 0 else '')
+        finally:
+            lc.Thaw()
+
+    def _focus_current_match(self):
+        if not self._log_match_positions:
+            return
+        pos = self._log_match_positions[self._log_match_cursor]
+        kw_len = len(self._log_search_keyword)
+        lc = self.v.logContents
+
+        lc.Freeze()
+        try:
+            highlight_attr = wx.TextAttr(wx.BLACK, wx.YELLOW)
+            for p in self._log_match_positions:
+                lc.SetStyle(p, p + kw_len, highlight_attr)
+            current_attr = wx.TextAttr(wx.WHITE, wx.Colour(255, 120, 0))
+            lc.SetStyle(pos, pos + kw_len, current_attr)
+        finally:
+            lc.Thaw()
+
+        lc.ShowPosition(pos)
+        count = len(self._log_match_positions)
+        idx = self._log_match_cursor + 1
+        self.v.logMatchCount.SetLabel(f'{idx}/{count}')
+
+    def on_prev_log_match(self):
+        if not self._log_match_positions:
+            return
+        self._log_match_cursor = (self._log_match_cursor - 1) % len(self._log_match_positions)
+        self._focus_current_match()
+
+    def on_next_log_match(self):
+        if not self._log_match_positions:
+            return
+        self._log_match_cursor = (self._log_match_cursor + 1) % len(self._log_match_positions)
+        self._focus_current_match()
+
+    def _clear_log_highlights(self):
+        lc = self.v.logContents
+        lc.Freeze()
+        try:
+            default_attr = wx.TextAttr(wx.Colour(0, 255, 0), wx.Colour(78, 78, 78))
+            lc.SetStyle(0, lc.GetLastPosition(), default_attr)
+            self.v.logMatchCount.SetLabel('')
+            self._log_match_positions = []
+            self._log_match_cursor = -1
+        finally:
+            lc.Thaw()
 
     def on_handle_display_in_matplotlib_view(self, evt: PETPEvent):
         data = evt.data

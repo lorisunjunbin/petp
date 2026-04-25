@@ -80,7 +80,8 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
         logging.debug(f'available_tools: {available_tools_prompt}')
 
         try:
-            logging.info(f'Calling LLM with messages: {messages}')
+            logging.info('Calling DeepSeek LLM (model=%s)', model)
+            logging.debug('messages: %s', messages)
             response = existed_llm.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -100,7 +101,8 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
                 messages.append({"role": "system",
                                  "content": f' Please answer strictly based on the result [ {new_answer} ], prefer to use Chinese'})
 
-                logging.info(f'Calling LLM after tool call with messages: {messages}')
+                logging.info('Calling DeepSeek LLM after tool call (model=%s)', model)
+                logging.debug('messages: %s', messages)
                 final_response = existed_llm.chat.completions.create(
                     model=model,
                     messages=messages,
@@ -108,14 +110,15 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
                     stream=False,
                     stop=None
                 )
-                logging.info("\nFinal response: %s", final_response)
+                logging.debug('Final response: %s', final_response)
                 final_answer = final_response.choices[0].message.content
 
             messages.append({"role": "assistant", "content": final_answer})
             content = self.read_json_from_markdown(final_answer) if convert_resp_2_json else final_answer
 
             alert_message = f"Q:\n{prompt}\nA:\n{content}"
-            logging.info(f'Q and A:\n {alert_message}')
+            logging.info('DeepSeek MCP response received')
+            logging.debug('Q and A:\n%s', alert_message)
 
             if show_in_popup:
                 if wx is not None:

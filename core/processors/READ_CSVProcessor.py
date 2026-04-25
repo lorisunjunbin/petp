@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.ExcelUtil import ExcelUtil
 
@@ -31,4 +33,5 @@ class READ_CSVProcessor(Processor):
         data = ExcelUtil.get_data_from_csv(fp, skipFirst) if delimiter == None \
             else ExcelUtil.get_data_from_csv(fp, skipFirst, delimiter)
 
+        logging.info('Read CSV: %s (%d rows)', fp, len(data))
         self.populate_data(self.get_param('data_key'), data)

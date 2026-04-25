@@ -123,7 +123,26 @@ class Execution:
             self.log_end_process(current_loop, state, processor, task, view)
             # process end ----
 
+            # loop_condition: evaluate after every task inside a loop
+            if state.is_loop_execution and current_loop:
+                cond_action = self._eval_loop_condition(current_loop, data_chain)
+                if cond_action == 'break':
+                    state.force_exit_loop(data_chain)
+                    state.move_to_next()
+                    continue
+                elif cond_action == 'continue':
+                    if state.advance_loop_on_exception(data_chain):
+                        continue
+                    state.move_to_next()
+                    continue
+
             if state.is_loop_end and state.setup_loop_end_then_continue(data_chain):
+                continue
+
+            goto_target = data_chain.pop('__goto_task', None)
+            if goto_target is not None:
+                state.current_index = int(goto_target) - 1
+                logging.info('GO_TO_TASK: jumping to task %s', goto_target)
                 continue
 
             state.move_to_next()
@@ -131,6 +150,23 @@ class Execution:
         return data_chain
 
     _LOOP_LOG_INTERVAL = 5  # seconds — minimum gap between LOG events during loops
+
+    @staticmethod
+    def _eval_loop_condition(current_loop: Loop, data_chain: dict):
+        condition_body = current_loop.get_loop_condition()
+        if not condition_body:
+            return None
+        from utils.CodeExplainerUtil import CodeExplainerUtil
+        safe_code = current_loop.get_loop_code().replace('-', '_').replace(' ', '_')
+        func_name = f'loop_condition_{safe_code}'
+        cond_fn = CodeExplainerUtil.create_and_execute_func(
+            func_name, '(data_chain)', condition_body)
+        result = cond_fn(data_chain)
+        triggered, action = result if isinstance(result, tuple) else (result, '')
+        if triggered:
+            logging.info('Loop %s condition triggered: %s', current_loop.get_loop_code(), action)
+            return action if action in ('break', 'continue') else 'break'
+        return None
 
     def post_log_reload(self, lp, view):
         evt_data = {"execution": self.execution, "task_index": lp.get_current_index()}

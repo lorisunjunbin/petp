@@ -33,6 +33,7 @@ class RUN_SFTP_GETProcessor(Processor):
             sftp_get_file_key = self.get_param("sftp_get_file_key")
 
             ParamikoUtil.run_sftp_get(sftp_client, from_remote, to_local)
+            logging.info('SFTP GET: %s -> %s', from_remote, to_local)
             self.populate_data(sftp_get_file_key, to_local)
 
             if close_after_run:

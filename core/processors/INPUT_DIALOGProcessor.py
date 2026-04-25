@@ -32,7 +32,7 @@ class INPUT_DIALOGProcessor(Processor):
         title = self.expression2str(self.get_param('title'))
         msg = self.expression2str(self.get_param('msg'))
         value_key = self.expression2str(self.get_param('value_key'))
-        default_value = self.expression2str(self.get_param('default_value')) if self.has_param('default_value') else ''
+        default_value = self.explain_param_or_default('default_value', '')
         stop_on_cancel = self.get_param('stop_on_cancel') == 'yes'
 
         if wx is not None:

@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 
 
@@ -18,3 +20,4 @@ class GO_BACKProcessor(Processor):
     def process(self):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
         chrome.back()
+        logging.debug('Browser navigated back')

@@ -48,4 +48,4 @@ class FIND_MULTI_THEN_CLICKProcessor(Processor):
                 SeleniumUtil.move_to_ele_then_click(chrome, ele)
                 logging.debug('click: ' + identity)
             except Exception as ex:
-                logging.warning('move to click: ' + identity)
+                logging.debug('move to click: %s', identity)

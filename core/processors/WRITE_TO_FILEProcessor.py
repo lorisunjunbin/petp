@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 
 
@@ -23,4 +25,5 @@ class WRITE_TO_FILEProcessor(Processor):
         with open(file_path, "w", encoding='utf8') as text_file:
             text_file.write(content)
 
+        logging.info('Written to file: %s (%d chars)', file_path, len(content))
         self.populate_data(self.get_param('data_key'), file_path)

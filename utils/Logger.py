@@ -5,44 +5,49 @@ import threading
 from logging.handlers import RotatingFileHandler
 from logging import StreamHandler
 
-
-from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
+_CONSOLE_FORMAT = '%(asctime)s <%(levelname)s> [%(threadName)s] %(name)s:%(lineno)d - %(message)s'
+_FILE_FORMAT    = '%(asctime)s <%(levelname)s> [%(threadName)s] %(filename)s:%(lineno)d - %(message)s'
+_DATE_FORMAT    = '%Y-%m-%d %H:%M:%S'
 
-def init(app):
-    logging.basicConfig(
-        level=logging.INFO,
+
+def init(app, level=logging.INFO):
+    formatter_console = logging.Formatter(_CONSOLE_FORMAT, datefmt=_DATE_FORMAT)
+    formatter_file    = logging.Formatter(_FILE_FORMAT,    datefmt=_DATE_FORMAT)
+
+    console_handler = StreamHandler()
+    console_handler.setFormatter(formatter_console)
+
+    file_handler = RotatingFileHandler(
+        filename=OSUtils.get_log_file_path(app),
+        mode='a',
+        maxBytes=10 * 1024 * 1024,
+        backupCount=2,
         encoding='utf-8',
-        datefmt='%m/%d/%Y %I:%M:%S',
-        format='<%(levelname)s>[ %(threadName)s ] - %(message)s',
-        handlers=[StreamHandler(), create_rotating_file_handler(app)]
+        delay=False,
     )
+    file_handler.setFormatter(formatter_file)
+
+    root = logging.getLogger()
+    root.setLevel(level)
+    root.handlers.clear()
+    root.addHandler(console_handler)
+    root.addHandler(file_handler)
+
     patch_threading_excepthook()
     sys.excepthook = handle_unhandled_exception
 
 
-def create_rotating_file_handler(app):
-    return RotatingFileHandler(filename=(OSUtils.get_log_file_path(app)), mode='a',
-                               maxBytes=10 * 1024 * 1024, backupCount=2,
-                               encoding='utf-8', delay=0)
-
-
 def handle_unhandled_exception(exc_type, exc_value, exc_traceback):
-    """Handler for unhandled exceptions that will write to the logs"""
     if issubclass(exc_type, KeyboardInterrupt):
-        # call the default excepthook saved at __excepthook__
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
-    logging.critical(f'~~~~~~~~~~~~~~~~~~~~~{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")}~~~~~~~~~~~~~~~~~~~~~')
     logging.critical("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
-    logging.critical("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
 
 
 def patch_threading_excepthook():
-    """Installs our exception handler into the threading modules Thread object
-    Inspired by https://bugs.python.org/issue1230540
-    """
+    """Route uncaught thread exceptions through sys.excepthook for unified logging."""
     old_init = threading.Thread.__init__
 
     def new_init(self, *args, **kwargs):
@@ -54,7 +59,7 @@ def patch_threading_excepthook():
                 old_run(*args, **kwargs)
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except:
+            except Exception:
                 sys.excepthook(*sys.exc_info())
 
         self.run = run_with_our_excepthook

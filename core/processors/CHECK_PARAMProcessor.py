@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 
 
@@ -20,3 +22,5 @@ class CHECK_PARAMProcessor(Processor):
 
         if data == None or len(data) == 0:
             raise Exception(f'Parameter required: {paramnames} ')
+
+        logging.debug('Parameter check passed: %s', paramnames)

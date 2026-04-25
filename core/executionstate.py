@@ -91,7 +91,15 @@ class ExecutionState:
             self.loop_times = self.current_loop.get_loop_times()
             data_chain[self.current_loop.get_loop_index_key()] = self.loop_times_cur
         else:
-            self.current_loop_collection = data_chain[self.current_loop.get_loop_key()]
+            collection = data_chain[self.current_loop.get_loop_key()]
+            if isinstance(collection, str):
+                import json
+                try:
+                    collection = json.loads(collection)
+                except (json.JSONDecodeError, ValueError):
+                    collection = list(collection)
+                data_chain[self.current_loop.get_loop_key()] = collection
+            self.current_loop_collection = collection
             if len(self.current_loop_collection) > self.current_loop_idx:
                 data_chain[self.current_loop.get_item_key()] = self.current_loop_collection[self.current_loop_idx]
                 data_chain[self.current_loop.get_loop_index_key()] = self.current_loop_idx

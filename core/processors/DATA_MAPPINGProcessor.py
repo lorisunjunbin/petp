@@ -25,11 +25,12 @@ class DATA_MAPPINGProcessor(Processor):
         given_collection_name = self.get_param('given_collection')
         given_collection = self.get_data(given_collection_name)
 
-        logging.info(f'given_collection: {len(given_collection)} -> {given_collection}')
+        logging.info('Mapping collection "%s": %d items', given_collection_name, len(given_collection))
+        logging.debug('given_collection: %s', given_collection)
 
         # --- optional slice: start_idx / end_idx ---
-        start_idx_raw = self.expression2str(self.get_param('start_idx')) if self.has_param('start_idx') else ''
-        end_idx_raw = self.expression2str(self.get_param('end_idx')) if self.has_param('end_idx') else ''
+        start_idx_raw = self.explain_param_or_default('start_idx', '')
+        end_idx_raw = self.explain_param_or_default('end_idx', '')
 
         if start_idx_raw != '' or end_idx_raw != '':
             # start_idx defaults to the first index (0) when not set
@@ -56,7 +57,7 @@ class DATA_MAPPINGProcessor(Processor):
             if start_idx > end_idx:
                 raise ValueError(f'start_idx ({start_idx}) must be <= end_idx ({end_idx}).')
 
-            logging.info(f'Slicing "{given_collection_name}" from index {start_idx} to {end_idx} (inclusive).')
+            logging.debug('Slicing "%s" from index %s to %s (inclusive).', given_collection_name, start_idx, end_idx)
             given_collection = given_collection[start_idx: end_idx + 1]
             logging.debug(f'After slicing given_collection: {given_collection}.')
         # --- end slice ---

@@ -6,6 +6,18 @@ import wx.grid
 
 from i18n.translations import t
 from mvp.view.common.HandyToolButton import HandyToolButton
+from mvp.view.common.InputDialog import InputDialog
+
+_KEY_TIPS = {
+    'task_start':     'loop_tip_task_start',
+    'task_end':       'loop_tip_task_end',
+    'loop_key':       'loop_tip_loop_key',
+    'loop_times':     'loop_tip_loop_times',
+    'loop_index_key': 'loop_tip_loop_index_key',
+    'item_key':       'loop_tip_item_key',
+    'exception_then': 'loop_tip_exception_then',
+    'loop_condition': 'loop_tip_loop_condition',
+}
 
 
 class LoopEditDialog(wx.Dialog):
@@ -82,6 +94,7 @@ class LoopEditDialog(wx.Dialog):
         self._grid.AutoSizeColumn(0)
         self._grid.AutoSizeColumn(1)
         self._grid.SetColMinimalWidth(1, 200)
+        self._grid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self._on_grid_right_click)
 
         sizer.Add(self._grid, 1, wx.LEFT | wx.RIGHT | wx.EXPAND, PAD)
         sizer.AddSpacer(PAD)
@@ -134,6 +147,51 @@ class LoopEditDialog(wx.Dialog):
                 self.SetIcon(wx.Icon(icon_path))
             except Exception:
                 pass
+
+    def _on_grid_right_click(self, evt):
+        row = evt.GetRow()
+        if row < 0 or row >= len(self._keys):
+            return
+        self._right_click_row = row
+        key = self._keys[row]
+
+        menu = wx.Menu()
+        id_hint = wx.NewId()
+        id_edit = wx.NewId()
+        menu.Append(id_hint, t("menu_param_hint"))
+        menu.Append(id_edit, t("menu_edit_complex"))
+
+        tip_key = _KEY_TIPS.get(key)
+        hint_available = bool(tip_key and t(tip_key) != tip_key)
+        menu.Enable(id_hint, hint_available)
+
+        self.Bind(wx.EVT_MENU, self._on_show_hint, id=id_hint)
+        self.Bind(wx.EVT_MENU, self._on_edit_complex, id=id_edit)
+        self._grid.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_show_hint(self, _evt):
+        row = self._right_click_row
+        key = self._keys[row]
+        tip_key = _KEY_TIPS.get(key)
+        hint = t(tip_key) if tip_key else t('param_hint_not_found', name=key)
+        wx.MessageBox(hint, key, wx.OK | wx.ICON_INFORMATION, self)
+
+    def _on_edit_complex(self, _evt):
+        self._commit_cell_edit()
+        row = self._right_click_row
+        key = self._keys[row]
+        raw_value = self._grid.GetCellValue(row, 1)
+        display_value = raw_value.replace('\\n', '\n').replace('\\t', '\t')
+
+        dlg = InputDialog(self, title=f"{self._loop_code}",
+                          message=f"{key}",
+                          default_value=display_value)
+        if dlg.ShowModal() == wx.ID_OK:
+            new_value = dlg.GetValue()
+            stored = new_value.replace('\n', '\\n').replace('\t', '\\t')
+            self._grid.SetCellValue(row, 1, stored)
+        dlg.Destroy()
 
     def _on_resize(self, evt):
         evt.Skip()

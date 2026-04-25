@@ -57,7 +57,7 @@ class HTTP_REQUESTProcessor(Processor):
 
         request_url = self.expression2str(self.get_param('request_url'))
         value_key = self.expression2str(self.get_param('value_key'))
-        timeout = self.get_param('timeout') if self.has_param('timeout') else 60
+        timeout = self.explain_param_or_default('timeout', 60)
 
         headers: dict = {}
         params: dict = {}
@@ -86,11 +86,14 @@ class HTTP_REQUESTProcessor(Processor):
         if self.has_param('data_raw'):
             data = self.expression2str(self.get_param('data_raw'))
 
-        method = self.get_param('method') if self.has_param('method') else 'get'
+        method = self.explain_param_or_default('method', 'get')
         verify = True if 'Y' == self.get_param('verify') else False
 
-        logging.info('\n')
-        logging.info('===============================================')
+        logging.info('HTTP %s %s', method.upper(), request_url)
+        logging.debug('req.headers - %s', headers)
+        logging.debug('req.data - %s', data)
+        logging.debug('req.params - %s', params)
+        logging.debug('req.timeout - %s', timeout)
 
         if self.has_param('basic_auth_user') and self.has_param('oauth_token_url'):
             logging.warning('auth - Both basicAuth and oAuth configured; oAuth Bearer token will take precedence')
@@ -105,26 +108,16 @@ class HTTP_REQUESTProcessor(Processor):
 
         self._update_xsrf_token_from_response(response)
 
-        logging.info('>---------------------------------------------->')
-        # request
-        logging.warning('req.url - ' + request_url)
-        logging.info('req.headers - ' + str(headers))
-        logging.info('req.data - ' + str(data))
-        logging.info('req.params - ' + str(params))
-        logging.info('req.method - ' + method)
-        logging.info('req.timeout - ' + str(timeout))
-        logging.info('wait2connect.timeout - ' + str(timeout))
-        # response
-        logging.warning('resp.status_code - ' + str(response.status_code))
-
-        logging.info('resp.headers - ' + str(response.headers))
+        if response.status_code >= 400:
+            logging.warning('resp.status_code - %s', response.status_code)
+        else:
+            logging.info('resp.status_code - %s', response.status_code)
+        logging.debug('resp.headers - %s', response.headers)
 
         if self.has_param('is_zip_response') and self.get_param('is_zip_response') == 'yes':
             if response.ok:
-                filter_body = self.expression2str(self.get_param('filter_func_body')) if self.has_param(
-                    'filter_func_body') else 'return True'
-                convert_body = self.expression2str(self.get_param('convert_func_body')) if self.has_param(
-                    'convert_func_body') else "return file_content.decode('utf-8')"
+                filter_body = self.explain_param_or_default('filter_func_body', 'return True')
+                convert_body = self.explain_param_or_default('convert_func_body', "return file_content.decode('utf-8')")
                 data_in_resp = self._extract_zip_to_dict(response, filter_body, convert_body)
                 if logging.getLogger().isEnabledFor(logging.DEBUG):
                     logging.debug('resp.body - ' + str(response.content))
@@ -137,17 +130,13 @@ class HTTP_REQUESTProcessor(Processor):
                 data_in_resp = {}
 
         else:
-            resp_fun_body = self.expression2str(self.get_param('resp_func_body')) if self.has_param(
-                'resp_func_body') else 'return response.text if response.status_code == 200 else response.status_code'
+            resp_fun_body = self.explain_param_or_default('resp_func_body', 'return response.text if response.status_code == 200 else response.status_code')
 
             data_in_resp = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response)',
                                                                      resp_fun_body, args=response)
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug('resp.text - ' + response.text)
                 logging.debug('data_in_resp - ' + resp_fun_body)
-
-        logging.info('<----------------------------------------------<')
-        logging.info('===============================================\n')
 
         self.populate_data(value_key, data_in_resp)
 

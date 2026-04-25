@@ -147,21 +147,21 @@ class PYTUBEProcessor(Processor):
         """Process and retrieve all parameters"""
         params = {
             'video_url':            self.expression2str(self.get_param('video_url'))            if self.has_param('video_url')            else None,
-            'download_type':        self.expression2str(self.get_param('download_type'))        if self.has_param('download_type')        else 'video',
-            'file_extension':       self.expression2str(self.get_param('file_extension'))       if self.has_param('file_extension')       else 'mp4',
-            'download_folder':      self.expression2str(self.get_param('download_folder'))      if self.has_param('download_folder')      else 'download',
+            'download_type':        self.explain_param_or_default('download_type', 'video'),
+            'file_extension':       self.explain_param_or_default('file_extension', 'mp4'),
+            'download_folder':      self.explain_param_or_default('download_folder', 'download'),
             'specific_file_name':   self.expression2str(self.get_param('specific_file_name'))   if self.has_param('specific_file_name')   else None,
             'file_prefix':          self.expression2str(self.get_param('file_prefix'))          if self.has_param('file_prefix')          else None,
-            'quality':              self.expression2str(self.get_param('quality'))              if self.has_param('quality')              else 'highest',
+            'quality':              self.explain_param_or_default('quality', 'highest'),
             'resolution':           self.expression2str(self.get_param('resolution'))           if self.has_param('resolution')           else None,
-            'audio_quality':        self.expression2str(self.get_param('audio_quality'))        if self.has_param('audio_quality')        else 'high',
+            'audio_quality':        self.explain_param_or_default('audio_quality', 'high'),
             'download_captions':    self.has_param('download_captions') and "yes" == self.get_param('download_captions'),
-            'caption_language':     self.expression2str(self.get_param('caption_language'))     if self.has_param('caption_language')     else 'en',
+            'caption_language':     self.explain_param_or_default('caption_language', 'en'),
             'is_playlist':          self.has_param('is_playlist') and "yes" == self.get_param('is_playlist'),
             'proxy_url':            self.expression2str(self.get_param('proxy_url'))            if self.has_param('proxy_url')            else None,
             'file_download_path_key': self.expression2str(self.get_param('file_download_path_key')) if self.has_param('file_download_path_key') else None,
-            'max_retries':          self.get_param('max_retries') if self.has_param('max_retries') else 3,
-            'timeout':              self.get_param('timeout')     if self.has_param('timeout')     else 30,
+            'max_retries':          self.explain_param_or_default('max_retries', 3),
+            'timeout':              self.explain_param_or_default('timeout', 30),
         }
         os.makedirs(params['download_folder'], exist_ok=True)
         return params

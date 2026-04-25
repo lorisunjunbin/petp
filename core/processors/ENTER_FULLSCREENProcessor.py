@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.SeleniumUtil import SeleniumUtil
 
@@ -20,3 +22,4 @@ class ENTER_FULLSCREENProcessor(Processor):
             chrome = self.get_data(self.get_param('chrome_name'))
             if SeleniumUtil.is_web_driver(chrome):
                 SeleniumUtil.full_screen(chrome)
+                logging.debug('Browser entered fullscreen')

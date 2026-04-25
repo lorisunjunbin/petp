@@ -32,7 +32,8 @@ class SHOW_RESULTProcessor(Processor):
             title = f"Task {task_number} - {title}" if title else f"Task {task_number}"
         msg = self.expression2str(self.get_param('msg'))
 
-        logging.info(f'\n\n=========\n{title}\n\n{msg}\n=========\n')
+        logging.info('[SHOW_RESULT] %s', title)
+        logging.debug('[SHOW_RESULT] %s\n%s', title, msg)
         if wx is not None:
             # wx.Dialog must be created on the main thread (macOS requirement).
             # Use wx.CallAfter to delegate, and block this worker thread

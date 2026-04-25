@@ -25,8 +25,8 @@ class DATA_COLLECTProcessor(Processor):
     def process(self):
         target_name = self.expression2str(self.get_param('target'))
         target_type = self.get_param('type')
-        clean_b4_collect = self.expression2str(self.get_param('clean_b4_collect')) if self.has_param('clean_b4_collect') else 'no'
-        list_flatten = self.expression2str(self.get_param('list_flatten')) if self.has_param('list_flatten') else 'no'
+        clean_b4_collect = self.explain_param_or_default('clean_b4_collect', 'no')
+        list_flatten = self.explain_param_or_default('list_flatten', 'no')
 
         if target_type == 'list':
             if not self.has_param('list_row_lambda'):

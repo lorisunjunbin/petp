@@ -72,6 +72,13 @@ class PETPInteractor():
         self.v.logContents.Bind(wx.EVT_SET_FOCUS, self.on_logcontents_focused)
         self.v.logContents.Bind(wx.EVT_KILL_FOCUS, self.on_logcontents_unfocused)
 
+        self.v.logSearchCtrl.Bind(wx.EVT_TEXT, self.on_search_log)
+        self.v.logSearchCtrl.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.on_search_log)
+        self.v.logSearchCtrl.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.on_clear_log_search)
+        self.v.Bind(wx.EVT_BUTTON, self.on_prev_log_match, self.v.previousOne)
+        self.v.Bind(wx.EVT_BUTTON, self.on_next_log_match, self.v.nextOne)
+        self.v.logContents.Bind(wx.EVT_KEY_DOWN, self.on_log_key_down)
+
     def bind_view_event_4p_pipeline_action_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_pipeline, self.v.delPipeline)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_execution_pipeline_changed, self.v.pipelineChooser)
@@ -103,6 +110,7 @@ class PETPInteractor():
         # input editor
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_CHANGED, self.on_property_change4e)
         self.v.taskProperty.Bind(wx.propgrid.EVT_PG_RIGHT_CLICK, self.on_property_right_click4e)
+        self.v.taskProperty.Bind(wx.propgrid.EVT_PG_SELECTED, self.on_task_property_selected4e)
         self.v.taskProperty.GetGrid().Bind(wx.EVT_KEY_DOWN, self.on_task_property_key_down)
 
         self.v.Bind(wx.EVT_CHECKBOX, self.on_cb_astool_changed, self.v.cb_astool)
@@ -347,6 +355,9 @@ class PETPInteractor():
     def on_property_right_click4e(self, evt):
         self.p.on_property_right_click4e(evt)
 
+    def on_task_property_selected4e(self, evt):
+        self.p.on_task_property_selected4e(evt)
+
     def on_task_property_key_down(self, evt):
         if evt.ShiftDown():
             if evt.GetKeyCode() == wx.WXK_UP:
@@ -410,6 +421,29 @@ class PETPInteractor():
     def on_logcontents_unfocused(self, evt):
         evt.Skip()
         self.p.on_logcontents_unfocused()
+
+    def on_search_log(self, evt):
+        evt.Skip()
+        self.p.on_search_log()
+
+    def on_clear_log_search(self, evt):
+        evt.Skip()
+        self.p.on_clear_log_search()
+
+    def on_prev_log_match(self, evt):
+        evt.Skip()
+        self.p.on_prev_log_match()
+
+    def on_next_log_match(self, evt):
+        evt.Skip()
+        self.p.on_next_log_match()
+
+    def on_log_key_down(self, evt):
+        if evt.GetKeyCode() == ord('F') and evt.CmdDown():
+            self.v.logSearchCtrl.SetFocus()
+            self.v.logSearchCtrl.SelectAll()
+        else:
+            evt.Skip()
 
     def on_close_window(self, evt):
         if self.p.on_close_window(evt):

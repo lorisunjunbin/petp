@@ -55,7 +55,7 @@ Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Execut
 | **Email** | Send email via SMTP with attachments. |
 | **Data Visualization** | Charts and plots via Matplotlib. |
 | **Media** | Download YouTube videos (PyTube). |
-| **Execution Control** | Initialize / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON. Run shell commands. |
+| **Execution Control** | Initialize / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON. Run shell commands. Conditional jump (`GO_TO_TASK`). |
 
 ---
 
@@ -467,6 +467,10 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | `GO_TO_TASK` processor: conditional jump to any task within an execution; `loop_condition` attribute for programmatic break/continue based on data state; dynamic function caching in `CodeExplainerUtil` |
+| 2026-04 | `OCR` image preprocessing (binarize, denoise, sharpen, upscale, adaptive, auto); `CAPTCHA` processor (ddddocr: ocr/slide/det modes) |
+| 2026-04 | Log panel: search & highlight with prev/next navigation (Ctrl+F / Cmd+F); property hint popup via right-click; `FIND_THEN_CLICK` by_condition parameter |
+| 2026-04 | Loop Editor: right-click context menu with param hint and complex value editor; `explain_param_or_default` helper across all processors |
 | 2026-04 | Unified MCP handling logic between GUI and BG modes via `McpMixin`; fixed `structuredContent` format; `outputSchema` supports `mapKey` field mapping |
 | 2026-04 | MCP tool schema supports `default` values for inputs and `mapKey` output field mapping; `McpDescEditor` enhancements |
 | 2026-04 | Task grid right-click menu adds "View Processor Usage" and "Find Referencing Executions" options |

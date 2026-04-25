@@ -7,10 +7,6 @@ list:
     "base64"}'
   skipped: false
   type: ENCODE_DECODE_STR
-- !!python/object:core.task.Task
-  input: '{"http_response_key":"result"}'
-  skipped: false
-  type: HTTP_RESPONSE_KEY
 loops: []
 mcp_desc: "{\n  \"desc\": \"support encode and decode inbound string with algorithms\",\n
   \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"ENDECODERArguments\",\n
@@ -20,4 +16,8 @@ mcp_desc: "{\n  \"desc\": \"support encode and decode inbound string with algori
   \"base64 | base85 | hexlify | a85 | base16 | base32 | base32hex \"\n      },\n      \"inbound\":
   {\n        \"title\": \"inbound\",\n        \"type\": \"string\",\n        \"description\":
   \"\"\n      }\n    },\n    \"required\": [\n      \"type\",\n      \"algorithms\",\n
-  \     \"inbound\"\n    ]\n  }\n}"
+  \     \"inbound\"\n    ]\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n
+  \   \"title\": \"ENDECODEROutput\",\n    \"properties\": {\n      \"result\": {\n
+  \       \"title\": \"result\",\n        \"type\": \"string\",\n        \"description\":
+  \"\u7ED3\u679C\"\n      }\n    },\n    \"required\": [\n      \"result\"\n    ]\n
+  \ }\n}"

@@ -40,6 +40,15 @@ class CodeExplainerUtil:
             ('lambda_finder', '(rowc1, rowc2)', 'return '),
             ('lambda_merge_matched', '(rowc1, rowc2)', 'return '),
         ],
+        'OCR': [
+            ('filter_func', '(line)', ''),
+        ],
+        'FIND_THEN_CLICK': [
+            ('by_condition', '(ele)', ''),
+        ],
+        'GO_TO_TASK': [
+            ('condition_fn', '(data_chain)', ''),
+        ],
     }
 
     # Convention-based fallback to reduce maintenance burden for new processors.
@@ -109,6 +118,8 @@ class CodeExplainerUtil:
         except SyntaxError as e:
             return str(e)
 
+    _func_cache = {}
+
     @staticmethod
     def create_and_execute_func(func_name, func_args, func_body, args=None, *extra_args):
         """
@@ -120,18 +131,29 @@ class CodeExplainerUtil:
         :param extra_args: additional runtime arguments
         """
         normalized_body = CodeExplainerUtil._normalize_func_body(func_body)
-        if '\n' in normalized_body:
-            func = 'def ' + func_name + func_args + ':\n' + normalized_body
+        cache_key = (func_name, func_args, normalized_body)
+
+        if cache_key in CodeExplainerUtil._func_cache:
+            dynamic_func = CodeExplainerUtil._func_cache[cache_key]
+            if '\n' in normalized_body:
+                func = 'def ' + func_name + func_args + ':\n' + normalized_body
+            else:
+                func = 'def ' + func_name + func_args + ':\n\t\t' + normalized_body
+            logging.info("Reusing cached dynamic function:\n---------------\n%s\n---------------\n", func)
         else:
-            func = 'def ' + func_name + func_args + ':\n\t\t' + normalized_body
-        logging.info("Dynamic function generated:\n---------------\n%s\n---------------\n", func)
-        try:
-            compile(func, '<dynamic>', 'exec')
-        except SyntaxError as e:
-            logging.error("Syntax error in dynamic function:\n%s\nError: %s", func, e)
-            raise SyntaxError(f"Syntax error in dynamic function '{func_name}': {e}") from e
-        exec(func, globals())
-        dynamic_func = globals()[func_name]
+            if '\n' in normalized_body:
+                func = 'def ' + func_name + func_args + ':\n' + normalized_body
+            else:
+                func = 'def ' + func_name + func_args + ':\n\t\t' + normalized_body
+            logging.info("Dynamic function generated:\n---------------\n%s\n---------------\n", func)
+            try:
+                compile(func, '<dynamic>', 'exec')
+            except SyntaxError as e:
+                logging.error("Syntax error in dynamic function:\n%s\nError: %s", func, e)
+                raise SyntaxError(f"Syntax error in dynamic function '{func_name}': {e}") from e
+            exec(func, globals())
+            dynamic_func = globals()[func_name]
+            CodeExplainerUtil._func_cache[cache_key] = dynamic_func
 
         if args is not None or extra_args:
             runtime_args = [args] if args is not None else []
@@ -166,4 +188,3 @@ class CodeExplainerUtil:
                 return '\n'.join(lines)
 
         return func_body
-

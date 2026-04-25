@@ -32,11 +32,9 @@ class ZIPProcessor(Processor):
 
         data_key = self.expression2str(self.get_param('data_key'))
 
-        pathinzip = self.expression2str(self.get_param('pathinzip')) if self.has_param('pathinzip') else ''
+        pathinzip = self.explain_param_or_default('pathinzip', '')
 
-        pathbereplaced = self.expression2str(self.get_param('pathbereplaced')) \
-            if self.has_param('pathbereplaced') \
-            else ''
+        pathbereplaced = self.explain_param_or_default('pathbereplaced', '')
 
         zipname = self.expression2str(self.get_param('zipname'))
 

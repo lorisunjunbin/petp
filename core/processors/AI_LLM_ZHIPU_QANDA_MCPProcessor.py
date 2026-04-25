@@ -118,7 +118,8 @@ class AI_LLM_ZHIPU_QANDA_MCPProcessor(Processor):
             # Display results
             display_answer = final_answer if show_thinking else self.remove_think_tags(final_answer)
             alert_message = f"Q:\n{prompt}\n\nA:\n{display_answer}"
-            logging.info(f'Q and A:\n{alert_message}')
+            logging.info('Zhipu MCP response received (model=%s)', model)
+            logging.debug('Q and A:\n%s', alert_message)
 
             if show_in_popup:
                 if wx is not None:

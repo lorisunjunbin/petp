@@ -35,7 +35,7 @@ class UNZIPProcessor(Processor):
         directory_to_extract = self.expression2str(self.get_param('directory_to_extract'))
         path_after_extract_key = self.expression2str(self.get_param('path_after_extract_key'))
 
-        name_appended = self.expression2str(self.get_param('name_appended')) if self.has_param("name_appended") else ''
+        name_appended = self.explain_param_or_default('name_appended', '')
         pwd = bytes(str(self.expression2str(self.get_param('pwd'))), 'utf-8') if self.has_param("pwd") else None
 
         with zipfile.ZipFile(path_to_zip_file, 'r') as zf:

@@ -29,7 +29,7 @@ class FOLDER_WATCH_MOVEProcessor(Processor):
         target_folder = self.expression2str(self.get_param('targetfolder'))
         expect_count = int(self.expression2str(self.get_param('expectcount'))) if self.has_param('expectcount') else 0
         target_filespath_key = self.expression2str(self.get_param('targetfilespath_key'))
-        timeout = self.get_param('timeout') if self.has_param('timeout') else 2
+        timeout = self.explain_param_or_default('timeout', 2)
 
         logging.info(f'source_folder={source_folder}')
         logging.info(f'target_folder={target_folder}')

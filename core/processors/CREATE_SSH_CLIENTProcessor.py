@@ -1,3 +1,5 @@
+import logging
+
 from core.processor import Processor
 from utils.ParamikoUtil import ParamikoUtil
 
@@ -29,4 +31,5 @@ class CREATE_SSH_CLIENTProcessor(Processor):
         if ssh_client is None:
             raise Exception(f'ssh_client is NOT able to create.')
 
+        logging.info('SSH client created for %s@%s', uname, ip)
         self.populate_data(dk, ssh_client)

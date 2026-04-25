@@ -1,3 +1,4 @@
+import logging
 import time
 
 import pyautogui
@@ -40,8 +41,10 @@ class MOUSE_CLICKProcessor(Processor):
             x_at = self.get_data(self.get_param('x_from'))
             y_at = self.get_data(self.get_param('y_from'))
             pyautogui.click(x=x_at, y=y_at)
+            logging.debug('Mouse clicked at (%s, %s)', x_at, y_at)
         else:
             pyautogui.click(x=x, y=y)
+            logging.debug('Mouse clicked at (%s, %s)', x, y)
 
         wait = int(self.expression2str(self.get_param('wait')))
         time.sleep(wait)

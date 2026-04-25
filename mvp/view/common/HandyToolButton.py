@@ -11,6 +11,7 @@ _HANDY_ITEMS = [
     ("handy_encrypt", None, False),
     None,
     ("handy_get_data", '{self.get_data("")}', False),
+    ("handy_get_data_by_loop", '{self.get_data_by_loop("")}', False),
     ("handy_get_deep_data", '{self.get_deep_data(["",""])}', False),
     None,
     ("handy_str2dict", '{self.str2dict("")}', False),

@@ -1,11 +1,12 @@
 import logging
 
 from core.processor import Processor
+from utils.CodeExplainerUtil import CodeExplainerUtil
 from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_CLICKProcessor(Processor):
-    TPL: str = '{"clickby":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "chrome_name":"chrome"}'
+    TPL: str = '{"clickby":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "by_condition":"return True", "chrome_name":"chrome"}'
 
     DESC: str = f'''
         Find a web element via Selenium using the specified locator strategy and click it.
@@ -17,6 +18,8 @@ class FIND_THEN_CLICKProcessor(Processor):
         - wait: seconds to wait before performing the click action (default: 5)
         - timeout: maximum seconds to wait for the element to appear (default: 5)
         - skip_timeout_error: whether to suppress the exception when element is not found; "yes" to skip, "no" to raise (default: "yes|no")
+        - by_condition: Python function body; receives (ele) where ele is the located WebElement;
+          click is only performed when the function returns True (default: "return True")
 
         {TPL}
     '''
@@ -42,14 +45,20 @@ class FIND_THEN_CLICKProcessor(Processor):
         ele = SeleniumUtil.get_element_by(chrome, clickby, identity, timeout)
         if ele is None:
             if skip_timeout_error:
-                logging.warning(f'Find by {clickby} -> {identity} element timeout: {timeout}')
+                logging.debug('Find by %s -> %s element timeout: %s (skip_timeout_error=yes)', clickby, identity, timeout)
                 return
             else:
                 raise Exception(f'Find by {clickby} -> {identity} element timeout: {timeout}')
+
+        condition_body = self.explain_param_or_default('by_condition', 'return True')
+        condition_fn = CodeExplainerUtil.create_and_execute_func('FIND_THEN_CLICK_condition', '(p,ele)', condition_body)
+        if not condition_fn(self, ele):
+            logging.debug('click skipped by by_condition: %s', identity)
+            return
 
         try:
             ele.click()
             logging.debug('click: ' + identity)
         except Exception as ex:
-            logging.warning('move to click: ' + identity)
+            logging.debug('move to click: %s', identity)
             SeleniumUtil.move_to_ele_then_click(chrome, ele)

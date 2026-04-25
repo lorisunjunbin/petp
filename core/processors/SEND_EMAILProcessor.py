@@ -61,4 +61,4 @@ class SEND_EMAILProcessor(Processor):
         with smtplib.SMTP(host=smtp, port= port) as s:
             s.login(name, pwd)
             s.send_message(msg)
-            logging.debug("email successfully sent! ")
+            logging.info('Email sent to %s (subject: %s)', to, subject)

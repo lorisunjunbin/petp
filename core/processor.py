@@ -80,6 +80,7 @@ class Processor:
         return self.category
 
     def do_process(self):
+        logging.info('[%s] input: %s', self.task.type, self.input_param)
         self.process()
 
     def handle_ui_thread_callback(self, given):
@@ -166,6 +167,9 @@ class Processor:
             if self.has_param(name) and true_flag == self.input_param[name].lower() \
             else False
 
+    def explain_param_or_default(self, name, default=''):
+        return self.expression2str(self.get_param(name)) if self.has_param(name) else default
+
     def get_param(self, name):
         if self.has_param(name):
             return self.input_param[name]
@@ -214,9 +218,10 @@ class Processor:
     def populate_data(self, k, v):
         d = self.task.data_chain
         if k in d:
-            logging.warning(f"key [ {k} ] occupied and overwritten!")
+            logging.warning('key [ %s ] occupied and overwritten!', k)
         d[k] = v
-        logging.info(f"[ {k} --> {v} ]")
+        logging.info('[%s] output: %s', self.task.type, k)
+        logging.debug('[%s] output: %s --> %s', self.task.type, k, v)
 
     def get_data_by_param_default_data(self, param, default_data_name):
         return self.get_data(self.get_param(param)) if self.has_param(param) else self.get_data(default_data_name)
