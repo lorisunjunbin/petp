@@ -67,6 +67,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_clean_log, self.v.cleanLog)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_log_level_changed, self.v.logLevelChooser)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_lang_changed, self.v.langChooser)
+        self.v.Bind(wx.EVT_COMBOBOX, self.on_theme_changed, self.v.themeChooser)
 
         self.v.logContents.Bind(wx.EVT_SET_FOCUS, self.on_logcontents_focused)
         self.v.logContents.Bind(wx.EVT_KILL_FOCUS, self.on_logcontents_unfocused)
@@ -274,6 +275,10 @@ class PETPInteractor():
     def on_lang_changed(self, evt):
         evt.Skip()
         self.p.on_lang_changed()
+
+    def on_theme_changed(self, evt):
+        evt.Skip()
+        self.p.on_theme_changed()
 
     def on_save_execution(self, evt):
         evt.Skip()

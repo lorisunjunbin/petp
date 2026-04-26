@@ -1,17 +1,16 @@
 import wx
 
+from mvp.view.theme import get_theme
+
+
+def _darken(rgb, amount=20):
+    return (max(0, rgb[0] - amount), max(0, rgb[1] - amount), max(0, rgb[2] - amount))
+
 
 class RunButton(wx.Control):
-    """Custom-drawn run button with green gradient, rounded corners, and a breathing glow."""
+    """Custom-drawn run button with gradient, rounded corners, and a breathing glow."""
 
-    _BASE_TOP = wx.Colour(76, 175, 80)
-    _BASE_BTM = wx.Colour(56, 142, 60)
-    _HOVER_TOP = wx.Colour(102, 197, 106)
-    _HOVER_BTM = wx.Colour(76, 175, 80)
-    _PRESS_TOP = wx.Colour(46, 125, 50)
-    _PRESS_BTM = wx.Colour(36, 105, 40)
     _TEXT_COLOUR = wx.Colour(255, 255, 255)
-    _GLOW_COLOUR = wx.Colour(76, 175, 80, 60)
 
     def __init__(self, parent, label="Run", **kwargs):
         super().__init__(parent, wx.ID_ANY, **kwargs)
@@ -20,6 +19,7 @@ class RunButton(wx.Control):
         self._pressed = False
         self._glow_alpha = 0
         self._glow_dir = 1
+        self._sync_theme_colours()
 
         self.SetMinSize((100, 32))
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
@@ -35,6 +35,20 @@ class RunButton(wx.Control):
         self.Bind(wx.EVT_LEFT_UP, self._on_left_up)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)
         self.Bind(wx.EVT_WINDOW_DESTROY, self._on_destroy)
+
+    def _sync_theme_colours(self):
+        th = get_theme()
+        self._base_top = wx.Colour(*th.accent)
+        self._base_btm = wx.Colour(*_darken(th.accent))
+        self._hover_top = wx.Colour(*th.accent_hover)
+        self._hover_btm = wx.Colour(*th.accent)
+        self._press_top = wx.Colour(*th.accent_pressed)
+        self._press_btm = wx.Colour(*_darken(th.accent_pressed))
+        self._glow_colour = wx.Colour(*th.accent, 60)
+
+    def apply_theme(self):
+        self._sync_theme_colours()
+        self.Refresh()
 
     def SetLabel(self, label):
         self._label = label
@@ -118,15 +132,18 @@ class RunButton(wx.Control):
             btm = wx.Colour(160, 160, 160)
             txt = wx.Colour(220, 220, 220)
         elif self._pressed:
-            top, btm, txt = self._PRESS_TOP, self._PRESS_BTM, self._TEXT_COLOUR
+            top, btm, txt = self._press_top, self._press_btm, self._TEXT_COLOUR
         elif self._hover:
-            top, btm, txt = self._HOVER_TOP, self._HOVER_BTM, self._TEXT_COLOUR
+            top, btm, txt = self._hover_top, self._hover_btm, self._TEXT_COLOUR
         else:
-            top, btm, txt = self._BASE_TOP, self._BASE_BTM, self._TEXT_COLOUR
+            top, btm, txt = self._base_top, self._base_btm, self._TEXT_COLOUR
 
         if self.IsEnabled() and self._glow_alpha > 0:
             glow_r = r + 3
-            gc.SetBrush(wx.Brush(wx.Colour(76, 175, 80, self._glow_alpha)))
+            gc.SetBrush(wx.Brush(wx.Colour(
+                self._glow_colour.Red(), self._glow_colour.Green(),
+                self._glow_colour.Blue(), self._glow_alpha,
+            )))
             gc.SetPen(wx.TRANSPARENT_PEN)
             path = gc.CreatePath()
             path.AddRoundedRectangle(0, 0, w, h, glow_r)

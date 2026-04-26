@@ -30,6 +30,7 @@ from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.CodeExplainerUtil import CodeExplainerUtil
 from i18n.translations import t, set_locale
+from mvp.view.theme import get_theme, set_theme, get_theme_names
 
 
 class PETPPresenter():
@@ -88,8 +89,10 @@ class PETPPresenter():
         self._init_cron()
         self._init_property_grid()
         self._init_handy_tools()
+        self._init_theme_chooser()
 
         self._apply_i18n()
+        self._apply_theme()
         self._load_config()
 
     def _handle_execute_on_startup(self):
@@ -118,8 +121,6 @@ class PETPPresenter():
         # Task grid headers
         v.taskGrid.SetColLabelValue(0, t("grid_task_chooser"))
         v.taskGrid.SetColLabelValue(1, t("grid_input"))
-        v.taskGrid.SetSelectionBackground(wx.Colour(66, 111, 66))
-        v.taskGrid.SetSelectionForeground(wx.Colour(0, 0, 0))
 
         # Loop editor
         v.addLoop.SetToolTip(t("tip_add_property"))
@@ -153,6 +154,7 @@ class PETPPresenter():
         v.snapshots.SetToolTip(t("tip_snapshots"))
         v.checkbox_executeonstartup.SetToolTip(t("tip_execute_on_startup"))
         v.langChooser.SetToolTip(t("tip_change_lang"))
+        v.themeChooser.SetToolTip(t("tip_change_theme"))
         v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
@@ -168,8 +170,6 @@ class PETPPresenter():
         v.delRow4P.SetToolTip(t("tip_delete_row_p"))
         v.executionGrid.SetColLabelValue(0, t("grid_exec_chooser"))
         v.executionGrid.SetColLabelValue(1, t("grid_input"))
-        v.executionGrid.SetSelectionBackground(wx.Colour(66, 111, 666))
-        v.executionGrid.SetSelectionForeground(wx.Colour(0, 0, 0))
         v.delPipeline.SetLabel(t("btn_delete"))
         v.delPipeline.SetToolTip(t("tip_delete_pipeline"))
         v.savePipeline.SetLabel(t("btn_save"))
@@ -189,11 +189,56 @@ class PETPPresenter():
         )
         self._update_pgrid_category(v.loopProperty, t("pgrid_loop_editor"))
 
-        # Property grid selection colours
+    def _apply_theme(self):
+        v = self.v
+        th = get_theme()
+
+        sel_bg = wx.Colour(*th.grid_sel_bg)
+        sel_fg = wx.Colour(*th.grid_sel_fg)
+        for grid in (v.taskGrid, v.executionGrid):
+            grid.SetSelectionBackground(sel_bg)
+            grid.SetSelectionForeground(sel_fg)
+            grid.ForceRefresh()
+
+        pg_bg = wx.Colour(*th.pgrid_sel_bg)
+        pg_fg = wx.Colour(*th.pgrid_sel_fg)
         for pgm in (v.taskProperty, v.loopProperty):
             pg = pgm.GetGrid()
-            pg.SetSelectionBackgroundColour(wx.Colour(66, 111, 66))
-            pg.SetSelectionTextColour(wx.Colour(0, 0, 0))
+            pg.SetSelectionBackgroundColour(pg_bg)
+            pg.SetSelectionTextColour(pg_fg)
+            pg.Refresh()
+
+        log_bg = wx.Colour(*th.log_bg)
+        log_fg = wx.Colour(*th.log_fg)
+        search_bg = wx.Colour(*th.log_search_bg)
+        search_fg = wx.Colour(*th.log_search_fg)
+
+        v.logPanel.SetBackgroundColour(log_bg)
+        v.logContents.SetBackgroundColour(log_bg)
+        v.logContents.SetForegroundColour(log_fg)
+        v.logSearchCtrl.SetBackgroundColour(search_bg)
+        v.logSearchCtrl.SetForegroundColour(search_fg)
+        v.previousOne.SetBackgroundColour(log_bg)
+        v.previousOne.SetForegroundColour(log_fg)
+        v.nextOne.SetBackgroundColour(log_bg)
+        v.nextOne.SetForegroundColour(log_fg)
+        v.logMatchCount.SetForegroundColour(search_fg)
+
+        v.logPanel.Refresh()
+        lc = v.logContents
+        if lc.GetLastPosition() > 0:
+            lc.Freeze()
+            try:
+                lc.SetStyle(0, lc.GetLastPosition(), wx.TextAttr(log_fg, log_bg))
+            finally:
+                lc.Thaw()
+        lc.Refresh()
+
+        v.execution_desc.apply_theme(th)
+
+        v.runExecution.apply_theme()
+        v.runPipeline.apply_theme()
+        v.cb_astool.apply_theme()
 
     @staticmethod
     def _update_pgrid_category(pgm, label):
@@ -205,6 +250,16 @@ class PETPPresenter():
                 prop.SetLabel(label)
                 break
         pgm.Refresh()
+
+    def _init_theme_chooser(self):
+        v = self.v
+        theme_names = get_theme_names()
+        saved = getattr(self.m, 'theme', 'Forest')
+        if saved in theme_names:
+            v.themeChooser.SetValue(saved)
+            set_theme(saved)
+        else:
+            v.themeChooser.SetValue('Forest')
 
     def _load_config(self):
         # load_executeonstartup
@@ -589,6 +644,15 @@ class PETPPresenter():
 
         set_locale(locale)
         self._apply_i18n()
+        self._apply_theme()
+
+    def on_theme_changed(self):
+        name = self.v.themeChooser.GetValue()
+        set_theme(name)
+        if getattr(self.m, 'theme', 'Forest') != name:
+            self.m.theme = name
+            self.m.set_config('theme', name)
+        self._apply_theme()
 
     @reload_log_after
     def on_execution_pipeline_changed(self):
@@ -2130,13 +2194,14 @@ class PETPPresenter():
         keyword_lower = keyword.lower()
         kw_len = len(keyword_lower)
 
+        th = get_theme()
         positions = []
         lc.Freeze()
         try:
-            default_attr = wx.TextAttr(wx.Colour(0, 255, 0), wx.Colour(78, 78, 78))
+            default_attr = wx.TextAttr(wx.Colour(*th.log_fg), wx.Colour(*th.log_bg))
             lc.SetStyle(0, lc.GetLastPosition(), default_attr)
 
-            highlight_attr = wx.TextAttr(wx.BLACK, wx.YELLOW)
+            highlight_attr = wx.TextAttr(wx.Colour(*th.log_match_fg), wx.Colour(*th.log_match_bg))
             start = 0
             while True:
                 pos = text_lower.find(keyword_lower, start)
@@ -2160,12 +2225,13 @@ class PETPPresenter():
         kw_len = len(self._log_search_keyword)
         lc = self.v.logContents
 
+        th = get_theme()
         lc.Freeze()
         try:
-            highlight_attr = wx.TextAttr(wx.BLACK, wx.YELLOW)
+            highlight_attr = wx.TextAttr(wx.Colour(*th.log_match_fg), wx.Colour(*th.log_match_bg))
             for p in self._log_match_positions:
                 lc.SetStyle(p, p + kw_len, highlight_attr)
-            current_attr = wx.TextAttr(wx.WHITE, wx.Colour(255, 120, 0))
+            current_attr = wx.TextAttr(wx.Colour(*th.log_current_match_fg), wx.Colour(*th.log_current_match_bg))
             lc.SetStyle(pos, pos + kw_len, current_attr)
         finally:
             lc.Thaw()
@@ -2189,9 +2255,10 @@ class PETPPresenter():
 
     def _clear_log_highlights(self):
         lc = self.v.logContents
+        th = get_theme()
         lc.Freeze()
         try:
-            default_attr = wx.TextAttr(wx.Colour(0, 255, 0), wx.Colour(78, 78, 78))
+            default_attr = wx.TextAttr(wx.Colour(*th.log_fg), wx.Colour(*th.log_bg))
             lc.SetStyle(0, lc.GetLastPosition(), default_attr)
             self.v.logMatchCount.SetLabel('')
             self._log_match_positions = []

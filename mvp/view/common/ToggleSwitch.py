@@ -1,5 +1,7 @@
 import wx
 
+from mvp.view.theme import get_theme
+
 
 class ToggleSwitch(wx.Control):
     """Custom-drawn toggle switch that emits wx.EVT_CHECKBOX.
@@ -13,7 +15,6 @@ class ToggleSwitch(wx.Control):
     _KNOB_PAD = 2
     _GAP = 6
 
-    _ON_TRACK = wx.Colour(76, 175, 80)
     _OFF_TRACK = wx.Colour(189, 189, 189)
     _DISABLED_TRACK = wx.Colour(220, 220, 220)
     _KNOB = wx.Colour(255, 255, 255)
@@ -26,6 +27,7 @@ class ToggleSwitch(wx.Control):
         self._on_label = ""
         self._off_label = ""
         self._hover = False
+        self._sync_theme_colours()
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
         self._update_min_size()
@@ -35,6 +37,14 @@ class ToggleSwitch(wx.Control):
         self.Bind(wx.EVT_ENTER_WINDOW, self._on_enter)
         self.Bind(wx.EVT_LEAVE_WINDOW, self._on_leave)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)
+
+    def _sync_theme_colours(self):
+        th = get_theme()
+        self._on_track = wx.Colour(*th.accent)
+
+    def apply_theme(self):
+        self._sync_theme_colours()
+        self.Refresh()
 
     def SetValue(self, val):
         self._checked = bool(val)
@@ -117,7 +127,7 @@ class ToggleSwitch(wx.Control):
         if not self.IsEnabled():
             track_colour = self._DISABLED_TRACK
         elif self._checked:
-            track_colour = self._ON_TRACK
+            track_colour = self._on_track
         else:
             track_colour = self._OFF_TRACK
 

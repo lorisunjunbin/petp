@@ -84,6 +84,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "tip_reload_log": {"en": "reload log ", "zh": "重新加载日志"},
     "tip_clean_log": {"en": "Clean log console", "zh": "清空日志控制台"},
     "tip_change_lang": {"en": "Change Language", "zh": "切换语言"},
+    "tip_change_theme": {"en": "Change Theme", "zh": "切换主题"},
     "tip_exec_desc": {"en": "Execution description", "zh": "Execution描述"},
     "tip_as_mcp_tool": {
         "en": "Publish current Execution as PETP MCP tool ",

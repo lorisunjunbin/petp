@@ -5,6 +5,7 @@ import wx
 import wx.grid
 
 from i18n.translations import t
+from mvp.view.theme import get_theme
 from mvp.view.common.HandyToolButton import HandyToolButton
 from mvp.view.common.InputDialog import InputDialog
 
@@ -91,8 +92,9 @@ class LoopEditDialog(wx.Dialog):
             self._grid.SetCellBackgroundColour(row, 0, wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE))
             self._grid.SetCellValue(row, 1, str(self._data[key]))
 
-        self._grid.SetSelectionBackground(wx.Colour(66, 111, 66))
-        self._grid.SetSelectionForeground(wx.Colour(0, 0, 0))
+        th = get_theme()
+        self._grid.SetSelectionBackground(wx.Colour(*th.grid_sel_bg))
+        self._grid.SetSelectionForeground(wx.Colour(*th.grid_sel_fg))
         self._grid.AutoSizeColumn(0)
         self._grid.AutoSizeColumn(1)
         self._grid.SetColMinimalWidth(1, 200)

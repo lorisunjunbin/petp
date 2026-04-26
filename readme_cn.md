@@ -56,6 +56,7 @@ Task      1:1 Processor
 | **数据可视化** | 通过 Matplotlib 生成图表。 |
 | **媒体** | 下载 YouTube 视频（PyTube）。 |
 | **执行控制** | 初始化 / 校验参数。嵌套执行。条件停止。等待 / 延时。运行时重载日志配置。读取 JSON。执行 Shell 命令。条件跳转（`GO_TO_TASK`）。 |
+| **主题** | 4 套内置配色主题（Forest、Ocean、Monokai、Solarized），支持实时切换并持久化到配置文件。覆盖表格选中、属性编辑器、日志面板、搜索高亮、运行按钮和 MCP 开关。 |
 
 ---
 
@@ -469,6 +470,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 | 日期 | 更新内容                                                                                                                                                                                          |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | 主题系统：4 套内置配色主题（Forest、Ocean、Monokai、Solarized），工具栏下拉实时切换，选择持久化到 `petpconfig.yaml`。覆盖表格选中色、属性编辑器、日志面板、搜索高亮、运行按钮渐变色、MCP 工具开关强调色 |
 | 2026-04 | 录制转换器从 Selenium IDE（`.side`）切换为 Chrome DevTools Recorder（`.json`）；支持 navigate、click、doubleClick→collect、change、keyDown/keyUp 合并、waitForElement |
 | 2026-04 | 新增 `GO_TO_TASK` 处理器：条件跳转到执行内任意 task；循环新增 `loop_condition` 属性，支持编程式 break/continue；`CodeExplainerUtil` 动态函数缓存优化 |
 | 2026-04 | `OCR` 图像预处理（二值化、去噪、锐化、放大、自适应、自动）；新增 `CAPTCHA` 处理器（ddddocr：ocr/slide/det 模式） |

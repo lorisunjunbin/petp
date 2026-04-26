@@ -4,6 +4,7 @@ import wx
 import wx.grid
 
 from i18n.translations import t
+from mvp.view.theme import get_theme
 
 from mvp.view.common.ResultDialog import ResultDialog
 
@@ -207,6 +208,16 @@ class McpDescEditor(wx.ScrolledWindow):
                 grid.SetColLabelValue(i, label)
             grid.ForceRefresh()
 
+    def apply_theme(self, th=None):
+        if th is None:
+            th = get_theme()
+        sel_bg = wx.Colour(*th.grid_sel_bg)
+        sel_fg = wx.Colour(*th.grid_sel_fg)
+        for grid in (self._input_grid, self._output_grid):
+            grid.SetSelectionBackground(sel_bg)
+            grid.SetSelectionForeground(sel_fg)
+            grid.ForceRefresh()
+
     # ------------------------------------------------------------------ #
     # UI construction
     # ------------------------------------------------------------------ #
@@ -279,8 +290,9 @@ class McpDescEditor(wx.ScrolledWindow):
         grid.SetColLabelSize(22)
         grid.EnableScrolling(False, False)
         grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
-        grid.SetSelectionBackground(wx.Colour(66, 111, 66))
-        grid.SetSelectionForeground(wx.Colour(0, 0, 0))
+        th = get_theme()
+        grid.SetSelectionBackground(wx.Colour(*th.grid_sel_bg))
+        grid.SetSelectionForeground(wx.Colour(*th.grid_sel_fg))
         grid.GetGridWindow().Bind(wx.EVT_MOUSEWHEEL, self._on_child_mousewheel)
         for i, (label, width) in enumerate(col_defs):
             grid.SetColLabelValue(i, label)
