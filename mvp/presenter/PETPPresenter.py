@@ -156,8 +156,11 @@ class PETPPresenter():
         v.loadLog.SetToolTip(t("tip_reload_log"))
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
-        v.logSearchCtrl.SetDescriptiveText(t("tip_log_search"))
+        v.logSearchCtrl.SetHint(t("tip_log_search"))
+        v.logSearchCtrl.SetExtraStyle(wx.BORDER_SIMPLE)
+        v.previousOne.SetLabel(t("label_find_prev"))
         v.previousOne.SetToolTip(t("tip_find_prev"))
+        v.nextOne.SetLabel(t("label_find_next"))
         v.nextOne.SetToolTip(t("tip_find_next"))
 
         # --- Pipeline tab ---
