@@ -74,7 +74,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_pe_title":         {"en": "Personal & Enterprise", "zh": "个人与企业"},
     "feat_pe_desc":          {"en": "Run a personal assistant on your laptop, or deploy enterprise tool-sets on Docker. Same engine, same YAML, different scale.", "zh": "在笔记本上运行个人助手，或将企业工具集部署到 Docker。同一引擎，同一 YAML，不同规模。"},
     "feat_editor_title":     {"en": "Visual Editor with Undo / Redo", "zh": "可视化编辑器（撤销 / 重做）"},
-    "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. Search &amp; highlight logs with prev / next navigation (Ctrl+F). Right-click the task grid for processor usage and reference lookup. Edit loop attributes through a key-value dialog.", "zh": "图形编辑器支持完整撤销 / 重做与快照历史。日志搜索高亮 + 上下导航（Ctrl+F）。任务网格右键可查看处理器用法与引用查找。通过键值表单编辑循环属性。"},
+    "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. 5 color themes including System (auto-follows OS dark / light mode). Status bar shows execution events in real time — start, done with duration, errors, and manual stops. Search &amp; highlight logs (Ctrl+F). Right-click the task grid for processor usage and reference lookup.", "zh": "图形编辑器支持完整撤销 / 重做与快照历史。5 套配色主题，含 System（自动跟随系统深浅色模式）。状态栏实时展示执行事件——启动、完成耗时、错误和手动停止。日志搜索高亮（Ctrl+F）。任务网格右键可查看处理器用法与引用查找。"},
 
     # ── Index — scenarios ────────────────────────────────────────
     "scenario_divider":    {"en": "Scenario Examples",        "zh": "场景示例"},
@@ -159,6 +159,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_04_highlight_info": {
+        "en": "Status bar (<code>highlightInfo</code>): displays key execution events — <code>[START]</code>, <code>[DONE]</code> with duration, <code>[ERROR]</code> with message, <code>[STOP]</code>; color follows theme accent. <code>Executor</code> DONE event now carries error info.",
+        "zh": "状态栏（<code>highlightInfo</code>）：展示关键执行事件 — <code>[START]</code>、<code>[DONE]</code>（含耗时）、<code>[ERROR]</code>（含错误信息）、<code>[STOP]</code>；颜色跟随主题 accent 色。<code>Executor</code> DONE 事件现携带错误信息。",
+    },
+    "cl_2026_04_system_theme": {
+        "en": "\"System\" auto theme: follows OS dark / light mode (Monokai for dark, Ocean for light); responds to real-time system appearance changes via <code>wx.EVT_SYS_COLOUR_CHANGED</code>.",
+        "zh": "\"System\" 自动主题：跟随系统深浅色模式（深色→Monokai，浅色→Ocean），通过 <code>wx.EVT_SYS_COLOUR_CHANGED</code> 实时响应系统外观切换。",
+    },
+    "cl_2026_04_theme": {
+        "en": "Theme system: 5 built-in color themes (System, Forest, Ocean, Monokai, Solarized) with real-time switching via toolbar dropdown; selection persisted in <code>petpconfig.yaml</code>. Covers grid selection, property grid, log panel, search highlights, Run button gradient, and MCP tool toggle accent.",
+        "zh": "主题系统：5 套配色主题（System、Forest、Ocean、Monokai、Solarized），工具栏下拉实时切换，选择持久化到 <code>petpconfig.yaml</code>。覆盖表格选中色、属性编辑器、日志面板、搜索高亮、运行按钮渐变色、MCP 工具开关强调色。",
+    },
     "cl_2026_04_goto_loopond": {
         "en": "<code>GO_TO_TASK</code> processor: conditional jump to any task within an execution; <code>loop_condition</code> attribute for programmatic break / continue based on data state; dynamic function caching in <code>CodeExplainerUtil</code>.",
         "zh": "<code>GO_TO_TASK</code> 处理器：条件跳转到执行内任意 task；<code>loop_condition</code> 属性支持编程式 break / continue；<code>CodeExplainerUtil</code> 动态函数缓存优化。",
