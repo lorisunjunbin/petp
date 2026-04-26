@@ -72,6 +72,7 @@ class PETPPresenter():
         self._log_search_keyword = ''
         self._log_match_positions = []
         self._log_match_cursor = -1
+        self._exec_start_time = 0.0
 
         self.i.install(self, view)
 
@@ -225,6 +226,7 @@ class PETPPresenter():
         v.nextOne.SetBackgroundColour(log_bg)
         v.nextOne.SetForegroundColour(log_fg)
         v.logMatchCount.SetForegroundColour(search_fg)
+        v.highlightInfo.SetForegroundColour(wx.Colour(*th.accent))
 
         v.logPanel.Refresh()
         lc = v.logContents
@@ -662,6 +664,24 @@ class PETPPresenter():
         if is_system_theme():
             set_theme(SYSTEM_THEME_NAME)
             self._apply_theme()
+
+    def _set_highlight_info(self, text: str):
+        self.v.highlightInfo.SetLabel(text)
+        self.v.highlightInfo.GetParent().Layout()
+
+    def update_highlight_info_start(self, name: str):
+        self._exec_start_time = time.time()
+        self._set_highlight_info(f"[START] {name}")
+
+    def update_highlight_info_done(self, name: str, error: str = None):
+        if error:
+            msg = f"{name}: {error}"
+            if len(msg) > 80:
+                msg = msg[:77] + "..."
+            self._set_highlight_info(f"[ERROR] {msg}")
+        else:
+            elapsed = time.time() - self._exec_start_time if self._exec_start_time else 0
+            self._set_highlight_info(f"[DONE] {name}  {elapsed:.1f}s")
 
     @reload_log_after
     def on_execution_pipeline_changed(self):
@@ -1108,6 +1128,7 @@ class PETPPresenter():
             if executor.is_alive():
                 executor.execution.set_should_be_stop(True)
                 logging.info(t("msg_execution_stopping", name=executor.execution.execution))
+                self._set_highlight_info(f"[STOP] {executor.execution.execution}")
 
         self.executors = []
 
