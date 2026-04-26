@@ -279,6 +279,8 @@ class McpDescEditor(wx.ScrolledWindow):
         grid.SetColLabelSize(22)
         grid.EnableScrolling(False, False)
         grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
+        grid.SetSelectionBackground(wx.Colour(66, 111, 66))
+        grid.SetSelectionForeground(wx.Colour(0, 0, 0))
         grid.GetGridWindow().Bind(wx.EVT_MOUSEWHEEL, self._on_child_mousewheel)
         for i, (label, width) in enumerate(col_defs):
             grid.SetColLabelValue(i, label)

@@ -64,7 +64,6 @@ class PETPInteractor():
         self.v.SetAcceleratorTable(accel)
 
     def bind_view_event_4_log_panel(self):
-        self.v.Bind(wx.EVT_BUTTON, self.on_manual_reload_log, self.v.loadLog)
         self.v.Bind(wx.EVT_BUTTON, self.on_clean_log, self.v.cleanLog)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_log_level_changed, self.v.logLevelChooser)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_lang_changed, self.v.langChooser)
@@ -201,13 +200,6 @@ class PETPInteractor():
         evt.Skip()
         self.p.highlight_running_task(evt.data)
         self.p.on_logcontents_unfocused()
-        self.p.on_load_log_async()
-
-    def on_manual_reload_log(self, evt):
-        """Called by the Reload button — force full reload."""
-        evt.Skip()
-        self.p.on_logcontents_unfocused()
-        self.p._log_last_pos = 0
         self.p.on_load_log_async()
 
     def on_grid_cell_right_click(self, evt):

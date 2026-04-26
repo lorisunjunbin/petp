@@ -22,6 +22,11 @@ class Executor(Thread):
     def run(self):
         if wx is not None and self.wx_comp is not None:
             wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.START, [self.execution.execution, self.init_data]))
-        data_chain = self.execution.run(self.init_data, self.condition, self.wx_comp)
+        try:
+            data_chain = self.execution.run(self.init_data, self.condition, self.wx_comp)
+        except Exception:
+            import logging
+            logging.exception('Executor caught unhandled exception in %s', self.execution.execution)
+            data_chain = self.init_data
         if wx is not None and self.wx_comp is not None:
             wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.DONE, [self.execution.execution, data_chain]))

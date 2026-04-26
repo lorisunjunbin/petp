@@ -118,6 +118,8 @@ class PETPPresenter():
         # Task grid headers
         v.taskGrid.SetColLabelValue(0, t("grid_task_chooser"))
         v.taskGrid.SetColLabelValue(1, t("grid_input"))
+        v.taskGrid.SetSelectionBackground(wx.Colour(66, 111, 66))
+        v.taskGrid.SetSelectionForeground(wx.Colour(0, 0, 0))
 
         # Loop editor
         v.addLoop.SetToolTip(t("tip_add_property"))
@@ -152,12 +154,10 @@ class PETPPresenter():
         v.checkbox_executeonstartup.SetToolTip(t("tip_execute_on_startup"))
         v.langChooser.SetToolTip(t("tip_change_lang"))
         v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
-        v.loadLog.SetLabel(t("btn_reload"))
-        v.loadLog.SetToolTip(t("tip_reload_log"))
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
         v.logSearchCtrl.SetHint(t("tip_log_search"))
-        v.logSearchCtrl.SetExtraStyle(wx.BORDER_SIMPLE)
+
         v.previousOne.SetLabel(t("label_find_prev"))
         v.previousOne.SetToolTip(t("tip_find_prev"))
         v.nextOne.SetLabel(t("label_find_next"))
@@ -168,6 +168,8 @@ class PETPPresenter():
         v.delRow4P.SetToolTip(t("tip_delete_row_p"))
         v.executionGrid.SetColLabelValue(0, t("grid_exec_chooser"))
         v.executionGrid.SetColLabelValue(1, t("grid_input"))
+        v.executionGrid.SetSelectionBackground(wx.Colour(66, 111, 666))
+        v.executionGrid.SetSelectionForeground(wx.Colour(0, 0, 0))
         v.delPipeline.SetLabel(t("btn_delete"))
         v.delPipeline.SetToolTip(t("tip_delete_pipeline"))
         v.savePipeline.SetLabel(t("btn_save"))
@@ -186,6 +188,12 @@ class PETPPresenter():
             if self._pgrid_bound_row >= 0 else t("pgrid_input_editor")
         )
         self._update_pgrid_category(v.loopProperty, t("pgrid_loop_editor"))
+
+        # Property grid selection colours
+        for pgm in (v.taskProperty, v.loopProperty):
+            pg = pgm.GetGrid()
+            pg.SetSelectionBackgroundColour(wx.Colour(66, 111, 66))
+            pg.SetSelectionTextColour(wx.Colour(0, 0, 0))
 
     @staticmethod
     def _update_pgrid_category(pgm, label):

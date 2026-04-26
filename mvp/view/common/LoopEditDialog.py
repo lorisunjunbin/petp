@@ -91,6 +91,8 @@ class LoopEditDialog(wx.Dialog):
             self._grid.SetCellBackgroundColour(row, 0, wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE))
             self._grid.SetCellValue(row, 1, str(self._data[key]))
 
+        self._grid.SetSelectionBackground(wx.Colour(66, 111, 66))
+        self._grid.SetSelectionForeground(wx.Colour(0, 0, 0))
         self._grid.AutoSizeColumn(0)
         self._grid.AutoSizeColumn(1)
         self._grid.SetColMinimalWidth(1, 200)
