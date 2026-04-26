@@ -9,7 +9,7 @@ import os
 from cron_descriptor import ExpressionDescriptor
 
 from core.cron.cron import Cron
-from core.definition.SeleniumIDERecordingConverter import SeleniumIDERecordingConverter
+from core.definition.ChromeRecorderConverter import ChromeRecorderConverter
 from core.execution import Execution
 from core.executor import Executor
 from core.loop import Loop
@@ -39,7 +39,7 @@ class PETPPresenter():
     execution: Execution
     executors: list = []
     pipeline: Pipeline
-    converter: SeleniumIDERecordingConverter
+    converter: ChromeRecorderConverter
 
     available_processors: list = []
     available_executions: list = []
@@ -112,7 +112,6 @@ class PETPPresenter():
         v.delRow4E.SetToolTip(t("tip_delete_row"))
         v.selectRecording.SetLabel(t("btn_select"))
         v.selectRecording.SetToolTip(t("tip_select_recording"))
-        v.testChooser.SetToolTip(t("tip_select_test"))
         v.loadRecording.SetLabel(t("btn_convert"))
         v.loadRecording.SetToolTip(t("tip_convert_recording"))
 
@@ -1030,46 +1029,37 @@ class PETPPresenter():
 
     @reload_log_after
     def on_select_recording(self):
-        with wx.FileDialog(self.v, t("fdlg_open_recording"), wildcard="recording files (*.side)|*.side",
+        with wx.FileDialog(self.v, t("fdlg_open_recording"), wildcard="recording files (*.json)|*.json",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
 
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
 
             path_name = fileDialog.GetPath()
-            self.v.recordingLocation.SetLabel(path_name)
-            self.converter = SeleniumIDERecordingConverter(path_name)
-            available_tests = self.converter.get_test_names()
-
-            if len(available_tests) > 0:
-                self.v.testChooser.Clear()
-                self.v.testChooser.AppendItems(available_tests)
-
-    @reload_log_after
-    def on_recording_test_changed(self):
-        self.converter.set_test_name(self.v.testChooser.GetValue())
-        logging.info('load test: ' + self.v.testChooser.GetValue())
+            self.converter = ChromeRecorderConverter(path_name)
+            title = self.converter.get_title()
+            self.v.recordingLocation.SetLabel(f'{title}  ({path_name})')
 
     @reload_log_after
     def on_load_from_recording(self):
         if hasattr(self, 'converter') and self.converter.is_initialized():
             self._push_snapshot()
-            tasks = self.converter.convert_from_selenium_ide_recording()
+            tasks = self.converter.convert()
 
             task_grid = self.v.taskGrid
             selected_rows = task_grid.GetSelectedRows()
-            tasks = tasks if len(selected_rows) > 0 else reversed(tasks)
+            insert_at = selected_rows[0] if len(selected_rows) > 0 else task_grid.GetNumberRows()
 
-            for t in tasks:
-                selected_rows = task_grid.GetSelectedRows()
-                insert_at = selected_rows[0] if len(selected_rows) > 0 else 0
-                self._insert_row(task_grid, self.available_processors)
-                task_grid.SetCellValue(insert_at, 0, t.type)
-                if (hasattr(t, 'input')):
-                    task_grid.SetCellValue(insert_at, 1, t.input)
+            for i, task in enumerate(tasks):
+                row = insert_at + i
+                task_grid.InsertRows(row, 1, True)
+                self._bind_grid_cell_choice_editor(row, task_grid, self.available_processors)
+                task_grid.SetCellValue(row, 0, task.type)
+                if hasattr(task, 'input'):
+                    task_grid.SetCellValue(row, 1, task.input)
 
             logging.info(
-                t("msg_convert_success", file_path=self.converter.file_path, test_name=self.converter.test_name))
+                t("msg_convert_success", file_path=self.converter.file_path, title=self.converter.get_title()))
             self._update_save_button()
         else:
             logging.warning(t("msg_recording_empty"))

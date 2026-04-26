@@ -128,7 +128,6 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_rows4e, self.v.delRow4E)
         self.v.Bind(wx.EVT_BUTTON, self.on_select_recording, self.v.selectRecording)
         self.v.Bind(wx.EVT_BUTTON, self.on_load_from_recording, self.v.loadRecording)
-        self.v.Bind(wx.EVT_COMBOBOX, self.on_recording_test_changed, self.v.testChooser)
         # task editor - grid mouse selection/click
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_grid_cell_editor_shown4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.on_grid_cell_change4e)
@@ -223,10 +222,6 @@ class PETPInteractor():
     def on_load_from_recording(self, evt):
         evt.Skip()
         self.p.on_load_from_recording()
-
-    def on_recording_test_changed(self, evt):
-        evt.Skip()
-        self.p.on_recording_test_changed()
 
     def on_add_loop(self, evt):
         evt.Skip()

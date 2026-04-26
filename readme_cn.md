@@ -42,7 +42,7 @@ Task      1:1 Processor
 
 | 分类 | 能力 |
 |------|------|
-| **浏览器自动化** (Selenium) | 页面导航、后退、全屏、关闭 Chrome。查找元素后点击 / 输入 / 采集。批量查找（支持跳过）。iFrame、Cookie、截图。支持 Selenium IDE 录制转换。 |
+| **浏览器自动化** (Selenium) | 页面导航、后退、全屏、关闭 Chrome。查找元素后点击 / 输入 / 采集。批量查找（支持跳过）。iFrame、Cookie、截图。支持 Chrome DevTools Recorder 录制转换。 |
 | **SSH / SFTP** (Paramiko) | 创建 SSH / SFTP 会话。执行远程命令。上传 / 下载文件。 |
 | **文件与文件夹** | 打开、写入、删除、读取文本。查找文件 / 最新文件。监控并自动移动。ZIP / UNZIP。文件选择对话框。 |
 | **数据与表格** | 读取 CSV / Excel。写入 Excel。CSV 转 XLSX。采集、过滤、分组、映射、脱敏、转换。合并集合。 |
@@ -432,7 +432,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `core/processors/` | 处理器实现（每个任务类型一个 `.py` 文件） |
 | `core/pipelines/` | YAML 流水线定义 |
 | `core/runtime/` | 后台 / 无 GUI 运行时逻辑 |
-| `core/definition/` | YAML 读写器、Selenium IDE 转换器 |
+| `core/definition/` | YAML 读写器、Chrome DevTools Recorder 转换器 |
 | `httpservice/` | HTTP 服务器、MCP 处理器、请求路由 |
 | `mvp/` | GUI 层（Model-View-Presenter） |
 | `utils/` | 工具模块 — Selenium、Excel、Date、OS、Logger、Paramiko |
@@ -459,7 +459,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 ## 致谢
 
 - [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
-- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/) & [Selenium IDE](https://github.com/SeleniumHQ/selenium-ide/releases/)
+- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/) & [Chrome DevTool Recorder](https://developer.chrome.com/docs/devtools/recorder)
 
 ---
 
@@ -469,6 +469,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 | 日期 | 更新内容                                                                                                                                                                                          |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | 录制转换器从 Selenium IDE（`.side`）切换为 Chrome DevTools Recorder（`.json`）；支持 navigate、click、doubleClick→collect、change、keyDown/keyUp 合并、waitForElement |
 | 2026-04 | 新增 `GO_TO_TASK` 处理器：条件跳转到执行内任意 task；循环新增 `loop_condition` 属性，支持编程式 break/continue；`CodeExplainerUtil` 动态函数缓存优化 |
 | 2026-04 | `OCR` 图像预处理（二值化、去噪、锐化、放大、自适应、自动）；新增 `CAPTCHA` 处理器（ddddocr：ocr/slide/det 模式） |
 | 2026-04 | 日志面板：搜索高亮 + 上/下一个导航（Ctrl+F / Cmd+F）；属性介绍右键弹窗；`FIND_THEN_CLICK` 新增 by_condition 参数 |

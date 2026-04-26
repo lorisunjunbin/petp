@@ -42,7 +42,7 @@ Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Execut
 
 | Category | Capabilities |
 |----------|-------------|
-| **Browser Automation** (Selenium) | Navigate, go back, fullscreen, close Chrome. Find element(s) then click / key-in / collect. Find multiple elements in batch (with skip). iFrame, cookies, screenshot. Convert Selenium IDE recordings to PETP tasks. |
+| **Browser Automation** (Selenium) | Navigate, go back, fullscreen, close Chrome. Find element(s) then click / key-in / collect. Find multiple elements in batch (with skip). iFrame, cookies, screenshot. Convert Chrome DevTools Recorder recordings to PETP tasks. |
 | **SSH / SFTP** (Paramiko) | Create SSH / SFTP sessions. Run remote commands. Upload / download files. |
 | **File & Folder** | Open, write, delete, read text. Find files / latest file. Watch & auto-move. ZIP / UNZIP. File-chooser dialog. |
 | **Data & Spreadsheet** | Read CSV / Excel. Write to Excel. CSV to XLSX. Collect, filter, group-by, mapping, masking, conversion. Merge collections. |
@@ -432,7 +432,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 | `core/processors/` | Processor implementations (one `.py` per task type) |
 | `core/pipelines/` | YAML pipeline definitions |
 | `core/runtime/` | Background / no-GUI runtime logic |
-| `core/definition/` | YAML reader, Selenium IDE converter |
+| `core/definition/` | YAML reader, Chrome DevTools Recorder converter |
 | `httpservice/` | HTTP server, MCP handler, request routing |
 | `mvp/` | GUI layer (Model-View-Presenter) |
 | `utils/` | Utilities — Selenium, Excel, Date, OS, Logger, Paramiko |
@@ -459,7 +459,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 ## Acknowledgements
 
 - [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
-- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/) & [Selenium IDE](https://github.com/SeleniumHQ/selenium-ide/releases/)
+- [Selenium](https://selenium-python.readthedocs.io/) & [ChromeDriver](https://googlechromelabs.github.io/chrome-for-testing/) & [Chrome DevTool Recorder](https://developer.chrome.com/docs/devtools/recorder)
 
 ---
 
@@ -469,6 +469,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | Recording converter switched from Selenium IDE (`.side`) to Chrome DevTools Recorder (`.json`); supports navigate, click, doubleClick→collect, change, keyDown/keyUp merge, waitForElement |
 | 2026-04 | `GO_TO_TASK` processor: conditional jump to any task within an execution; `loop_condition` attribute for programmatic break/continue based on data state; dynamic function caching in `CodeExplainerUtil` |
 | 2026-04 | `OCR` image preprocessing (binarize, denoise, sharpen, upscale, adaptive, auto); `CAPTCHA` processor (ddddocr: ocr/slide/det modes) |
 | 2026-04 | Log panel: search & highlight with prev/next navigation (Ctrl+F / Cmd+F); property hint popup via right-click; `FIND_THEN_CLICK` by_condition parameter |
