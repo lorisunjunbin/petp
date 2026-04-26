@@ -158,6 +158,8 @@ class PETPPresenter():
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
         v.logSearchCtrl.SetDescriptiveText(t("tip_log_search"))
+        v.previousOne.SetToolTip(t("tip_find_prev"))
+        v.nextOne.SetToolTip(t("tip_find_next"))
 
         # --- Pipeline tab ---
         v.addRow4P.SetToolTip(t("tip_add_row_p"))

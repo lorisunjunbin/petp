@@ -75,6 +75,7 @@ class PETPInteractor():
         self.v.logSearchCtrl.Bind(wx.EVT_TEXT, self.on_search_log)
         self.v.logSearchCtrl.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.on_search_log)
         self.v.logSearchCtrl.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.on_clear_log_search)
+        self.v.logSearchCtrl.Bind(wx.EVT_KEY_DOWN, self.on_log_search_key_down)
         self.v.Bind(wx.EVT_BUTTON, self.on_prev_log_match, self.v.previousOne)
         self.v.Bind(wx.EVT_BUTTON, self.on_next_log_match, self.v.nextOne)
         self.v.logContents.Bind(wx.EVT_KEY_DOWN, self.on_log_key_down)
@@ -437,6 +438,17 @@ class PETPInteractor():
     def on_next_log_match(self, evt):
         evt.Skip()
         self.p.on_next_log_match()
+
+    def on_log_search_key_down(self, evt):
+        if evt.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            if evt.ShiftDown():
+                self.p.on_prev_log_match()
+            else:
+                self.p.on_next_log_match()
+        elif evt.GetKeyCode() == wx.WXK_ESCAPE:
+            self.v.logContents.SetFocus()
+        else:
+            evt.Skip()
 
     def on_log_key_down(self, evt):
         if evt.GetKeyCode() == ord('F') and evt.CmdDown():

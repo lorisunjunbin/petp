@@ -1,5 +1,4 @@
 import logging
-import ddddocr
 
 from core.processor import Processor
 
@@ -37,6 +36,8 @@ class CAPTCHAProcessor(Processor):
         return super().CATE_FILE
 
     def process(self):
+        import ddddocr
+
         image_path = self.get_data(self.get_param('image_path_key')) if self.has_param('image_path_key') \
             else self.expression2str(self.get_param('image_path'))
 
