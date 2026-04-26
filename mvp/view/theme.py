@@ -107,8 +107,18 @@ THEMES: dict[str, Theme] = {
 }
 
 DEFAULT_THEME = "Forest"
+SYSTEM_THEME_NAME = "System"
 
 _current: Theme = THEMES[DEFAULT_THEME]
+_system_mode: bool = False
+
+
+def _resolve_system_theme() -> str:
+    try:
+        import wx
+        return "Monokai" if wx.SystemSettings.GetAppearance().IsDark() else "Ocean"
+    except Exception:
+        return DEFAULT_THEME
 
 
 def get_theme() -> Theme:
@@ -116,9 +126,18 @@ def get_theme() -> Theme:
 
 
 def set_theme(name: str):
-    global _current
-    _current = THEMES.get(name, THEMES[DEFAULT_THEME])
+    global _current, _system_mode
+    if name == SYSTEM_THEME_NAME:
+        _system_mode = True
+        _current = THEMES.get(_resolve_system_theme(), THEMES[DEFAULT_THEME])
+    else:
+        _system_mode = False
+        _current = THEMES.get(name, THEMES[DEFAULT_THEME])
+
+
+def is_system_theme() -> bool:
+    return _system_mode
 
 
 def get_theme_names() -> list[str]:
-    return list(THEMES.keys())
+    return [SYSTEM_THEME_NAME] + list(THEMES.keys())

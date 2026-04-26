@@ -30,7 +30,7 @@ from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.CodeExplainerUtil import CodeExplainerUtil
 from i18n.translations import t, set_locale
-from mvp.view.theme import get_theme, set_theme, get_theme_names
+from mvp.view.theme import get_theme, set_theme, get_theme_names, is_system_theme, SYSTEM_THEME_NAME
 
 
 class PETPPresenter():
@@ -94,6 +94,8 @@ class PETPPresenter():
         self._apply_i18n()
         self._apply_theme()
         self._load_config()
+
+        view.Bind(wx.EVT_SYS_COLOUR_CHANGED, self._on_sys_appearance_changed)
 
     def _handle_execute_on_startup(self):
         if self.m.execute_on_startup:
@@ -254,6 +256,7 @@ class PETPPresenter():
     def _init_theme_chooser(self):
         v = self.v
         theme_names = get_theme_names()
+        v.themeChooser.Set(theme_names)
         saved = getattr(self.m, 'theme', 'Forest')
         if saved in theme_names:
             v.themeChooser.SetValue(saved)
@@ -653,6 +656,12 @@ class PETPPresenter():
             self.m.theme = name
             self.m.set_config('theme', name)
         self._apply_theme()
+
+    def _on_sys_appearance_changed(self, evt):
+        evt.Skip()
+        if is_system_theme():
+            set_theme(SYSTEM_THEME_NAME)
+            self._apply_theme()
 
     @reload_log_after
     def on_execution_pipeline_changed(self):
