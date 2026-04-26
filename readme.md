@@ -56,7 +56,7 @@ Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Execut
 | **Data Visualization** | Charts and plots via Matplotlib. |
 | **Media** | Download YouTube videos (PyTube). |
 | **Execution Control** | Initialize / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON. Run shell commands. Conditional jump (`GO_TO_TASK`). |
-| **Theme** | 4 built-in color themes (Forest, Ocean, Monokai, Solarized) with live switching; persisted in config. Covers grid selection, property grid, log panel, search highlights, Run button, and MCP toggle. |
+| **Theme** | 5 themes including "System" (auto-follows OS dark/light mode); Forest, Ocean, Monokai, Solarized with live switching; persisted in config. Covers grid selection, property grid, log panel, search highlights, Run button, and MCP toggle. |
 
 ---
 
@@ -470,6 +470,8 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-04 | Status bar (`highlightInfo`): displays key execution events — `[START]`, `[DONE]` with duration, `[ERROR]` with message, `[STOP]`; color follows theme accent. `Executor` DONE event now carries error info |
+| 2026-04 | "System" auto theme: follows OS dark/light mode (Monokai for dark, Ocean for light); responds to real-time system appearance changes via `wx.EVT_SYS_COLOUR_CHANGED` |
 | 2026-04 | Theme system: 4 built-in color themes (Forest, Ocean, Monokai, Solarized) with real-time switching via toolbar dropdown; selection persisted in `petpconfig.yaml`. Covers grid selection, property grid, log panel, search highlights, Run button gradient, and MCP tool toggle accent |
 | 2026-04 | Recording converter switched from Selenium IDE (`.side`) to Chrome DevTools Recorder (`.json`); supports navigate, click, doubleClick→collect, change, keyDown/keyUp merge, waitForElement |
 | 2026-04 | `GO_TO_TASK` processor: conditional jump to any task within an execution; `loop_condition` attribute for programmatic break/continue based on data state; dynamic function caching in `CodeExplainerUtil` |
