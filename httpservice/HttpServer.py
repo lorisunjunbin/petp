@@ -10,7 +10,7 @@ from typing import Any, Callable, Generator, Optional, Union
 
 import wx
 
-from decorators.decorators import reload_http_log_after
+from utils.decorators import reload_http_log_after
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 from mvp.presenter import PETPPresenter

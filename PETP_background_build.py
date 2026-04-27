@@ -50,7 +50,7 @@ KNOWN_PROBLEMATIC_MODULES = [
 ]
 
 # Spec file names used by this build
-_TEMPLATE_SPEC = 'PETP_background_build.spec'
+_TEMPLATE_SPEC = os.path.join('build', 'PETP_background_build.spec')
 _WORK_SPEC = 'PETP_background.spec'
 _DIST_NAME = 'PETP_background'
 

@@ -473,7 +473,8 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 | | `PETP_backgroud.py` | Headless / background entry |
 | Build | `PETP_build.py` | PyInstaller build (GUI) |
 | | `PETP_background_build.py` | PyInstaller build (background) |
-| | `PETP_build_debug_runtime.py` | Debug helper |
+| | `build/*.spec` | PyInstaller spec templates |
+| | `build/debug_runtime.py` | Debug helper for packaged apps |
 | Docker | `Dockerfile` | Multi-arch image |
 | | `docker_build.sh` | Build script |
 | | `.dockerignore` | Exclude list |
@@ -486,6 +487,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Directory | Description |
 |-----------|-------------|
+| `build/` | PyInstaller spec templates and debug helper |
 | `config/` | Configuration (`petpconfig.yaml`) |
 | `core/` | Core engine — execution, pipeline, task, processor, loop, cron |
 | `core/executions/` | YAML execution definitions |
@@ -495,7 +497,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 | `core/definition/` | YAML reader, Chrome DevTools Recorder converter |
 | `httpservice/` | HTTP server, MCP handler, request routing |
 | `mvp/` | GUI layer (Model-View-Presenter) |
-| `utils/` | Utilities — Selenium, Excel, Date, OS, Logger, Paramiko |
+| `utils/` | Utilities — Selenium, Excel, Date, OS, Logger, Paramiko, decorators |
 | `webapp/` | Flask web application (see [`webapp/README.md`](./webapp/README.md) for Docker and UGOS usage) |
 | `webdriver/` | Platform ChromeDriver binaries |
 | `resources/` | Static resources |

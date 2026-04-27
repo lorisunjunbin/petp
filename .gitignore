@@ -19,11 +19,13 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+build/*
+!build/*.spec
+!build/debug_runtime.py
 dist/
 *.manifest
 
-# PyInstaller generated spec (rebuilt from PETP_build.spec)
+# PyInstaller generated spec (rebuilt from build/*.spec)
 PETP.spec
 PETP_background.spec
 PETP_debug.spec

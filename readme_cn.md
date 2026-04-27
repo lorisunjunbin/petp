@@ -473,7 +473,8 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | | `PETP_backgroud.py` | 无头 / 后台入口 |
 | 构建 | `PETP_build.py` | PyInstaller 构建（GUI） |
 | | `PETP_background_build.py` | PyInstaller 构建（后台） |
-| | `PETP_build_debug_runtime.py` | 调试辅助 |
+| | `build/*.spec` | PyInstaller 规格模板 |
+| | `build/debug_runtime.py` | 打包应用调试辅助 |
 | Docker | `Dockerfile` | 多架构镜像 |
 | | `docker_build.sh` | 构建脚本 |
 | | `.dockerignore` | 排除列表 |
@@ -486,6 +487,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 | 目录 | 说明 |
 |------|------|
+| `build/` | PyInstaller 规格模板与调试辅助 |
 | `config/` | 配置（`petpconfig.yaml`） |
 | `core/` | 核心引擎 — execution、pipeline、task、processor、loop、cron |
 | `core/executions/` | YAML 执行定义 |
@@ -495,7 +497,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `core/definition/` | YAML 读写器、Chrome DevTools Recorder 转换器 |
 | `httpservice/` | HTTP 服务器、MCP 处理器、请求路由 |
 | `mvp/` | GUI 层（Model-View-Presenter） |
-| `utils/` | 工具模块 — Selenium、Excel、Date、OS、Logger、Paramiko |
+| `utils/` | 工具模块 — Selenium、Excel、Date、OS、Logger、Paramiko、decorators |
 | `webapp/` | Flask Web 应用（Docker 与 UGOS 使用说明见 [`webapp/README.md`](./webapp/README.md)） |
 | `webdriver/` | 平台 ChromeDriver 二进制文件 |
 | `resources/` | 静态资源 |

@@ -153,8 +153,8 @@ def collect_hidden_imports():
     if os.path.exists('PETP.spec'):
         os.remove('PETP.spec')
 
-    # copy PETP_build.spec to PETP.spec
-    shutil.copy('PETP_build.spec', 'PETP.spec')
+    # copy build/PETP_build.spec to PETP.spec
+    shutil.copy(os.path.join('build', 'PETP_build.spec'), 'PETP.spec')
     loaded_files = glob.glob(os.path.join('utils', '**/*.py'), recursive=True)
     loaded_imports = [f.replace('\\', '.').replace('/', '.').rstrip('.py') for f in loaded_files]
 

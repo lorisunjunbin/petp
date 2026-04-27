@@ -16,7 +16,7 @@ from core.loop import Loop
 from core.pipeline import Pipeline
 from core.processor import Processor
 from core.task import Task
-from decorators.decorators import reload_log_after
+from utils.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
