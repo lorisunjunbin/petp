@@ -1,6 +1,10 @@
+import sys
+
 import wx
 
 from mvp.view.theme import get_theme
+
+_IS_WINDOWS = sys.platform == 'win32'
 
 
 def _darken(rgb, amount=20):
@@ -124,7 +128,7 @@ class ThemedButton(wx.Control):
         gc.SetBrush(wx.Brush(self.GetParent().GetBackgroundColour()))
         gc.DrawRectangle(0, 0, w, h)
 
-        r = 6
+        r = 0 if _IS_WINDOWS else 6
 
         if not self.IsEnabled():
             top = wx.Colour(180, 180, 180)
