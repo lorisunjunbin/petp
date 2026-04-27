@@ -3,7 +3,6 @@ import json
 import logging
 import signal
 import threading
-import time
 from typing import Any
 
 import utils.Logger as Logger
@@ -118,8 +117,7 @@ def start_background_app() -> None:
     signal.signal(signal.SIGINT, _shutdown_handler)
     signal.signal(signal.SIGTERM, _shutdown_handler)
 
-    while not stop_event.is_set():
-        time.sleep(0.5)
+    stop_event.wait()
 
     server.stop()
     logging.info("PETP background shutdown @" + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))

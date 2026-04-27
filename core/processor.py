@@ -66,6 +66,9 @@ class Processor:
     global _cached_processor_classes
     _cached_processor_classes = {}
 
+    global _expr_code_cache
+    _expr_code_cache = {}
+
     PARAM_PATTERN = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
 
     def process(self) -> None:
@@ -274,6 +277,12 @@ class Processor:
 
         return result
 
+    _EXPR_STRATEGIES = (
+        lambda e: "f'" + e + "'",
+        lambda e: 'f"' + e + '"',
+        lambda e: "f" + e,
+    )
+
     def expression2str(self, expression, none_if_not_matched=False):
         """
         Evaluate an expression as an f-string against the current data_chain context.
@@ -302,24 +311,29 @@ class Processor:
         except Exception:
             pass
 
-        try:
-            return eval("f'" + expression + "'", {}, local_vars)
-        except SyntaxError:
-            pass
-        except Exception as e:
-            logging.error(f"expression2str attempt-1 failed for expression={expression!r}: {e}")
+        cached = _expr_code_cache.get(expression)
+        if cached is not None:
+            strategy_idx, code_obj = cached
+            try:
+                return eval(code_obj, {}, local_vars)
+            except Exception as e:
+                logging.error(f"expression2str cached strategy-{strategy_idx + 1} failed for expression={expression!r}: {e}")
+                if none_if_not_matched:
+                    return None
+                return expression
 
-        try:
-            return eval('f"' + expression + '"', {}, local_vars)
-        except SyntaxError:
-            pass
-        except Exception as e:
-            logging.error(f"expression2str attempt-2 failed for expression={expression!r}: {e}")
-
-        try:
-            return eval("f" + expression, {}, local_vars)
-        except Exception as e:
-            logging.error(f"expression2str attempt-3 failed for expression={expression!r}: {e}")
+        for idx, build_src in enumerate(self._EXPR_STRATEGIES):
+            src = build_src(expression)
+            try:
+                code_obj = compile(src, '<expr>', 'eval')
+            except SyntaxError:
+                continue
+            try:
+                result = eval(code_obj, {}, local_vars)
+                _expr_code_cache[expression] = (idx, code_obj)
+                return result
+            except Exception as e:
+                logging.error(f"expression2str attempt-{idx + 1} failed for expression={expression!r}: {e}")
 
         if none_if_not_matched:
             return None

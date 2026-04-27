@@ -731,6 +731,7 @@ class PETPPresenter():
             current_number_rows = grid.GetNumberRows()
             task_number = len(self.execution.list)
 
+            grid.BeginBatch()
             if task_number > current_number_rows:
                 for _ in range(task_number - current_number_rows):
                     self._insert_row(grid, self.available_processors)
@@ -742,6 +743,7 @@ class PETPPresenter():
 
             self._apply_all_row_skip_styles()
             self._autosize_input_col()
+            grid.EndBatch()
 
             if hasattr(self.execution, 'loops') and len(self.execution.loops) > 0:
                 for idx, itm in enumerate(self.execution.loops):
@@ -856,9 +858,11 @@ class PETPPresenter():
 
     def _apply_all_row_skip_styles(self):
         grid = self.v.taskGrid
+        grid.BeginBatch()
         for row in range(grid.GetNumberRows()):
             input_json = grid.GetCellValue(row, 1)
             self._apply_row_skip_style(row, self._check_task_skipped(input_json))
+        grid.EndBatch()
 
     def _autosize_input_col(self):
         grid = self.v.taskGrid
@@ -995,6 +999,7 @@ class PETPPresenter():
 
         self._mark_clean()
         self._refresh_execution_chooser(name)
+        self.invalidate_tools_cache()
 
     @reload_log_after
     def on_delete_pipeline(self):
@@ -1028,6 +1033,7 @@ class PETPPresenter():
 
         self.execution.delete()
         self._refresh_execution_chooser('')
+        self.invalidate_tools_cache()
 
     @reload_log_after
     def on_copy_execution(self):
@@ -1063,6 +1069,7 @@ class PETPPresenter():
                          list(source.loops) if hasattr(source, 'loops') else [])
         copy.save()
         self._refresh_execution_chooser(new_name)
+        self.invalidate_tools_cache()
         self.on_task_execution_changed()
 
     @reload_log_after
@@ -1963,6 +1970,7 @@ class PETPPresenter():
     def _restore_snapshot(self, snap):
         prev_row = self.current_selected_row
         grid = self.v.taskGrid
+        grid.BeginBatch()
         grid.ClearGrid()
 
         tasks = snap["tasks"]
@@ -1974,6 +1982,7 @@ class PETPPresenter():
             grid.SetCellValue(idx, 1, task["input"])
 
         self._apply_all_row_skip_styles()
+        grid.EndBatch()
 
         self._reset_loop_pgrid()
         loop_page = self.v.loopProperty.GetPage(self.single_page)
@@ -2344,10 +2353,17 @@ class PETPPresenter():
         logging.info(f'\nHTTP request be handled - action: {action}, params: {params}\n')
 
     def get_tools(self):
+        cached = getattr(self, '_tools_cache', None)
+        if cached is not None:
+            return cached
         tools = {}
         for execution_name in self.available_executions:
             execution = Execution.get_execution(execution_name)
             if (hasattr(execution, 'astool') and execution.astool
                     and hasattr(execution, 'mcp_desc') and execution.mcp_desc):
                 tools[execution_name] = execution.mcp_desc
+        self._tools_cache = tools
         return tools
+
+    def invalidate_tools_cache(self):
+        self._tools_cache = None

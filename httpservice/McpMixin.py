@@ -9,6 +9,9 @@ from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, Streamin
 class McpMixin:
     """Shared MCP protocol helpers for HttpServer and BackgroundHttpServer."""
 
+    _normalized_tools_cache_key: tuple | None = None
+    _normalized_tools_cache_val: list[dict] = []
+
     # ------------------------------------------------------------------
     # SSE helpers
     # ------------------------------------------------------------------
@@ -116,6 +119,9 @@ class McpMixin:
     def _normalize_tools(self, tools_petp: Any) -> list[dict]:
         if not isinstance(tools_petp, dict):
             return []
+        cache_key = tuple(sorted(tools_petp.items()))
+        if cache_key == self._normalized_tools_cache_key:
+            return self._normalized_tools_cache_val
         result = []
         for key, value in tools_petp.items():
             parsed = self._parse_tool_value(value)
@@ -132,6 +138,8 @@ class McpMixin:
             if output_schema:
                 tool["outputSchema"] = self._strip_map_keys(output_schema)
             result.append(tool)
+        self._normalized_tools_cache_key = cache_key
+        self._normalized_tools_cache_val = result
         return result
 
     # ------------------------------------------------------------------

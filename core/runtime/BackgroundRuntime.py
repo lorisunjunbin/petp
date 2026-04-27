@@ -15,9 +15,13 @@ from utils.DateUtil import DateUtil
 
 
 class BackgroundRuntime:
+    _TOOLS_CACHE_TTL = 30
+
     def __init__(self, model: Any, ui_policy: str = "skip"):
         self.model = model
         self.ui_policy = ui_policy
+        self._tools_cache: dict | None = None
+        self._tools_cache_ts: float = 0.0
 
     def run_execution(self, execution_name: str, init_data: Optional[dict] = None) -> dict:
         started = time.time()
@@ -185,6 +189,9 @@ class BackgroundRuntime:
         return self._result(True, data_chain, None, started, [], {"executions": execution_results})
 
     def get_tools(self) -> dict:
+        now = time.time()
+        if self._tools_cache is not None and (now - self._tools_cache_ts) < self._TOOLS_CACHE_TTL:
+            return self._tools_cache
         tools = {}
         for execution_name in Execution.get_available_executions():
             execution = Execution.get_execution(execution_name)
@@ -195,7 +202,12 @@ class BackgroundRuntime:
                     and execution.mcp_desc
             ):
                 tools[execution_name] = execution.mcp_desc
+        self._tools_cache = tools
+        self._tools_cache_ts = now
         return tools
+
+    def invalidate_tools_cache(self):
+        self._tools_cache = None
 
     @staticmethod
     def _result(
@@ -247,13 +259,19 @@ class BackgroundRuntime:
         class_name = str(getattr(cls, "__name__", "")).lower()
         return "selenium" in module_name and "webdriver" in module_name and "chrome" in (module_name + class_name)
 
+    _JSON_SAFE_SCALARS = (str, int, float, bool, type(None))
+
     @staticmethod
     def _is_json_serializable(value: Any) -> bool:
-        try:
-            json.dumps(value)
+        if isinstance(value, BackgroundRuntime._JSON_SAFE_SCALARS):
             return True
-        except (TypeError, OverflowError):
-            return False
+        if isinstance(value, (list, dict)):
+            try:
+                json.dumps(value)
+                return True
+            except (TypeError, OverflowError):
+                return False
+        return False
 
     @staticmethod
     def _collect_loop_cursor(current_loop: Any, state: ExecutionState) -> str:

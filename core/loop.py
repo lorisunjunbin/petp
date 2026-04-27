@@ -69,7 +69,11 @@ class Loop:
             raise ValueError(err_msg)
 
     def get_attributes(self):
-        return json.loads(self.loop_attributes)
+        cache = getattr(self, '_attributes_cache', None)
+        if cache is None:
+            cache = json.loads(self.loop_attributes)
+            self._attributes_cache = cache
+        return cache
 
     def __str__(self):
         return str(self.__dict__)
