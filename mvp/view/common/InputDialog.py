@@ -4,6 +4,7 @@ import wx
 import wx.stc as stc
 
 from i18n.translations import t
+from mvp.view.common.ThemedButton import ThemedButton
 
 
 class InputDialog(wx.Dialog):
@@ -84,7 +85,7 @@ class InputDialog(wx.Dialog):
         btns = wx.BoxSizer(wx.HORIZONTAL)
 
         cancel_btn = wx.Button(self, wx.ID_CANCEL, t("dlg_cancel"))
-        ok_btn = wx.Button(self, wx.ID_OK, t("dlg_ok"))
+        ok_btn = ThemedButton(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
         ok_btn.Bind(wx.EVT_BUTTON, self._on_ok)
 

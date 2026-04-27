@@ -8,6 +8,7 @@ from i18n.translations import t
 from mvp.view.theme import get_theme
 from mvp.view.common.HandyToolButton import HandyToolButton
 from mvp.view.common.InputDialog import InputDialog
+from mvp.view.common.ThemedButton import ThemedButton
 
 _KEY_TIPS = {
     'task_start':     'loop_tip_task_start',
@@ -106,7 +107,7 @@ class LoopEditDialog(wx.Dialog):
         # buttons
         btns = wx.BoxSizer(wx.HORIZONTAL)
         cancel_btn = wx.Button(self, wx.ID_CANCEL, t("dlg_cancel"))
-        ok_btn = wx.Button(self, wx.ID_OK, t("dlg_ok"))
+        ok_btn = ThemedButton(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
         ok_btn.Bind(wx.EVT_BUTTON, self._on_ok)
         btns.AddStretchSpacer()

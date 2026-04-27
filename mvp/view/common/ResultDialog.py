@@ -6,6 +6,7 @@ import os
 import wx
 
 from i18n.translations import t
+from mvp.view.common.ThemedButton import ThemedButton
 
 
 class ResultDialog(wx.Dialog):
@@ -84,7 +85,7 @@ class ResultDialog(wx.Dialog):
         self._copy_btn = wx.Button(self, label=t("dlg_copy"))
         self._copy_btn.Bind(wx.EVT_BUTTON, self._on_copy)
 
-        ok_btn = wx.Button(self, wx.ID_OK, t("dlg_ok"))
+        ok_btn = ThemedButton(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
 
         btns.AddStretchSpacer()

@@ -4,6 +4,7 @@ import os
 import wx
 
 from i18n.translations import t
+from mvp.view.common.ThemedButton import ThemedButton
 
 
 class SnapshotDialog(wx.Dialog):
@@ -44,7 +45,7 @@ class SnapshotDialog(wx.Dialog):
 
         btns = wx.BoxSizer(wx.HORIZONTAL)
         btns.AddStretchSpacer()
-        self._apply_btn = wx.Button(self, wx.ID_OK, t("btn_apply_snapshot"))
+        self._apply_btn = ThemedButton(self, wx.ID_OK, t("btn_apply_snapshot"))
         self._apply_btn.Enable(False)
         close_btn = wx.Button(self, wx.ID_CANCEL, t("btn_close"))
         btns.Add(self._apply_btn, 0, wx.RIGHT, 8)

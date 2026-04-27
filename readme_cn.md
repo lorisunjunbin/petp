@@ -448,12 +448,12 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 ## 常见问题
 
-| 问题 | 解决方案 |
-|------|----------|
-| `ModuleNotFoundError` | `pip install <包名>` 或安装对应的依赖分组 |
-| wxPython 导入错误 | 确保 `.whl` 文件匹配 Python 版本和操作系统 |
-| ChromeDriver 版本不匹配 | 从 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) 下载对应版本 |
-| 端口 8866 被占用 | 在 `petpconfig.yaml` 中修改端口 |
+| 问题 | 解决方案                                                                                                    |
+|------|---------------------------------------------------------------------------------------------------------|
+| `ModuleNotFoundError` | `pip install <包名>` 或安装对应的依赖分组                                                                           |
+| wxPython 导入错误 | 确保 `.whl` 文件匹配 Python 版本和操作系统, [Phoenix-snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/) |
+| ChromeDriver 版本不匹配 | 从 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) 下载对应版本                   |
+| 端口 8866 被占用 | 在 `petpconfig.yaml` 中修改端口                                                                               |
 
 ---
 

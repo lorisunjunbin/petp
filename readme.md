@@ -448,12 +448,12 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 ## Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| `ModuleNotFoundError` | `pip install <package>` or install the corresponding requirements group |
-| wxPython import error | Ensure `.whl` matches your Python version and OS |
+| Problem | Solution                                                                                   |
+|---------|--------------------------------------------------------------------------------------------|
+| `ModuleNotFoundError` | `pip install <package>` or install the corresponding requirements group                    |
+| wxPython import error | Ensure `.whl` matches your Python version and OS,[Phoenix-snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/)                                          |
 | ChromeDriver mismatch | Download from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
-| Port 8866 in use | Change port in `petpconfig.yaml` |
+| Port 8866 in use | Change port in `petpconfig.yaml`                                                           |
 
 ---
 
