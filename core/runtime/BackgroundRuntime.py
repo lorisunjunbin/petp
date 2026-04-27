@@ -10,12 +10,12 @@ from core.pipeline import Pipeline
 from core.processor import Processor
 from core.runtime.UiProcessorPolicy import decide
 from core.task import Task
-from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
+from httpservice.constants import HTTP_RESPONSE_KEY
 from utils.DateUtil import DateUtil
 
 
 class BackgroundRuntime:
-    _TOOLS_CACHE_TTL = 30
+    _TOOLS_CACHE_TTL = 60
 
     def __init__(self, model: Any, ui_policy: str = "skip"):
         self.model = model
@@ -74,7 +74,10 @@ class BackgroundRuntime:
                 processor.set_in_loop(state.is_loop_execution)
                 processor.set_current_loop(current_loop)
 
-                self._log_start_process(current_loop, state, processor, task)
+                proc_name = type(processor).__name__
+                loop_cursor = self._collect_loop_cursor(current_loop, state)
+
+                self._log_start_process(seq, proc_name, loop_cursor, task)
 
                 skip_reason = self._skip_reason(task)
                 if skip_reason is not None:
@@ -98,7 +101,7 @@ class BackgroundRuntime:
                                 current_loop.get_loop_code(), state.get_sequence(), exception_policy, e
                             )
                             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-                            self._log_end_process(current_loop, state, processor, task)
+                            self._log_end_process(seq, proc_name, loop_cursor, task)
                             if exception_policy == 'continue':
                                 if state.advance_loop_on_exception(data_chain):
                                     continue
@@ -112,7 +115,7 @@ class BackgroundRuntime:
                         processor.do_process()
 
                 task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-                self._log_end_process(current_loop, state, processor, task)
+                self._log_end_process(seq, proc_name, loop_cursor, task)
 
                 # loop_condition: evaluate after every task inside a loop
                 if state.is_loop_execution and current_loop:
@@ -233,7 +236,7 @@ class BackgroundRuntime:
         if not isinstance(data_chain, dict):
             return {}
 
-        resp_key = HttpRequestHandler.get_response_key()
+        resp_key = HTTP_RESPONSE_KEY
         if resp_key in data_chain:
             return data_chain[data_chain[resp_key]]
 
@@ -262,15 +265,21 @@ class BackgroundRuntime:
     _JSON_SAFE_SCALARS = (str, int, float, bool, type(None))
 
     @staticmethod
-    def _is_json_serializable(value: Any) -> bool:
+    def _is_json_serializable(value: Any, _depth: int = 0) -> bool:
+        if _depth > 20:
+            return False
         if isinstance(value, BackgroundRuntime._JSON_SAFE_SCALARS):
             return True
-        if isinstance(value, (list, dict)):
-            try:
-                json.dumps(value)
-                return True
-            except (TypeError, OverflowError):
-                return False
+        if isinstance(value, dict):
+            return all(
+                isinstance(k, str) and BackgroundRuntime._is_json_serializable(v, _depth + 1)
+                for k, v in value.items()
+            )
+        if isinstance(value, (list, tuple)):
+            return all(
+                BackgroundRuntime._is_json_serializable(item, _depth + 1)
+                for item in value
+            )
         return False
 
     @staticmethod
@@ -279,20 +288,20 @@ class BackgroundRuntime:
             state.current_loop_idx)
         return (current_loop.get_loop_code() + "@" + idx) if current_loop is not None else ""
 
-    def _log_start_process(self, current_loop: Any, state: ExecutionState, processor: Processor, task: Task) -> None:
-        loop_cursor = self._collect_loop_cursor(current_loop, state)
+    def _log_start_process(self, seq: int, proc_name: str, loop_cursor: str, task: Task) -> None:
         logging.info(
-            f">-{task.start} >- {type(processor).__name__} >---------------> Task: {state.get_sequence()} {loop_cursor} -- begin >"
+            ">-%s >- %s >---------------> Task: %s %s -- begin >",
+            task.start, proc_name, seq, loop_cursor,
         )
-        logging.info(f"process start: {task.input}")
+        logging.info("process start: %s", task.input)
 
     def _log_skipped_process(self, task: Task) -> None:
-        logging.info(f"*** skipped *** : {task.input}")
+        logging.info("*** skipped *** : %s", task.input)
 
-    def _log_end_process(self, current_loop: Any, state: ExecutionState, processor: Processor, task: Task) -> None:
-        loop_cursor = self._collect_loop_cursor(current_loop, state)
+    def _log_end_process(self, seq: int, proc_name: str, loop_cursor: str, task: Task) -> None:
         logging.info(
-            f"<-{task.end} <- {type(processor).__name__} <--------------< Task: {state.get_sequence()} {loop_cursor} -- end << \n"
+            "<-%s <- %s <--------------< Task: %s %s -- end << \n",
+            task.end, proc_name, seq, loop_cursor,
         )
 
     def _skip_reason(self, task: Task) -> Optional[str]:

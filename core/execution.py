@@ -34,6 +34,10 @@ else:
 Execution 1:n Task
 """
 
+_execution_cache: dict[str, tuple[float, Any]] = {}
+_available_executions_cache: tuple[float, list] | None = None
+_AVAILABLE_EXECUTIONS_TTL = 5.0
+
 
 class Execution:
     """
@@ -90,7 +94,10 @@ class Execution:
             task: Task = self.init_task(data_chain, state.get_current_index(), state.get_sequence())
             processor: Processor = self.init_processor(task, view, current_loop, state.is_loop_execution, condition)
 
-            self.log_start_process(current_loop, state, processor, task, view)
+            proc_name = type(processor).__name__
+            loop_cursor = self.collect_loop_cursor(current_loop, state)
+
+            self.log_start_process(current_loop, state, processor, task, view, loop_cursor, proc_name)
 
             if hasattr(task, 'skipped') and task.skipped:
                 self.log_skipped_process(current_loop, state, processor, task, view)
@@ -106,7 +113,7 @@ class Execution:
                             current_loop.get_loop_code(), state.get_sequence(), exception_policy, e
                         )
                         task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-                        self.log_end_process(current_loop, state, processor, task, view)
+                        self.log_end_process(current_loop, state, processor, task, view, loop_cursor, proc_name)
                         if exception_policy == 'continue':
                             if state.advance_loop_on_exception(data_chain):
                                 continue
@@ -120,7 +127,7 @@ class Execution:
                     processor.do_process()
 
             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
-            self.log_end_process(current_loop, state, processor, task, view)
+            self.log_end_process(current_loop, state, processor, task, view, loop_cursor, proc_name)
             # process end ----
 
             # loop_condition: evaluate after every task inside a loop
@@ -182,10 +189,14 @@ class Execution:
                 self._last_log_post_time = now
                 wx.PostEvent(view, PETPEvent(PETPEvent.LOG, data=evt_data))
 
-    def log_end_process(self, current_loop, state, processor, task, view):
-        loop_cursor = self.collect_loop_cursor(current_loop, state)
+    def log_end_process(self, current_loop, state, processor, task, view, loop_cursor=None, proc_name=None):
+        if loop_cursor is None:
+            loop_cursor = self.collect_loop_cursor(current_loop, state)
+        if proc_name is None:
+            proc_name = type(processor).__name__
         logging.info(
-            f'<-{task.end} <- {type(processor).__name__} <--------------< Task: {state.get_sequence()} {loop_cursor} -- end << \n')
+            '<-%s <- %s <--------------< Task: %s %s -- end << \n',
+            task.end, proc_name, state.get_sequence(), loop_cursor)
         self.post_log_reload(state, view)
 
     def collect_loop_cursor(self, current_loop: Loop, state: ExecutionState) -> str:
@@ -195,15 +206,19 @@ class Execution:
         loop_cursor = (current_loop.get_loop_code() + "@" + idx) if current_loop is not None else ""
         return loop_cursor
 
-    def log_start_process(self, current_loop, state, processor, task, view):
-        loop_cursor = self.collect_loop_cursor(current_loop, state)
+    def log_start_process(self, current_loop, state, processor, task, view, loop_cursor=None, proc_name=None):
+        if loop_cursor is None:
+            loop_cursor = self.collect_loop_cursor(current_loop, state)
+        if proc_name is None:
+            proc_name = type(processor).__name__
         logging.info(
-            f'>-{task.start} >- {type(processor).__name__} >---------------> Task: {state.get_sequence()} {loop_cursor} -- begin >')
-        logging.info(f'process start: {task.input}')
+            '>-%s >- %s >---------------> Task: %s %s -- begin >',
+            task.start, proc_name, state.get_sequence(), loop_cursor)
+        logging.info('process start: %s', task.input)
         self.post_log_reload(state, view)
 
     def log_skipped_process(self, current_loop, state, processor, task, view):
-        logging.info(f'*** skipped *** : {task.input}')
+        logging.info('*** skipped *** : %s', task.input)
         self.post_log_reload(state, view)
 
     def init_task(self, data_chain, idx, sequence) -> Task:
@@ -240,6 +255,9 @@ class Execution:
         Only applies when the first non-empty task is NOT INITIAL_PARAMS (i.e. defaults
         are not already covered by an explicit task). Returns an empty dict otherwise.
         """
+        cached = getattr(self, '_mcp_input_defaults_cache', None)
+        if cached is not None:
+            return cached
         if not getattr(self, 'astool', False):
             return {}
         mcp_desc = getattr(self, 'mcp_desc', None)
@@ -254,9 +272,12 @@ class Execution:
         try:
             parsed = json.loads(mcp_desc)
         except (json.JSONDecodeError, TypeError):
+            self._mcp_input_defaults_cache = {}
             return {}
         props = parsed.get("inputSchema", {}).get("properties", {})
-        return {name: spec["default"] for name, spec in props.items() if "default" in spec}
+        result = {name: spec["default"] for name, spec in props.items() if "default" in spec}
+        self._mcp_input_defaults_cache = result
+        return result
 
     def expand_mcp_defaults(self, data_chain: dict) -> dict:
         """Return MCP input defaults with expressions expanded using a Processor context.
@@ -282,10 +303,12 @@ class Execution:
     def delete(self):
         OSUtils.copy2(self._get_file_path(), os.path.realpath('core') + f'{os.sep}executions{os.sep}trash{os.sep}')
         OSUtils.delete_file_if_existed(self._get_file_path())
+        _execution_cache.pop(self._get_file_path(), None)
 
     def save(self):
         if len(self.list) > 0:
             YamlRO.write(self._get_file_path(), self)
+            _execution_cache.pop(self._get_file_path(), None)
             logging.info('Successfully save execution -> ' + self._get_file_path())
 
     def __str__(self):
@@ -294,16 +317,36 @@ class Execution:
     @staticmethod
     def get_execution(filename):
         file_absolute_path = f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{filename}.yaml'
-        if OSUtils.is_file_existed(file_absolute_path):
-            return YamlRO.get_yaml_from_file(file_absolute_path)
-        else:
-            logging.warning(f'File not existed: {file_absolute_path}')
+        if not OSUtils.is_file_existed(file_absolute_path):
+            logging.warning('File not existed: %s', file_absolute_path)
             return None
+        mtime = os.path.getmtime(file_absolute_path)
+        cached = _execution_cache.get(file_absolute_path)
+        if cached is not None and cached[0] == mtime:
+            return cached[1]
+        result = YamlRO.get_yaml_from_file(file_absolute_path)
+        _execution_cache[file_absolute_path] = (mtime, result)
+        return result
+
+    @staticmethod
+    def invalidate_execution_cache(filename=None):
+        if filename is None:
+            _execution_cache.clear()
+        else:
+            file_absolute_path = f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{filename}.yaml'
+            _execution_cache.pop(file_absolute_path, None)
 
     @staticmethod
     def get_available_executions():
+        global _available_executions_cache
+        now = time.monotonic()
+        if _available_executions_cache is not None:
+            ts, result = _available_executions_cache
+            if (now - ts) < _AVAILABLE_EXECUTIONS_TTL:
+                return result
         executions = OSUtils.get_file_list(os.path.realpath('core') + os.sep + 'executions')
         result = sorted([f.replace('.yaml', '') for f in executions if '.yaml' in f])
+        _available_executions_cache = (now, result)
         return result
 
     @staticmethod

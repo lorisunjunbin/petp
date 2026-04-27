@@ -31,8 +31,8 @@ mcp_desc: "{\n  \"desc\": \"inquire about the information of recent earthquakes 
   \"magnitude or id (means timeline)\"\n      },\n      \"isAsc\": {\n        \"title\":
   \"isAsc\",\n        \"type\": \"string\",\n        \"description\": \"true means
   sort asc, otherwise desc\"\n      },\n      \"startMg\": {\n        \"title\": \"startMg\",\n
-  \       \"type\": \"string\",\n        \"description\": \" min of magnitude\"\n
-  \     },\n      \"endMg\": {\n        \"title\": \"endMg\",\n        \"type\": \"string\",\n
+  \       \"type\": \"string\",\n        \"description\": \"min of magnitude\"\n      },\n
+  \     \"endMg\": {\n        \"title\": \"endMg\",\n        \"type\": \"string\",\n
   \       \"description\": \"max of magnitude\"\n      },\n      \"startTime\": {\n
   \       \"title\": \"startTime\",\n        \"type\": \"string\",\n        \"description\":
   \"start time of date range\"\n      },\n      \"endTime\": {\n        \"title\":

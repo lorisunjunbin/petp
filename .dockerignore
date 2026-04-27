@@ -46,3 +46,4 @@ Thumbs.db
 # ── Docker build scripts (not needed inside the image) ────────────────────────
 docker_build.sh
 
+/backup/

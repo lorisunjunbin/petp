@@ -3,6 +3,7 @@ import logging
 import uuid
 from typing import Any, Generator, Optional
 
+from httpservice.constants import HTTP_RESPONSE_KEY
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 
 
@@ -186,7 +187,7 @@ class McpMixin:
         data = runtime_result.get("data")
         if not isinstance(data, dict):
             return data
-        response_key = data.get("__http_response_key__")
+        response_key = data.get(HTTP_RESPONSE_KEY)
         if not isinstance(response_key, str) or not response_key:
             legacy_key = data.get("http_response_key")
             if isinstance(legacy_key, str) and legacy_key:

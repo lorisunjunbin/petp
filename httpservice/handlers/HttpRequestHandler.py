@@ -7,6 +7,8 @@ from http.server import SimpleHTTPRequestHandler
 from collections.abc import Iterator
 import types
 
+from httpservice.constants import HTTP_REQUEST_ID_KEY, HTTP_RESPONSE_KEY
+
 
 class StreamingResponseData:
     """Wrapper to carry streaming iterator plus headers/content type."""
@@ -27,8 +29,8 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
     _routes = {}
     _server = None
     # Static global variable to store current request_id
-    _request_id_key = '__http_request_id__'
-    _response_key = '__http_response_key__'
+    _request_id_key = HTTP_REQUEST_ID_KEY
+    _response_key = HTTP_RESPONSE_KEY
 
     @classmethod
     def register_view(cls, view):

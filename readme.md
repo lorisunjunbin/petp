@@ -318,28 +318,87 @@ uv pip install --upgrade -r requirements.txt
 ### Background Mode
 
 ```bash
-# Start background service
+# Start as persistent HTTP / MCP service
 python PETP_backgroud.py
 
-# Run one execution and exit
+# Run one execution then exit (no HTTP server)
 python PETP_backgroud.py --run-execution ENDECODER --no-http
+
+# Run one pipeline then exit
+python PETP_backgroud.py --run-pipeline MY_PIPELINE --no-http
+
+# Pass initial data (JSON) into the execution
+python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+
+# Override UI policy and log level at launch time
+python PETP_backgroud.py --ui-policy abort --log-level DEBUG
 ```
 
-Key config in `petpconfig.yaml`:
+#### CLI Arguments
 
-- `nogui_enabled: true`
-- `nogui_ui_processor_policy: skip` — skip GUI processors and continue
-- `nogui_ui_processor_policy: abort` — stop on GUI processor
+| Argument | Values | Default | Description |
+|----------|--------|---------|-------------|
+| `--run-execution NAME` | any execution name | — | Run the named execution immediately on startup |
+| `--run-pipeline NAME` | any pipeline name | — | Run the named pipeline immediately on startup |
+| `--init-data JSON` | JSON object string | `{}` | Key-value pairs injected into `data_chain` before the run; MCP `default` values fill in any missing keys |
+| `--no-http` | flag | off | Skip starting the HTTP/MCP server; process exits after the job finishes |
+| `--nogui-enabled {true,false}` | `true` / `false` | `true` | Enable or disable no-GUI background mode |
+| `--ui-policy {skip,abort}` | `skip` / `abort` | `skip` | What to do when a GUI-only processor is encountered: `skip` continues silently, `abort` raises an error |
+| `--log-level LEVEL` | `DEBUG` / `INFO` / `WARNING` / `ERROR` | from config | Override the log level for this run |
+| `--http-port PORT` | integer | `8866` | Override the HTTP service port |
+| `--http-token TOKEN` | string | from config | Override the Bearer token for HTTP authentication |
 
-**Processors skipped in no-GUI mode:**
+#### `petpconfig.yaml` — Background-relevant keys
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `nogui_enabled` | `true` | Must be `true` for background mode to activate |
+| `nogui_ui_processor_policy` | `skip` | `skip` silently skips GUI processors; `abort` stops the execution on the first GUI processor |
+| `http_port` | `8866` | Port for the built-in HTTP / MCP service |
+| `http_request_token` | _(base64 string)_ | Bearer token required for all HTTP API calls |
+| `http_request_timeout` | `600` | Seconds before an HTTP request times out |
+| `log_level` | `INFO` | Runtime log verbosity |
+| `execute_on_startup` | `false` | Name of an execution to run automatically when the service starts |
+
+#### `BackgroundRuntime` result structure
+
+Every `run_execution` / `run_pipeline` call returns:
+
+```json
+{
+  "ok": true,
+  "data": { "<data_key>": "<value>", "..." : "..." },
+  "error": null,
+  "meta": {
+    "duration_ms": 42,
+    "skipped_tasks": [{ "task_index": 2, "task_type": "SHOW_RESULT", "reason": "task.skipped" }],
+    "aborted_tasks": []
+  }
+}
+```
+
+- `ok` — `true` if the execution completed without an unhandled exception
+- `data` — public subset of `data_chain` (excludes `__m`, `__p`, and non-serialisable values such as WebDriver instances); if the execution sets a `response_key`, only that key's value is returned
+- `error` — error message string on failure, `null` on success
+- `meta.duration_ms` — wall-clock execution time in milliseconds
+- `meta.skipped_tasks` — list of tasks that were bypassed (either `task.skipped = true` or filtered by `ui_policy`)
+
+#### Processors skipped in no-GUI mode
 
 | Type | Processors | Behavior |
 |------|-----------|----------|
 | Pure GUI | `SHOW_RESULT`, `INPUT_DIALOG`, `MATPLOTLIB`, `FILE_CHOOSER` | Always skipped |
 | Mouse | `MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL` | Always skipped (requires display) |
-| Selenium | `GO_TO_PAGE`, `FIND_THEN_*`, `SCREENSHOT`, etc. | Auto-detect — headless if Chrome available |
+| Selenium | `GO_TO_PAGE`, `FIND_THEN_*`, `SCREENSHOT`, etc. | Auto-detect — headless if Chrome is available |
 
 > Force headless outside Docker: set `PETP_HEADLESS=true`
+
+#### Running the test suite
+
+```bash
+python testcoverage/test_bg_runtime.py   # 15 BG-mode cases covering ENDECODER, DB_ACCESS, pipeline, tools cache, result structure
+python testcoverage/nogui_smoke.py       # single-execution smoke test, exits non-zero on failure
+```
 
 ---
 

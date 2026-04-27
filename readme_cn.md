@@ -318,20 +318,72 @@ uv pip install --upgrade -r requirements.txt
 ### 后台模式
 
 ```bash
-# 启动后台服务
+# 启动为持久化 HTTP / MCP 服务
 python PETP_backgroud.py
 
-# 运行单个 Execution 后退出
+# 运行单个 Execution 后退出（不启动 HTTP 服务）
 python PETP_backgroud.py --run-execution ENDECODER --no-http
+
+# 运行单个 Pipeline 后退出
+python PETP_backgroud.py --run-pipeline MY_PIPELINE --no-http
+
+# 传入初始数据（JSON）到执行中
+python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+
+# 启动时覆盖 UI 策略和日志级别
+python PETP_backgroud.py --ui-policy abort --log-level DEBUG
 ```
 
-`petpconfig.yaml` 关键配置：
+#### CLI 参数说明
 
-- `nogui_enabled: true`
-- `nogui_ui_processor_policy: skip` — 跳过 GUI 处理器并继续
-- `nogui_ui_processor_policy: abort` — 遇到 GUI 处理器时中止
+| 参数 | 可选值 | 默认值 | 说明 |
+|------|--------|--------|------|
+| `--run-execution NAME` | 任意 Execution 名称 | — | 启动时立即运行指定的 Execution |
+| `--run-pipeline NAME` | 任意 Pipeline 名称 | — | 启动时立即运行指定的 Pipeline |
+| `--init-data JSON` | JSON 对象字符串 | `{}` | 运行前注入 `data_chain` 的键值对；MCP `default` 值会填充其中未设置的键 |
+| `--no-http` | 标志位 | 关闭 | 不启动 HTTP/MCP 服务器，任务完成后进程直接退出 |
+| `--nogui-enabled {true,false}` | `true` / `false` | `true` | 启用或禁用无 GUI 后台模式 |
+| `--ui-policy {skip,abort}` | `skip` / `abort` | `skip` | 遇到 GUI 专属处理器时的处理策略：`skip` 静默跳过，`abort` 抛出错误 |
+| `--log-level LEVEL` | `DEBUG` / `INFO` / `WARNING` / `ERROR` | 读取配置 | 覆盖本次运行的日志级别 |
+| `--http-port PORT` | 整数 | `8866` | 覆盖 HTTP 服务端口 |
+| `--http-token TOKEN` | 字符串 | 读取配置 | 覆盖 HTTP 接口鉴权 Bearer Token |
 
-**无 GUI 模式下跳过的处理器：**
+#### `petpconfig.yaml` — 后台模式相关配置项
+
+| 配置键 | 默认值 | 说明 |
+|--------|--------|------|
+| `nogui_enabled` | `true` | 必须为 `true` 才能激活后台模式 |
+| `nogui_ui_processor_policy` | `skip` | `skip` 静默跳过 GUI 处理器；`abort` 遇到第一个 GUI 处理器时终止执行 |
+| `http_port` | `8866` | 内置 HTTP / MCP 服务的监听端口 |
+| `http_request_token` | _(base64 字符串)_ | HTTP API 接口所有请求所需的 Bearer Token |
+| `http_request_timeout` | `600` | HTTP 请求超时秒数 |
+| `log_level` | `INFO` | 运行时日志详细程度 |
+| `execute_on_startup` | `false` | 服务启动时自动执行的 Execution 名称 |
+
+#### `BackgroundRuntime` 返回结构
+
+每次 `run_execution` / `run_pipeline` 调用均返回：
+
+```json
+{
+  "ok": true,
+  "data": { "<data_key>": "<value>", "...": "..." },
+  "error": null,
+  "meta": {
+    "duration_ms": 42,
+    "skipped_tasks": [{ "task_index": 2, "task_type": "SHOW_RESULT", "reason": "task.skipped" }],
+    "aborted_tasks": []
+  }
+}
+```
+
+- `ok` — 执行过程中无未处理异常则为 `true`
+- `data` — `data_chain` 的公开子集（排除 `__m`、`__p` 及 WebDriver 等不可序列化的值）；如果执行设置了 `response_key`，则只返回该键对应的值
+- `error` — 失败时的错误信息字符串，成功时为 `null`
+- `meta.duration_ms` — 执行的墙钟耗时（毫秒）
+- `meta.skipped_tasks` — 被跳过任务的列表（`task.skipped = true` 或被 `ui_policy` 过滤）
+
+#### 无 GUI 模式下跳过的处理器
 
 | 类型 | 处理器 | 行为 |
 |------|--------|------|
@@ -340,6 +392,13 @@ python PETP_backgroud.py --run-execution ENDECODER --no-http
 | Selenium | `GO_TO_PAGE`、`FIND_THEN_*`、`SCREENSHOT` 等 | 自动检测 — 有 Chrome 则 headless 运行 |
 
 > 在 Docker 外强制 headless：设置 `PETP_HEADLESS=true`
+
+#### 运行测试套件
+
+```bash
+python testcoverage/test_bg_runtime.py   # 15 个 BG 模式用例，覆盖 ENDECODER、DB_ACCESS、Pipeline、工具缓存、返回结构
+python testcoverage/nogui_smoke.py       # 单 Execution 冒烟测试，失败时以非零退出码退出
+```
 
 ---
 

@@ -52,6 +52,9 @@ class DB_ACCESSProcessor(Processor):
         params = tuple(map(str.strip, param_str.split(','))) \
             if param_str is not None and len(str(param_str).strip()) > 0 else None
 
+        if params is not None and '%s' not in sql and '?' not in sql:
+            params = None
+
         data_set = []
         dbAccess: BaseDBAccess = None
         try:

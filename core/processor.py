@@ -7,8 +7,6 @@ import time
 from threading import Condition
 from typing import TYPE_CHECKING, Any
 
-import cryptocode
-
 from core.loop import Loop
 from core.task import Task
 from utils.DateUtil import DateUtil
@@ -418,10 +416,12 @@ class Processor:
 
     @staticmethod
     def encrypt_pwd(str) -> str:
+        import cryptocode
         return cryptocode.encrypt(str, Processor.SALT)
 
     @staticmethod
     def decrypt_pwd(str):
+        import cryptocode
         return cryptocode.decrypt(str, Processor.SALT)
 
     @staticmethod
