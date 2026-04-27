@@ -554,7 +554,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 | 2026-03 | OOTB: `OOTB_DOWNLOAD_LATEST_WXPYTHON` for macOS & Windows                                                                                                                                         |
 | 2026-03 | [`FIND_MULTI_XXXProcessor`](./core/processors/FIND_MULTI_THEN_CLICKProcessor.py) skip function                                                                                                    |
 | 2026-03 | Page load timeout in Selenium                                                                                                                                                                     |
-| 2026-02 | **MCP Tool Server** (Streamable-HTTP) — [mcp_client_4_petp](./httpservice/mcp_client_4_petp.py)                                                                                                   |
+| 2026-02 | **MCP Tool Server** (Streamable-HTTP) — [mcp_client_4_petp](./testcoverage/mcp_client_4_petp.py)                                                                                                   |
 | 2026-01 | **Zhipu Z.AI**: [SETUP](./core/processors/AI_LLM_ZHIPU_SETUPProcessor.py) / [Q&A](./core/processors/AI_LLM_ZHIPU_QANDAProcessor.py) / [MCP](./core/processors/AI_LLM_ZHIPU_QANDA_MCPProcessor.py) |
 
 ### 2025
