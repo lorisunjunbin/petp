@@ -205,8 +205,8 @@ class LogSearchBar(wx.Panel):
         self.matchCount.SetForegroundColour(self._icon_fg)
         self.matchCount.SetBackgroundColour(self._bar_bg)
 
-        self.prevBtn = _NavBtn(inner, "🔼")
-        self.nextBtn = _NavBtn(inner, "🔽")
+        self.prevBtn = _NavBtn(inner, "▲")
+        self.nextBtn = _NavBtn(inner, "▼")
         self.filterBtn = _NavBtn(inner, "≡", toggle=True)
         self.filterBtn.SetMinSize((28, 22))
 
