@@ -25,14 +25,32 @@ case "$mode" in
     entry="PETP_backgroud.py"
     mode_label="background"
     ;;
+  bgd|bg-detach|detach)
+    entry="PETP_backgroud.py"
+    mode_label="background-detached"
+    ;;
+  stop)
+    cd "$ROOT_DIR"
+    exec "$PYTHON_BIN" PETP_backgroud.py --stop
+    ;;
   -h|--help|help)
     cat <<'EOF'
 Usage:
-  ./scripts/macos/start_petp.sh [gui|bg|background] [args...]
+  ./scripts/macos/start_petp.sh [gui|bg|bgd|stop] [args...]
+
+Modes:
+  gui          Launch desktop GUI (default)
+  bg           Launch background mode (attached to terminal)
+  bgd          Launch background mode detached (nohup, survives terminal close)
+  stop         Stop a running background instance (via PID file)
 
 Examples:
   ./scripts/macos/start_petp.sh gui
   ./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+  ./scripts/macos/start_petp.sh bg --run-execution MY_EXEC --headless --no-http
+  ./scripts/macos/start_petp.sh bgd
+  ./scripts/macos/start_petp.sh bgd --headless
+  ./scripts/macos/start_petp.sh stop
 
 Environment variables (optional):
   PYTHON_BIN              Python executable (default: python)
@@ -60,5 +78,12 @@ if [[ "${PETP_ECHO_ENV:-0}" == "1" ]]; then
 fi
 
 cd "$ROOT_DIR"
-exec "$PYTHON_BIN" "$entry" "$@"
+
+if [[ "$mode_label" == "background-detached" ]]; then
+  LOG_FILE="${PETP_BG_LOG:-petp_bg.log}"
+  nohup "$PYTHON_BIN" "$entry" "$@" > "$LOG_FILE" 2>&1 &
+  echo "[PETP] Background started (PID=$!, log=$LOG_FILE)"
+else
+  exec "$PYTHON_BIN" "$entry" "$@"
+fi
 

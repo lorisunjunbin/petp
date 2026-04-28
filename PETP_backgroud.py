@@ -1,7 +1,9 @@
 import argparse
 import json
 import logging
+import os
 import signal
+import sys
 import threading
 from typing import Any
 
@@ -39,7 +41,43 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--init-data", default="{}", help="JSON object for initial data")
     parser.add_argument("--no-http", action="store_true",
                         help="Run immediate job and exit without starting HTTP server")
+    parser.add_argument("--headless", action="store_true",
+                        help="Run Selenium tasks in headless mode (auto-enabled in Docker)")
+    parser.add_argument("--stop", action="store_true",
+                        help="Stop a running background instance by reading its PID file")
     return parser.parse_args()
+
+
+_PID_FILE = os.path.join(os.path.realpath("."), "petp_bg.pid")
+
+
+def _write_pid() -> None:
+    with open(_PID_FILE, "w") as f:
+        f.write(str(os.getpid()))
+
+
+def _remove_pid() -> None:
+    try:
+        os.remove(_PID_FILE)
+    except OSError:
+        pass
+
+
+def _stop_running_instance() -> None:
+    if not os.path.isfile(_PID_FILE):
+        print("No PID file found, is PETP background running?")
+        sys.exit(1)
+    with open(_PID_FILE, "r") as f:
+        pid = int(f.read().strip())
+    try:
+        os.kill(pid, signal.SIGTERM)
+        print(f"Sent SIGTERM to PID {pid}")
+    except ProcessLookupError:
+        print(f"Process {pid} not found, removing stale PID file")
+        _remove_pid()
+    except PermissionError:
+        print(f"Permission denied to stop PID {pid}")
+        sys.exit(1)
 
 
 def _to_bool(value: Any, default: bool = True) -> bool:
@@ -86,10 +124,17 @@ def _run_immediate(runtime: BackgroundRuntime, cfg: dict) -> None:
 
 
 def start_background_app() -> None:
+    args = parse_args()
+
+    if args.stop:
+        _stop_running_instance()
+        return
+
     init_log()
     model = build_model()
     set_locale(getattr(model, 'language', 'zh'))
-    args = parse_args()
+    if args.headless:
+        os.environ['PETP_HEADLESS'] = 'true'
     cfg = _merge_config(args, model)
 
     logging.getLogger().setLevel(logging.getLevelName(cfg["log_level"]))
@@ -98,20 +143,30 @@ def start_background_app() -> None:
         logging.warning("nogui_enabled=false, background app exits")
         return
 
+    _write_pid()
+
     runtime = BackgroundRuntime(model, ui_policy=cfg["ui_policy"])
     _run_immediate(runtime, cfg)
 
-    if cfg["no_http"]:
+    has_cron = runtime._cron is not None
+
+    if cfg["no_http"] and not has_cron:
         logging.info("--no-http enabled, background app exits after immediate run")
+        _remove_pid()
         return
 
-    server = BackgroundHttpServer(runtime, cfg["http_port"], cfg["http_timeout"], cfg["http_token"])
-    server.start()
+    if not cfg["no_http"]:
+        server = BackgroundHttpServer(runtime, cfg["http_port"], cfg["http_timeout"], cfg["http_token"])
+        server.start()
+    else:
+        server = None
+        logging.info("--no-http enabled, but cron pipeline is running, waiting for shutdown signal...")
 
     stop_event = threading.Event()
 
     def _shutdown_handler(signum, frame):
         logging.info("Receive shutdown signal: %s", signum)
+        runtime.stop_all_cron()
         stop_event.set()
 
     signal.signal(signal.SIGINT, _shutdown_handler)
@@ -119,9 +174,12 @@ def start_background_app() -> None:
 
     stop_event.wait()
 
-    server.stop()
+    if server is not None:
+        server.stop()
+    _remove_pid()
     logging.info("PETP background shutdown @" + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))
     logging.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    os._exit(0)
 
 
 def main() -> None:

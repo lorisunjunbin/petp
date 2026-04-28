@@ -26,6 +26,7 @@ Task      1:1 Processor
 - [Quick Start](#quick-start)
 - [Dependency Management](#dependency-management)
 - [Running Modes](#running-modes)
+  - [Pipeline Cron Mode](#pipeline-cron-mode)
 - [HTTP Service & MCP](#http-service--mcp)
 - [Build & Docker](#build--docker)
 - [Web App (Docker & UGOS)](#web-app-docker--ugos)
@@ -159,11 +160,31 @@ The GUI launches. On first run, a default config is created at `./config/petpcon
 ```bash
 chmod +x scripts/macos/start_petp.sh scripts/macos/start_petp_gui.sh scripts/macos/start_petp_background.sh
 
-# Unified launcher (recommended)
-./scripts/macos/start_petp.sh gui
-./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+# ─── Unified launcher (recommended) ─────────────────────────────────────────
 
-# Legacy wrappers (still supported)
+# GUI mode
+./scripts/macos/start_petp.sh gui
+
+# Background mode (attached to terminal)
+./scripts/macos/start_petp.sh bg
+./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+./scripts/macos/start_petp.sh bg --run-pipeline MY_PIPELINE --no-http
+./scripts/macos/start_petp.sh bg --run-execution MY_EXEC --headless --no-http
+./scripts/macos/start_petp.sh bg --headless --http-port 9090
+
+# Background detached mode (nohup, survives terminal close)
+./scripts/macos/start_petp.sh bgd
+./scripts/macos/start_petp.sh bgd --headless
+./scripts/macos/start_petp.sh bgd --headless --http-port 9090
+
+# Stop running background instance
+./scripts/macos/start_petp.sh stop
+
+# Show help
+./scripts/macos/start_petp.sh help
+
+# ─── Legacy wrappers (still supported) ──────────────────────────────────────
+
 ./scripts/macos/start_petp_gui.sh
 ./scripts/macos/start_petp_background.sh --run-execution ENDECODER --no-http
 ```
@@ -177,7 +198,7 @@ Optional overrides:
 
 ```bash
 PYTHON_BIN=python3.14 PETP_ECHO_ENV=1 ./scripts/macos/start_petp.sh gui
-PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_PIPELINE --no-http
+PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 ```
 
 ### Windows helper scripts (recommended for long-running sessions)
@@ -188,16 +209,33 @@ PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_P
 > ```
 
 ```powershell
-# Unified launcher (recommended)
-.\scripts\windows\start_petp.ps1 gui
-.\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+# ─── Unified launcher (recommended) ─────────────────────────────────────────
 
-# Dedicated wrappers
-.\scripts\windows\start_petp_gui.ps1
-.\scripts\windows\start_petp_background.ps1 --run-execution ENDECODER --no-http
+# GUI mode
+.\scripts\windows\start_petp.ps1 gui
+
+# Background mode (attached to terminal)
+.\scripts\windows\start_petp.ps1 bg
+.\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+.\scripts\windows\start_petp.ps1 bg --run-pipeline MY_PIPELINE --no-http
+.\scripts\windows\start_petp.ps1 bg --run-execution MY_EXEC --headless --no-http
+.\scripts\windows\start_petp.ps1 bg --headless --http-port 9090
+
+# Background detached mode (hidden window, survives terminal close)
+.\scripts\windows\start_petp.ps1 bgd
+.\scripts\windows\start_petp.ps1 bgd --headless
+.\scripts\windows\start_petp.ps1 bgd --headless --http-port 9090
+
+# Stop running background instance
+.\scripts\windows\start_petp.ps1 stop
 
 # Show help
 .\scripts\windows\start_petp.ps1 help
+
+# ─── Dedicated wrappers ─────────────────────────────────────────────────────
+
+.\scripts\windows\start_petp_gui.ps1
+.\scripts\windows\start_petp_background.ps1 --run-execution ENDECODER --no-http
 ```
 
 Defaults applied automatically (only when not already set):
@@ -213,7 +251,7 @@ $env:PETP_ECHO_ENV = '1'
 
 # Background mode with custom Python
 $env:PYTHON_BIN = 'python3.14'
-.\scripts\windows\start_petp.ps1 bg --run-pipeline MY_PIPELINE --no-http
+.\scripts\windows\start_petp.ps1 bg --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 ```
 
 | Variable | Default | Description |
@@ -222,6 +260,8 @@ $env:PYTHON_BIN = 'python3.14'
 | `PYTHONUNBUFFERED` | `1` | Real-time log output |
 | `PYTHONDONTWRITEBYTECODE` | `1` | Suppress `.pyc` generation |
 | `PETP_ECHO_ENV` | _(unset)_ | Set to `1` to print runtime settings |
+| `PETP_HEADLESS` | _(unset)_ | Set to `true` to force headless Selenium (same as `--headless`) |
+| `PETP_BG_LOG` | `petp_bg.log` | Log file path for detached (`bgd`) mode |
 
 ---
 
@@ -312,26 +352,132 @@ uv pip install --upgrade -r requirements.txt
 | Mode | Entry Point | GUI | Selenium | Use Case |
 |------|------------|-----|----------|----------|
 | Desktop | `python PETP.py` | Yes | Yes | Local development, interactive RPA |
-| Background | `python PETP_backgroud.py` | No | Auto-detect | CLI, scheduled tasks |
-| Docker | `PETP_backgroud.py` in container | No | Headless | Server deployment, CI/CD |
+| Background | `python PETP_backgroud.py` | No | Yes (`--headless` optional) | CLI, scheduled tasks |
+| Docker | `PETP_backgroud.py` in container | No | Headless (auto) | Server deployment, CI/CD |
 
 ### Background Mode
 
 ```bash
-# Start as persistent HTTP / MCP service
+# ─── Basic usage ─────────────────────────────────────────────────────────────
+
+# Start as persistent HTTP / MCP service (port 8866)
 python PETP_backgroud.py
 
 # Run one execution then exit (no HTTP server)
 python PETP_backgroud.py --run-execution ENDECODER --no-http
 
 # Run one pipeline then exit
-python PETP_backgroud.py --run-pipeline MY_PIPELINE --no-http
+python PETP_backgroud.py --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 
 # Pass initial data (JSON) into the execution
 python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 
-# Override UI policy and log level at launch time
+# ─── Selenium (headless) ─────────────────────────────────────────────────────
+
+# Run Selenium tasks in headless mode (no visible browser window)
+python PETP_backgroud.py --run-execution MY_SELENIUM_EXEC --headless --no-http
+
+# Headless pipeline
+python PETP_backgroud.py --run-pipeline MY_PIPELINE --headless --no-http
+
+# Headless persistent service
+python PETP_backgroud.py --headless
+
+# ─── Overrides ───────────────────────────────────────────────────────────────
+
+# Override UI policy and log level
 python PETP_backgroud.py --ui-policy abort --log-level DEBUG
+
+# Custom HTTP port and auth token
+python PETP_backgroud.py --http-port 9090 --http-token my_secret_token
+
+# Combine: headless + custom port + execution on startup
+python PETP_backgroud.py --headless --http-port 9090 --run-execution STARTUP_TASK
+
+# ─── Process management ──────────────────────────────────────────────────────
+
+# Start detached from terminal (survives terminal close)
+nohup python PETP_backgroud.py > petp_bg.log 2>&1 &
+
+# Start detached with headless Selenium
+nohup python PETP_backgroud.py --headless > petp_bg.log 2>&1 &
+
+# Stop the running background instance (reads PID file, sends SIGTERM)
+python PETP_backgroud.py --stop
+
+# ─── Using helper scripts (macOS) ───────────────────────────────────────────
+
+./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+./scripts/macos/start_petp.sh bg --headless --run-pipeline MY_PIPELINE --no-http
+./scripts/macos/start_petp.sh bgd                    # detached (nohup)
+./scripts/macos/start_petp.sh bgd --headless         # detached + headless
+./scripts/macos/start_petp.sh stop                   # stop running instance
+
+# ─── Using helper scripts (Windows) ─────────────────────────────────────────
+
+# .\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+# .\scripts\windows\start_petp.ps1 bg --headless --run-pipeline MY_PIPELINE --no-http
+# .\scripts\windows\start_petp.ps1 bgd                    # detached (hidden window)
+# .\scripts\windows\start_petp.ps1 bgd --headless         # detached + headless
+# .\scripts\windows\start_petp.ps1 stop                   # stop running instance
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+
+# Docker auto-enables headless (PETP_HEADLESS=true in Dockerfile)
+docker run --rm -p 8866:8866 petp-background:amd64-local
+
+# Docker with execution on startup
+docker run --rm petp-background:amd64-local python PETP_backgroud.py --run-execution MY_EXEC --no-http
+
+# Docker with custom port and initial data
+docker run --rm -p 9090:9090 petp-background:amd64-local \
+  python PETP_backgroud.py --http-port 9090 --run-execution MY_EXEC --init-data '{"env":"prod"}'
+```
+
+### Pipeline Cron Mode
+
+Pipelines can run on a cron schedule. Setup in the GUI:
+
+1. Switch to **Pipelines** tab → select or create a pipeline
+2. Check **as cron** → enter a cron expression (e.g. `0 9 * * 1-5`)
+3. Click **Execute** — runs on schedule until stopped via **Stop** / **Stop All**
+
+The tooltip on the cron input shows a human-readable description (e.g. "At 09:00 AM, Monday through Friday").
+
+**Example YAML:**
+
+```yaml
+!!python/object:core.pipeline.Pipeline
+pipeline: DAILY_REPORT
+cronEnabled: true
+cronExp: 0 9 * * 1-5
+cronDesc: At 09:00 AM, Monday through Friday
+list:
+- execution: fetch_data
+  input: ''
+- execution: generate_report
+  input: ''
+- execution: send_email
+  input: '{"to":"team@example.com"}'
+```
+
+**Running examples:**
+
+```bash
+# GUI — cron managed via checkbox + expression input, persisted in YAML
+
+# Background — run a pipeline once (cron fields are saved but not auto-scheduled in BG mode)
+python PETP_backgroud.py --run-pipeline DAILY_REPORT --no-http
+
+# Background — run with initial data
+python PETP_backgroud.py --run-pipeline DAILY_REPORT --init-data '{"to":"ops@example.com"}' --no-http
+
+# Background — persistent HTTP service (pipelines triggered via POST /petp/exec)
+python PETP_backgroud.py
+
+# Docker
+docker run --rm -p 8866:8866 petp-background:amd64-local
+# then: POST http://localhost:8866/petp/exec  {"pipeline":"DAILY_REPORT","wait_for_result":true}
 ```
 
 #### CLI Arguments
@@ -342,6 +488,8 @@ python PETP_backgroud.py --ui-policy abort --log-level DEBUG
 | `--run-pipeline NAME` | any pipeline name | — | Run the named pipeline immediately on startup |
 | `--init-data JSON` | JSON object string | `{}` | Key-value pairs injected into `data_chain` before the run; MCP `default` values fill in any missing keys |
 | `--no-http` | flag | off | Skip starting the HTTP/MCP server; process exits after the job finishes |
+| `--headless` | flag | off | Run Selenium tasks in headless mode (auto-enabled in Docker) |
+| `--stop` | flag | — | Stop a running background instance by reading its PID file and sending SIGTERM |
 | `--nogui-enabled {true,false}` | `true` / `false` | `true` | Enable or disable no-GUI background mode |
 | `--ui-policy {skip,abort}` | `skip` / `abort` | `skip` | What to do when a GUI-only processor is encountered: `skip` continues silently, `abort` raises an error |
 | `--log-level LEVEL` | `DEBUG` / `INFO` / `WARNING` / `ERROR` | from config | Override the log level for this run |
@@ -385,13 +533,23 @@ Every `run_execution` / `run_pipeline` call returns:
 
 #### Processors skipped in no-GUI mode
 
-| Type | Processors | Behavior |
-|------|-----------|----------|
-| Pure GUI | `SHOW_RESULT`, `INPUT_DIALOG`, `MATPLOTLIB`, `FILE_CHOOSER` | Always skipped |
-| Mouse | `MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL` | Always skipped (requires display) |
-| Selenium | `GO_TO_PAGE`, `FIND_THEN_*`, `SCREENSHOT`, etc. | Auto-detect — headless if Chrome is available |
+Only processors that **require OS-level GUI interaction with no headless alternative** are skipped:
 
-> Force headless outside Docker: set `PETP_HEADLESS=true`
+| Processor | Reason |
+|-----------|--------|
+| `FILE_CHOOSER` | Uses `pyautogui` to interact with OS file chooser dialog; no programmatic alternative |
+
+The following processors use `self.view is not None` guard and **degrade gracefully** in BG mode (log/fallback, not skipped):
+
+| Processor | BG mode behavior |
+|-----------|-----------------|
+| `SHOW_RESULT` | Logs title + message |
+| `INPUT_DIALOG` | Uses `default_value` param, continues execution |
+| `MATPLOTLIB` | Logs chart params |
+
+All **Selenium** processors (`GO_TO_PAGE`, `FIND_THEN_CLICK`, etc.) run normally in BG mode. All **Mouse** processors (`MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL`) run normally via pyautogui.
+
+> Force headless Selenium outside Docker: `--headless` flag or `PETP_HEADLESS=true` env var (auto-enabled in Docker).
 
 #### Running the test suite
 

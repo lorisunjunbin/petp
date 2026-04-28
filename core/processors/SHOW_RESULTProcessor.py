@@ -34,7 +34,7 @@ class SHOW_RESULTProcessor(Processor):
 
         logging.info('[SHOW_RESULT] %s', title)
         logging.debug('[SHOW_RESULT] %s\n%s', title, msg)
-        if wx is not None:
+        if self.view is not None and wx is not None:
             # wx.Dialog must be created on the main thread (macOS requirement).
             # Use wx.CallAfter to delegate, and block this worker thread
             # until the user dismisses the dialog.

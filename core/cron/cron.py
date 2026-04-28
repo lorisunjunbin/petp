@@ -1,79 +1,119 @@
 import logging
 import threading
-import time
 from datetime import datetime, timedelta
 from croniter import croniter
 from core.cron.runnableascron import RunnableAsCron
 
 from threading import Condition, Thread
 
-class Cron:
-    runnableAsCron: [RunnableAsCron] = []
-    runningCron: {str} = set()
-    view: None
-    cond: Condition
 
-    def __init__(self, view):
+class Cron:
+
+    def __init__(self, view, on_run=None):
         self.view = view
-        Thread(target=self._loop_worker, daemon=True).start()
+        self._on_run = on_run
+        self._pending: list[RunnableAsCron] = []
+        self._running_keys: set[str] = set()
+        self._threads: dict[str, Thread] = {}
+        self._stop = threading.Event()
+        self._lock = threading.Lock()
+        self._has_work = threading.Event()
+        self._worker = Thread(target=self._loop_worker, daemon=True)
+        self._worker.start()
 
     def add_one(self, cron: RunnableAsCron):
-        self.runnableAsCron.append(cron)
+        key = cron.get_key()
+        with self._lock:
+            if key in self._running_keys:
+                logging.info('Cron - already running: %s, skip', key)
+                return
+            if any(c.get_key() == key for c in self._pending):
+                logging.info('Cron - already pending: %s, skip', key)
+                return
+            self._pending.append(cron)
+        self._has_work.set()
 
     def stop_one(self, cron: RunnableAsCron):
         key = cron.get_key()
-        if key in self.runningCron:
-            self.runningCron.remove(key)
-            logging.info('Cron - stop cron: ' + key)
+        with self._lock:
+            self._running_keys.discard(key)
+            self._pending[:] = [c for c in self._pending if c.get_key() != key]
+            t = self._threads.pop(key, None)
+        logging.info('Cron - stop cron: %s', key)
+        if t is not None:
+            t.join(timeout=5)
 
     def stop_all(self):
-        self.runningCron.clear()
+        self._stop.set()
+        with self._lock:
+            self._running_keys.clear()
+            self._pending.clear()
+            threads = list(self._threads.values())
+            self._threads.clear()
+        self._has_work.set()
+        for t in threads:
+            t.join(timeout=5)
+        self._worker.join(timeout=3)
         logging.info('Cron - stop ALL')
 
     def _loop_worker(self):
         logging.info('cron - loop_worker is running')
-        self.cond = Condition()
-        while True:
-            if len(self.runnableAsCron) > 0:
-                c: RunnableAsCron = self.runnableAsCron.pop(0)
+        while not self._stop.is_set():
+            self._has_work.wait()
+            if self._stop.is_set():
+                break
+            with self._lock:
+                if not self._pending:
+                    self._has_work.clear()
+                    continue
+                c = self._pending.pop(0)
                 key = c.get_key()
-
-                if not key in self.runningCron:
-                    logging.info('Cron - start cron :' + key)
-                    self.runningCron.add(key)
-                    threading.Thread(target=self._check_and_run, args=(c,), daemon=True).start()
-            else:
-                time.sleep(5)
-
-    def _get_running_key(self, pipeline: RunnableAsCron):
-        return f'{pipeline.pipeline}_{pipeline.cronExp}'
+                if key in self._running_keys:
+                    continue
+                self._running_keys.add(key)
+                if not self._pending:
+                    self._has_work.clear()
+            logging.info('Cron - start cron: %s', key)
+            t = Thread(target=self._check_and_run, args=(c,), daemon=True)
+            with self._lock:
+                self._threads[key] = t
+            t.start()
 
     def _check_and_run(self, cron: RunnableAsCron):
-
         schedule = cron.get_cron()
         key = cron.get_key()
+        cond = Condition()
         nextRunTime = self._get_next_cron_run_time(schedule)
-        logging.info(f'Cron - check_and_run {key} -> next run @{nextRunTime}')
-        while True:
-            if not key in self.runningCron:
-                logging.info('Cron - Thread finished of cron: ' + key)
+        logging.info('Cron - check_and_run %s -> next run @%s', key, nextRunTime)
+        while not self._stop.is_set():
+            if key not in self._running_keys:
+                logging.info('Cron - Thread finished of cron: %s', key)
                 break
 
             roundedDownTime = self._round_down_time()
-            if (roundedDownTime == nextRunTime):
-                logging.info(f'Cron - running_as_cron [ {schedule} ] start : {cron.get_name()}')
-                cron.run_sync({'running_as_cron': schedule}, self.view, self.cond)
-                logging.info(f'Cron - running_as_cron [ {schedule} ] done: {cron.get_name()}')
+            if roundedDownTime == nextRunTime:
+                logging.info('Cron - running_as_cron [ %s ] start : %s', schedule, cron.get_name())
+                try:
+                    if self._on_run is not None:
+                        self._on_run(cron, {'running_as_cron': schedule})
+                    else:
+                        cron.run_sync({'running_as_cron': schedule}, self.view, cond)
+                except Exception:
+                    logging.exception('Cron - exception in cron [ %s ] %s, will retry next schedule', schedule, cron.get_name())
+                logging.info('Cron - running_as_cron [ %s ] done: %s', schedule, cron.get_name())
                 nextRunTime = self._get_next_cron_run_time(schedule)
-            elif (roundedDownTime > nextRunTime):
-                # We missed an execution. Error. Re initialize.
+            elif roundedDownTime > nextRunTime:
                 nextRunTime = self._get_next_cron_run_time(schedule)
-            self._sleep_till_top_of_next_minute()
+            if self._stop.wait(timeout=self._seconds_till_next_minute()):
+                break
+        with self._lock:
+            self._threads.pop(key, None)
 
     # Round time down to the top of the previous minute
     def _round_down_time(self, dt=None, dateDelta=timedelta(minutes=1)):
         roundTo = dateDelta.total_seconds()
-        if dt == None: dt = datetime.now()
+        if dt is None:
+            dt = datetime.now()
         seconds = (dt - dt.min).seconds
         rounding = (seconds + roundTo / 2) // roundTo * roundTo
         return dt + timedelta(0, rounding - seconds, -dt.microsecond)
@@ -82,8 +122,7 @@ class Cron:
     def _get_next_cron_run_time(self, schedule):
         return croniter(schedule, datetime.now()).get_next(datetime)
 
-    # Sleep till the top of the next minute
-    def _sleep_till_top_of_next_minute(self):
-        t = datetime.utcnow()
-        sleeptime = 60 - (t.second + t.microsecond / 1000000.0)
-        time.sleep(sleeptime)
+    @staticmethod
+    def _seconds_till_next_minute():
+        t = datetime.now()
+        return 60 - (t.second + t.microsecond / 1_000_000.0)

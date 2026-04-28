@@ -39,7 +39,7 @@ class MATPLOTLIBProcessor(Processor):
         show_toolbar = True if 'True' == self.expression2str(self.get_param('show_toolbar')) else False
         data = self.get_json_param('data_json')
 
-        if wx is not None:
+        if self.view is not None and wx is not None:
             wx.PostEvent(self.get_view(), PETPEvent(PETPEvent.MATPLOTLIB, {
                 "title": title,
                 "chart_type": chart_type,

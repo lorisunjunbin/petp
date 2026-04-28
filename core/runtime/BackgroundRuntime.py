@@ -4,6 +4,7 @@ import time
 from threading import Condition
 from typing import Any, Optional
 
+from core.cron.cron import Cron
 from core.execution import Execution
 from core.executionstate import ExecutionState
 from core.pipeline import Pipeline
@@ -22,6 +23,7 @@ class BackgroundRuntime:
         self.ui_policy = ui_policy
         self._tools_cache: dict | None = None
         self._tools_cache_ts: float = 0.0
+        self._cron: Cron | None = None
 
     def run_execution(self, execution_name: str, init_data: Optional[dict] = None) -> dict:
         started = time.time()
@@ -162,20 +164,65 @@ class BackgroundRuntime:
         if pipeline is None:
             return self._result(False, {}, f"Pipeline not found: {pipeline_name}", started)
 
+        if getattr(pipeline, 'cronEnabled', False):
+            return self._run_pipeline_as_cron(pipeline, started)
+
+        return self._run_pipeline_once(pipeline, pipeline_name, init_data, started)
+
+    def _run_pipeline_as_cron(self, pipeline: Pipeline, started: float) -> dict:
+        cron_exp = getattr(pipeline, 'cronExp', '')
+        cron_desc = getattr(pipeline, 'cronDesc', '')
+        if self._cron is None:
+            self._cron = Cron(None, on_run=self._cron_run_pipeline)
+        self._cron.add_one(pipeline)
+        logging.info('Pipeline %s registered as cron [ %s ] %s', pipeline.pipeline, cron_exp, cron_desc)
+        return self._result(True, {}, None, started, [], {
+            "mode": "cron",
+            "cronExp": cron_exp,
+            "cronDesc": cron_desc,
+        })
+
+    def stop_pipeline_cron(self, pipeline_name: str) -> None:
+        if self._cron is None:
+            return
+        pipeline = Pipeline.get_pipeline(pipeline_name)
+        if pipeline is not None:
+            self._cron.stop_one(pipeline)
+
+    def stop_all_cron(self) -> None:
+        if self._cron is not None:
+            self._cron.stop_all()
+
+    def _cron_run_pipeline(self, cron_obj, init_data: dict) -> None:
+        pipeline_name = cron_obj.get_name()
+        started = time.time()
+        result = self._run_pipeline_once(cron_obj, pipeline_name, init_data, started)
+        logging.info("Cron pipeline result: %s", json.dumps(result, ensure_ascii=False, default=str))
+
+    def _run_pipeline_once(self, pipeline: Pipeline, pipeline_name: str, init_data: Optional[dict], started: float) -> dict:
+        cron_desc = getattr(pipeline, 'cronDesc', '')
+        cron_exp = getattr(pipeline, 'cronExp', '')
+        logging.info('<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline: %s  [ %s ] %s - >>>>>>>>>>>>>>>>>>>>>', pipeline_name, cron_exp, cron_desc)
+
         data_chain = dict(init_data or {})
         execution_results = []
 
         try:
-            for execution_def in pipeline.list:
+            for idx, execution_def in enumerate(pipeline.list, start=1):
                 execution_name = execution_def.get("execution")
                 execution_input = pipeline.load_proper_input(execution_def)
                 merged_input = dict(data_chain)
                 merged_input.update(execution_input)
 
+                logging.info('[ %s ]>> Execution %s: %s', pipeline_name, idx, execution_name)
+
                 result = self.run_execution(execution_name, merged_input)
                 execution_results.append({"execution": execution_name, "result": result})
 
+                logging.info('[ %s ]<< Execution %s: %s < %s', pipeline_name, idx, execution_name, 'DONE' if result["ok"] else 'FAILED')
+
                 if not result["ok"]:
+                    logging.info('<<<<<<<<<<<<<<<<<<<<<-  FAILED RUN Pipeline: %s - >>>>>>>>>>>>>>>>>>>>>', pipeline_name)
                     return self._result(
                         False,
                         result.get("data", {}),
@@ -189,6 +236,7 @@ class BackgroundRuntime:
             logging.exception("Pipeline failed: %s", pipeline_name)
             return self._result(False, data_chain, f"Pipeline failed: {pipeline_name}, error: {e}", started)
 
+        logging.info('<<<<<<<<<<<<<<<<<<<<<-  Successfully RUN Pipeline: %s - >>>>>>>>>>>>>>>>>>>>>', pipeline_name)
         return self._result(True, data_chain, None, started, [], {"executions": execution_results})
 
     def get_tools(self) -> dict:

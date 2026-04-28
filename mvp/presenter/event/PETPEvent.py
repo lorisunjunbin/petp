@@ -14,6 +14,7 @@ if _WX_AVAILABLE:
         OPEN_INPUT_DIALOG = 88880004
         HTTP_REQUEST = 88880005
         MATPLOTLIB = 88880006
+        PIPELINE_STEP = 88880007
 
         def __init__(self, etype, data=None, handler=None):
             wx.PyEvent.__init__(self)
@@ -35,6 +36,7 @@ else:
         OPEN_INPUT_DIALOG = 88880004
         HTTP_REQUEST = 88880005
         MATPLOTLIB = 88880006
+        PIPELINE_STEP = 88880007
 
         def __init__(self, etype, data=None, handler=None):
             self.etype = etype

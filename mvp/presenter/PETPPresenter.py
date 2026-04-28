@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 import concurrent.futures
 import time
 from threading import Thread
@@ -97,6 +98,23 @@ class PETPPresenter():
         self._load_config()
 
         view.Bind(wx.EVT_SYS_COLOUR_CHANGED, self._on_sys_appearance_changed)
+
+        self._welcome_index = random.randrange(10)
+        self._welcome_total = 10
+        self._welcome_paused = False
+        wx.CallLater(800, self._rotate_welcome)
+
+    def _rotate_welcome(self):
+        if self.v is None:
+            return
+        if not self._welcome_paused:
+            key = f"welcome_{self._welcome_index % self._welcome_total}"
+            self._set_highlight_info(t(key))
+            self._welcome_index += 1
+        wx.CallLater(60000, self._rotate_welcome)
+
+    def _resume_welcome(self):
+        self._welcome_paused = False
 
     def _handle_execute_on_startup(self):
         if self.m.execute_on_startup:
@@ -416,7 +434,8 @@ class PETPPresenter():
             content = t("dlg_no_referencing_executions").format(name=processor_name)
 
         from mvp.view.common.ResultDialog import ResultDialog
-        dlg = ResultDialog(self.v, title=t("dlg_referencing_executions_title").format(name=processor_name), message=content)
+        dlg = ResultDialog(self.v, title=t("dlg_referencing_executions_title").format(name=processor_name),
+                           message=content)
         dlg.ShowModal()
         dlg.Destroy()
 
@@ -671,7 +690,25 @@ class PETPPresenter():
 
     def update_highlight_info_start(self, name: str):
         self._exec_start_time = time.time()
+        self._welcome_paused = True
         self._set_highlight_info(f"[START] {name}")
+
+    def update_highlight_info_pipeline_start(self, name: str):
+        self._pipeline_start_time = time.time()
+        self._welcome_paused = True
+        self._set_highlight_info(f"[PIPELINE START] {name}")
+
+    def update_highlight_info_pipeline_done(self, name: str):
+        elapsed = time.time() - self._pipeline_start_time if hasattr(self,
+                                                                     '_pipeline_start_time') and self._pipeline_start_time else 0
+        self._set_highlight_info(f"[PIPELINE DONE] {name}  {elapsed:.1f}s")
+        wx.CallLater(8000, self._resume_welcome)
+
+    def select_pipeline_execution_row(self, row_idx: int):
+        grid = self.v.executionGrid
+        if row_idx < grid.GetNumberRows():
+            grid.SelectRow(row_idx)
+            grid.MakeCellVisible(row_idx, 0)
 
     def update_highlight_info_done(self, name: str, error: str = None):
         if error:
@@ -682,6 +719,7 @@ class PETPPresenter():
         else:
             elapsed = time.time() - self._exec_start_time if self._exec_start_time else 0
             self._set_highlight_info(f"[DONE] {name}  {elapsed:.1f}s")
+        wx.CallLater(8000, self._resume_welcome)
 
     @reload_log_after
     def on_execution_pipeline_changed(self):
@@ -959,13 +997,15 @@ class PETPPresenter():
             })
 
         if (len(list) > 0):
-            if self.v.asCronChecbox.IsChecked():
-                if not t(self.CRON_INVALID) == self.v.lableCronExplain.GetLabel():
-                    Pipeline(name, list, self.v.asCronChecbox.IsChecked(), self.v.cronInput.GetValue()).save()
-                else:
-                    logging.warning(t("msg_cron_cannot_save"))
-            else:
-                Pipeline(name, list).save()
+            cron_exp = self.v.cronInput.GetValue()
+            cron_desc = self._explain_cron(cron_exp) if cron_exp.strip() else ''
+            cron_enabled = self.v.asCronChecbox.IsChecked()
+
+            if cron_enabled and t(self.CRON_INVALID) == cron_desc:
+                logging.warning(t("msg_cron_cannot_save"))
+                return
+
+            Pipeline(name, list, cron_enabled, cron_exp, cron_desc).save()
         else:
             logging.warning(t("msg_exec_list_empty"))
 
@@ -1143,7 +1183,6 @@ class PETPPresenter():
     def on_select_recording(self):
         with wx.FileDialog(self.v, t("fdlg_open_recording"), wildcard="recording files (*.json)|*.json",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
-
             if fileDialog.ShowModal() == wx.ID_CANCEL:
                 return
 
@@ -1585,11 +1624,13 @@ class PETPPresenter():
     @reload_log_after
     def _update_cron_setting(self, enabled: bool):
         if enabled:
-            self.v.lableCronExplain.SetLabel(self._explain_cron(self.v.cronInput.GetValue()))
             self.v.cronInput.Enable(True)
         else:
-            self.v.lableCronExplain.SetLabel("")
             self.v.cronInput.Enable(False)
+        cronExp = self.v.cronInput.GetValue()
+        cronDesc = self._explain_cron(cronExp)
+        self.v.cronInput.SetToolTip(cronDesc)
+        logging.info("CORN [ %s ] -> %s", cronExp, cronDesc)
 
     def _explain_cron(self, cron):
         try:
@@ -1928,10 +1969,10 @@ class PETPPresenter():
             return False
         current = self._capture_snapshot()
         return (
-            current["tasks"] != self._saved_snapshot["tasks"]
-            or current["loops"] != self._saved_snapshot["loops"]
-            or current["mcp_desc"] != self._saved_snapshot["mcp_desc"]
-            or current["astool"] != self._saved_snapshot["astool"]
+                current["tasks"] != self._saved_snapshot["tasks"]
+                or current["loops"] != self._saved_snapshot["loops"]
+                or current["mcp_desc"] != self._saved_snapshot["mcp_desc"]
+                or current["astool"] != self._saved_snapshot["astool"]
         )
 
     def _update_save_button(self):

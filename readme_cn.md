@@ -26,6 +26,7 @@ Task      1:1 Processor
 - [快速开始](#快速开始)
 - [依赖管理](#依赖管理)
 - [运行模式](#运行模式)
+  - [Pipeline 定时模式](#pipeline-定时模式)
 - [HTTP 服务与 MCP](#http-服务与-mcp)
 - [打包与 Docker](#打包与-docker)
 - [Web App（Docker & UGOS）](#web-appdocker--ugos)
@@ -159,11 +160,31 @@ GUI 窗口将启动。首次运行会在 `./config/petpconfig.yaml` 创建默认
 ```bash
 chmod +x scripts/macos/start_petp.sh scripts/macos/start_petp_gui.sh scripts/macos/start_petp_background.sh
 
-# 统一入口（推荐）
-./scripts/macos/start_petp.sh gui
-./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+# ─── 统一入口（推荐）─────────────────────────────────────────────────────────
 
-# 兼容旧脚本（仍可用）
+# GUI 模式
+./scripts/macos/start_petp.sh gui
+
+# 后台模式（绑定终端）
+./scripts/macos/start_petp.sh bg
+./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+./scripts/macos/start_petp.sh bg --run-pipeline MY_PIPELINE --no-http
+./scripts/macos/start_petp.sh bg --run-execution MY_EXEC --headless --no-http
+./scripts/macos/start_petp.sh bg --headless --http-port 9090
+
+# 后台脱离终端模式（nohup，终端关闭不影响运行）
+./scripts/macos/start_petp.sh bgd
+./scripts/macos/start_petp.sh bgd --headless
+./scripts/macos/start_petp.sh bgd --headless --http-port 9090
+
+# 停止运行中的后台实例
+./scripts/macos/start_petp.sh stop
+
+# 查看帮助
+./scripts/macos/start_petp.sh help
+
+# ─── 兼容旧脚本（仍可用）─────────────────────────────────────────────────────
+
 ./scripts/macos/start_petp_gui.sh
 ./scripts/macos/start_petp_background.sh --run-execution ENDECODER --no-http
 ```
@@ -177,7 +198,7 @@ chmod +x scripts/macos/start_petp.sh scripts/macos/start_petp_gui.sh scripts/mac
 
 ```bash
 PYTHON_BIN=python3.14 PETP_ECHO_ENV=1 ./scripts/macos/start_petp.sh gui
-PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_PIPELINE --no-http
+PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 ```
 
 ### Windows 启动脚本（建议长时间运行时使用）
@@ -188,16 +209,33 @@ PYTHONMALLOC=malloc ./scripts/macos/start_petp.sh background --run-pipeline MY_P
 > ```
 
 ```powershell
-# 统一入口（推荐）
-.\scripts\windows\start_petp.ps1 gui
-.\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+# ─── 统一入口（推荐）─────────────────────────────────────────────────────────
 
-# 独立快捷脚本
-.\scripts\windows\start_petp_gui.ps1
-.\scripts\windows\start_petp_background.ps1 --run-execution ENDECODER --no-http
+# GUI 模式
+.\scripts\windows\start_petp.ps1 gui
+
+# 后台模式（绑定终端）
+.\scripts\windows\start_petp.ps1 bg
+.\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+.\scripts\windows\start_petp.ps1 bg --run-pipeline MY_PIPELINE --no-http
+.\scripts\windows\start_petp.ps1 bg --run-execution MY_EXEC --headless --no-http
+.\scripts\windows\start_petp.ps1 bg --headless --http-port 9090
+
+# 后台脱离终端模式（隐藏窗口，终端关闭不影响运行）
+.\scripts\windows\start_petp.ps1 bgd
+.\scripts\windows\start_petp.ps1 bgd --headless
+.\scripts\windows\start_petp.ps1 bgd --headless --http-port 9090
+
+# 停止运行中的后台实例
+.\scripts\windows\start_petp.ps1 stop
 
 # 查看帮助
 .\scripts\windows\start_petp.ps1 help
+
+# ─── 独立快捷脚本 ────────────────────────────────────────────────────────────
+
+.\scripts\windows\start_petp_gui.ps1
+.\scripts\windows\start_petp_background.ps1 --run-execution ENDECODER --no-http
 ```
 
 默认自动应用（仅在未预先设置时生效）：
@@ -213,7 +251,7 @@ $env:PETP_ECHO_ENV = '1'
 
 # 后台模式，指定 Python 版本
 $env:PYTHON_BIN = 'python3.14'
-.\scripts\windows\start_petp.ps1 bg --run-pipeline MY_PIPELINE --no-http
+.\scripts\windows\start_petp.ps1 bg --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 ```
 
 | 变量 | 默认值 | 说明 |
@@ -222,6 +260,8 @@ $env:PYTHON_BIN = 'python3.14'
 | `PYTHONUNBUFFERED` | `1` | 实时输出日志 |
 | `PYTHONDONTWRITEBYTECODE` | `1` | 禁止生成 `.pyc` 文件 |
 | `PETP_ECHO_ENV` | _(未设置)_ | 设为 `1` 可打印运行时配置 |
+| `PETP_HEADLESS` | _(未设置)_ | 设为 `true` 强制 Selenium headless 运行（等同 `--headless`） |
+| `PETP_BG_LOG` | `petp_bg.log` | 脱离终端模式（`bgd`）的日志文件路径 |
 
 ---
 
@@ -312,26 +352,132 @@ uv pip install --upgrade -r requirements.txt
 | 模式 | 入口 | GUI | Selenium | 适用场景 |
 |------|------|-----|----------|----------|
 | 桌面 | `python PETP.py` | 有 | 有 | 本地开发、交互式 RPA |
-| 后台 | `python PETP_backgroud.py` | 无 | 自动检测 | CLI、定时任务 |
-| Docker | 容器内 `PETP_backgroud.py` | 无 | Headless | 服务器部署、CI/CD |
+| 后台 | `python PETP_backgroud.py` | 无 | 有（`--headless` 可选） | CLI、定时任务 |
+| Docker | 容器内 `PETP_backgroud.py` | 无 | Headless（自动） | 服务器部署、CI/CD |
 
 ### 后台模式
 
 ```bash
-# 启动为持久化 HTTP / MCP 服务
+# ─── 基本用法 ────────────────────────────────────────────────────────────────
+
+# 启动为持久化 HTTP / MCP 服务（端口 8866）
 python PETP_backgroud.py
 
 # 运行单个 Execution 后退出（不启动 HTTP 服务）
 python PETP_backgroud.py --run-execution ENDECODER --no-http
 
 # 运行单个 Pipeline 后退出
-python PETP_backgroud.py --run-pipeline MY_PIPELINE --no-http
+python PETP_backgroud.py --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 
 # 传入初始数据（JSON）到执行中
 python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 
-# 启动时覆盖 UI 策略和日志级别
+# ─── Selenium（headless 模式）────────────────────────────────────────────────
+
+# 以 headless 模式运行 Selenium 任务（无可见浏览器窗口）
+python PETP_backgroud.py --run-execution MY_SELENIUM_EXEC --headless --no-http
+
+# Headless Pipeline
+python PETP_backgroud.py --run-pipeline MY_PIPELINE --headless --no-http
+
+# Headless 持久化服务
+python PETP_backgroud.py --headless
+
+# ─── 参数覆盖 ────────────────────────────────────────────────────────────────
+
+# 覆盖 UI 策略和日志级别
 python PETP_backgroud.py --ui-policy abort --log-level DEBUG
+
+# 自定义 HTTP 端口和鉴权 Token
+python PETP_backgroud.py --http-port 9090 --http-token my_secret_token
+
+# 组合：headless + 自定义端口 + 启动时执行
+python PETP_backgroud.py --headless --http-port 9090 --run-execution STARTUP_TASK
+
+# ─── 进程管理 ────────────────────────────────────────────────────────────────
+
+# 脱离终端启动（终端关闭后不影响运行）
+nohup python PETP_backgroud.py > petp_bg.log 2>&1 &
+
+# 脱离终端 + headless Selenium
+nohup python PETP_backgroud.py --headless > petp_bg.log 2>&1 &
+
+# 停止运行中的后台实例（读取 PID 文件，发送 SIGTERM）
+python PETP_backgroud.py --stop
+
+# ─── 使用启动脚本（macOS）────────────────────────────────────────────────────
+
+./scripts/macos/start_petp.sh bg --run-execution ENDECODER --no-http
+./scripts/macos/start_petp.sh bg --headless --run-pipeline MY_PIPELINE --no-http
+./scripts/macos/start_petp.sh bgd                    # 脱离终端（nohup）
+./scripts/macos/start_petp.sh bgd --headless         # 脱离终端 + headless
+./scripts/macos/start_petp.sh stop                   # 停止运行中的实例
+
+# ─── 使用启动脚本（Windows）──────────────────────────────────────────────────
+
+# .\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+# .\scripts\windows\start_petp.ps1 bg --headless --run-pipeline MY_PIPELINE --no-http
+# .\scripts\windows\start_petp.ps1 bgd                    # 脱离终端（隐藏窗口）
+# .\scripts\windows\start_petp.ps1 bgd --headless         # 脱离终端 + headless
+# .\scripts\windows\start_petp.ps1 stop                   # 停止运行中的实例
+
+# ─── Docker ──────────────────────────────────────────────────────────────────
+
+# Docker 自动启用 headless（Dockerfile 中设置 PETP_HEADLESS=true）
+docker run --rm -p 8866:8866 petp-background:amd64-local
+
+# Docker + 启动时运行 Execution
+docker run --rm petp-background:amd64-local python PETP_backgroud.py --run-execution MY_EXEC --no-http
+
+# Docker + 自定义端口 + 初始数据
+docker run --rm -p 9090:9090 petp-background:amd64-local \
+  python PETP_backgroud.py --http-port 9090 --run-execution MY_EXEC --init-data '{"env":"prod"}'
+```
+
+### Pipeline 定时模式
+
+Pipeline 支持按 cron 表达式定时运行。GUI 设置步骤：
+
+1. 切换到 **Pipelines** 标签页 → 选择或新建 Pipeline
+2. 勾选 **as cron** → 输入 cron 表达式（如 `0 9 * * 1-5`）
+3. 点击 **Execute** — 按计划运行，直到通过 **Stop** / **Stop All** 停止
+
+cron 输入框的 tooltip 会显示可读描述（如 "At 09:00 AM, Monday through Friday"）。
+
+**YAML 示例：**
+
+```yaml
+!!python/object:core.pipeline.Pipeline
+pipeline: DAILY_REPORT
+cronEnabled: true
+cronExp: 0 9 * * 1-5
+cronDesc: At 09:00 AM, Monday through Friday
+list:
+- execution: fetch_data
+  input: ''
+- execution: generate_report
+  input: ''
+- execution: send_email
+  input: '{"to":"team@example.com"}'
+```
+
+**运行用例：**
+
+```bash
+# GUI — 通过复选框 + 表达式输入管理 cron 调度，配置持久化到 YAML
+
+# 后台 — 单次运行 Pipeline（cron 字段会保存但不会在后台模式自动调度）
+python PETP_backgroud.py --run-pipeline DAILY_REPORT --no-http
+
+# 后台 — 带初始数据运行
+python PETP_backgroud.py --run-pipeline DAILY_REPORT --init-data '{"to":"ops@example.com"}' --no-http
+
+# 后台 — 持久化 HTTP 服务（通过 POST /petp/exec 触发 Pipeline）
+python PETP_backgroud.py
+
+# Docker
+docker run --rm -p 8866:8866 petp-background:amd64-local
+# 然后: POST http://localhost:8866/petp/exec  {"pipeline":"DAILY_REPORT","wait_for_result":true}
 ```
 
 #### CLI 参数说明
@@ -342,6 +488,8 @@ python PETP_backgroud.py --ui-policy abort --log-level DEBUG
 | `--run-pipeline NAME` | 任意 Pipeline 名称 | — | 启动时立即运行指定的 Pipeline |
 | `--init-data JSON` | JSON 对象字符串 | `{}` | 运行前注入 `data_chain` 的键值对；MCP `default` 值会填充其中未设置的键 |
 | `--no-http` | 标志位 | 关闭 | 不启动 HTTP/MCP 服务器，任务完成后进程直接退出 |
+| `--headless` | 标志位 | 关闭 | 以 headless 模式运行 Selenium 任务（Docker 中自动启用） |
+| `--stop` | 标志位 | — | 通过 PID 文件向运行中的后台实例发送 SIGTERM 信号以停止 |
 | `--nogui-enabled {true,false}` | `true` / `false` | `true` | 启用或禁用无 GUI 后台模式 |
 | `--ui-policy {skip,abort}` | `skip` / `abort` | `skip` | 遇到 GUI 专属处理器时的处理策略：`skip` 静默跳过，`abort` 抛出错误 |
 | `--log-level LEVEL` | `DEBUG` / `INFO` / `WARNING` / `ERROR` | 读取配置 | 覆盖本次运行的日志级别 |
@@ -385,13 +533,23 @@ python PETP_backgroud.py --ui-policy abort --log-level DEBUG
 
 #### 无 GUI 模式下跳过的处理器
 
-| 类型 | 处理器 | 行为 |
-|------|--------|------|
-| 纯 GUI | `SHOW_RESULT`、`INPUT_DIALOG`、`MATPLOTLIB`、`FILE_CHOOSER` | 始终跳过 |
-| 鼠标 | `MOUSE_CLICK`、`MOUSE_POSITION`、`MOUSE_SCROLL` | 始终跳过（需要显示器） |
-| Selenium | `GO_TO_PAGE`、`FIND_THEN_*`、`SCREENSHOT` 等 | 自动检测 — 有 Chrome 则 headless 运行 |
+仅**需要操作系统级 GUI 交互且无 headless 替代方案**的处理器会被跳过：
 
-> 在 Docker 外强制 headless：设置 `PETP_HEADLESS=true`
+| 处理器 | 原因 |
+|--------|------|
+| `FILE_CHOOSER` | 使用 `pyautogui` 操作 OS 文件选择对话框，无程序化替代方案 |
+
+以下处理器通过 `self.view is not None` 判断，在后台模式下**优雅降级**（日志/回退，不跳过）：
+
+| 处理器 | 后台模式行为 |
+|--------|-------------|
+| `SHOW_RESULT` | 记录标题和消息到日志 |
+| `INPUT_DIALOG` | 使用 `default_value` 参数值，继续执行 |
+| `MATPLOTLIB` | 记录图表参数到日志 |
+
+所有 **Selenium** 处理器（`GO_TO_PAGE`、`FIND_THEN_CLICK` 等）在后台模式下正常运行。所有**鼠标**处理器（`MOUSE_CLICK`、`MOUSE_POSITION`、`MOUSE_SCROLL`）通过 pyautogui 正常运行。
+
+> 在 Docker 外强制 headless Selenium：使用 `--headless` 标志或设置 `PETP_HEADLESS=true` 环境变量（Docker 中自动启用）。
 
 #### 运行测试套件
 

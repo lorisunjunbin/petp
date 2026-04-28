@@ -1,4 +1,5 @@
 import logging
+import os
 import platform
 
 import wx
@@ -109,6 +110,7 @@ def start_app():
     httpServer.stop()
     logging.info('PETP is shutdown @' + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))
     logging.info("<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+    os._exit(0)
 
 
 if __name__ == '__main__':

@@ -1,10 +1,9 @@
 import logging
 
 from core.processor import Processor
-import pythonmonkey as pm
 
-global _global_cache_js_snippet
 _global_cache_js_snippet = {}
+_pm = None
 
 
 class RUN_JAVASCRIPTProcessor(Processor):
@@ -29,6 +28,11 @@ class RUN_JAVASCRIPTProcessor(Processor):
 		return super().CATE_JAVASCRIPT
 
 	def process(self):
+		global _pm
+		if _pm is None:
+			import pythonmonkey
+			_pm = pythonmonkey
+
 		js_file = self.expression2str(self.get_param("js_file"))
 		data_key = self.expression2str(self.get_param("data_key"))
 		params = self.get_json_param("params")
@@ -36,7 +40,7 @@ class RUN_JAVASCRIPTProcessor(Processor):
 		if js_file not in _global_cache_js_snippet:
 			with open(js_file, 'r') as file:
 				content = file.read()
-				method = pm.eval(content)
+				method = _pm.eval(content)
 				_global_cache_js_snippet[js_file] = method
 
 		if _global_cache_js_snippet[js_file] is not None:

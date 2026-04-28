@@ -19,15 +19,17 @@ class Pipeline(RunnableAsCron):
     pipeline: str
     cronExp: str
     cronEnabled: bool
+    cronDesc: str = ''
     list: list  # item of list: {execution:'', input:''}
 
     cond: Condition
 
-    def __init__(self, pipeline, list, cronEnabled=False, cronExp='0 * * * *'):
+    def __init__(self, pipeline, list, cronEnabled=False, cronExp='0 * * * *', cronDesc=''):
 
         self.pipeline = pipeline
         self.cronExp = cronExp
         self.cronEnabled = cronEnabled
+        self.cronDesc = cronDesc
         self.list = list
 
     def run(self, initdata, view):
@@ -50,7 +52,12 @@ class Pipeline(RunnableAsCron):
 
         data_chain = initdata | {'run_in_pipeline': 'yes'}
 
-        logging.info(f'<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline: {self.pipeline} - >>>>>>>>>>>>>>>>>>>>>')
+        if 'running_as_cron' in initdata:
+            logging.info(f'<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline (CRON): {self.pipeline}  [ {self.cronExp} ] {self.cronDesc} - >>>>>>>>>>>>>>>>>>>>>')
+        else:
+            logging.info(f'<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline: {self.pipeline} - >>>>>>>>>>>>>>>>>>>>>')
+
+        self._post_pipeline_event(view, 'start', self.pipeline)
 
         for idx, executionDic in enumerate(self.list, start=1):
             execution: Execution = Execution.get_execution(executionDic['execution'])
@@ -67,12 +74,27 @@ class Pipeline(RunnableAsCron):
             logging.info(
                 f'[ {self.pipeline} ]>>{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} >============> Execution {idx}: {execution.execution}')
 
+            self._post_pipeline_event(view, 'step', self.pipeline, execution.execution, idx - 1)
+
             data_chain = execution.run(data_chain, cond, view)
 
             logging.info(
                 f'[ {self.pipeline} ]<<{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} <============< Execution {idx}: {execution.execution} < DONE \n')
 
         logging.info(f'<<<<<<<<<<<<<<<<<<<<<-  Successfully RUN Pipeline: {self.pipeline} - >>>>>>>>>>>>>>>>>>>>>')
+
+        self._post_pipeline_event(view, 'done', self.pipeline)
+
+    @staticmethod
+    def _post_pipeline_event(view, action, *args):
+        if view is None:
+            return
+        try:
+            from mvp.presenter.event.PETPEvent import PETPEvent
+            import wx
+            wx.PostEvent(view, PETPEvent(PETPEvent.PIPELINE_STEP, [action, *args]))
+        except Exception:
+            pass
 
     def load_proper_input(self, executionDic):
         try:

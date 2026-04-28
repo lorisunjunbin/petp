@@ -59,14 +59,33 @@ switch ($Mode.ToLower()) {
         $entry      = 'PETP_backgroud.py'
         $mode_label = 'background'
     }
+    { $_ -in 'bgd','bg-detach','detach' } {
+        $entry      = 'PETP_backgroud.py'
+        $mode_label = 'background-detached'
+    }
+    'stop' {
+        Set-Location $RootDir
+        & $PythonBin PETP_backgroud.py --stop
+        exit $LASTEXITCODE
+    }
     { $_ -in '-h','--help','help' } {
         Write-Host @"
 Usage:
-  .\scripts\windows\start_petp.ps1 [gui|bg|background] [args...]
+  .\scripts\windows\start_petp.ps1 [gui|bg|bgd|stop] [args...]
+
+Modes:
+  gui          Launch desktop GUI (default)
+  bg           Launch background mode (attached to terminal)
+  bgd          Launch background mode detached (hidden window, survives terminal close)
+  stop         Stop a running background instance (via PID file)
 
 Examples:
   .\scripts\windows\start_petp.ps1 gui
   .\scripts\windows\start_petp.ps1 bg --run-execution ENDECODER --no-http
+  .\scripts\windows\start_petp.ps1 bg --run-execution MY_EXEC --headless --no-http
+  .\scripts\windows\start_petp.ps1 bgd
+  .\scripts\windows\start_petp.ps1 bgd --headless
+  .\scripts\windows\start_petp.ps1 stop
 
 Environment variables (optional, set before calling):
   PYTHON_BIN              Python executable (default: python)
@@ -94,7 +113,16 @@ if ($env:PETP_ECHO_ENV -eq '1') {
 # ── Launch ────────────────────────────────────────────────────────────────────
 Set-Location $RootDir
 
-$allArgs = @($entry) + $ExtraArgs
-& $PythonBin @allArgs
-exit $LASTEXITCODE
+if ($mode_label -eq 'background-detached') {
+    $LogFile = if ($env:PETP_BG_LOG) { $env:PETP_BG_LOG } else { 'petp_bg.log' }
+    $allArgs = @($entry) + $ExtraArgs
+    $proc = Start-Process -FilePath $PythonBin -ArgumentList $allArgs `
+        -WindowStyle Hidden -RedirectStandardOutput $LogFile -RedirectStandardError "$LogFile.err" `
+        -PassThru
+    Write-Host "[PETP] Background started (PID=$($proc.Id), log=$LogFile)"
+} else {
+    $allArgs = @($entry) + $ExtraArgs
+    & $PythonBin @allArgs
+    exit $LASTEXITCODE
+}
 

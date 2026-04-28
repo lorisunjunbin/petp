@@ -325,6 +325,48 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Checkbox labels ===
     "cb_as_cron": {"en": "as cron", "zh": "定时任务"},
 
+    # === Startup welcome / motivational messages ===
+    "welcome_0": {
+        "en": "Welcome back! Automation starts here.",
+        "zh": "欢迎回来！自动化，从这里启程。",
+    },
+    "welcome_1": {
+        "en": "Every great workflow begins with a single task.",
+        "zh": "千里之行，始于一个任务。",
+    },
+    "welcome_2": {
+        "en": "Let the robots work — you focus on what matters.",
+        "zh": "让机器人干活，你来专注真正重要的事。",
+    },
+    "welcome_3": {
+        "en": "Build once, run forever. Automate it with PETP.",
+        "zh": "一次构建，永久运行。PETP 助你解放双手。",
+    },
+    "welcome_4": {
+        "en": "Less repetition, more creation.",
+        "zh": "少一分重复，多一分创造。",
+    },
+    "welcome_5": {
+        "en": "Your pipeline is ready. Make today count.",
+        "zh": "流水线已就绪，让今天的每一刻都有价值。",
+    },
+    "welcome_6": {
+        "en": "Automate the boring stuff — dream bigger.",
+        "zh": "自动化那些枯燥的事，然后去追更大的梦想。",
+    },
+    "welcome_7": {
+        "en": "Consistency beats perfection. Ship your tasks.",
+        "zh": "坚持胜过完美，跑起你的任务吧。",
+    },
+    "welcome_8": {
+        "en": "Small automations, massive gains over time.",
+        "zh": "小小的自动化，长期积累的巨大收益。",
+    },
+    "welcome_9": {
+        "en": "You build the tools; the tools build the future.",
+        "zh": "你创造工具，工具创造未来。",
+    },
+
 }
 
 _current_locale = "zh"

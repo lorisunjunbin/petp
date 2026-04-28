@@ -28,6 +28,7 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.OPEN_INPUT_DIALOG, self.on_handle_open_input_dialog)
         PETPEvent.bind_to(self.v, PETPEvent.HTTP_REQUEST, self.on_handle_http_request)
         PETPEvent.bind_to(self.v, PETPEvent.MATPLOTLIB, self.on_handle_display_in_matplotlib_view)
+        PETPEvent.bind_to(self.v, PETPEvent.PIPELINE_STEP, self.on_handle_pipeline_step)
 
         # UI event binding
         self.v.Bind(wx.EVT_CLOSE, self.on_close_window)
@@ -154,6 +155,21 @@ class PETPInteractor():
     def on_handle_start(self, evt: PETPEvent):
         logging.info(f"{evt.data[0]} is START via new thread")
         self.p.update_highlight_info_start(evt.data[0])
+        self.on_load_log(evt)
+
+    def on_handle_pipeline_step(self, evt: PETPEvent):
+        action = evt.data[0]
+        if action == 'start':
+            pipeline_name = evt.data[1]
+            self.p.update_highlight_info_pipeline_start(pipeline_name)
+        elif action == 'step':
+            _, pipeline_name, execution_name, row_idx = evt.data
+            self.p._welcome_paused = True
+            self.p._set_highlight_info(f"[PIPELINE] {pipeline_name} → {execution_name}")
+            self.p.select_pipeline_execution_row(row_idx)
+        elif action == 'done':
+            pipeline_name = evt.data[1]
+            self.p.update_highlight_info_pipeline_done(pipeline_name)
         self.on_load_log(evt)
 
     def on_handle_done(self, evt: PETPEvent):
