@@ -5,6 +5,7 @@ import wx.dataview
 import wx.lib.colourutils
 
 from mvp.presenter.event.PETPEvent import PETPEvent
+from mvp.view.common.LogSearchBar import EVT_LOG_BAR
 
 
 class PETPInteractor():
@@ -72,12 +73,9 @@ class PETPInteractor():
 
         self.v.logContents.Bind(wx.EVT_SET_FOCUS, self.on_logcontents_focused)
         self.v.logContents.Bind(wx.EVT_KILL_FOCUS, self.on_logcontents_unfocused)
-
-        self.v.logSearchCtrl.Bind(wx.EVT_TEXT, self.on_search_log)
-        self.v.logSearchCtrl.Bind(wx.EVT_KEY_DOWN, self.on_log_search_key_down)
-        self.v.Bind(wx.EVT_BUTTON, self.on_prev_log_match, self.v.previousOne)
-        self.v.Bind(wx.EVT_BUTTON, self.on_next_log_match, self.v.nextOne)
         self.v.logContents.Bind(wx.EVT_KEY_DOWN, self.on_log_key_down)
+
+        self.v.logSearchBar.Bind(EVT_LOG_BAR, self.on_log_bar_event)
 
     def bind_view_event_4p_pipeline_action_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_pipeline, self.v.delPipeline)
@@ -432,39 +430,24 @@ class PETPInteractor():
         evt.Skip()
         self.p.on_logcontents_unfocused()
 
-    def on_search_log(self, evt):
-        evt.Skip()
-        self.p.on_search_log()
-
-    def on_clear_log_search(self, evt):
-        evt.Skip()
-        self.p.on_clear_log_search()
-
-    def on_prev_log_match(self, evt):
-        evt.Skip()
-        self.p.on_prev_log_match()
-
-    def on_next_log_match(self, evt):
-        evt.Skip()
-        self.p.on_next_log_match()
-
-    def on_log_search_key_down(self, evt):
-        if evt.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            if evt.ShiftDown():
-                self.p.on_prev_log_match()
-            else:
-                self.p.on_next_log_match()
-        elif evt.GetKeyCode() == wx.WXK_ESCAPE:
-            self.v.logSearchCtrl.SetValue('')
+    def on_log_bar_event(self, evt):
+        action = evt.GetAction()
+        if action == "search":
+            self.p.on_search_log()
+        elif action == "prev":
+            self.p.on_prev_log_match()
+        elif action == "next":
+            self.p.on_next_log_match()
+        elif action == "filter":
+            self.p.on_filter_toggle(bool(evt.GetInt()))
+        elif action == "key_escape":
+            self.v.logSearchBar.set_search_text('')
             self.p.on_clear_log_search()
             self.v.logContents.SetFocus()
-        else:
-            evt.Skip()
 
     def on_log_key_down(self, evt):
         if evt.GetKeyCode() == ord('F') and evt.CmdDown():
-            self.v.logSearchCtrl.SetFocus()
-            self.v.logSearchCtrl.SelectAll()
+            self.v.logSearchBar.focus_search()
         else:
             evt.Skip()
 

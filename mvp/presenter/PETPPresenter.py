@@ -73,6 +73,8 @@ class PETPPresenter():
         self._log_search_keyword = ''
         self._log_match_positions = []
         self._log_match_cursor = -1
+        self._log_filter_active = False
+        self._log_full_content = ''  # raw content kept for filter re-apply
         self._exec_start_time = 0.0
 
         self.i.install(self, view)
@@ -179,12 +181,14 @@ class PETPPresenter():
         v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
-        v.logSearchCtrl.SetHint(t("tip_log_search"))
 
-        v.previousOne.SetLabel(t("label_find_prev"))
-        v.previousOne.SetToolTip(t("tip_find_prev"))
-        v.nextOne.SetLabel(t("label_find_next"))
-        v.nextOne.SetToolTip(t("tip_find_next"))
+        sb = v.logSearchBar
+        sb.textCtrl.SetHint(t("tip_log_search"))
+        sb.prevBtn.SetLabel(t("label_find_prev"))
+        sb.prevBtn.SetToolTip(t("tip_find_prev"))
+        sb.nextBtn.SetLabel(t("label_find_next"))
+        sb.nextBtn.SetToolTip(t("tip_find_next"))
+        sb.filterBtn.SetToolTip(t("tip_filter_log"))
 
         # --- Pipeline tab ---
         v.addRow4P.SetToolTip(t("tip_add_row_p"))
@@ -237,13 +241,7 @@ class PETPPresenter():
         v.logPanel.SetBackgroundColour(log_bg)
         v.logContents.SetBackgroundColour(log_bg)
         v.logContents.SetForegroundColour(log_fg)
-        v.logSearchCtrl.SetBackgroundColour(search_bg)
-        v.logSearchCtrl.SetForegroundColour(search_fg)
-        v.previousOne.SetBackgroundColour(log_bg)
-        v.previousOne.SetForegroundColour(log_fg)
-        v.nextOne.SetBackgroundColour(log_bg)
-        v.nextOne.SetForegroundColour(log_fg)
-        v.logMatchCount.SetForegroundColour(search_fg)
+        v.logSearchBar.apply_theme(th)
         v.highlightInfo.SetForegroundColour(wx.Colour(*th.accent))
 
         v.logPanel.Refresh()
@@ -2206,36 +2204,54 @@ class PETPPresenter():
         finally:
             self.isLoading = False
 
+    def _apply_filter(self, content: str) -> str:
+        """Return only lines containing the search keyword (case-insensitive)."""
+        kw = self._log_search_keyword.lower()
+        if not kw:
+            return content
+        return '\n'.join(line for line in content.splitlines() if kw in line.lower())
+
     def _full_update_log(self, content):
         """Full replacement — used only on first load or after clean."""
+        self._log_full_content = content
+        display = self._apply_filter(content) if self._log_filter_active else content
         try:
             self.v.logContents.Freeze()
-            self.v.logContents.SetValue(content)
+            self.v.logContents.SetValue(display)
             self.v.logContents.ShowPosition(self.v.logContents.GetLastPosition())
         except Exception as e:
             logging.error(f"Update log error from UI: {str(e)}")
         finally:
             self.v.logContents.Thaw()
-        if self._log_search_keyword:
+        if self._log_search_keyword and not self._log_filter_active:
             self._highlight_log_matches()
 
     def _append_log(self, new_content, max_size):
         """Incremental append — much faster than full SetValue."""
+        self._log_full_content += new_content
+        if len(self._log_full_content) > max_size:
+            self._log_full_content = self._log_full_content[-max_size:]
+
+        if self._log_filter_active:
+            filtered = self._apply_filter(new_content)
+            if not filtered:
+                return
+            display = filtered
+        else:
+            display = new_content
+
         try:
             self.v.logContents.Freeze()
-
-            # Trim from the front if total would exceed limit
             current_len = self.v.logContents.GetLastPosition()
-            if current_len + len(new_content) > max_size:
-                trim_amount = (current_len + len(new_content)) - max_size
+            if current_len + len(display) > max_size:
+                trim_amount = (current_len + len(display)) - max_size
                 self.v.logContents.Remove(0, trim_amount)
-
-            self.v.logContents.AppendText(new_content)
+            self.v.logContents.AppendText(display)
         except Exception as e:
             logging.error(f"Append log error from UI: {str(e)}")
         finally:
             self.v.logContents.Thaw()
-        if self._log_search_keyword:
+        if self._log_search_keyword and not self._log_filter_active:
             self._highlight_log_matches()
 
     @reload_log_after
@@ -2243,7 +2259,8 @@ class PETPPresenter():
         with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
             file.write(f'Clean {self.m.app_name} log@' + DateUtil.get_now_in_str() + '\n')
         self.is_log_content_focused = False
-        self._log_last_pos = 0  # reset so next reload does a full load
+        self._log_last_pos = 0
+        self._log_full_content = ''
 
     def on_logcontents_focused(self):
         self.is_log_content_focused = True
@@ -2252,16 +2269,50 @@ class PETPPresenter():
         self.is_log_content_focused = False
 
     def on_search_log(self):
-        keyword = self.v.logSearchCtrl.GetValue().strip()
+        keyword = self.v.logSearchBar.get_search_text().strip()
         self._log_search_keyword = keyword
-        if keyword:
+        if self._log_filter_active:
+            self._reapply_filter()
+        elif keyword:
             self._highlight_log_matches()
         else:
             self._clear_log_highlights()
 
+    def on_filter_toggle(self, active: bool):
+        self._log_filter_active = active
+        if active:
+            self._reapply_filter()
+        else:
+            self._clear_log_highlights()
+            content = self._log_full_content
+            if content:
+                lc = self.v.logContents
+                try:
+                    lc.Freeze()
+                    lc.SetValue(content)
+                    lc.ShowPosition(lc.GetLastPosition())
+                finally:
+                    lc.Thaw()
+            if self._log_search_keyword:
+                self._highlight_log_matches()
+
+    def _reapply_filter(self):
+        content = self._log_full_content
+        filtered = self._apply_filter(content)
+        lc = self.v.logContents
+        try:
+            lc.Freeze()
+            lc.SetValue(filtered)
+            lc.ShowPosition(lc.GetLastPosition())
+        finally:
+            lc.Thaw()
+        kw = self._log_search_keyword
+        count = filtered.lower().count(kw.lower()) if kw else 0
+        self.v.logSearchBar.matchCount.SetLabel(f'{count}' if count else '')
+
     def on_clear_log_search(self):
         self._log_search_keyword = ''
-        self.v.logSearchCtrl.SetValue('')
+        self.v.logSearchBar.set_search_text('')
         self._clear_log_highlights()
 
     def _highlight_log_matches(self):
@@ -2294,7 +2345,7 @@ class PETPPresenter():
             self._log_match_positions = positions
             self._log_match_cursor = -1
             count = len(positions)
-            self.v.logMatchCount.SetLabel(t('log_match_count', count=count) if count > 0 else '')
+            self.v.logSearchBar.matchCount.SetLabel(t('log_match_count', count=count) if count > 0 else '')
         finally:
             lc.Thaw()
 
@@ -2319,7 +2370,7 @@ class PETPPresenter():
         lc.ShowPosition(pos)
         count = len(self._log_match_positions)
         idx = self._log_match_cursor + 1
-        self.v.logMatchCount.SetLabel(f'{idx}/{count}')
+        self.v.logSearchBar.matchCount.SetLabel(f'{idx}/{count}')
 
     def on_prev_log_match(self):
         if not self._log_match_positions:
@@ -2340,7 +2391,7 @@ class PETPPresenter():
         try:
             default_attr = wx.TextAttr(wx.Colour(*th.log_fg), wx.Colour(*th.log_bg))
             lc.SetStyle(0, lc.GetLastPosition(), default_attr)
-            self.v.logMatchCount.SetLabel('')
+            self.v.logSearchBar.matchCount.SetLabel('')
             self._log_match_positions = []
             self._log_match_cursor = -1
         finally:

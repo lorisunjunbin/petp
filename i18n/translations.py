@@ -20,6 +20,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "label_find_prev": {"en": "🔼", "zh": "🔼"},
     "tip_find_next": {"en": "Next match (Enter)", "zh": "下一个匹配 (Enter)"},
     "label_find_next": {"en": "🔽", "zh": "🔽"},
+    "tip_filter_log": {"en": "Filter: show only lines matching keyword", "zh": "过滤：只显示含关键字的行"},
     "log_match_count": {"en": "{count} matches", "zh": "{count}个匹配"},
     "btn_select": {"en": "Select", "zh": "选择"},
     "btn_convert": {"en": "Convert", "zh": "转换"},
