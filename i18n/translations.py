@@ -99,6 +99,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Not published as MCP Tool",
         "zh": "尚未发布为 MCP Tool",
     },
+    "only_tool_on": {
+        "en": "Tool",
+        "zh": "工具",
+    },
+    "only_tool_off": {
+        "en": "All",
+        "zh": "全部",
+    },
+    "tip_only_tool": {
+        "en": "Show only executions published as MCP tools",
+        "zh": "仅显示已发布为 MCP Tool 的 Execution",
+    },
     "warn_missing_response_key": {
         "en": "The last Task should be HTTP_RESPONSE_KEY to provide the final result, otherwise please specify Output Parameters instead.",
         "zh": "最后一个 Task 应为 HTTP_RESPONSE_KEY 以提供最终结果，或者请配置输出参数作为替代。",

@@ -163,6 +163,8 @@ class PETPPresenter():
         v.execution_desc.apply_i18n()
         v.cb_astool.set_state_labels(t("astool_on"), t("astool_off"))
         v.cb_astool.SetToolTip(t("tip_as_mcp_tool"))
+        v.only_tool.set_state_labels(t("only_tool_on"), t("only_tool_off"))
+        v.only_tool.SetToolTip(t("tip_only_tool"))
 
         # Execution action buttons
         v.delExecution.SetLabel(t("btn_delete"))
@@ -514,6 +516,8 @@ class PETPPresenter():
         tool_names = Execution.get_tool_execution_names()
         if tool_names:
             combo.set_tool_names(tool_names)
+        if self.v.only_tool.IsChecked():
+            combo.set_visible_subset(tool_names)
         if selected_name:
             combo.SetValue(selected_name)
 
@@ -1166,6 +1170,14 @@ class PETPPresenter():
     def on_executeonstartup_changed(self, evt: wx.EVT_CHECKBOX):
         self.m.execute_on_startup = evt.IsChecked()
         self.m.set_config('execute_on_startup', self.m.execute_on_startup)
+
+    def on_only_tool_changed(self, evt):
+        combo = self.v.executionChooser
+        if evt.IsChecked():
+            tool_names = Execution.get_tool_execution_names()
+            combo.set_visible_subset(tool_names)
+        else:
+            combo.set_visible_subset(None)
 
     @reload_log_after
     def on_stop_execution(self):

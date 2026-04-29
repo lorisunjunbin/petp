@@ -23,6 +23,7 @@ class SearchableComboBox(wx.ComboBox):
 
         self._all_choices: list = list(choices or [])
         self._tool_names: set = set()
+        self._visible_subset: set | None = None
 
         if not _IS_WINDOWS:
             self._is_syncing = False
@@ -43,7 +44,7 @@ class SearchableComboBox(wx.ComboBox):
     def set_tool_names(self, names):
         self._tool_names = set(names)
         current_plain = self.GetValue()
-        self._sync(self._all_choices, current_plain)
+        self._sync(self._effective_choices, current_plain)
 
     def _display(self, name, highlighted=False):
         tool = _TOOL_PREFIX if name in self._tool_names else ""
@@ -55,6 +56,21 @@ class SearchableComboBox(wx.ComboBox):
             if text.startswith(pfx):
                 text = text[len(pfx):]
         return text
+
+    # ------------------------------------------------------------------
+    # Visible subset API
+    # ------------------------------------------------------------------
+
+    @property
+    def _effective_choices(self) -> list:
+        if self._visible_subset is None:
+            return self._all_choices
+        return [name for name in self._all_choices if name in self._visible_subset]
+
+    def set_visible_subset(self, names: set | None):
+        self._visible_subset = names
+        current = self.GetValue()
+        self._sync(self._effective_choices, current)
 
     # ------------------------------------------------------------------
     # Public API overrides
@@ -76,15 +92,16 @@ class SearchableComboBox(wx.ComboBox):
     def AppendItems(self, items):
         self._all_choices.extend(items)
         self._all_choices.sort(key=str.lower)
+        effective = self._effective_choices
         if _IS_WINDOWS:
             super().Clear()
-            super().AppendItems([self._display(i) for i in self._all_choices])
+            super().AppendItems([self._display(i) for i in effective])
         else:
             self._is_syncing = True
             try:
                 self.Freeze()
                 super().Clear()
-                super().AppendItems([self._display(i) for i in self._all_choices])
+                super().AppendItems([self._display(i) for i in effective])
             finally:
                 self.Thaw()
                 self._is_syncing = False
@@ -92,15 +109,16 @@ class SearchableComboBox(wx.ComboBox):
     def Clear(self):
         self._all_choices = []
         self._tool_names = set()
+        self._visible_subset = None
         super().Clear()
 
     def SetItems(self, items):
         self._all_choices = list(items)
-        self._sync(items, self.GetValue())
+        self._sync(self._effective_choices, self.GetValue())
 
     def Reload(self, items, value):
         self._all_choices = list(items)
-        self._sync(items, value)
+        self._sync(self._effective_choices, value)
 
     def FindString(self, s, caseSensitive=False):
         return super().FindString(self._display(s), caseSensitive)
@@ -131,7 +149,7 @@ class SearchableComboBox(wx.ComboBox):
 
         if keycode in (wx.WXK_DOWN, wx.WXK_UP):
             if not self._filtered:
-                self._filtered = list(self._all_choices)
+                self._filtered = list(self._effective_choices)
                 self._typed_keyword = self.GetValue()
                 current = self._typed_keyword
                 if current:
@@ -161,7 +179,7 @@ class SearchableComboBox(wx.ComboBox):
             return
 
         if keycode in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
-            items = self._filtered if self._filtered else self._all_choices
+            items = self._filtered if self._filtered else self._effective_choices
             if 0 <= self._highlight_idx < len(items):
                 selected = items[self._highlight_idx]
             else:
@@ -169,7 +187,7 @@ class SearchableComboBox(wx.ComboBox):
             self._highlight_idx = -1
             self._filtered = []
             self._is_selecting = True
-            self._sync(self._all_choices, selected)
+            self._sync(self._effective_choices, selected)
             self._is_selecting = False
             self.Dismiss()
             self._post_combobox_event()
@@ -180,7 +198,7 @@ class SearchableComboBox(wx.ComboBox):
             self._filtered = []
             current = self.GetValue()
             self._is_selecting = True
-            self._sync(self._all_choices, current)
+            self._sync(self._effective_choices, current)
             self._is_selecting = False
             self.Dismiss()
             return
@@ -192,17 +210,17 @@ class SearchableComboBox(wx.ComboBox):
         self._filtered = []
         self._is_selecting = True
         selected = self.GetValue()
-        self._sync(self._all_choices, selected)
+        self._sync(self._effective_choices, selected)
         wx.CallAfter(self._finish_selecting)
         evt.Skip()
 
     def _on_kill_focus(self, evt):
         self._highlight_idx = -1
         self._filtered = []
-        if self.GetCount() != len(self._all_choices):
+        if self.GetCount() != len(self._effective_choices):
             current = self.GetValue()
             self._is_selecting = True
-            self._sync(self._all_choices, current)
+            self._sync(self._effective_choices, current)
             wx.CallAfter(self._finish_selecting)
         evt.Skip()
 
@@ -220,12 +238,12 @@ class SearchableComboBox(wx.ComboBox):
 
     def _filter_choices(self, keyword):
         if not keyword:
-            return list(self._all_choices)
+            return list(self._effective_choices)
         needle = keyword.lower()
-        return [name for name in self._all_choices if needle in name.lower()]
+        return [name for name in self._effective_choices if needle in name.lower()]
 
     def _rebuild_dropdown_with_highlight(self):
-        items = self._filtered if self._filtered else self._all_choices
+        items = self._filtered if self._filtered else self._effective_choices
         display_items = []
         for i, name in enumerate(items):
             display_items.append(self._display(name, highlighted=(i == self._highlight_idx)))
