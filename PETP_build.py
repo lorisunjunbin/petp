@@ -24,7 +24,10 @@ executions_released = [
     'ENDECODER.yaml',
     'TEST_FIB_WITH_CACHE.yaml',
     'OOTB_AI_LLM_ZHIPU.yaml',
-    'OOTB_AI_LLM_ZHIPU_MCP.yaml'
+    'OOTB_AI_LLM_ZHIPU_MCP.yaml',
+    'OOTB_RUN_JS.yaml',
+    'T_CENC_EARTHQUAKE_SEARCH.yaml',
+    'ootb_keep_screen_unlocked.yaml'
 ]
 
 # Common problematic modules that need special handling
