@@ -82,6 +82,16 @@ class BackgroundRuntime:
                 proc_name = type(processor).__name__
                 loop_cursor = self._collect_loop_cursor(current_loop, state)
 
+                skip_range = data_chain.get('__skip_range')
+                if not hasattr(task, '_orig_skipped'):
+                    task._orig_skipped = getattr(task, 'skipped', False)
+                else:
+                    task.skipped = task._orig_skipped
+                if skip_range and skip_range[0] <= seq <= skip_range[1]:
+                    task.skipped = True
+                if skip_range and seq > skip_range[1]:
+                    data_chain.pop('__skip_range', None)
+
                 self._log_start_process(seq, proc_name, loop_cursor, task)
 
                 skip_reason = self._skip_reason(task)

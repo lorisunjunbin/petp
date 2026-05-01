@@ -10,6 +10,7 @@ import os
 from cron_descriptor import ExpressionDescriptor
 
 from core.cron.cron import Cron
+from core.cron.cron_history import CronHistory
 from core.definition.ChromeRecorderConverter import ChromeRecorderConverter
 from core.execution import Execution
 from core.executor import Executor
@@ -74,6 +75,7 @@ class PETPPresenter():
         self._log_filter_active = False
         self._log_full_content = ''  # raw content kept for filter re-apply
         self._exec_start_time = 0.0
+        self._cron_history = CronHistory()
 
         self._log_timer = wx.Timer(view)
         view.Bind(wx.EVT_TIMER, self._on_log_timer, self._log_timer)
@@ -187,6 +189,8 @@ class PETPPresenter():
         v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
         v.cleanLog.SetLabel(t("btn_clean"))
         v.cleanLog.SetToolTip(t("tip_clean_log"))
+        v.dcViewer.SetLabel(t("btn_dc_viewer"))
+        v.dcViewer.SetToolTip(t("tip_dc_viewer"))
 
         sb = v.logSearchBar
         sb.textCtrl.SetHint(t("tip_log_search"))
@@ -211,6 +215,8 @@ class PETPPresenter():
         v.stopCurrentCron.SetToolTip(t("tip_stop_cron"))
         v.stopAll.SetLabel(t("btn_stop_all"))
         v.stopAll.SetToolTip(t("tip_stop_all_cron"))
+        v.cronDashboardBtn.SetLabel(t("btn_cron_history"))
+        v.cronDashboardBtn.SetToolTip(t("tip_cron_history"))
 
         # Property grid category labels
         self._update_pgrid_category(
@@ -1323,6 +1329,11 @@ class PETPPresenter():
     def on_cron_changed(self):
         self._update_cron_setting(True)
 
+    def on_open_cron_dashboard(self):
+        from mvp.view.common.CronDashboardDialog import CronDashboardDialog
+        dlg = CronDashboardDialog(self.v, self._cron_history)
+        dlg.Show()
+
     def on_datepicker_changed(self, evt):
         date_str = evt.GetDate().Format("%Y-%m-%d")
         evt.Skip()
@@ -2277,6 +2288,20 @@ class PETPPresenter():
         self.is_log_content_focused = False
         self._log_last_pos = 0
         self._log_full_content = ''
+
+    def on_open_dc_viewer(self):
+        from mvp.view.common.DataChainViewerDialog import DataChainViewerDialog
+
+        def get_live_data():
+            for executor in self.executors:
+                if executor.is_alive():
+                    live = getattr(executor.execution, '_live_data_chain', None)
+                    if live is not None:
+                        return live
+            return None
+
+        dlg = DataChainViewerDialog(self.v, get_live_data)
+        dlg.Show()
 
     def on_logcontents_focused(self):
         self.is_log_content_focused = True

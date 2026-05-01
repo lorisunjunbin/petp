@@ -68,6 +68,7 @@ class Execution:
 
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
+        self._live_data_chain = data_chain
         mcp_defaults = self.expand_mcp_defaults(data_chain)
         for k, v in mcp_defaults.items():
             if k not in data_chain:
@@ -84,6 +85,7 @@ class Execution:
 
             if self.should_be_stop:
                 logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {state.get_sequence()}')
+                self._live_data_chain = None
                 return data_chain
 
             current_loop: Loop = self.find_current_loop(state.get_sequence())
@@ -94,6 +96,18 @@ class Execution:
 
             # process start -----
             task: Task = self.init_task(data_chain, state.get_current_index(), state.get_sequence())
+
+            # IF_ELSE skip-range: auto-skip tasks in the designated range
+            skip_range = data_chain.get('__skip_range')
+            if not hasattr(task, '_orig_skipped'):
+                task._orig_skipped = getattr(task, 'skipped', False)
+            else:
+                task.skipped = task._orig_skipped
+            if skip_range and skip_range[0] <= state.get_sequence() <= skip_range[1]:
+                task.skipped = True
+            if skip_range and state.get_sequence() > skip_range[1]:
+                data_chain.pop('__skip_range', None)
+
             processor: Processor = self.init_processor(task, view, current_loop, state.is_loop_execution, condition)
 
             proc_name = type(processor).__name__
@@ -160,6 +174,7 @@ class Execution:
 
             state.move_to_next()
 
+        self._live_data_chain = None
         return data_chain
 
     _LOOP_LOG_INTERVAL = 5  # seconds — minimum gap between LOG events during loops
@@ -182,6 +197,8 @@ class Execution:
         return None
 
     def post_log_reload(self, lp, view, proc_name=''):
+        if view is None:
+            return
         evt_data = {
             "execution": self.execution,
             "task_index": lp.get_current_index(),

@@ -35,17 +35,22 @@ class INPUT_DIALOGProcessor(Processor):
         default_value = self.explain_param_or_default('default_value', '')
         stop_on_cancel = self.get_param('stop_on_cancel') == 'yes'
 
+        existing = self.get_data(value_key) if value_key else None
+        if existing is not None:
+            default_value = existing
+
         if self.view is not None and wx is not None:
-            # wx.Dialog must be created on the main thread (macOS requirement).
-            # Use wx.CallAfter to delegate, and block this worker thread
-            # until the user dismisses the dialog.
             done = threading.Event()
-            result = [None]  # mutable container for cross-thread result
+            result = [None]
             wx.CallAfter(self._show_on_main_thread, title, msg, default_value, result, done)
             done.wait()
         else:
-            logging.info(f"[Notification] INPUT_DIALOGProcessor: title={title}, msg={msg}, default_value={default_value}")
-            result = [default_value]
+            if existing is not None:
+                logging.info(f"[INPUT_DIALOG] BG mode: key '{value_key}' already has value '{existing}', skip overwrite")
+                result = [existing]
+            else:
+                logging.info(f"[Notification] INPUT_DIALOGProcessor: title={title}, msg={msg}, default_value={default_value}")
+                result = [default_value]
 
         if result[0] is None and stop_on_cancel:
             self.execution.set_should_be_stop(True)

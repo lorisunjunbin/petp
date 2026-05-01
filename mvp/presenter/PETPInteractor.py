@@ -67,6 +67,7 @@ class PETPInteractor():
 
     def bind_view_event_4_log_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_clean_log, self.v.cleanLog)
+        self.v.Bind(wx.EVT_BUTTON, self.on_open_dc_viewer, self.v.dcViewer)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_log_level_changed, self.v.logLevelChooser)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_lang_changed, self.v.langChooser)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_theme_changed, self.v.themeChooser)
@@ -86,6 +87,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_TEXT, self.on_cron_changed, self.v.cronInput)
         self.v.Bind(wx.EVT_BUTTON, self.on_stop_all, self.v.stopAll)
         self.v.Bind(wx.EVT_BUTTON, self.on_stop_current, self.v.stopCurrentCron)
+        self.v.Bind(wx.EVT_BUTTON, self.on_open_cron_dashboard, self.v.cronDashboardBtn)
 
     def bind_view_event_4p_pipeline_editor(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_add_row4p, self.v.addRow4P)
@@ -422,6 +424,14 @@ class PETPInteractor():
     def on_clean_log(self, evt):
         evt.Skip()
         self.p.on_clean_log()
+
+    def on_open_dc_viewer(self, evt):
+        evt.Skip()
+        self.p.on_open_dc_viewer()
+
+    def on_open_cron_dashboard(self, evt):
+        evt.Skip()
+        self.p.on_open_cron_dashboard()
 
     def on_logcontents_focused(self, evt):
         evt.Skip()

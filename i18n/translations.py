@@ -151,6 +151,56 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": "停止以定时任务运行的选中流水线",
     },
     "tip_stop_all_cron": {"en": "Stop all pipelines running as cron.", "zh": "停止所有以定时任务运行的流水线。"},
+    "btn_cron_history": {"en": "History", "zh": "历史记录"},
+    "tip_cron_history": {"en": "View cron execution history", "zh": "查看定时任务执行历史"},
+
+    # === data_chain viewer ===
+    "btn_dc_viewer": {"en": "DC", "zh": "DC"},
+    "tip_dc_viewer": {"en": "Open data_chain live viewer", "zh": "打开 data_chain 实时查看器"},
+    "dlg_dc_viewer_title": {"en": "data_chain Viewer", "zh": "data_chain 实时查看"},
+    "dc_no_running": {"en": "(No running execution)", "zh": "（当前无运行中的执行）"},
+    "dc_keys_count": {"en": "{count} key(s)", "zh": "{count} 个键"},
+    "btn_dc_copy": {"en": "Copy", "zh": "复制"},
+
+    # === Cron Dashboard dialog ===
+    "dlg_cron_dashboard_title": {"en": "Cron Execution History", "zh": "定时任务执行历史"},
+    "cron_col_start_time": {"en": "Start Time", "zh": "开始时间"},
+    "cron_col_pipeline": {"en": "Pipeline", "zh": "流水线"},
+    "cron_col_cron_exp": {"en": "Cron Exp", "zh": "Cron 表达式"},
+    "cron_col_status": {"en": "Status", "zh": "状态"},
+    "cron_col_duration": {"en": "Duration", "zh": "耗时"},
+    "cron_col_error": {"en": "Error", "zh": "错误"},
+    "cron_filter_hint": {"en": "Filter by pipeline name…", "zh": "按流水线名称过滤…"},
+    "cron_lbl_filter": {"en": "Filter:", "zh": "过滤："},
+    "btn_refresh": {"en": "Refresh", "zh": "刷新"},
+
+    # === IF_ELSE processor ===
+    "desc_IF_ELSE": {
+        "en": (
+            "Conditional branching — skip 'then' or 'else' task blocks based on a condition.\n"
+            "- condition_fn: Python body (data_chain) → bool. True runs then-block, False runs else-block.\n"
+            "- then_tasks: number of tasks immediately after this one forming the 'then' block (default: 1)\n"
+            "- else_tasks: number of tasks after the then-block forming the 'else' block (default: 0)\n\n"
+            "Works inside loops: condition is re-evaluated each iteration; loop variables accessible.\n\n"
+            "Constraints:\n"
+            "- then/else blocks must NOT span across loop boundaries\n"
+            "- Nesting IF_ELSE is NOT supported (inner overwrites outer skip range)\n"
+            "- Do NOT combine with GO_TO_TASK jumping into/out of then/else blocks\n"
+            "- then_tasks + else_tasks count must be exact"
+        ),
+        "zh": (
+            "条件分支 — 根据条件跳过 'then' 或 'else' 任务块。\n"
+            "- condition_fn: Python 函数体 (data_chain) → bool。True 执行 then 块，False 执行 else 块。\n"
+            "- then_tasks: 紧随本任务之后组成 'then' 块的任务数量（默认: 1）\n"
+            "- else_tasks: then 块之后组成 'else' 块的任务数量（默认: 0）\n\n"
+            "支持在循环内使用：每次迭代重新评估条件，可访问循环变量（loop_idx、loop_item）。\n\n"
+            "约束：\n"
+            "- then/else 块不能跨越循环边界（必须在同一 loop 范围内）\n"
+            "- 不支持嵌套 IF_ELSE（内层会覆盖外层的跳过范围）\n"
+            "- 不要与 GO_TO_TASK 跳入/跳出 then/else 块组合使用\n"
+            "- then_tasks + else_tasks 计数必须准确"
+        ),
+    },
 
     # === Tooltips — chooser ===
     "tip_exec_chooser": {

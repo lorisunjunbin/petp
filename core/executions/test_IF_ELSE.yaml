@@ -1,0 +1,42 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: test_IF_ELSE
+list:
+- !!python/object:core.task.Task
+  input: '{"title": "Message Input", "msg": "Given the score ", "value_key": "score",
+    "default_value": 95, "stop_on_cancel": "yes"}'
+  skipped: false
+  type: INPUT_DIALOG
+- !!python/object:core.task.Task
+  input: '{"condition_fn": "return int(data_chain.get(\"score\", 0)) >= 60", "then_tasks":
+    "2", "else_tasks": 2}'
+  skipped: false
+  type: IF_ELSE
+- !!python/object:core.task.Task
+  input: '{"title":"PASS", "msg":"Score {self.get_data(\"score\")} >= 60, passed!"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"key1":"pass_flag", "value1":"true"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"title":"FAIL", "msg":"Score {self.get_data(\"score\")} < 60, failed!"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"key1": "pass_flag", "value1": "false"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"convertor_func":"return dict(filter(lambda itm: not itm[0].startswith(\"__\"),
+    p.get_data_chain().items()))", "target_key":"final_state"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"title":"Final data_chain", "msg":"{json.dumps(self.get_data(\"final_state\"),
+    indent=2)}"}'
+  skipped: false
+  type: SHOW_RESULT
+loops: []
+mcp_desc: ''
