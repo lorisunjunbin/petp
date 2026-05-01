@@ -341,13 +341,14 @@
             <tr>
                 <td>Execution Control</td>
                 <td>Init / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON.
-                    Run shell commands. Run JavaScript (PythonMonkey). Conditional task jump (<code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">GO_TO_TASK</code>).
+                    Run shell commands. Conditional task jump (<code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">GO_TO_TASK</code>).
+                    Declarative if/else branching (<code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">IF_ELSE</code>).
                     Loop <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">loop_condition</code> for programmatic break / continue.
                 </td>
             </tr>
             <tr>
                 <td>Theme &amp; Status</td>
-                <td>5 color themes (System, Forest, Ocean, Monokai, Solarized) with live switching. "System" auto-follows OS dark / light mode. Status bar displays execution events: start, done with duration, error, and stop.</td>
+                <td>9 color themes (System, Forest, Ocean, Monokai, Solarized, Nord, Dracula, Sakura, Cyberpunk) with live switching via <code style="font-size:12px;background:#f3f4f6;padding:1px 5px;border-radius:3px">PopupMenuButton</code>. "System" auto-follows OS dark / light mode. Status bar displays execution events: start, done with duration, error, and stop.</td>
             </tr>
             </tbody>
         </table>
@@ -642,6 +643,11 @@
             </tr>
             </thead>
             <tbody>
+            <tr><td>2026-05</td><td>{{ t('cl_2026_05_ui_streamline') | safe }}</td></tr>
+            <tr><td>2026-05</td><td>{{ t('cl_2026_05_if_else') | safe }}</td></tr>
+            <tr><td>2026-05</td><td>{{ t('cl_2026_05_cron_history') | safe }}</td></tr>
+            <tr><td>2026-05</td><td>{{ t('cl_2026_05_input_dialog_bg') | safe }}</td></tr>
+            <tr><td>2026-05</td><td>{{ t('cl_2026_05_task_progress') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_highlight_info') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_system_theme') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_theme') | safe }}</td></tr>

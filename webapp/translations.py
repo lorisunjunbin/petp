@@ -159,6 +159,26 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_05_ui_streamline": {
+        "en": "UI streamlining: removed DC viewer; log-level and clean-log controls moved into <code>LogSearchBar</code>; new reusable <code>PopupMenuButton</code> for theme / lang / log-level choosers; 5 new themes (Nord, Dracula, Sakura, Cyberpunk — 9 total); DEBUG-level <code>data_chain</code> JSON dump after each task.",
+        "zh": "界面精简：删除 DC 查看器；日志级别与清除控件并入 <code>LogSearchBar</code>；新增可复用 <code>PopupMenuButton</code> 组件（主题 / 语言 / 日志级别选择器）；新增 5 套主题（Nord、Dracula、Sakura、Cyberpunk，共 9 套）；每个任务执行后以 DEBUG 级别输出 <code>data_chain</code> JSON。",
+    },
+    "cl_2026_05_if_else": {
+        "en": "New <code>IF_ELSE</code> processor: declarative conditional branching — skip \"then\" or \"else\" task blocks based on a Python condition evaluated against <code>data_chain</code>; works correctly inside loops.",
+        "zh": "新增 <code>IF_ELSE</code> 处理器：声明式条件分支——根据对 <code>data_chain</code> 求值的 Python 条件跳过 then 或 else 任务块；循环内可正确运行。",
+    },
+    "cl_2026_05_cron_history": {
+        "en": "Cron execution history dialog (History button in Pipeline tab): browse last 50 runs with status, duration, and error details; filter by pipeline name.",
+        "zh": "Cron 执行历史对话框（Pipeline 标签页 History 按钮）：浏览最近 50 次运行记录，含状态、耗时与错误详情；支持按 Pipeline 名称过滤。",
+    },
+    "cl_2026_05_input_dialog_bg": {
+        "en": "<code>INPUT_DIALOG</code> BG mode: respects existing <code>data_chain</code> value instead of overwriting with <code>default_value</code>; GUI mode pre-fills dialog with existing value.",
+        "zh": "<code>INPUT_DIALOG</code> BG 模式：优先保留 <code>data_chain</code> 已有值，不再覆盖为 <code>default_value</code>；GUI 模式预填已有值。",
+    },
+    "cl_2026_05_task_progress": {
+        "en": "Task progress display in status bar; LRU execution cache; persistent log file descriptor; fix exit SEGFAULT caused by <code>wx.Timer</code> firing after window destruction.",
+        "zh": "状态栏显示任务进度；LRU 执行缓存；持久化日志文件描述符；修复 <code>wx.Timer</code> 在窗口销毁后触发导致的退出 SEGFAULT。",
+    },
     "cl_2026_04_highlight_info": {
         "en": "Status bar (<code>highlightInfo</code>): displays key execution events — <code>[START]</code>, <code>[DONE]</code> with duration, <code>[ERROR]</code> with message, <code>[STOP]</code>; color follows theme accent. <code>Executor</code> DONE event now carries error info.",
         "zh": "状态栏（<code>highlightInfo</code>）：展示关键执行事件 — <code>[START]</code>、<code>[DONE]</code>（含耗时）、<code>[ERROR]</code>（含错误信息）、<code>[STOP]</code>；颜色跟随主题 accent 色。<code>Executor</code> DONE 事件现携带错误信息。",
@@ -168,8 +188,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": "\"System\" 自动主题：跟随系统深浅色模式（深色→Monokai，浅色→Ocean），通过 <code>wx.EVT_SYS_COLOUR_CHANGED</code> 实时响应系统外观切换。",
     },
     "cl_2026_04_theme": {
-        "en": "Theme system: 5 built-in color themes (System, Forest, Ocean, Monokai, Solarized) with real-time switching via toolbar dropdown; selection persisted in <code>petpconfig.yaml</code>. Covers grid selection, property grid, log panel, search highlights, Run button gradient, and MCP tool toggle accent.",
-        "zh": "主题系统：5 套配色主题（System、Forest、Ocean、Monokai、Solarized），工具栏下拉实时切换，选择持久化到 <code>petpconfig.yaml</code>。覆盖表格选中色、属性编辑器、日志面板、搜索高亮、运行按钮渐变色、MCP 工具开关强调色。",
+        "en": "Theme system: 9 built-in color themes (System, Forest, Ocean, Monokai, Solarized, Nord, Dracula, Sakura, Cyberpunk) with real-time switching via <code>PopupMenuButton</code>; selection persisted in <code>petpconfig.yaml</code>. Covers grid selection, property grid, log panel, search highlights, Run button gradient, and MCP tool toggle accent.",
+        "zh": "主题系统：9 套配色主题（System、Forest、Ocean、Monokai、Solarized、Nord、Dracula、Sakura、Cyberpunk），通过 <code>PopupMenuButton</code> 实时切换，选择持久化到 <code>petpconfig.yaml</code>。覆盖表格选中色、属性编辑器、日志面板、搜索高亮、运行按钮渐变色、MCP 工具开关强调色。",
     },
     "cl_2026_04_goto_loopond": {
         "en": "<code>GO_TO_TASK</code> processor: conditional jump to any task within an execution; <code>loop_condition</code> attribute for programmatic break / continue based on data state; dynamic function caching in <code>CodeExplainerUtil</code>.",
