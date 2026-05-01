@@ -85,7 +85,6 @@ class Execution:
 
             if self.should_be_stop:
                 logging.info(f'Execution: [ {self.execution} ] is manually stop at task: {state.get_sequence()}')
-                self._live_data_chain = None
                 return data_chain
 
             current_loop: Loop = self.find_current_loop(state.get_sequence())
@@ -174,7 +173,6 @@ class Execution:
 
             state.move_to_next()
 
-        self._live_data_chain = None
         return data_chain
 
     _LOOP_LOG_INTERVAL = 5  # seconds — minimum gap between LOG events during loops
