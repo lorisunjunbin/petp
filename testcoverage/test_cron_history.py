@@ -40,7 +40,7 @@ class TestRecord:
         history.record("MY_PIPELINE", "0 9 * * *", _make_result())
         files = os.listdir(history_dir)
         assert len(files) == 1
-        assert files[0].startswith("MY_PIPELINE_")
+        assert files[0].startswith("MY_PIPELINE__")
         assert files[0].endswith(".json")
 
     def test_record_content(self, history, history_dir):
@@ -109,8 +109,17 @@ class TestCleanup:
 
     def test_removes_oldest_beyond_max(self, history, history_dir):
         import time
-        for i in range(7):
+        for i in range(10):
             history.record(f"P_{i:02d}", "* * * * *", _make_result())
             time.sleep(0.01)
         files = os.listdir(history_dir)
-        assert len(files) == 5  # max_records=5
+        assert len(files) == 5  # max_records=5, cleanup triggered at 10th write
+
+    def test_explicit_cleanup(self, history, history_dir):
+        import time
+        for i in range(7):
+            history.record(f"P_{i:02d}", "* * * * *", _make_result())
+            time.sleep(0.01)
+        history.cleanup()
+        files = os.listdir(history_dir)
+        assert len(files) == 5

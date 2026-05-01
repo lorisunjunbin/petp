@@ -1,6 +1,6 @@
 import logging
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from croniter import croniter
 from core.cron.runnableascron import RunnableAsCron
 
@@ -16,6 +16,7 @@ class Cron:
         self._running_keys: set[str] = set()
         self._running_crons: dict[str, RunnableAsCron] = {}
         self._threads: dict[str, Thread] = {}
+        self._stop_events: dict[str, threading.Event] = {}
         self._stop = threading.Event()
         self._lock = threading.Lock()
         self._has_work = threading.Event()
@@ -41,6 +42,9 @@ class Cron:
             self._running_crons.pop(key, None)
             self._pending[:] = [c for c in self._pending if c.get_key() != key]
             t = self._threads.pop(key, None)
+            evt = self._stop_events.pop(key, None)
+        if evt:
+            evt.set()
         logging.info('Cron - stop cron: %s', key)
         if t is not None:
             t.join(timeout=5)
@@ -53,6 +57,9 @@ class Cron:
             self._pending.clear()
             threads = list(self._threads.values())
             self._threads.clear()
+            for evt in self._stop_events.values():
+                evt.set()
+            self._stop_events.clear()
         self._has_work.set()
         for t in threads:
             t.join(timeout=5)
@@ -104,21 +111,23 @@ class Cron:
                     continue
                 self._running_keys.add(key)
                 self._running_crons[key] = c
+                stop_evt = threading.Event()
+                self._stop_events[key] = stop_evt
                 if not self._pending:
                     self._has_work.clear()
             logging.info('Cron - start cron: %s', key)
-            t = Thread(target=self._check_and_run, args=(c,), daemon=True)
+            t = Thread(target=self._check_and_run, args=(c, stop_evt), daemon=True)
             with self._lock:
                 self._threads[key] = t
             t.start()
 
-    def _check_and_run(self, cron: RunnableAsCron):
+    def _check_and_run(self, cron: RunnableAsCron, stop_evt: threading.Event):
         schedule = cron.get_cron()
         key = cron.get_key()
         cond = Condition()
         nextRunTime = self._get_next_cron_run_time(schedule)
         logging.info('Cron - check_and_run %s -> next run @%s', key, nextRunTime)
-        while not self._stop.is_set():
+        while not self._stop.is_set() and not stop_evt.is_set():
             if key not in self._running_keys:
                 logging.info('Cron - Thread finished of cron: %s', key)
                 break
@@ -137,20 +146,19 @@ class Cron:
                 nextRunTime = self._get_next_cron_run_time(schedule)
             elif roundedDownTime > nextRunTime:
                 nextRunTime = self._get_next_cron_run_time(schedule)
-            if self._stop.wait(timeout=self._seconds_till_next_minute()):
+            if stop_evt.wait(timeout=self._seconds_till_next_minute()):
                 break
         with self._lock:
+            self._running_keys.discard(key)
             self._threads.pop(key, None)
             self._running_crons.pop(key, None)
+            self._stop_events.pop(key, None)
 
-    # Round time down to the top of the previous minute
-    def _round_down_time(self, dt=None, dateDelta=timedelta(minutes=1)):
-        roundTo = dateDelta.total_seconds()
+    @staticmethod
+    def _round_down_time(dt=None):
         if dt is None:
             dt = datetime.now()
-        seconds = (dt - dt.min).seconds
-        rounding = (seconds + roundTo / 2) // roundTo * roundTo
-        return dt + timedelta(0, rounding - seconds, -dt.microsecond)
+        return dt.replace(second=0, microsecond=0)
 
     # Get next run time from now, based on schedule specified by cron string
     def _get_next_cron_run_time(self, schedule):

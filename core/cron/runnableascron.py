@@ -1,13 +1,16 @@
-class RunnableAsCron(object):
+from abc import ABC, abstractmethod
 
-    def get_name(self):
-        pass
 
-    def get_key(self):
-        pass
+class RunnableAsCron(ABC):
 
-    def get_cron(self):
-        pass
+    @abstractmethod
+    def get_name(self) -> str: ...
 
-    def run_sync(self, init_param, view):
-        pass
+    @abstractmethod
+    def get_key(self) -> str: ...
+
+    @abstractmethod
+    def get_cron(self) -> str: ...
+
+    @abstractmethod
+    def run_sync(self, init_param: dict, view, cond) -> None: ...

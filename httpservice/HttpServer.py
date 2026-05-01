@@ -10,7 +10,6 @@ from typing import Any, Callable, Generator, Optional, Union
 
 import wx
 
-from utils.decorators import reload_http_log_after
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 from mvp.presenter import PETPPresenter
@@ -45,7 +44,7 @@ class HttpServer(McpMixin):
         Args:
             presenter: The PETP MVP presenter that drives business logic.
         """
-        self.p: PETPPresenter = presenter  # Public — accessed by @reload_http_log_after decorator
+        self.p: PETPPresenter = presenter
         self._port: int = int(presenter.m.http_port)
         self._timeout: int = max(int(presenter.m.http_request_timeout), self.MIN_HTTP_TIMEOUT_SECONDS)
         self._token: Optional[str] = presenter.m.http_request_token
@@ -139,7 +138,6 @@ class HttpServer(McpMixin):
             ],
         }
 
-    @reload_http_log_after
     def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
         """Health-check endpoint returning ``{"status": "ok"}``."""
         logging.debug("_handle_health params: %s", params)
@@ -149,13 +147,11 @@ class HttpServer(McpMixin):
     # PETP REST API
     # ------------------------------------------------------------------
 
-    @reload_http_log_after
     def _handle_petp_tools(self, handler: HttpRequestHandler, payload: dict) -> dict:
         """Return the full list of PETP execution tools."""
         logging.debug("_handle_petp_tools payload: %s", payload)
         return self.p.get_tools()
 
-    @reload_http_log_after
     def _handle_petp_event(
         self, handler: HttpRequestHandler, payload: Optional[dict]
     ) -> Union[dict, tuple]:
@@ -199,7 +195,6 @@ class HttpServer(McpMixin):
 
         return result
 
-    @reload_http_log_after
     def _handle_result_check(
         self, handler: HttpRequestHandler, params: Optional[dict] = None
     ) -> Union[dict, tuple]:
@@ -229,14 +224,12 @@ class HttpServer(McpMixin):
     # MCP (Model Context Protocol) endpoints
     # ------------------------------------------------------------------
 
-    @reload_http_log_after
     def _handle_mcp_auth(
         self, handler: HttpRequestHandler, params: Optional[dict] = None
     ) -> tuple:
         """Return the bearer token for MCP authentication discovery."""
         return {"token": self._token}, 200
 
-    @reload_http_log_after
     def _handle_mcp(
         self, handler: HttpRequestHandler, params: Optional[dict] = None
     ) -> Union[dict, tuple, StreamingResponseData]:

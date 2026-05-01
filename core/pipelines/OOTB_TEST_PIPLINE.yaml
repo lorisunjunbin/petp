@@ -1,6 +1,7 @@
 !!python/object:core.pipeline.Pipeline
-cronEnabled: false
-cronExp: 0 * * * *
+cronDesc: Every minute
+cronEnabled: true
+cronExp: 0/1 * * * *
 list:
 - execution: test_zip
   input: '{"Pipline","YES"}'

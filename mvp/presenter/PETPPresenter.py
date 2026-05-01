@@ -17,7 +17,6 @@ from core.loop import Loop
 from core.pipeline import Pipeline
 from core.processor import Processor
 from core.task import Task
-from utils.decorators import reload_log_after
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -61,9 +60,6 @@ class PETPPresenter():
 
         # Incremental log loading state
         self._log_last_pos = 0
-        self._log_last_update = 0.0
-        self._log_throttle_sec = 0.3
-        self._log_pending = False
 
         self._snapshots = []
         self._snapshot_cursor = -1
@@ -76,6 +72,10 @@ class PETPPresenter():
         self._log_filter_active = False
         self._log_full_content = ''  # raw content kept for filter re-apply
         self._exec_start_time = 0.0
+
+        self._log_timer = wx.Timer(view)
+        view.Bind(wx.EVT_TIMER, self._on_log_timer, self._log_timer)
+        self._log_timer.Start(1000)
 
         self.i.install(self, view)
 
@@ -441,7 +441,6 @@ class PETPPresenter():
         dlg.ShowModal()
         dlg.Destroy()
 
-    @reload_log_after
     def _on_grid_row_copy(self, evt):
         self.row_copied = [
             self.v.taskGrid.GetCellValue(self.selected_row_2_copied_paste, 0),
@@ -590,7 +589,6 @@ class PETPPresenter():
         self.v.PopupMenu(menu)
         menu.Destroy()
 
-    @reload_log_after
     def _on_edit_loop_value(self, evt):
         from mvp.view.common.LoopEditDialog import LoopEditDialog
         prop = getattr(self, '_right_clicked_loop_property', None)
@@ -648,7 +646,6 @@ class PETPPresenter():
         if evt.Selection == 1:
             self._init_executiongrid_choice_editor()
 
-    @reload_log_after
     def on_log_level_changed(self):
         combo = self.v.logLevelChooser
         log_level = combo.GetValue()
@@ -661,7 +658,6 @@ class PETPPresenter():
         logging.getLogger().setLevel(logging.getLevelName(log_level))
         getattr(logging, log_level.lower())('Set log level to <' + log_level + '> successfully.')
 
-    @reload_log_after
     def on_lang_changed(self):
         combo = self.v.langChooser
         locale = "zh" if combo.GetValue() == "中文" else "en"
@@ -725,7 +721,6 @@ class PETPPresenter():
             self._set_highlight_info(f"[DONE] {name}  {elapsed:.1f}s")
         wx.CallLater(8000, self._resume_welcome)
 
-    @reload_log_after
     def on_execution_pipeline_changed(self):
         combo = self.v.pipelineChooser
         grid = self.v.executionGrid
@@ -756,7 +751,6 @@ class PETPPresenter():
         self._reset_loop_pgrid()
         self.v.availableProperties.Clear()
 
-    @reload_log_after
     def on_task_execution_changed(self):
         self._reset_grids()
         combo = self.v.executionChooser
@@ -1014,7 +1008,6 @@ class PETPPresenter():
         else:
             logging.warning(t("msg_exec_list_empty"))
 
-    @reload_log_after
     def on_save_pipeline(self):
         combo = self.v.pipelineChooser
         name = combo.GetValue()
@@ -1030,7 +1023,6 @@ class PETPPresenter():
 
         self._save_pipeline(name)
 
-    @reload_log_after
     def on_save_execution(self):
         combo = self.v.executionChooser
         name = combo.GetValue()
@@ -1046,7 +1038,6 @@ class PETPPresenter():
         self._refresh_execution_chooser(name)
         self.invalidate_tools_cache()
 
-    @reload_log_after
     def on_delete_pipeline(self):
         combo = self.v.pipelineChooser
         found = combo.FindString(combo.GetValue())
@@ -1055,7 +1046,6 @@ class PETPPresenter():
             self.pipeline.delete()
             combo.Delete(found)
 
-    @reload_log_after
     def on_delete_execution(self):
         combo = self.v.executionChooser
         name = combo.GetValue()
@@ -1080,7 +1070,6 @@ class PETPPresenter():
         self._refresh_execution_chooser('')
         self.invalidate_tools_cache()
 
-    @reload_log_after
     def on_copy_execution(self):
         combo = self.v.executionChooser
         name = combo.GetValue()
@@ -1117,16 +1106,13 @@ class PETPPresenter():
         self.invalidate_tools_cache()
         self.on_task_execution_changed()
 
-    @reload_log_after
     def on_stop_all(self):
         self.cron.stop_all()
 
-    @reload_log_after
     def on_stop_current(self):
         if not self.pipeline is None:
             self.cron.stop_one(self.pipeline)
 
-    @reload_log_after
     def on_run_pipeline(self):
         combo = self.v.pipelineChooser
         self.pipeline = Pipeline.get_pipeline(combo.GetValue())
@@ -1135,7 +1121,6 @@ class PETPPresenter():
         else:
             Thread(target=self.pipeline.run, args=({"__m": self.m, "__p": self}, self.v), daemon=True).start()
 
-    @reload_log_after
     def on_run_execution(self, init_param: dict = None):
         if self._is_dirty():
             dlg = wx.MessageDialog(
@@ -1169,7 +1154,6 @@ class PETPPresenter():
         self.executors.append(executor)
         executor.start()
 
-    @reload_log_after
     def on_executeonstartup_changed(self, evt: wx.EVT_CHECKBOX):
         self.m.execute_on_startup = evt.IsChecked()
         self.m.set_config('execute_on_startup', self.m.execute_on_startup)
@@ -1182,7 +1166,6 @@ class PETPPresenter():
         else:
             combo.set_visible_subset(None)
 
-    @reload_log_after
     def on_stop_execution(self):
         for executor in self.executors:
             if executor.is_alive():
@@ -1192,7 +1175,6 @@ class PETPPresenter():
 
         self.executors = []
 
-    @reload_log_after
     def on_select_recording(self):
         with wx.FileDialog(self.v, t("fdlg_open_recording"), wildcard="recording files (*.json)|*.json",
                            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as fileDialog:
@@ -1204,7 +1186,6 @@ class PETPPresenter():
             title = self.converter.get_title()
             self.v.recordingLocation.SetLabel(f'{title}  ({path_name})')
 
-    @reload_log_after
     def on_load_from_recording(self):
         if hasattr(self, 'converter') and self.converter.is_initialized():
             self._push_snapshot()
@@ -1252,7 +1233,6 @@ class PETPPresenter():
         current_column = evt.GetCol()
         evt.Skip()
 
-    @reload_log_after
     def on_grid_cell_change4e(self, evt):
         grid = self.v.taskGrid
         current_value = grid.GetCellValue(evt.GetRow(), evt.GetCol())
@@ -1270,7 +1250,6 @@ class PETPPresenter():
             logging.info(f'Processor {current_value} : {p.get_desc()}')
             self._load_input_taskproperty(current_row)
 
-    @reload_log_after
     def on_grid_cell_select4e(self, evt):
         current_row = evt.GetRow()
         evt.Skip()
@@ -1338,7 +1317,6 @@ class PETPPresenter():
     def on_cron_changed(self):
         self._update_cron_setting(True)
 
-    @reload_log_after
     def on_datepicker_changed(self, evt):
         date_str = evt.GetDate().Format("%Y-%m-%d")
         evt.Skip()
@@ -1533,7 +1511,6 @@ class PETPPresenter():
 
         self.v.handy_tools.bind_accessors(get_value, set_value)
 
-    @reload_log_after
     def on_add_property(self):
         k = self.v.availableProperties.GetValue()
 
@@ -1560,7 +1537,6 @@ class PETPPresenter():
         input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
         self._fill_available_properties(processor, input_dict)
 
-    @reload_log_after
     def on_skip_task_changed(self, evt):
         # Guard: a task row must be selected before toggling skip state
         if self.current_selected_row < 0:
@@ -1582,7 +1558,6 @@ class PETPPresenter():
 
         self._apply_row_skip_style(self.current_selected_row, evt.IsChecked())
 
-    @reload_log_after
     def on_delete_property(self):
         tp = self.v.taskProperty
         prop = tp.GetSelection()
@@ -1644,7 +1619,6 @@ class PETPPresenter():
             return
         pgm.DeleteProperty(prop.GetName())
 
-    @reload_log_after
     def _update_cron_setting(self, enabled: bool):
         if enabled:
             self.v.cronInput.Enable(True)
@@ -1662,7 +1636,6 @@ class PETPPresenter():
             logging.error(t("msg_cron_invalid_hint", cron_invalid=t(self.CRON_INVALID), cron=cron))
             return t(self.CRON_INVALID)
 
-    @reload_log_after
     def on_property_change4e(self, evt):
         prop = evt.GetProperty()
         evt.Skip()
@@ -1914,7 +1887,6 @@ class PETPPresenter():
                 wx.TheClipboard.Close()
                 logging.info(f'Copied property value to clipboard: {value}')
 
-    @reload_log_after
     def _on_edit_complex_value(self, evt):
         prop = self._right_clicked_property
         if prop is None:
@@ -2079,7 +2051,6 @@ class PETPPresenter():
         self._snapshot_cursor = len(self._snapshots) - 1
         self._update_save_button()
 
-    @reload_log_after
     def _undo(self):
         if self._snapshot_cursor < 0:
             return
@@ -2091,7 +2062,6 @@ class PETPPresenter():
         self._update_save_button()
         logging.debug(f'Undo → snapshot @{snap["timestamp"]}')
 
-    @reload_log_after
     def _redo(self):
         if self._snapshot_cursor >= len(self._snapshots) - 1:
             return
@@ -2165,21 +2135,11 @@ class PETPPresenter():
     def clear_running_task_highlight(self):
         self.v.taskGrid.ClearSelection()
 
-    def on_load_log_async(self):
-        """Throttled async log reload — skip if called too frequently."""
-        now = time.monotonic()
-        if now - self._log_last_update < self._log_throttle_sec:
-            if not self._log_pending:
-                self._log_pending = True
-                delay_ms = int(self._log_throttle_sec * 1000)
-                wx.CallAfter(lambda: wx.CallLater(delay_ms, self._deferred_load_log))
-            return
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.submit(self.on_load_log)
+    def _on_log_timer(self, evt):
+        self.on_load_log_async()
 
-    def _deferred_load_log(self):
-        """Fires after throttle window expires."""
-        self._log_pending = False
+    def on_load_log_async(self):
+        """Async log reload triggered by timer."""
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.submit(self.on_load_log)
 
@@ -2223,7 +2183,6 @@ class PETPPresenter():
                 if new_content:
                     wx.CallAfter(self._append_log, new_content, max_size)
 
-            self._log_last_update = time.monotonic()
         except Exception as e:
             logging.error(f"Fail to load log: {str(e)}")
         finally:
@@ -2279,7 +2238,6 @@ class PETPPresenter():
         if self._log_search_keyword and not self._log_filter_active:
             self._highlight_log_matches()
 
-    @reload_log_after
     def on_clean_log(self):
         with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
             file.write(f'Clean {self.m.app_name} log@' + DateUtil.get_now_in_str() + '\n')
@@ -2446,7 +2404,6 @@ class PETPPresenter():
         if evt.handler:
             evt.handler(result_value)
 
-    @reload_log_after
     def on_handle_http_request(self, evt: PETPEvent):
         action = evt.data['action']
         is_internal = evt.data.get('source') == 'internal'

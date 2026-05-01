@@ -3,8 +3,10 @@
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
+
+_SEPARATOR = "__"
 
 
 class CronHistory:
@@ -12,11 +14,12 @@ class CronHistory:
     def __init__(self, history_dir: str = "log/cron_history", max_records: int = 500):
         self._dir = history_dir
         self._max_records = max_records
+        self._write_count = 0
         os.makedirs(self._dir, exist_ok=True)
 
     def record(self, pipeline_name: str, cron_exp: str, result: dict) -> None:
         now = datetime.now()
-        record_id = f"{pipeline_name}_{now.strftime('%Y%m%d_%H%M%S_%f')}"
+        record_id = f"{pipeline_name}{_SEPARATOR}{now.strftime('%Y%m%d_%H%M%S_%f')}"
         duration_ms = result.get("meta", {}).get("duration_ms", 0)
 
         executions_summary = []
@@ -45,7 +48,9 @@ class CronHistory:
         except Exception as e:
             logging.error("CronHistory: failed to write record %s: %s", record_id, e)
 
-        self.cleanup()
+        self._write_count += 1
+        if self._write_count % 10 == 0:
+            self.cleanup()
 
     def get_history(self, pipeline_name: Optional[str] = None, limit: int = 50) -> list[dict]:
         try:
@@ -57,7 +62,8 @@ class CronHistory:
             return []
 
         if pipeline_name:
-            files = [f for f in files if f.startswith(f"{pipeline_name}_")]
+            prefix = f"{pipeline_name}{_SEPARATOR}"
+            files = [f for f in files if f.startswith(prefix)]
 
         records = []
         for filename in files[:limit]:

@@ -154,7 +154,6 @@ class PETPInteractor():
     def on_handle_start(self, evt: PETPEvent):
         logging.info(f"{evt.data[0]} is START via new thread")
         self.p.update_highlight_info_start(evt.data[0])
-        self.on_load_log(evt)
 
     def on_handle_pipeline_step(self, evt: PETPEvent):
         action = evt.data[0]
@@ -169,7 +168,6 @@ class PETPInteractor():
         elif action == 'done':
             pipeline_name = evt.data[1]
             self.p.update_highlight_info_pipeline_done(pipeline_name)
-        self.on_load_log(evt)
 
     def on_handle_done(self, evt: PETPEvent):
         execution = evt.data[0]
@@ -177,7 +175,6 @@ class PETPInteractor():
         logging.info(f"{execution} is DONE.")
         self.p.clear_running_task_highlight()
         self.p.update_highlight_info_done(execution, error)
-        self.on_load_log(evt)
 
         data_chain = evt.data[1]
         from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
@@ -215,11 +212,10 @@ class PETPInteractor():
         return None
 
     def on_load_log(self, evt):
-        """Called by internal PETPEvent.LOG — incremental append."""
+        """Called by internal PETPEvent.LOG — highlight running task."""
         evt.Skip()
         self.p.highlight_running_task(evt.data)
         self.p.on_logcontents_unfocused()
-        self.p.on_load_log_async()
 
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
