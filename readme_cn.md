@@ -113,14 +113,36 @@ Task      1:1 Processor
 
 ### 第 2 步 — 安装 wxPython
 
-wxPython 须精确匹配 Python 版本和操作系统。从 [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/) 下载对应的 `.whl` 文件：
+wxPython 须精确匹配 Python 版本和操作系统。
 
-| 平台 | 命令 |
+- **Python 3.14**：PyPI 上的官方稳定版（4.2.x）**不支持** Python 3.14，须使用**开发快照版**（4.3.0 alpha），从 [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/) 下载对应的 `.whl` 文件：
+
+| 平台 | 示例 |
 |------|------|
-| macOS (Apple Silicon) | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
-| Windows | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
+| macOS (Apple Silicon) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-macosx_11_0_arm64.whl` |
+| macOS (Intel) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-macosx_10_15_x86_64.whl` |
+| Windows (64位) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-win_amd64.whl` |
+| Linux (x86_64) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-linux_x86_64.whl` |
 
-> 建议始终下载**最新快照版**以获得最佳兼容性。
+> 将 `1XXXX` 替换为快照页面上的实际构建号。建议始终使用**最新快照版**以获得最佳稳定性。
+>
+> **提示：** PETP 内置了自动下载最新 wxPython 快照版的 Execution：
+> - `OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm`（macOS Apple Silicon）
+> - `OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64`（Windows 64位）
+>
+> 通过后台模式运行（无需预装 wxPython）：
+> ```bash
+> python PETP_backgroud.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
+> ```
+> `.whl` 文件将下载到 `download/` 目录，然后执行 `uv pip install download/<时间戳>/<文件名>.whl` 安装。
+
+- **Python 3.12 / 3.13**：可直接从 PyPI 安装官方稳定版：
+
+```bash
+uv pip install wxPython
+# 或
+pip install wxPython
+```
 
 ### 第 3 步 — 安装依赖
 
@@ -554,7 +576,11 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 #### 运行测试套件
 
 ```bash
-python testcoverage/test_bg_runtime.py   # 15 个 BG 模式用例，覆盖 ENDECODER、DB_ACCESS、Pipeline、工具缓存、返回结构
+# pytest 单元 & 集成测试（expression2str、data_chain、loop 状态机、processor、runtime）
+python -m pytest testcoverage/ -v
+
+# 传统测试脚本
+python testcoverage/test_bg_runtime.py   # 17 个 BG 模式用例，覆盖 ENDECODER、DB_ACCESS、Pipeline、工具缓存、返回结构
 python testcoverage/nogui_smoke.py       # 单 Execution 冒烟测试，失败时以非零退出码退出
 ```
 
@@ -578,7 +604,7 @@ MCP Inspector 设置：Transport Type = **Streamable HTTP**，URL = `http://loca
 ### 打包可执行文件
 
 ```bash
-python PETP_build.py
+python build/PETP_build.py
 ```
 
 输出到 `./dist/`：macOS 生成 `PETP.app`，Windows 生成 `PETP.exe`。
@@ -590,16 +616,16 @@ python PETP_build.py
 | 文件 | 用途 |
 |------|------|
 | `Dockerfile` | 多架构镜像（Python 3.14-slim） |
-| `docker_build.sh` | 一键构建脚本（buildx + QEMU） |
+| `build/docker_build.sh` | 一键构建脚本（buildx + QEMU） |
 | `requirements-docker.txt` | 无头模式依赖 |
 
 ```bash
 # 本地构建并运行
-./docker_build.sh
+./build/docker_build.sh
 docker run --rm -p 8866:8866 petp-background:amd64-local
 
 # 推送到仓库
-./docker_build.sh --push yourrepo/petp-background:1.0
+./build/docker_build.sh --push yourrepo/petp-background:1.0
 ```
 
 **容器端点：**
@@ -629,12 +655,13 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 |------|------|------|
 | 入口 | `PETP.py` | GUI 桌面入口 |
 | | `PETP_backgroud.py` | 无头 / 后台入口 |
-| 构建 | `PETP_build.py` | PyInstaller 构建（GUI） |
-| | `PETP_background_build.py` | PyInstaller 构建（后台） |
+| 构建 | `build/PETP_build.py` | PyInstaller 构建（GUI） |
+| | `build/PETP_background_build.py` | PyInstaller 构建（后台） |
+| | `build/build_common.py` | 共享构建工具 |
 | | `build/*.spec` | PyInstaller 规格模板 |
 | | `build/debug_runtime.py` | 打包应用调试辅助 |
 | Docker | `Dockerfile` | 多架构镜像 |
-| | `docker_build.sh` | 构建脚本 |
+| | `build/docker_build.sh` | 构建脚本 |
 | | `.dockerignore` | 排除列表 |
 | 依赖 | `requirements.txt` | 全量安装（引用所有分组） |
 | | `requirements-nogui.txt` | 无 GUI / 后台服务 |

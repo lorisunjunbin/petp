@@ -99,6 +99,8 @@ class PETPPresenter():
         self._apply_theme()
         self._load_config()
 
+        wx.CallAfter(self._sync_mcp_panel_visibility)
+
         view.Bind(wx.EVT_SYS_COLOUR_CHANGED, self._on_sys_appearance_changed)
 
         self._welcome_index = random.randrange(10)
@@ -801,6 +803,7 @@ class PETPPresenter():
                 cb_astool.SetValue(self.execution.astool)
             else:
                 cb_astool.SetValue(False)
+            self._sync_mcp_panel_visibility()
 
             self._snapshots.clear()
             self._snapshot_cursor = -1
@@ -1394,6 +1397,16 @@ class PETPPresenter():
             combo._tool_names | {name} if evt.IsChecked()
             else combo._tool_names - {name}
         )
+        self._sync_mcp_panel_visibility()
+
+    def _sync_mcp_panel_visibility(self):
+        splitter = self.v.e_right_panel
+        is_tool = self.v.cb_astool.IsChecked()
+        h = splitter.GetSize()[1]
+        if is_tool:
+            splitter.SetSashPosition(h - 150 if h > 200 else h // 2)
+        else:
+            splitter.SetSashPosition(h - 28)
 
     def _check_last_task_is_response_key(self) -> bool:
         grid = self.v.taskGrid

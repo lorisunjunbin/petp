@@ -14,6 +14,7 @@ class Cron:
         self._on_run = on_run
         self._pending: list[RunnableAsCron] = []
         self._running_keys: set[str] = set()
+        self._running_crons: dict[str, RunnableAsCron] = {}
         self._threads: dict[str, Thread] = {}
         self._stop = threading.Event()
         self._lock = threading.Lock()
@@ -37,6 +38,7 @@ class Cron:
         key = cron.get_key()
         with self._lock:
             self._running_keys.discard(key)
+            self._running_crons.pop(key, None)
             self._pending[:] = [c for c in self._pending if c.get_key() != key]
             t = self._threads.pop(key, None)
         logging.info('Cron - stop cron: %s', key)
@@ -47,6 +49,7 @@ class Cron:
         self._stop.set()
         with self._lock:
             self._running_keys.clear()
+            self._running_crons.clear()
             self._pending.clear()
             threads = list(self._threads.values())
             self._threads.clear()
@@ -55,6 +58,35 @@ class Cron:
             t.join(timeout=5)
         self._worker.join(timeout=3)
         logging.info('Cron - stop ALL')
+
+    def get_running_info(self) -> list[dict]:
+        with self._lock:
+            keys = list(self._running_keys)
+            pending_keys = [c.get_key() for c in self._pending]
+        result = []
+        for key in keys:
+            info = {"pipeline_name": key, "status": "running"}
+            try:
+                cron_obj = self._get_cron_obj_by_key(key)
+                if cron_obj:
+                    info["cron_exp"] = cron_obj.get_cron()
+                    info["cron_desc"] = getattr(cron_obj, 'cronDesc', '')
+                    info["next_run"] = self._get_next_cron_run_time(cron_obj.get_cron()).isoformat(timespec="seconds")
+            except Exception:
+                pass
+            result.append(info)
+        for key in pending_keys:
+            result.append({"pipeline_name": key, "status": "pending"})
+        return result
+
+    def _get_cron_obj_by_key(self, key: str):
+        with self._lock:
+            if key in self._running_crons:
+                return self._running_crons[key]
+            for c in self._pending:
+                if c.get_key() == key:
+                    return c
+        return None
 
     def _loop_worker(self):
         logging.info('cron - loop_worker is running')
@@ -71,6 +103,7 @@ class Cron:
                 if key in self._running_keys:
                     continue
                 self._running_keys.add(key)
+                self._running_crons[key] = c
                 if not self._pending:
                     self._has_work.clear()
             logging.info('Cron - start cron: %s', key)
@@ -108,6 +141,7 @@ class Cron:
                 break
         with self._lock:
             self._threads.pop(key, None)
+            self._running_crons.pop(key, None)
 
     # Round time down to the top of the previous minute
     def _round_down_time(self, dt=None, dateDelta=timedelta(minutes=1)):

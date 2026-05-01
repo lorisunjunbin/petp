@@ -33,7 +33,12 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['botocore', 'notebook', 'ipython', 'wx', 'tkinter', 'PyQt5', 'PySide2'],
+    excludes=[
+        'botocore', 'notebook', 'ipython', 'pytest', 'doctest',
+        'wx', 'tkinter', 'PyQt5', 'PySide2',
+        'sklearn', 'scikit-learn', 'tensorflow', 'torch', 'torchvision',
+        'sqlalchemy', 'easyocr',
+    ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,

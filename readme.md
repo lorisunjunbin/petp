@@ -113,14 +113,36 @@ Download and install Python 3.14 from [python.org](https://www.python.org/downlo
 
 ### Step 2 — Install wxPython
 
-wxPython must match your exact Python version and OS. Download the `.whl` from [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/):
+wxPython must match your exact Python version and OS.
 
-| Platform | Command |
+- **Python 3.14**: The official stable release (4.2.x on PyPI) does **not** support Python 3.14. You must use a **development snapshot** (4.3.0 alpha) from [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/). Pick the `.whl` matching your Python version and platform:
+
+| Platform | Example |
 |----------|---------|
-| macOS (Apple Silicon) | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-macosx_11_0_arm64.whl` |
-| Windows | `uv pip install --force-reinstall wxpython-4.3.0a16055+4fb35900-cp314-cp314-win_amd64.whl` |
+| macOS (Apple Silicon) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-macosx_11_0_arm64.whl` |
+| macOS (Intel) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-macosx_10_15_x86_64.whl` |
+| Windows (64-bit) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-win_amd64.whl` |
+| Linux (x86_64) | `uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-linux_x86_64.whl` |
 
-> Always download the **latest snapshot** for best compatibility.
+> Replace `1XXXX` with the actual build number from the snapshot page. Always use the **latest snapshot** for best stability.
+>
+> **Tip:** PETP includes built-in executions to auto-download the latest wxPython snapshot:
+> - `OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm` (macOS Apple Silicon)
+> - `OOTB_DOWNLOAD_LATEST_WXPYTHON_win_amd64` (Windows 64-bit)
+>
+> Run via background mode (no wxPython required):
+> ```bash
+> python PETP_backgroud.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
+> ```
+> The `.whl` will be downloaded to `download/`, then install with `uv pip install download/<timestamp>/<file>.whl`.
+
+- **Python 3.12 / 3.13**: You can install the stable release directly from PyPI:
+
+```bash
+uv pip install wxPython
+# or
+pip install wxPython
+```
 
 ### Step 3 — Install Dependencies
 
@@ -554,7 +576,11 @@ All **Selenium** processors (`GO_TO_PAGE`, `FIND_THEN_CLICK`, etc.) run normally
 #### Running the test suite
 
 ```bash
-python testcoverage/test_bg_runtime.py   # 15 BG-mode cases covering ENDECODER, DB_ACCESS, pipeline, tools cache, result structure
+# pytest unit & integration tests (expression2str, data_chain, loop state, processors, runtime)
+python -m pytest testcoverage/ -v
+
+# Legacy test scripts
+python testcoverage/test_bg_runtime.py   # 17 BG-mode cases covering ENDECODER, DB_ACCESS, pipeline, tools cache, result structure
 python testcoverage/nogui_smoke.py       # single-execution smoke test, exits non-zero on failure
 ```
 
@@ -578,7 +604,7 @@ For MCP Inspector: Transport Type = **Streamable HTTP**, URL = `http://localhost
 ### Build Standalone Executable
 
 ```bash
-python PETP_build.py
+python build/PETP_build.py
 ```
 
 Output: `PETP.app` (macOS) or `PETP.exe` (Windows) in `./dist/`.
@@ -590,16 +616,16 @@ Fully supports **building on Apple M1 (arm64)** and **running on x86 (amd64)**.
 | File | Purpose |
 |------|---------|
 | `Dockerfile` | Multi-arch image (Python 3.14-slim) |
-| `docker_build.sh` | One-command build (buildx + QEMU) |
+| `build/docker_build.sh` | One-command build (buildx + QEMU) |
 | `requirements-docker.txt` | Headless dependencies |
 
 ```bash
 # Build & run locally
-./docker_build.sh
+./build/docker_build.sh
 docker run --rm -p 8866:8866 petp-background:amd64-local
 
 # Push to registry
-./docker_build.sh --push yourrepo/petp-background:1.0
+./build/docker_build.sh --push yourrepo/petp-background:1.0
 ```
 
 **Container endpoints:**
@@ -629,12 +655,13 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 |----------|------|-------------|
 | Entry | `PETP.py` | GUI desktop entry |
 | | `PETP_backgroud.py` | Headless / background entry |
-| Build | `PETP_build.py` | PyInstaller build (GUI) |
-| | `PETP_background_build.py` | PyInstaller build (background) |
+| Build | `build/PETP_build.py` | PyInstaller build (GUI) |
+| | `build/PETP_background_build.py` | PyInstaller build (background) |
+| | `build/build_common.py` | Shared build utilities |
 | | `build/*.spec` | PyInstaller spec templates |
 | | `build/debug_runtime.py` | Debug helper for packaged apps |
 | Docker | `Dockerfile` | Multi-arch image |
-| | `docker_build.sh` | Build script |
+| | `build/docker_build.sh` | Build script |
 | | `.dockerignore` | Exclude list |
 | Deps | `requirements.txt` | Full install (references all groups) |
 | | `requirements-nogui.txt` | No-GUI / background |

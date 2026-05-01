@@ -40,6 +40,8 @@ class BackgroundHttpServer(McpMixin):
             "GET:/petp/tools": self._handle_petp_tools,
             "POST:/petp/exec": self._handle_petp_exec,
             "GET:/petp/result": self._handle_result_check,
+            "GET:/petp/crons": self._handle_cron_list,
+            "GET:/petp/crons/history": self._handle_cron_history,
             "GET:/mcp": self._handle_mcp,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
@@ -49,7 +51,7 @@ class BackgroundHttpServer(McpMixin):
     def _handle_index(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
         return {
             "server": "PETP Background HTTP Server",
-            "available_endpoints": ["/health", "/petp/exec", "/petp/tools", "/petp/result", "/mcp"],
+            "available_endpoints": ["/health", "/petp/exec", "/petp/tools", "/petp/result", "/petp/crons", "/petp/crons/history", "/mcp"],
         }
 
     def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
@@ -127,6 +129,23 @@ class BackgroundHttpServer(McpMixin):
                     }, 200
             return {"error": "Request not found or expired"}, 404
         return result, self._status_code_for_result(result)
+
+    def _handle_cron_list(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
+        return {"crons": self.runtime.get_active_crons()}
+
+    def _handle_cron_history(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
+        params = params or {}
+        pipeline_name = params.get("pipeline")
+        limit = int(params.get("limit", 50))
+        record_id = params.get("id")
+
+        if record_id:
+            record = self.runtime.get_cron_record(record_id)
+            if record is None:
+                return {"error": "Record not found"}, 404
+            return record
+
+        return {"history": self.runtime.get_cron_history(pipeline_name, limit)}
 
     def _handle_mcp_auth(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> tuple:
         return {"token": self._token}, 200

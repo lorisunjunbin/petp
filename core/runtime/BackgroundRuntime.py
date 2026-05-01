@@ -5,6 +5,7 @@ from threading import Condition
 from typing import Any, Optional
 
 from core.cron.cron import Cron
+from core.cron.cron_history import CronHistory
 from core.execution import Execution
 from core.executionstate import ExecutionState
 from core.pipeline import Pipeline
@@ -24,6 +25,8 @@ class BackgroundRuntime:
         self._tools_cache: dict | None = None
         self._tools_cache_ts: float = 0.0
         self._cron: Cron | None = None
+        max_records = getattr(model, 'cron_history_max_records', 500) if model else 500
+        self._cron_history = CronHistory(max_records=max_records)
 
     def run_execution(self, execution_name: str, init_data: Optional[dict] = None) -> dict:
         started = time.time()
@@ -193,11 +196,23 @@ class BackgroundRuntime:
         if self._cron is not None:
             self._cron.stop_all()
 
+    def get_active_crons(self) -> list[dict]:
+        if self._cron is None:
+            return []
+        return self._cron.get_running_info()
+
+    def get_cron_history(self, pipeline_name: Optional[str] = None, limit: int = 50) -> list[dict]:
+        return self._cron_history.get_history(pipeline_name, limit)
+
+    def get_cron_record(self, record_id: str) -> Optional[dict]:
+        return self._cron_history.get_record(record_id)
+
     def _cron_run_pipeline(self, cron_obj, init_data: dict) -> None:
         pipeline_name = cron_obj.get_name()
         started = time.time()
         result = self._run_pipeline_once(cron_obj, pipeline_name, init_data, started)
         logging.info("Cron pipeline result: %s", json.dumps(result, ensure_ascii=False, default=str))
+        self._cron_history.record(pipeline_name, getattr(cron_obj, 'cronExp', ''), result)
 
     def _run_pipeline_once(self, pipeline: Pipeline, pipeline_name: str, init_data: Optional[dict], started: float) -> dict:
         cron_desc = getattr(pipeline, 'cronDesc', '')
