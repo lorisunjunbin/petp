@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import time
+from collections import OrderedDict
 from datetime import datetime
 from threading import Condition
 from typing import TYPE_CHECKING, Any
@@ -34,7 +35,8 @@ else:
 Execution 1:n Task
 """
 
-_execution_cache: dict[str, tuple[float, Any]] = {}
+_EXECUTION_CACHE_MAX = 64
+_execution_cache: OrderedDict[str, tuple[float, Any]] = OrderedDict()
 _available_executions_cache: tuple[float, list] | None = None
 _AVAILABLE_EXECUTIONS_TTL = 5.0
 
@@ -179,8 +181,13 @@ class Execution:
             return action if action in ('break', 'continue') else 'break'
         return None
 
-    def post_log_reload(self, lp, view):
-        evt_data = {"execution": self.execution, "task_index": lp.get_current_index()}
+    def post_log_reload(self, lp, view, proc_name=''):
+        evt_data = {
+            "execution": self.execution,
+            "task_index": lp.get_current_index(),
+            "task_total": lp.list_size,
+            "proc_name": proc_name,
+        }
         if not lp.is_loop_execution:
             wx.PostEvent(view, PETPEvent(PETPEvent.LOG, data=evt_data))
         else:
@@ -197,7 +204,7 @@ class Execution:
         logging.info(
             '<-%s <- %s <--------------< Task: %s %s -- end << \n',
             task.end, proc_name, state.get_sequence(), loop_cursor)
-        self.post_log_reload(state, view)
+        self.post_log_reload(state, view, proc_name)
 
     def collect_loop_cursor(self, current_loop: Loop, state: ExecutionState) -> str:
         idx = "" if current_loop is None \
@@ -215,11 +222,12 @@ class Execution:
             '>-%s >- %s >---------------> Task: %s %s -- begin >',
             task.start, proc_name, state.get_sequence(), loop_cursor)
         logging.info('process start: %s', task.input)
-        self.post_log_reload(state, view)
+        self.post_log_reload(state, view, proc_name)
 
     def log_skipped_process(self, current_loop, state, processor, task, view):
         logging.info('*** skipped *** : %s', task.input)
-        self.post_log_reload(state, view)
+        proc_name = type(processor).__name__
+        self.post_log_reload(state, view, proc_name)
 
     def init_task(self, data_chain, idx, sequence) -> Task:
         task: Task = self.list[idx]
@@ -323,9 +331,12 @@ class Execution:
         mtime = os.path.getmtime(file_absolute_path)
         cached = _execution_cache.get(file_absolute_path)
         if cached is not None and cached[0] == mtime:
+            _execution_cache.move_to_end(file_absolute_path)
             return cached[1]
         result = YamlRO.get_yaml_from_file(file_absolute_path)
         _execution_cache[file_absolute_path] = (mtime, result)
+        if len(_execution_cache) > _EXECUTION_CACHE_MAX:
+            _execution_cache.popitem(last=False)
         return result
 
     @staticmethod

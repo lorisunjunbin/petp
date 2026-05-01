@@ -60,6 +60,8 @@ class PETPPresenter():
 
         # Incremental log loading state
         self._log_last_pos = 0
+        self._log_fd = None
+        self._log_ino = None
 
         self._snapshots = []
         self._snapshot_cursor = -1
@@ -633,6 +635,10 @@ class PETPPresenter():
 
         self.logger_thread = None
         self.keep_running = False
+        self._log_timer.Stop()
+        if self._log_fd is not None:
+            self._log_fd.close()
+            self._log_fd = None
         if hasattr(self.v, 'tbicon') and self.v.tbicon:
             try:
                 self.v.tbicon.Destroy()
@@ -2123,6 +2129,8 @@ class PETPPresenter():
             return
         exec_name = data.get("execution")
         task_index = data.get("task_index")
+        task_total = data.get("task_total")
+        proc_name = data.get("proc_name", "")
         if exec_name is None or task_index is None:
             return
         if exec_name != self.v.executionChooser.GetValue():
@@ -2131,11 +2139,17 @@ class PETPPresenter():
         if 0 <= task_index < grid.GetNumberRows():
             grid.SelectRow(task_index)
             grid.MakeCellVisible(task_index, 0)
+        if task_total:
+            elapsed = time.time() - self._exec_start_time if self._exec_start_time else 0
+            self._set_highlight_info(
+                f"[{task_index + 1}/{task_total}] {proc_name}  ({elapsed:.1f}s)")
 
     def clear_running_task_highlight(self):
         self.v.taskGrid.ClearSelection()
 
     def _on_log_timer(self, evt):
+        if not self.keep_running:
+            return
         self.on_load_log_async()
 
     def on_load_log_async(self):
@@ -2154,37 +2168,53 @@ class PETPPresenter():
 
         try:
             self.isLoading = True
-            file_size = os.path.getsize(log_path)
             max_size = 5 * 1024 * 1024  # 5MB
 
-            # File was truncated / rotated (e.g. after "Clean") → full reload
-            if file_size < self._log_last_pos:
+            try:
+                st = os.stat(log_path)
+            except OSError:
+                return
+            file_size = st.st_size
+            file_ino = st.st_ino
+
+            # Reopen if: no fd, inode changed (rotation), or file truncated
+            if (self._log_fd is None
+                    or self._log_ino != file_ino
+                    or file_size < self._log_last_pos):
+                if self._log_fd is not None:
+                    self._log_fd.close()
+                self._log_fd = open(log_path, 'r', encoding='utf8', errors='replace')
+                self._log_ino = file_ino
                 self._log_last_pos = 0
 
             if self._log_last_pos == 0:
-                # --- Full load (initial or after clean) ---
-                with open(log_path, 'r', encoding='utf8', errors='replace') as f:
-                    if file_size > max_size:
-                        truncate_message = f"[log is too big, only showing last {max_size / 1024 / 1024:.1f}MB.]\n\n"
-                        f.seek(file_size - max_size)
-                        f.readline()  # skip partial line
-                        content = truncate_message + f.read()
-                    else:
-                        content = f.read()
-                    self._log_last_pos = f.tell()
+                # --- Full load (initial or after clean/rotation) ---
+                if file_size > max_size:
+                    self._log_fd.seek(file_size - max_size)
+                    self._log_fd.readline()  # skip partial line
+                    content = f"[log is too big, only showing last {max_size / 1024 / 1024:.1f}MB.]\n\n" + self._log_fd.read()
+                else:
+                    self._log_fd.seek(0)
+                    content = self._log_fd.read()
+                self._log_last_pos = self._log_fd.tell()
                 wx.CallAfter(self._full_update_log, content)
             else:
+                # No new content — skip
+                if file_size == self._log_last_pos:
+                    return
                 # --- Incremental append (the fast path) ---
-                with open(log_path, 'r', encoding='utf8', errors='replace') as f:
-                    f.seek(self._log_last_pos)
-                    new_content = f.read()
-                    self._log_last_pos = f.tell()
+                self._log_fd.seek(self._log_last_pos)
+                new_content = self._log_fd.read()
+                self._log_last_pos = self._log_fd.tell()
 
                 if new_content:
                     wx.CallAfter(self._append_log, new_content, max_size)
 
         except Exception as e:
             logging.error(f"Fail to load log: {str(e)}")
+            if self._log_fd is not None:
+                self._log_fd.close()
+                self._log_fd = None
         finally:
             self.isLoading = False
 
@@ -2239,6 +2269,9 @@ class PETPPresenter():
             self._highlight_log_matches()
 
     def on_clean_log(self):
+        if self._log_fd is not None:
+            self._log_fd.close()
+            self._log_fd = None
         with open(OSUtils.get_log_file_path(self.m.app_name), 'w', encoding='utf8') as file:
             file.write(f'Clean {self.m.app_name} log@' + DateUtil.get_now_in_str() + '\n')
         self.is_log_content_focused = False
