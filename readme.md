@@ -57,7 +57,7 @@ Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Execut
 | **Data Visualization** | Charts and plots via Matplotlib. |
 | **Media** | Download YouTube videos (PyTube). |
 | **Execution Control** | Initialize / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON. Run shell commands. Conditional jump (`GO_TO_TASK`). Declarative if/else branching (`IF_ELSE`). |
-| **Theme** | 5 themes including "System" (auto-follows OS dark/light mode); Forest, Ocean, Monokai, Solarized with live switching; persisted in config. Covers grid selection, property grid, log panel, search highlights, Run button, and MCP toggle. |
+| **Theme** | 9 themes including "System" (auto-follows OS dark/light mode); Forest, Ocean, Monokai, Solarized, Nord, Dracula, Sakura, Cyberpunk with live switching; persisted in config. Covers grid selection, property grid, log panel, search highlights, Run button, and MCP toggle. |
 
 ---
 
@@ -716,8 +716,8 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | UI streamlining: removed DC viewer; moved log-level and clean-log controls into LogSearchBar; new reusable `PopupMenuButton` component for theme/lang/log-level choosers; 5 new themes (Nord, Dracula, Sakura, Cyberpunk + total 9); DEBUG-level `data_chain` JSON dump after each task |
 | 2026-05 | New `IF_ELSE` processor: declarative conditional branching — skip "then" or "else" task blocks based on a Python condition evaluated against `data_chain`; works correctly inside loops |
-| 2026-05 | `data_chain` live viewer dialog (DC button): non-modal popup showing real-time JSON state of the running execution, auto-refreshes every second |
 | 2026-05 | Cron execution history dialog (History button in Pipeline tab): browse last 50 runs with status, duration, error details; filter by pipeline name |
 | 2026-05 | `INPUT_DIALOG` BG mode: respect existing `data_chain` value instead of overwriting with `default_value`; GUI mode pre-fills dialog with existing value |
 | 2026-05 | Task progress display in status bar; LRU execution cache; persistent log file descriptor; fix exit SEGFAULT caused by wx.Timer firing after window destruction |

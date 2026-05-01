@@ -154,14 +154,6 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "btn_cron_history": {"en": "History", "zh": "历史记录"},
     "tip_cron_history": {"en": "View cron execution history", "zh": "查看定时任务执行历史"},
 
-    # === data_chain viewer ===
-    "btn_dc_viewer": {"en": "DC", "zh": "DC"},
-    "tip_dc_viewer": {"en": "Open data_chain live viewer", "zh": "打开 data_chain 实时查看器"},
-    "dlg_dc_viewer_title": {"en": "data_chain Viewer", "zh": "data_chain 实时查看"},
-    "dc_no_running": {"en": "(No running execution)", "zh": "（当前无运行中的执行）"},
-    "dc_keys_count": {"en": "{count} key(s)", "zh": "{count} 个键"},
-    "btn_dc_copy": {"en": "Copy", "zh": "复制"},
-
     # === Cron Dashboard dialog ===
     "dlg_cron_dashboard_title": {"en": "Cron Execution History", "zh": "定时任务执行历史"},
     "cron_col_start_time": {"en": "Start Time", "zh": "开始时间"},

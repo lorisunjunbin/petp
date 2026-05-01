@@ -68,7 +68,6 @@ class Execution:
 
     def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
         data_chain = initial_data
-        self._live_data_chain = data_chain
         mcp_defaults = self.expand_mcp_defaults(data_chain)
         for k, v in mcp_defaults.items():
             if k not in data_chain:
@@ -219,6 +218,11 @@ class Execution:
         logging.info(
             '<-%s <- %s <--------------< Task: %s %s -- end << \n',
             task.end, proc_name, state.get_sequence(), loop_cursor)
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            try:
+                logging.debug('After Task %s: %s', state.get_sequence(), json.dumps(task.data_chain, ensure_ascii=False, default=str))
+            except Exception:
+                pass
         self.post_log_reload(state, view, proc_name)
 
     def collect_loop_cursor(self, current_loop: Loop, state: ExecutionState) -> str:

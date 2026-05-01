@@ -186,13 +186,10 @@ class PETPPresenter():
         v.checkbox_executeonstartup.SetToolTip(t("tip_execute_on_startup"))
         v.langChooser.SetToolTip(t("tip_change_lang"))
         v.themeChooser.SetToolTip(t("tip_change_theme"))
-        v.logLevelChooser.SetToolTip(t("tip_change_log_level"))
-        v.cleanLog.SetLabel(t("btn_clean"))
-        v.cleanLog.SetToolTip(t("tip_clean_log"))
-        v.dcViewer.SetLabel(t("btn_dc_viewer"))
-        v.dcViewer.SetToolTip(t("tip_dc_viewer"))
 
         sb = v.logSearchBar
+        sb.logLevelBtn.SetToolTip(t("tip_change_log_level"))
+        sb.cleanBtn.SetToolTip(t("tip_clean_log"))
         sb.textCtrl.SetHint(t("tip_log_search"))
         sb.prevBtn.SetLabel(t("label_find_prev"))
         sb.prevBtn.SetToolTip(t("tip_find_prev"))
@@ -301,7 +298,7 @@ class PETPPresenter():
 
         # load_log_level
         if self.m.log_level is not None:
-            self.v.logLevelChooser.SetValue(self.m.log_level)
+            self.v.logSearchBar.set_log_level(self.m.log_level)
 
         # load_language
         lang = getattr(self.m, 'language', 'zh')
@@ -659,12 +656,10 @@ class PETPPresenter():
             self._init_executiongrid_choice_editor()
 
     def on_log_level_changed(self):
-        combo = self.v.logLevelChooser
-        log_level = combo.GetValue()
+        log_level = self.v.logSearchBar.logLevelBtn.GetValue()
 
-        # record log_level
-        if self.m.log_level != combo.GetValue():
-            self.m.log_level = combo.GetValue()
+        if self.m.log_level != log_level:
+            self.m.log_level = log_level
             self.m.set_config('log_level', self.m.log_level)
 
         logging.getLogger().setLevel(logging.getLevelName(log_level))
@@ -2288,20 +2283,6 @@ class PETPPresenter():
         self.is_log_content_focused = False
         self._log_last_pos = 0
         self._log_full_content = ''
-
-    def on_open_dc_viewer(self):
-        from mvp.view.common.DataChainViewerDialog import DataChainViewerDialog
-
-        def get_live_data():
-            for executor in self.executors:
-                if executor.is_alive():
-                    live = getattr(executor.execution, '_live_data_chain', None)
-                    if live is not None:
-                        return live
-            return None
-
-        dlg = DataChainViewerDialog(self.v, get_live_data)
-        dlg.Show()
 
     def on_logcontents_focused(self):
         self.is_log_content_focused = True

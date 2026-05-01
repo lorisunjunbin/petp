@@ -66,9 +66,6 @@ class PETPInteractor():
         self.v.SetAcceleratorTable(accel)
 
     def bind_view_event_4_log_panel(self):
-        self.v.Bind(wx.EVT_BUTTON, self.on_clean_log, self.v.cleanLog)
-        self.v.Bind(wx.EVT_BUTTON, self.on_open_dc_viewer, self.v.dcViewer)
-        self.v.Bind(wx.EVT_COMBOBOX, self.on_log_level_changed, self.v.logLevelChooser)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_lang_changed, self.v.langChooser)
         self.v.Bind(wx.EVT_COMBOBOX, self.on_theme_changed, self.v.themeChooser)
 
@@ -284,10 +281,6 @@ class PETPInteractor():
         evt.Skip()
         self.p.on_execution_pipeline_changed()
 
-    def on_log_level_changed(self, evt):
-        evt.Skip()
-        self.p.on_log_level_changed()
-
     def on_lang_changed(self, evt):
         evt.Skip()
         self.p.on_lang_changed()
@@ -421,14 +414,6 @@ class PETPInteractor():
         evt.Skip()
         self.p.on_delete_property()
 
-    def on_clean_log(self, evt):
-        evt.Skip()
-        self.p.on_clean_log()
-
-    def on_open_dc_viewer(self, evt):
-        evt.Skip()
-        self.p.on_open_dc_viewer()
-
     def on_open_cron_dashboard(self, evt):
         evt.Skip()
         self.p.on_open_cron_dashboard()
@@ -455,6 +440,10 @@ class PETPInteractor():
             self.v.logSearchBar.set_search_text('')
             self.p.on_clear_log_search()
             self.v.logContents.SetFocus()
+        elif action == "level_changed":
+            self.p.on_log_level_changed()
+        elif action == "clean":
+            self.p.on_clean_log()
 
     def on_log_key_down(self, evt):
         if evt.GetKeyCode() == ord('F') and evt.CmdDown():

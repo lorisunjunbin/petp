@@ -57,7 +57,7 @@ Task      1:1 Processor
 | **数据可视化** | 通过 Matplotlib 生成图表。 |
 | **媒体** | 下载 YouTube 视频（PyTube）。 |
 | **执行控制** | 初始化 / 校验参数。嵌套执行。条件停止。等待 / 延时。运行时重载日志配置。读取 JSON。执行 Shell 命令。条件跳转（`GO_TO_TASK`）。声明式条件分支（`IF_ELSE`）。 |
-| **主题** | 5 套主题，含 "System"（自动跟随系统深浅色模式）；Forest、Ocean、Monokai、Solarized 实时切换并持久化到配置文件。覆盖表格选中、属性编辑器、日志面板、搜索高亮、运行按钮和 MCP 开关。 |
+| **主题** | 9 套主题，含 "System"（自动跟随系统深浅色模式）；Forest、Ocean、Monokai、Solarized、Nord、Dracula、Sakura、Cyberpunk 实时切换并持久化到配置文件。覆盖表格选中、属性编辑器、日志面板、搜索高亮、运行按钮和 MCP 开关。 |
 
 ---
 
@@ -716,8 +716,8 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 | 日期 | 更新内容                                                                                                                                                                                          |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | 界面精简：移除 DC 查看器；日志级别和清除日志控件整合进 LogSearchBar；新增通用 `PopupMenuButton` 组件用于主题/语言/日志级别选择；新增 5 套主题（Nord、Dracula、Sakura、Cyberpunk，总计 9 套）；DEBUG 级别下每个 Task 执行后输出 `data_chain` JSON |
 | 2026-05 | 新增 `IF_ELSE` 处理器：声明式条件分支 — 根据 Python 条件表达式（基于 `data_chain`）跳过 "then" 或 "else" 任务块；支持在循环内正确运行 |
-| 2026-05 | `data_chain` 实时查看器弹窗（DC 按钮）：非模态弹窗展示当前运行 Execution 的实时 JSON 状态，每秒自动刷新 |
 | 2026-05 | 定时任务执行历史弹窗（Pipeline 标签页 History 按钮）：浏览最近 50 次执行记录，含状态、耗时、错误详情；支持按流水线名称过滤 |
 | 2026-05 | `INPUT_DIALOG` 后台模式：尊重 `data_chain` 中已有的值，不再用 `default_value` 覆盖；GUI 模式下将已有值预填到输入框 |
 | 2026-05 | 状态栏任务进度显示；LRU 执行缓存；持久化日志文件描述符；修复退出时 wx.Timer 触发导致的 SEGFAULT 崩溃 |

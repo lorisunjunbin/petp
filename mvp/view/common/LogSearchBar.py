@@ -2,6 +2,7 @@ import sys
 
 import wx
 
+from mvp.view.common.PopupMenuButton import PopupMenuButton
 from mvp.view.theme import get_theme
 
 _IS_WINDOWS = sys.platform == 'win32'
@@ -30,11 +31,13 @@ class LogBarEvent(wx.PyCommandEvent):
     """Single event class for all LogSearchBar actions.
 
     action values:
-      "search"     — text changed;          GetString() = current keyword
-      "prev"       — navigate to prev match
-      "next"       — navigate to next match
-      "filter"     — filter toggle;         GetInt() = 1 active / 0 off
-      "key_escape" — Escape pressed in search box
+      "search"        — text changed;          GetString() = current keyword
+      "prev"          — navigate to prev match
+      "next"          — navigate to next match
+      "filter"        — filter toggle;         GetInt() = 1 active / 0 off
+      "key_escape"    — Escape pressed in search box
+      "level_changed" — log level changed;     GetString() = new level
+      "clean"         — clean log requested
     """
 
     def __init__(self, action: str, source: wx.Window,
@@ -210,13 +213,26 @@ class LogSearchBar(wx.Panel):
         self.filterBtn = _NavBtn(inner, "≡", toggle=True)
         self.filterBtn.SetMinSize((28, 22))
 
+        self.cleanBtn = _NavBtn(inner, "✕")
+        self.cleanBtn.SetMinSize((26, 22))
+
+        self.logLevelBtn = PopupMenuButton(
+            inner,
+            choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "FATAL"],
+            default="INFO",
+            on_select=lambda level: self._fire("level_changed", string=level),
+            min_width=62
+        )
+
         sep1 = wx.StaticLine(inner, style=wx.LI_VERTICAL)
         sep1.SetMinSize((1, 16))
         sep2 = wx.StaticLine(inner, style=wx.LI_VERTICAL)
         sep2.SetMinSize((1, 16))
         sep3 = wx.StaticLine(inner, style=wx.LI_VERTICAL)
         sep3.SetMinSize((1, 16))
-        self._seps = (sep1, sep2, sep3)
+        sep4 = wx.StaticLine(inner, style=wx.LI_VERTICAL)
+        sep4.SetMinSize((1, 16))
+        self._seps = (sep1, sep2, sep3, sep4)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
         row.Add(self.matchCount, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 8)
@@ -228,6 +244,9 @@ class LogSearchBar(wx.Panel):
         row.Add(self.nextBtn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 2)
         row.Add(sep3, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 2)
         row.Add(self.filterBtn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
+        row.Add(sep4, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 4)
+        row.Add(self.cleanBtn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
+        row.Add(self.logLevelBtn, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
         inner.SetSizer(row)
 
         outer = wx.BoxSizer(wx.VERTICAL)
@@ -240,6 +259,7 @@ class LogSearchBar(wx.Panel):
         self.prevBtn.Bind(wx.EVT_BUTTON, lambda _e: self._fire("prev"))
         self.nextBtn.Bind(wx.EVT_BUTTON, lambda _e: self._fire("next"))
         self.filterBtn.Bind(wx.EVT_BUTTON, self._on_filter_btn)
+        self.cleanBtn.Bind(wx.EVT_BUTTON, lambda _e: self._fire("clean"))
 
         self.Bind(wx.EVT_PAINT, self._on_paint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)
@@ -261,6 +281,9 @@ class LogSearchBar(wx.Panel):
 
     def is_filter_active(self) -> bool:
         return self.filterBtn.IsActive()
+
+    def set_log_level(self, level: str):
+        self.logLevelBtn.SetValue(level)
 
     # ------------------------------------------------------------------
     # Theme
