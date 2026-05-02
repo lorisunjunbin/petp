@@ -73,11 +73,20 @@ class _PaletteListBox(wx.VListBox):
             return _SEP_H
         return _ITEM_H
 
+    def _sel_bg_colour(self):
+        th = get_theme()
+        r, g, b = th.accent
+        bg = self.GetBackgroundColour()
+        # blend accent at ~20% over background (no alpha dependency)
+        br, bg_, bb = bg.Red(), bg.Green(), bg.Blue()
+        a = 0.18
+        return wx.Colour(int(r * a + br * (1 - a)),
+                         int(g * a + bg_ * (1 - a)),
+                         int(b * a + bb * (1 - a)))
+
     def OnDrawBackground(self, dc, rect, n):
         if n == self._selection and not (0 <= n < len(self._separators) and self._separators[n]):
-            th = get_theme()
-            r, g, b = th.accent
-            dc.SetBrush(wx.Brush(wx.Colour(r, g, b, 38)))
+            dc.SetBrush(wx.Brush(self._sel_bg_colour()))
             dc.SetPen(wx.TRANSPARENT_PEN)
             dc.DrawRectangle(rect)
         else:
@@ -110,7 +119,9 @@ class _PaletteListBox(wx.VListBox):
         if is_sel:
             name_fg = wx.Colour(*theme.accent)
             ar, ag, ab = theme.accent
-            tag_fg = wx.Colour(ar, ag, ab, 180)
+            tag_fg = wx.Colour(int(ar * 0.7 + 128 * 0.3),
+                               int(ag * 0.7 + 128 * 0.3),
+                               int(ab * 0.7 + 128 * 0.3))
         else:
             name_fg = self._fg
             tag_fg = self._tag_fg
