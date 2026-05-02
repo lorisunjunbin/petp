@@ -44,32 +44,15 @@ list:
   skipped: false
   type: WRITE_TO_EXCEL
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_map_final", "content_clean_func": "return
-    content.replace(\"\\n\",\"\")", "masking_func": "return (''CC_'' if colnum ==
-    0 else ''CN_'' if colnum == 1 else ''L1_'' if colnum == 3 else ''L2_'' if colnum
-    == 4 else ''L3_'' if colnum == 5 else ''SID'' if colnum ==6 else ''SNA'' if colnum
-    == 7 else row[colnum]) + str(colnum) + str(rownum).rjust(4, ''0'')", "masking_columns":
-    "0|>1|>3|>4|>5|>6|>7", "masking_dict_name": "multi_masking_dict", "masking_dict_inverted":
-    "Yes"}'
+  input: '{"content_clean_func":"return content.replace(\"\\n\",\"\")","masking_func":"return (''CC_'' if colnum == 0 else ''CN_'' if colnum == 1 else ''L1_'' if colnum == 3 else ''L2_'' if colnum == 4 else ''L3_'' if colnum == 5 else ''SID'' if colnum ==6 else ''SNA'' if colnum == 7 else row[colnum]) + str(colnum) + str(rownum).rjust(4, ''0'')","masking_columns":"0|>1|>3|>4|>5|>6|>7","masking_dict_name":"multi_masking_dict","masking_dict_inverted":"Yes","source_key":"capacity_map_final"}'
   skipped: false
   type: DATA_MULTI_MASKING
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_map_final", "group_by_func": "return  ''\u4f9b\u5e94\u5546\u540d
-    '' + row[7] + '', \u4f9b\u5e94\u5546\u7801 '' + row[6]", "mapping_func": "return
-    ''\u54c1\u7c7b\u7801 ''+ row[0] +'', \u54c1\u7c7b\u540d '' + row[1] +'', \u4e00\u7ea7\u80fd\u529b
-    '' +row[3]+'',  \u4e8c\u7ea7\u80fd\u529b '' +row[4]+'', \u4e09\u7ea7\u80fd\u529b
-    '' +row[5] + '', \u7684\u5f97\u5206\u4e3a '' +row[8]", "target_dict_key": "capacity_map_rag_data",
-    "collect_func": "return key +''  \u7684\u80fd\u529b\u4fe1\u606f\u4e3a '' + '';
-    ''.join(rows)"}'
+  input: '{"group_by_func":"return  ''供应商名 '' + row[7] + '', 供应商码 '' + row[6]","mapping_func":"return ''品类码 ''+ row[0] +'', 品类名 '' + row[1] +'', 一级能力 '' +row[3]+'',  二级能力 '' +row[4]+'', 三级能力 '' +row[5] + '', 的得分为 '' +row[8]","collect_func":"return key +''  的能力信息为 '' + ''; ''.join(rows)","source_key":"capacity_map_final","data_key":"capacity_map_rag_data"}'
   skipped: false
   type: DATA_GROUPBY
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_map_final", "group_by_func": "return  ''\u4f9b\u5e94\u5546\u540d
-    '' + row[7] + '', \u4f9b\u5e94\u5546\u7801 '' + row[6] + '', \u54c1\u7c7b\u7801
-    ''+ row[0] +'', \u54c1\u7c7b\u540d '' + row[1] ", "mapping_func": "return ''\u4e00\u7ea7\u80fd\u529b
-    '' +row[3]+'',  \u4e8c\u7ea7\u80fd\u529b '' +row[4]+'', \u4e09\u7ea7\u80fd\u529b
-    '' +row[5] + '', \u7684\u5f97\u5206\u4e3a '' +row[8]", "target_dict_key": "capacity_map_rag_data_sc",
-    "collect_func": "return key +''  \u54c1\u7c7b\u80fd\u529b\u4e3a '' + ''; ''.join(rows)"}'
+  input: '{"group_by_func":"return  ''供应商名 '' + row[7] + '', 供应商码 '' + row[6] + '', 品类码 ''+ row[0] +'', 品类名 '' + row[1] ","mapping_func":"return ''一级能力 '' +row[3]+'',  二级能力 '' +row[4]+'', 三级能力 '' +row[5] + '', 的得分为 '' +row[8]","collect_func":"return key +''  品类能力为 '' + ''; ''.join(rows)","source_key":"capacity_map_final","data_key":"capacity_map_rag_data_sc"}'
   skipped: false
   type: DATA_GROUPBY
 - !!python/object:core.task.Task

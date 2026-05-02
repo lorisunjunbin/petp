@@ -6,13 +6,13 @@ from paramiko.client import SSHClient
 
 
 class RUN_SSH_COMMANDProcessor(Processor):
-    TPL: str = '{"ssh_client_key":"sshclient", "cmd":"", "output_key":"", "close_after_run":"yes|no"}'
+    TPL: str = '{"ssh_client_key":"sshclient", "cmd":"", "data_key":"", "close_after_run":"yes|no"}'
     DESC: str = f'''
-        Run SSH command via paramiko, save result to output_key of data_chain.
+        Run SSH command via paramiko, save result to data_key of data_chain.
 
         - ssh_client_key: key of data_chain where the SSH client instance is stored (default: "sshclient")
         - cmd: SSH command to execute (supports expression)
-        - output_key: key of data_chain to store the command output
+        - data_key: key of data_chain to store the command output
         - close_after_run: "yes" to close the SSH client after running the command, "no" to keep it open (default: "yes")
 
         {TPL}
@@ -26,7 +26,7 @@ class RUN_SSH_COMMANDProcessor(Processor):
 
         if not ssh_client is None:
             cmd = self.expression2str(self.get_param("cmd"))
-            output_key = self.get_param("output_key")
+            output_key = self.get_param("data_key")
 
             logging.info('SSH CMD: %s', cmd)
             output = ParamikoUtil.run_ssh_cmd(ssh_client, cmd)

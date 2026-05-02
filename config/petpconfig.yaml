@@ -9,8 +9,8 @@ application:
   http_port: 8866
   http_request_timeout: 600
   http_request_token: cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
-  language: zh
-  last_run: test_IF_ELSE
+  language: en
+  last_run: test_admin_seo_com_cn
   log_level: INFO
   nogui_enabled: true
   nogui_ui_processor_policy: skip

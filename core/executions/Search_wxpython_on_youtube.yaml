@@ -10,14 +10,13 @@ list:
     ''targets'': [], ''value'': ''''}"}'
   type: UNKNOWN_TASK
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": "#search-input > #search"}'
+  input: '{"identity":"#search-input > #search","find_by":"css"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": "#search-input > #search", "value": "wxpython
-    phoenix"}'
+  input: '{"identity":"#search-input > #search","value":"wxpython phoenix","find_by":"css"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": "#search-input > #search", "value": "{KEY_ENTER}"}'
+  input: '{"identity":"#search-input > #search","value":"{KEY_ENTER}","find_by":"css"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
   input: '{"msg": "unsupported command: {''id'': ''3b78e0bf-588e-401b-abb3-9a06256a8a2f'',
@@ -65,9 +64,9 @@ list:
     ''''}"}'
   type: UNKNOWN_TASK
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".ytd-page-manager > #container"}'
+  input: '{"identity":".ytd-page-manager > #container","find_by":"css"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".ytd-page-manager > #container"}'
+  input: '{"identity":".ytd-page-manager > #container","find_by":"css"}'
   type: FIND_THEN_CLICK
 loops: []

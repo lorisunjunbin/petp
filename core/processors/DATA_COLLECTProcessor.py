@@ -3,12 +3,12 @@ from core.processor import Processor
 
 
 class DATA_COLLECTProcessor(Processor):
-    TPL: str = '{"clean_b4_collect":"yes|no","target":"", "type":"list|dict", "list_flatten":"yes|no", "list_row_lambda":"[me.get_data(\\"\\")]", "dict_key_lambda":"[me.get_data(\\"\\")]", "dict_value_lambda":"[me.get_data(\\"\\")]"}'
+    TPL: str = '{"clean_before_collect":"yes|no","target":"", "type":"list|dict", "list_flatten":"yes|no", "list_row_lambda":"[me.get_data(\\"\\")]", "dict_key_lambda":"[me.get_data(\\"\\")]", "dict_value_lambda":"[me.get_data(\\"\\")]"}'
 
     DESC: str = f'''
         Collect data into a list or dict in data_chain via lambda expressions. Supports cleaning before collect.
 
-        - clean_b4_collect: "yes" to clear the target before collecting, "no" to append (default: "no")
+        - clean_before_collect: "yes" to clear the target before collecting, "no" to append (default: "no")
         - target: key of data_chain to store the collected data (supports expression)
         - type: collection type, "list" or "dict" (default: "list")
         - list_flatten: "yes" to flatten the collected row if it's a list, "no" to keep as is (only applicable when type is "list", default: "no")
@@ -25,7 +25,7 @@ class DATA_COLLECTProcessor(Processor):
     def process(self):
         target_name = self.expression2str(self.get_param('target'))
         target_type = self.get_param('type')
-        clean_b4_collect = self.explain_param_or_default('clean_b4_collect', 'no')
+        clean_b4_collect = self.explain_param_or_default('clean_before_collect', 'no')
         list_flatten = self.explain_param_or_default('list_flatten', 'no')
 
         if target_type == 'list':

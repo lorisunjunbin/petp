@@ -3,17 +3,17 @@ from core.processor import Processor
 
 
 class DATA_MAPPINGProcessor(Processor):
-    TPL: str = '{"given_collection":"", "lambda":"[item.id, item.title]", "start_idx":"","end_idx":"", "target_collection":""}'
+    TPL: str = '{"source_key":"", "map_fn":"[item.id, item.title]", "start_idx":"","end_idx":"", "target_key":""}'
 
     DESC: str = f'''
-        Map/transform each element in given_collection using lambda expression and store result in target_collection.
-        Supports slicing via start_idx/end_idx. Replace given_collection if target_collection is not given.
+        Map/transform each element in source_key using map_fn expression and store result in target_key.
+        Supports slicing via start_idx/end_idx. Replace source_key if target_key is not given.
 
-        - given_collection: key of data_chain pointing to the source list
-        - lambda: Python expression to transform each element, variable "item" is available (default: "[item.id, item.title]")
+        - source_key: key of data_chain pointing to the source list
+        - map_fn: Python expression to transform each element, variable "item" is available (default: "[item.id, item.title]")
         - start_idx: start index for slicing the collection (optional, supports expression)
         - end_idx: end index for slicing the collection, inclusive (optional, supports expression)
-        - target_collection: key of data_chain to store the mapped result (optional, defaults to given_collection)
+        - target_key: key of data_chain to store the mapped result (optional, defaults to source_key)
 
         {TPL}
     '''
@@ -22,11 +22,11 @@ class DATA_MAPPINGProcessor(Processor):
         return super().CATE_DATA_PROCESSING
 
     def process(self):
-        given_collection_name = self.get_param('given_collection')
+        given_collection_name = self.get_param('source_key')
         given_collection = self.get_data(given_collection_name)
 
         logging.info('Mapping collection "%s": %d items', given_collection_name, len(given_collection))
-        logging.debug('given_collection: %s', given_collection)
+        logging.debug('source_key: %s', given_collection)
 
         # --- optional slice: start_idx / end_idx ---
         start_idx_raw = self.explain_param_or_default('start_idx', '')
@@ -62,9 +62,9 @@ class DATA_MAPPINGProcessor(Processor):
             logging.debug(f'After slicing given_collection: {given_collection}.')
         # --- end slice ---
 
-        lambda_expression = lambda item: eval(self.get_param('lambda'))
+        lambda_expression = lambda item: eval(self.get_param('map_fn'))
 
-        target_collection_name = self.get_param('target_collection') if self.has_param('target_collection') \
+        target_collection_name = self.get_param('target_key') if self.has_param('target_key') \
             else given_collection_name
 
         target_collection = list(map(lambda_expression, given_collection))

@@ -48,7 +48,7 @@ class GeminiLLMClient:
 
 
 class AI_LLM_GEMINI_SETUPProcessor(Processor):
-    TPL: str = '{"key_name_gemini":"GOOGLE_API_KEY", "model":"gemini-1.5-pro", "llm_data_key":"llmgemini","top_p":"0.85", "temperature":"0.8"}'
+    TPL: str = '{"api_key_env":"GOOGLE_API_KEY", "model":"gemini-1.5-pro", "llm_data_key":"llmgemini","top_p":"0.85", "temperature":"0.8"}'
 
     DESC: str = f'''
         Initialize and configure a Google Gemini LLM instance with the specified model,
@@ -56,7 +56,7 @@ class AI_LLM_GEMINI_SETUPProcessor(Processor):
         such as AI_LLM_GEMINI_QANDA_MCPProcessor. Requires the GOOGLE_API_KEY environment variable to be set.
         Skips setup if an LLM instance already exists for the given llm_data_key.
 
-        - key_name_gemini: The environment variable name that holds the Google API key (default: "GOOGLE_API_KEY")
+        - api_key_env: The environment variable name that holds the Google API key (default: "GOOGLE_API_KEY")
         - model: The Gemini model name to use (default: "gemini-1.5-pro")
         - llm_data_key: The data chain key under which the configured LLM instance will be stored (default: "llmgemini")
         - top_p: The top-p (nucleus) sampling parameter as a float string, controls diversity (default: "0.85")
@@ -76,14 +76,14 @@ class AI_LLM_GEMINI_SETUPProcessor(Processor):
             logging.info(f'LLM Gemini ({llm_data_key}) already set up, skipping.')
             return
 
-        key_name_gemini = self.get_param('key_name_gemini')
+        api_key_env = self.get_param('api_key_env')
 
-        if key_name_gemini not in os.environ:
-            error_msg = f"Environment variable '{key_name_gemini}' not found. Please set your Google API key."
+        if api_key_env not in os.environ:
+            error_msg = f"Environment variable '{api_key_env}' not found. Please set your Google API key."
             logging.error(error_msg)
             raise EnvironmentError(error_msg)
 
-        google_api_key = os.environ[key_name_gemini]
+        google_api_key = os.environ[api_key_env]
         model = self.get_param('model')
         top_p_str = self.get_param('top_p')
         temperature_str = self.get_param('temperature')

@@ -4,7 +4,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class DATA_MASKINGProcessor(Processor):
-    TPL: str = '{"given_collection":"", "content_clean_func":"return content", "masking_func":"return \'SJB-\' + str(colnum) + str(rownum) ", "masking_columnnum":"0", "masking_dict_name":"", "masking_dict_inverted":"Yes"}'
+    TPL: str = '{"source_key":"", "content_clean_func":"return content", "masking_func":"return \'SJB-\' + str(colnum) + str(rownum) ", "masking_column":"0", "masking_dict_name":"", "masking_dict_inverted":"Yes"}'
 
     DESC: str = f'''
         Perform single-column data masking on a collection (list of rows). Each row is a list
@@ -15,12 +15,12 @@ class DATA_MASKINGProcessor(Processor):
         The masking_func has access to: mask_dict, row, rownum, colnum.
         The content_clean_func has access to: content (the raw cell value).
 
-        - given_collection: Key in data_chain for the input list of rows to mask (supports expression, default: "")
+        - source_key: Key in data_chain for the input list of rows to mask (supports expression, default: "")
         - content_clean_func: Python function body to clean/normalize cell content before masking; takes (content) (supports expression, default: "return content")
         - masking_func: Python function body to generate a masked replacement value; takes (mask_dict, row, rownum, colnum) (supports expression, default: "return 'SJB-' + str(colnum) + str(rownum)")
-        - masking_columnnum: Zero-based column index to apply masking on (supports expression, default: "0")
+        - masking_column: Zero-based column index to apply masking on (supports expression, default: "0")
         - masking_dict_name: Key in data_chain to store the masking dictionary after processing; if empty, the dict is discarded (supports expression, default: "")
-        - masking_dict_inverted: If "Yes", stores the inverted mapping (masked -> original) instead of (original -> masked) (supports expression, default: "Yes")
+        - masking_dict_inverted: If "Yes" or "yes", stores the inverted mapping (masked -> original) instead of (original -> masked) (supports expression, default: "Yes")
 
         {TPL}
 
@@ -32,12 +32,12 @@ class DATA_MASKINGProcessor(Processor):
     def process(self):
         masking_dict = {}
 
-        given_collection = self.get_data(self.get_param('given_collection'))
-        masking_dict_inverted = True if "Yes" == self.get_param('masking_dict_inverted') else False
+        given_collection = self.get_data(self.get_param('source_key'))
+        masking_dict_inverted = True if str(self.get_param('masking_dict_inverted')).lower() == "yes" else False
         masking_dict_name = self.get_param('masking_dict_name')
         masking_func_body = self.get_param('masking_func')
         content_clean_func = self.get_param('content_clean_func')
-        masking_columnnum = int(self.get_param('masking_columnnum'))
+        masking_columnnum = int(self.get_param('masking_column'))
 
         masking_func = CodeExplainerUtil.create_and_execute_func('DATA_MASKINGProcessor_masking',
                                                                  '(masking_dict, row, rownum, colnum)',

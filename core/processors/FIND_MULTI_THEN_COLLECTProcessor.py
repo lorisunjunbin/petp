@@ -6,12 +6,12 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_MULTI_THEN_COLLECTProcessor(Processor):
-    TPL: str = '{"collectby":"xpath|css","identity":"","value_type":"text|value|ele|_any property or attribute_", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None","sort_lambda":"item", "sort_reverse":"no", "chrome_name":"chrome"}'
+    TPL: str = '{"find_by":"xpath|css","identity":"","value_type":"text|value|ele|_any property or attribute_", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None","sort_lambda":"item", "sort_reverse":"no", "chrome_name":"chrome"}'
 
     DESC = f'''
         Find multiple elements via selenium and collect their text, value, or any property/attribute into a list.
 
-        - collectby: locator type, "xpath" or "css"
+        - find_by: locator type, "xpath" or "css"
         - identity: locator value for the target elements
         - value_type: what to collect - "text" for element.text, "value" for input value, "ele" for element itself, or any attribute name
         - value_key: key of data_chain to store the collected list (supports expression)
@@ -31,7 +31,7 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
 
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
 
-        collectby = self.get_param('collectby')
+        collectby = self.get_param('find_by')
         value_type = self.get_param('value_type')
         value_key = self.expression2str(self.get_param('value_key'))
         identity = self.get_param('identity')

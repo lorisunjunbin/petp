@@ -3,7 +3,7 @@ astool: true
 execution: TEST_FIB_WITH_CACHE
 list:
 - !!python/object:core.task.Task
-  input: '{"seed": "10", "useCache": "yes", "data_key": "fib_arr"}'
+  input: '{"seed":"10","data_key":"fib_arr","use_cache":"yes"}'
   skipped: false
   type: FIB
 - !!python/object:core.task.Task

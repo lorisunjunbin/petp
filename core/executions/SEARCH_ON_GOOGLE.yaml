@@ -7,13 +7,11 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
-    "\u4e2b\u68d2\u8c46\u798f\u513f"}'
+  input: '{"identity":"/html/body//form//textarea","value":"丫棒豆福儿","find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "xpath", "identity": "/html/body//form//textarea", "value":
-    "KEY_ENTER"}'
+  input: '{"identity":"/html/body//form//textarea","value":"KEY_ENTER","find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_KEYIN
 loops: []

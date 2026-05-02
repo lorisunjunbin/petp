@@ -5,12 +5,11 @@ list:
   input: '{"url": "https://docs.wxpython.org/"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": "input:nth-child(1)"}'
+  input: '{"identity":"input:nth-child(1)","find_by":"css"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": "input:nth-child(1)", "value": "DatePickerCtrl
-    "}'
+  input: '{"identity":"input:nth-child(1)","value":"DatePickerCtrl ","find_by":"css"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "xpath", "identity": "//*[@id=\"searchbox\"]/form/input[2]"}'
+  input: '{"identity":"//*[@id=\"searchbox\"]/form/input[2]","find_by":"xpath"}'
   type: FIND_THEN_CLICK

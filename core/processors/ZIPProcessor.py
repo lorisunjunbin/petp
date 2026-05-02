@@ -8,18 +8,18 @@ from utils.OSUtils import OSUtils
 
 
 class ZIPProcessor(Processor):
-    TPL: str = '{"sourcefolder":"","sourcelist":"|","zipname":"", "pathinzip":"","pathbereplaced":"","targetfolder":"", "data_key":""}'
+    TPL: str = '{"source_path":"","source_list":"|","zip_name":"", "path_in_zip":"","path_to_replace":"","target_path":"", "data_key":""}'
     DESC: str = f'''
-        Create a zip file with the given name, including either all files in sourcefolder or specific files from sourcelist.
-        The resulting zip is placed in targetfolder, and its path is stored in data_chain via data_key.
-        pathbereplaced will be replaced by pathinzip inside the archive, or removed if pathinzip is empty.
+        Create a zip file with the given name, including either all files in source_path or specific files from source_list.
+        The resulting zip is placed in target_path, and its path is stored in data_chain via data_key.
+        path_to_replace will be replaced by path_in_zip inside the archive, or removed if path_in_zip is empty.
 
-        - sourcefolder: folder whose files are recursively zipped when sourcelist is not provided (supports expression, default: "")
-        - sourcelist: pipe-separated list of specific file paths to include; falls back to sourcefolder if only "|" (supports expression, default: "|")
-        - zipname: name of the output zip file (without extension) (supports expression, default: "")
-        - pathinzip: replacement path structure inside the zip archive (supports expression, default: "")
-        - pathbereplaced: portion of the file path to be replaced by pathinzip within the archive (supports expression, default: "")
-        - targetfolder: output directory where the zip file is created (supports expression, default: "")
+        - source_path: folder whose files are recursively zipped when source_list is not provided (supports expression, default: "")
+        - source_list: pipe-separated list of specific file paths to include; falls back to source_path if only "|" (supports expression, default: "|")
+        - zip_name: name of the output zip file (without extension) (supports expression, default: "")
+        - path_in_zip: replacement path structure inside the zip archive (supports expression, default: "")
+        - path_to_replace: portion of the file path to be replaced by path_in_zip within the archive (supports expression, default: "")
+        - target_path: output directory where the zip file is created (supports expression, default: "")
         - data_key: key in data_chain to store the resulting zip file path (supports expression, default: "")
 
         {TPL}
@@ -32,20 +32,20 @@ class ZIPProcessor(Processor):
 
         data_key = self.expression2str(self.get_param('data_key'))
 
-        pathinzip = self.explain_param_or_default('pathinzip', '')
+        pathinzip = self.explain_param_or_default('path_in_zip', '')
 
-        pathbereplaced = self.explain_param_or_default('pathbereplaced', '')
+        pathbereplaced = self.explain_param_or_default('path_to_replace', '')
 
-        zipname = self.expression2str(self.get_param('zipname'))
+        zipname = self.expression2str(self.get_param('zip_name'))
 
-        targetfolder = self.expression2str(self.get_param('targetfolder'))
+        targetfolder = self.expression2str(self.get_param('target_path'))
         OSUtils.create_folder_if_not_existed(targetfolder)
 
-        sourcefolder = self.expression2str(self.get_param('sourcefolder'))
-        sourcelistStr = self.expression2str(self.get_param('sourcelist'))
+        sourcefolder = self.expression2str(self.get_param('source_path'))
+        sourcelistStr = self.expression2str(self.get_param('source_list'))
 
         sourcelist = self.str2list(sourcelistStr) if self.has_param(
-            "sourcelist") and self.SEPARATOR != sourcelistStr else []
+            "source_list") and self.SEPARATOR != sourcelistStr else []
 
         targetfile = self.zipList(sourcelist, zipname, targetfolder, pathbereplaced, pathinzip) \
             if len(sourcelist) > 0 \

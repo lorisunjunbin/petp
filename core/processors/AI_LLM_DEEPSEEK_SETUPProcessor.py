@@ -15,7 +15,7 @@ pip install openai
 
 
 class AI_LLM_DEEPSEEK_SETUPProcessor(Processor):
-    TPL: str = '{"api_key_name":"DEEPSEEK_API_KEY", "api_key":"", "base_url":"https://api.deepseek.com", "llm_data_key":"llmdeepseek"}'
+    TPL: str = '{"api_key_env":"DEEPSEEK_API_KEY", "api_key":"", "base_url":"https://api.deepseek.com", "llm_data_key":"llmdeepseek"}'
 
     DESC: str = f'''
         Set up a DeepSeek LLM client instance (OpenAI-compatible). The API key can be provided
@@ -24,7 +24,7 @@ class AI_LLM_DEEPSEEK_SETUPProcessor(Processor):
 
         Requires: pip install openai
 
-        - api_key_name: Name of the environment variable holding the API key (supports expression, default: "DEEPSEEK_API_KEY")
+        - api_key_env: Name of the environment variable holding the API key (supports expression, default: "DEEPSEEK_API_KEY")
         - api_key: API key string; if provided, takes precedence over the environment variable (supports expression, default: "")
         - base_url: Base URL of the DeepSeek API endpoint (supports expression, default: "https://api.deepseek.com")
         - llm_data_key: Key in data_chain to store the initialized OpenAI/DeepSeek client instance (supports expression, default: "llmdeepseek")
@@ -42,14 +42,14 @@ class AI_LLM_DEEPSEEK_SETUPProcessor(Processor):
         if existed_llm is not None:
             logging.info(f'LLM DeepSeek was already setup, skip.')
             return
-        api_key_name = self.get_param('api_key_name')
+        api_key_env = self.get_param('api_key_env')
 
         api_key = self.get_param('api_key') if self.has_param('api_key') else \
-            (os.environ[api_key_name] if api_key_name in os.environ else None)
+            (os.environ[api_key_env] if api_key_env in os.environ else None)
 
         if api_key is None:
             raise ValueError(
-                f'No API Key found in environment variables with key: {api_key_name} or in parameter: api_key')
+                f'No API Key found in environment variables with key: {api_key_env} or in parameter: api_key')
 
         base_url = self.get_param('base_url')
 

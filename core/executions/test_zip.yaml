@@ -2,17 +2,13 @@
 execution: test_zip
 list:
 - !!python/object:core.task.Task
-  input: '{"sourcefolder": "{self.get_tdir()}/testzip", "sourcelist": "{self.get_tdir()}/testzip/PETP_overview.png|>{self.get_tdir()}/testzip/user_manual.png",
-    "zipname": "testzip1", "data_key": "test_zip_path1", "targetfolder": "{self.get_tdir()}/testzip1_result/",
-    "pathinzip": "images", "pathbereplaced": "{self.get_tdir()}/testzip"}'
+  input: '{"data_key":"test_zip_path1","source_path":"{self.get_tdir()}/testzip","source_list":"{self.get_tdir()}/testzip/PETP_overview.png|>{self.get_tdir()}/testzip/user_manual.png","zip_name":"testzip1","target_path":"{self.get_tdir()}/testzip1_result/","path_in_zip":"images","path_to_replace":"{self.get_tdir()}/testzip"}'
   type: ZIP
 - !!python/object:core.task.Task
   input: '{"title": "test_zip_path1 - specific files", "msg": "{self.get_data(\"test_zip_path1\")}"}'
   type: SHOW_RESULT
 - !!python/object:core.task.Task
-  input: '{"sourcefolder": "{self.get_tdir()}/testzip/", "sourcelist": "", "zipname":
-    "testzip2", "data_key": "test_zip_path2", "targetfolder": "{self.get_tdir()}/testzip2_result/",
-    "pathinzip": "", "pathbereplaced": "{self.get_tdir()}/"}'
+  input: '{"data_key":"test_zip_path2","source_path":"{self.get_tdir()}/testzip/","source_list":"","zip_name":"testzip2","target_path":"{self.get_tdir()}/testzip2_result/","path_in_zip":"","path_to_replace":"{self.get_tdir()}/"}'
   type: ZIP
 - !!python/object:core.task.Task
   input: '{"title": "test_zip_path2 - entire folder", "msg": "{self.get_data(\"test_zip_path2\")}"}'

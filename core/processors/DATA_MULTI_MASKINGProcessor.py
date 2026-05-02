@@ -4,7 +4,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class DATA_MULTI_MASKINGProcessor(Processor):
-    TPL: str = '{"given_collection":"", "content_clean_func":"return content", "masking_func":"return \'SJB-\' + str(colnum) + str(rownum) ", "masking_columns":"0|>1|>2|>3", "masking_dict_name":"", "masking_dict_inverted":"Yes"}'
+    TPL: str = '{"source_key":"", "content_clean_func":"return content", "masking_func":"return \'SJB-\' + str(colnum) + str(rownum) ", "masking_columns":"0|>1|>2|>3", "masking_dict_name":"", "masking_dict_inverted":"Yes"}'
 
     DESC: str = f'''
         Perform multi-column data masking on a collection (list of rows). Unlike the single-column
@@ -15,12 +15,12 @@ class DATA_MULTI_MASKINGProcessor(Processor):
         The masking_func has access to: mask_dict, row, rownum, colnum.
         The content_clean_func has access to: content (the raw cell value).
 
-        - given_collection: Key in data_chain for the input list of rows to mask (supports expression, default: "")
+        - source_key: Key in data_chain for the input list of rows to mask (supports expression, default: "")
         - content_clean_func: Python function body to clean/normalize cell content before masking; takes (content) (supports expression, default: "return content")
         - masking_func: Python function body to generate a masked replacement value; takes (mask_dict, row, rownum, colnum) (supports expression, default: "return 'SJB-' + str(colnum) + str(rownum)")
         - masking_columns: Pipe-separated list of zero-based column indices to mask (supports expression, default: "0|>1|>2|>3")
         - masking_dict_name: Key in data_chain to store the masking dictionary after processing; if empty, the dict is discarded (supports expression, default: "")
-        - masking_dict_inverted: If "Yes", stores the inverted mapping (masked -> original) instead of (original -> masked) (supports expression, default: "Yes")
+        - masking_dict_inverted: If "Yes" or "yes", stores the inverted mapping (masked -> original) instead of (original -> masked) (supports expression, default: "Yes")
 
         {TPL}
 
@@ -32,7 +32,7 @@ class DATA_MULTI_MASKINGProcessor(Processor):
     def process(self):
         masking_dict = {}
 
-        given_collection = self.get_data(self.get_param('given_collection'))
+        given_collection = self.get_data(self.get_param('source_key'))
         masking_dict_inverted = True if "yes" == str(self.get_param('masking_dict_inverted')).lower() else False
         masking_dict_name = self.get_param('masking_dict_name')
         masking_func_body = self.get_param('masking_func')

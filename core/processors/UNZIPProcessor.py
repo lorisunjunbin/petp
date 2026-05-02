@@ -6,11 +6,7 @@ from core.processor import Processor
 
 
 class UNZIPProcessor(Processor):
-    TPL: str = '{"path_to_zip_file":"", ' \
-               '"directory_to_extract":"",' \
-               '"path_after_extract_key":"path_after_extract", ' \
-               '"pwd":"", ' \
-               '"name_appended":""}'
+    TPL: str = '{"path_to_zip_file":"", "directory_to_extract":"", "path_after_extract_key":"path_after_extract", "pwd":"", "name_appended":""}'
 
     DESC: str = f'''
         Simply unzip the file from path_to_zip_file to directory_to_extract, if protected with password, use pwd.

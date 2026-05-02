@@ -32,6 +32,7 @@ Task      1:1 Processor
 - [Web App (Docker & UGOS)](#web-app-docker--ugos)
 - [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
+- [Parameter Migration Guide](#parameter-migration-guide)
 - [Acknowledgements](#acknowledgements)
 - [Changelog](#changelog)
 
@@ -703,6 +704,48 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 ---
 
+## Parameter Migration Guide
+
+> **Who needs this?** Users who downloaded PETP **before 2026-05-02** and have custom Execution/Pipeline YAML files using old parameter names.
+>
+> **You can safely ignore this** if you:
+> - Downloaded PETP after 2026-05-02 (new installs already use the new names)
+> - Only use OOTB (out-of-the-box) executions without custom modifications
+> - Run `python tools/migrate_params.py --dry-run` and see "No parameter renames needed"
+
+The 2026-05-02 update standardized all processor parameter names to consistent `snake_case` conventions. If you have existing `.yaml` files under `core/executions/` or `core/pipelines/` that use old parameter names (e.g., `useCache`, `sourcefolder`, `filepath`, `collectby`, `resp_func_body`, etc.), run the migration script to update them automatically:
+
+```bash
+# 1. Preview changes (no files modified)
+python tools/migrate_params.py --dry-run
+
+# 2. Apply the migration
+python tools/migrate_params.py
+
+# 3. (Optional) Scan a custom path
+python tools/migrate_params.py --path /your/custom/executions/folder
+```
+
+**Key renames include:**
+
+| Old Name | New Name | Affected Processors |
+|----------|----------|-------------------|
+| `useCache` | `use_cache` | FIB |
+| `sourcefile` / `sourcefolder` | `source_path` | FILE_WATCH_MOVE, FOLDER_WATCH_MOVE, ZIP |
+| `targetfile` / `targetfolder` | `target_path` | FILE_WATCH_MOVE, FOLDER_WATCH_MOVE, ZIP |
+| `filepath` | `file_path` | FILE_CHOOSER, SCREENSHOT |
+| `clickby` / `collectby` / `keyinby` / `findby` | `find_by` | FIND_THEN_CLICK, FIND_THEN_COLLECT, FIND_THEN_KEYIN, FIND_MULTI_* |
+| `resp_func_body` / `filter_func_body` / `convert_func_body` | `resp_fn` / `filter_fn` / `convert_fn` | HTTP_REQUEST |
+| `given_collection` | `source_key` | DATA_MAPPING, DATA_FILTER, DATA_GROUPBY, DATA_MASKING, DATA_MULTI_MASKING |
+| `lambda` | `map_fn` / `filter_fn` | DATA_MAPPING, DATA_FILTER |
+| `output_key` / `result_key` | `data_key` | RUN_SSH_COMMAND, CAPTCHA |
+| `key_name_gemini` / `api_key_name` | `api_key_env` | AI_LLM_GEMINI_SETUP, AI_LLM_DEEPSEEK_SETUP, AI_LLM_ZHIPU_SETUP |
+| `verify: "Y\|N"` | `verify: "yes\|no"` | HTTP_REQUEST (value normalization) |
+
+The script is idempotent — running it multiple times on already-migrated files produces no changes.
+
+---
+
 ## Acknowledgements
 
 - [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
@@ -716,6 +759,7 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | **Processor system full optimization**: all 81 processors standardized to snake_case parameter naming (`source_path`, `target_path`, `data_key`, `find_by`, `_fn` suffix for code params, `yes\|no` booleans); full i18n coverage (English + Chinese descriptions for all processors); improved DESC documentation quality — right-click any property in the PropertyGrid to view its description and usage. Migration script `tools/migrate_params.py` provided for existing YAML files — see [Migration Guide](#parameter-migration-guide) below. |
 | 2026-05 | UI streamlining: removed DC viewer; moved log-level and clean-log controls into LogSearchBar; new reusable `PopupMenuButton` component for theme/lang/log-level choosers; 5 new themes (Nord, Dracula, Sakura, Cyberpunk + total 9); DEBUG-level `data_chain` JSON dump after each task |
 | 2026-05 | New `IF_ELSE` processor: declarative conditional branching — skip "then" or "else" task blocks based on a Python condition evaluated against `data_chain`; works correctly inside loops |
 | 2026-05 | Cron execution history dialog (History button in Pipeline tab): browse last 50 runs with status, duration, error details; filter by pipeline name |

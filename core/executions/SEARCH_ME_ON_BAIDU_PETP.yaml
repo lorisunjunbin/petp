@@ -7,11 +7,11 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "chat-textarea", "value_key": "__m|>author"}'
+  input: '{"identity":"chat-textarea","value_key":"__m|>author","find_by":"id"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "chat-submit-button", "value": "KEY_ENTER"}'
+  input: '{"identity":"chat-submit-button","value":"KEY_ENTER","find_by":"id"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
@@ -19,7 +19,7 @@ list:
   skipped: false
   type: ENTER_FULLSCREEN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "su", "value": "KEY_ENTER", "wait": 1}'
+  input: '{"identity":"su","value":"KEY_ENTER","wait":1,"find_by":"id"}'
   skipped: false
   type: FIND_THEN_KEYIN
 loops: []

@@ -39,13 +39,7 @@ list:
   skipped: false
   type: COLLECTION_MERGE
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_map_final", "content_clean_func": "return
-    content.replace(\"\\n\",\"\")", "masking_func": "return (''CC_'' if colnum ==
-    0 else ''CN_'' if colnum == 1 else ''L1_'' if colnum == 3 else ''L2_'' if colnum
-    == 4 else ''L3_'' if colnum == 5 else ''SID'' if colnum ==6 else ''SNA'' if colnum
-    == 7 else row[colnum]) + str(colnum) + str(rownum).rjust(4, ''0'')", "masking_columns":
-    "0|>1|>3|>4|>5|>6|>7", "masking_dict_name": "multi_masking_dict", "masking_dict_inverted":
-    "YeS"}'
+  input: '{"content_clean_func":"return content.replace(\"\\n\",\"\")","masking_func":"return (''CC_'' if colnum == 0 else ''CN_'' if colnum == 1 else ''L1_'' if colnum == 3 else ''L2_'' if colnum == 4 else ''L3_'' if colnum == 5 else ''SID'' if colnum ==6 else ''SNA'' if colnum == 7 else row[colnum]) + str(colnum) + str(rownum).rjust(4, ''0'')","masking_columns":"0|>1|>3|>4|>5|>6|>7","masking_dict_name":"multi_masking_dict","masking_dict_inverted":"YeS","source_key":"capacity_map_final"}'
   skipped: false
   type: DATA_MULTI_MASKING
 - !!python/object:core.task.Task

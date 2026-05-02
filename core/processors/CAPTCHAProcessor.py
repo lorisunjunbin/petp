@@ -4,7 +4,7 @@ from core.processor import Processor
 
 
 class CAPTCHAProcessor(Processor):
-    TPL: str = '{"image_path":"", "image_path_key":"", "mode":"ocr", "slide_target_key":"", "result_key":"captcha_result"}'
+    TPL: str = '{"image_path":"", "image_path_key":"", "mode":"ocr", "slide_target_key":"", "data_key":"captcha_result"}'
     DESC: str = f'''
         Recognise captcha images locally using ddddocr (no API key required).
         pip install ddddocr
@@ -18,16 +18,11 @@ class CAPTCHAProcessor(Processor):
         - det        Object-detection mode: locate all text regions in the image.
                      Returns a list of bounding boxes [{{"x": x1, "y": y1, "w": w, "h": h}}].
 
-        Tips:
-        - For noisy/coloured backgrounds try setting color_filter (see advanced params).
-        - Use old=true for older-style simple digit captchas if default model is less accurate.
-        - result_key stores the full result; for ocr mode it is also a plain string.
-
         - image_path: path to the captcha image file (supports expression)
         - image_path_key: data_chain key for the image path; takes priority over image_path if set
         - mode: recognition mode — ocr | slide | det (default: "ocr")
         - slide_target_key: data_chain key for the slide background image path (required for mode=slide)
-        - result_key: data_chain key to store the result (default: "captcha_result")
+        - data_key: data_chain key to store the result (default: "captcha_result")
 
         {TPL}
     '''
@@ -42,7 +37,7 @@ class CAPTCHAProcessor(Processor):
             else self.expression2str(self.get_param('image_path'))
 
         mode       = self.explain_param_or_default('mode', 'ocr')
-        result_key = self.explain_param_or_default('result_key', 'captcha_result')
+        result_key = self.explain_param_or_default('data_key', 'captcha_result')
 
         logging.info('Running captcha recognition: %s (mode=%s)', image_path, mode)
 

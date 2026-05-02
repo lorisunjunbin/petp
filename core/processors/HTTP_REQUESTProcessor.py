@@ -13,14 +13,14 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class HTTP_REQUESTProcessor(Processor):
-    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_func_body":"return response.text if response.status_code == 200 else response.status_code", "request_url":"http://www.baidu.com", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"Y|N", "is_zip_response":"yes|no", "filter_func_body":"return True", "convert_func_body":"return file_content.decode(\'utf-8\')", "basic_auth_user":"", "basic_auth_pwd":"", "oauth_token_url":"", "oauth_client_id":"", "oauth_client_secret":"", "oauth_scope":"", "oauth_token":"", "xsrf_token_url":"", "xsrf_token_header":"X-CSRF-Token"}'
+    TPL: str = '{"timeout":60, "session_key":"__session_key","resp_fn":"return response.text if response.status_code == 200 else response.status_code", "request_url":"", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"yes|no", "is_zip_response":"yes|no", "filter_fn":"return True", "convert_fn":"return file_content.decode(\'utf-8\')", "basic_auth_user":"", "basic_auth_pwd":"", "oauth_token_url":"", "oauth_client_id":"", "oauth_client_secret":"", "oauth_scope":"", "oauth_token":"", "xsrf_token_url":"", "xsrf_token_header":"X-CSRF-Token"}'
     DESC: str = f'''
-        Send HTTP request (get/post/etc.) to request_url, process response via resp_func_body, then store to value_key.
+        Send HTTP request (get/post/etc.) to request_url, process response via resp_fn, then store to value_key.
         Supports session persistence via session_key, built-in Basic Auth and OAuth authentication.
 
         - timeout: request timeout in seconds (default: 60)
         - session_key: key of data_chain to store/retrieve requests.Session for persistent connections (default: "__session_key")
-        - resp_func_body: Python function body string to process the response, variable "response" is available (default: "return response.text if response.status_code == 200 else response.status_code")
+        - resp_fn: Python function body string to process the response, variable "response" is available (default: "return response.text if response.status_code == 200 else response.status_code")
         - request_url: target URL for the HTTP request (supports expression)
         - headers: HTTP headers in "key[>value|key2[>value2" format (supports expression)
         - method: HTTP method, e.g. "get", "post", "put", "delete" (default: "get")
@@ -29,18 +29,18 @@ class HTTP_REQUESTProcessor(Processor):
         - data: form data in "key[>value|key2[>value2" format (supports expression)
         - data_key: key of data_chain to get request body data from (takes priority over data param)
         - value_key: key of data_chain to store the processed response (supports expression)
-        - verify: "Y" to enable SSL verification, "N" to bypass (default: "Y")
-        - is_zip_response: "yes" to treat response as a zip file and extract contents, "no" to use resp_func_body (default: "no")
-        - filter_func_body: when is_zip_response is "yes", Python function body string to filter zip entries by filename; parameter is 'filename', should return bool (default: "return True")
-        - convert_func_body: when is_zip_response is "yes", Python function body string to convert file bytes; parameter is 'file_content' (bytes), should return converted value (default: "return file_content.decode('utf-8')")
-        - basic_auth_user: Basic Auth username (supports expression, e.g. "{{user}}"). When set with basic_auth_pwd, auto base64-encodes and sets Authorization header.
-        - basic_auth_pwd: Basic Auth password (supports expression and encrypted values, e.g. "{{self.decrypt(\"...\")}}").
-        - oauth_token_url: OAuth token endpoint URL. When set, fetches Bearer token via client_credentials grant using oauth_client_id/oauth_client_secret. Token is cached in data_chain and reused until expired. (supports expression)
+        - verify: "yes" to enable SSL verification, "no" to bypass (default: "yes")
+        - is_zip_response: "yes" to treat response as a zip file and extract contents, "no" to use resp_fn (default: "no")
+        - filter_fn: when is_zip_response is "yes", Python function body string to filter zip entries by filename; parameter is 'filename', should return bool (default: "return True")
+        - convert_fn: when is_zip_response is "yes", Python function body string to convert file bytes; parameter is 'file_content' (bytes), should return converted value (default: "return file_content.decode('utf-8')")
+        - basic_auth_user: Basic Auth username (supports expression). When set with basic_auth_pwd, auto base64-encodes and sets Authorization header.
+        - basic_auth_pwd: Basic Auth password (supports expression and encrypted values).
+        - oauth_token_url: OAuth token endpoint URL. When set, fetches Bearer token via client_credentials grant. Token is cached in data_chain and reused until expired. (supports expression)
         - oauth_client_id: OAuth client_id (supports expression)
         - oauth_client_secret: OAuth client_secret (supports expression and encrypted values)
         - oauth_scope: OAuth scope, optional (supports expression)
         - oauth_token: dual-purpose: if oauth_token_url is set, serves as cache key for the fetched token; if oauth_token_url is not set, used directly as Bearer token value (supports expression)
-        - xsrf_token_url: URL to fetch XSRF/CSRF token via GET request with "X-CSRF-Token: Fetch" header. Requires OAuth Bearer token from prior auth. Token is cached in data_chain and attached to all subsequent requests. Response header updates refresh the cache. (supports expression)
+        - xsrf_token_url: URL to fetch XSRF/CSRF token via GET request with "X-CSRF-Token: Fetch" header. Requires OAuth Bearer token from prior auth. Token is cached and attached to all subsequent requests. (supports expression)
         - xsrf_token_header: custom header name for the XSRF token (default: "X-CSRF-Token")
 
         Auth priority: OAuth > Basic Auth > manual Authorization header.
@@ -87,7 +87,7 @@ class HTTP_REQUESTProcessor(Processor):
             data = self.expression2str(self.get_param('data_raw'))
 
         method = self.explain_param_or_default('method', 'get')
-        verify = True if 'Y' == self.get_param('verify') else False
+        verify = self.get_param('verify').lower() in ('y', 'yes', 'true', '1') if self.has_param('verify') else True
 
         logging.info('HTTP %s %s', method.upper(), request_url)
         logging.debug('req.headers - %s', headers)
@@ -116,8 +116,8 @@ class HTTP_REQUESTProcessor(Processor):
 
         if self.has_param('is_zip_response') and self.get_param('is_zip_response') == 'yes':
             if response.ok:
-                filter_body = self.explain_param_or_default('filter_func_body', 'return True')
-                convert_body = self.explain_param_or_default('convert_func_body', "return file_content.decode('utf-8')")
+                filter_body = self.explain_param_or_default('filter_fn', 'return True')
+                convert_body = self.explain_param_or_default('convert_fn', "return file_content.decode('utf-8')")
                 data_in_resp = self._extract_zip_to_dict(response, filter_body, convert_body)
                 if logging.getLogger().isEnabledFor(logging.DEBUG):
                     logging.debug('resp.body - ' + str(response.content))
@@ -130,7 +130,7 @@ class HTTP_REQUESTProcessor(Processor):
                 data_in_resp = {}
 
         else:
-            resp_fun_body = self.explain_param_or_default('resp_func_body', 'return response.text if response.status_code == 200 else response.status_code')
+            resp_fun_body = self.explain_param_or_default('resp_fn', 'return response.text if response.status_code == 200 else response.status_code')
 
             data_in_resp = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response)',
                                                                      resp_fun_body, args=response)

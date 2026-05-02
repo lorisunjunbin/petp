@@ -13,8 +13,7 @@ list:
     "y_from": "mouse_at_y"}'
   type: MOUSE_SCROLL
 - !!python/object:core.task.Task
-  input: '{"collectby": "xpath", "identity": "//div[contains(@id,''goodsWrapper_'')]",
-    "value_type": "id", "value_key": "goods_wrapper_collection"}'
+  input: '{"identity":"//div[contains(@id,''goodsWrapper_'')]","value_type":"id","value_key":"goods_wrapper_collection","find_by":"xpath"}'
   type: FIND_MULTI_THEN_COLLECT
 - !!python/object:core.task.Task
   input: '{"title": "\u627e\u5230\u7684SPU\u96c6\u5408\uff1a", "msg": "{self.get_data(\"goods_wrapper_collection\")}"}'
@@ -24,7 +23,7 @@ list:
     2, "wait": 5}'
   type: MOUSE_SCROLL
 - !!python/object:core.task.Task
-  input: '{"clickby": "id", "identity_key": "loop_item", "wait": 3}'
+  input: '{"identity_key":"loop_item","wait":3,"find_by":"id"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
   input: '{"data_key_x": "869", "data_key_y": "478", "wait": 5}'
@@ -37,8 +36,7 @@ list:
   input: '{"data_key_x": "877", "data_key_y": "555", "wait": 1}'
   type: MOUSE_POSITION
 - !!python/object:core.task.Task
-  input: '{"collectby": "xpath", "identity": "//*[@id=\"main\"]//span[@role=\"button\"]/span[2]/span",
-    "value_type": "text", "value_key": "price_quan_hou", "wait": 2}'
+  input: '{"identity":"//*[@id=\"main\"]//span[@role=\"button\"]/span[2]/span","value_type":"text","value_key":"price_quan_hou","wait":2,"find_by":"xpath"}'
   type: FIND_THEN_COLLECT
 - !!python/object:core.task.Task
   input: '{"title": "\u5faa\u73af\u6536\u96c6\u4e0b\u6765\u7684\u6570\u636e", "msg":

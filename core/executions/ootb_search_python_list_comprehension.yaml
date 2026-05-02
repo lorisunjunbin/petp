@@ -5,16 +5,15 @@ list:
   input: '{"url": "https://docs.python.org/3/"}'
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "xpath", "identity": "/html/body/div[2]/ul/li[9]/div/form/input[1]"}'
+  input: '{"identity":"/html/body/div[2]/ul/li[9]/div/form/input[1]","find_by":"xpath"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "xpath", "identity": "/html/body/div[2]/ul/li[9]/div/form/input[1]",
-    "value": "python list comprehension"}'
+  input: '{"identity":"/html/body/div[2]/ul/li[9]/div/form/input[1]","value":"python list comprehension","find_by":"xpath"}'
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "xpath", "identity": "/html/body/div[2]/ul/li[9]/div/form/input[2]"}'
+  input: '{"identity":"/html/body/div[2]/ul/li[9]/div/form/input[2]","find_by":"xpath"}'
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"clickby": "xpath", "identity": "//input[@type=\"submit\"]", "wait": 5}'
+  input: '{"identity":"//input[@type=\"submit\"]","wait":5,"find_by":"xpath"}'
   type: FIND_THEN_CLICK
 loops: []

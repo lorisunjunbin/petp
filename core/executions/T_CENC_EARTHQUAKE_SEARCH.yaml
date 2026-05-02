@@ -10,11 +10,7 @@ list:
   skipped: false
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
-  input: '{"request_url": "{request_url}", "method": "get", "value_key": "earth_quake_info",
-    "session_key": "__session_key", "resp_func_body": "return response.text if response.status_code
-    == 200 else response.status_code", "timeout": 60, "verify": "N", "headers": "User-Agent[>Mozilla/5.0
-    (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0
-    Safari/537.36"}'
+  input: '{"request_url":"{request_url}","method":"get","value_key":"earth_quake_info","session_key":"__session_key","timeout":60,"verify":"no","headers":"User-Agent[>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36","resp_fn":"return response.text if response.status_code == 200 else response.status_code"}'
   skipped: false
   type: HTTP_REQUEST
 - !!python/object:core.task.Task

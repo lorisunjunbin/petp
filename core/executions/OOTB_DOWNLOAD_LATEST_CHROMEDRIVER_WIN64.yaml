@@ -7,9 +7,7 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"collectby": "xpath", "identity": "//*[@id=\"stable\"]/div/table/tbody/tr[10]/td[1]/code",
-    "value_type": "text", "value_key": "full_target_download_url", "wait": 1, "timeout":
-    10}'
+  input: '{"identity":"//*[@id=\"stable\"]/div/table/tbody/tr[10]/td[1]/code","value_type":"text","value_key":"full_target_download_url","wait":1,"timeout":10,"find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_COLLECT
 - !!python/object:core.task.Task

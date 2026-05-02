@@ -7,14 +7,14 @@ from utils.OSUtils import OSUtils
 
 
 class FOLDER_WATCH_MOVEProcessor(Processor):
-    TPL: str = '{"sourcefolder":"","targetfolder":"endwith/","expectcount":"{10}", "targetfilespath_key":"", "timeout":30}'
+    TPL: str = '{"source_path":"","target_path":"endwith/","expect_count":"{10}", "data_key":"", "timeout":30}'
     DESC: str = f'''
-        Move files from sourcefolder to targetfolder. Supports waiting for expected file count or timeout before moving.
+        Move files from source folder to target folder. Supports waiting for expected file count or timeout before moving.
 
-        - sourcefolder: source folder path to watch (supports expression)
-        - targetfolder: target folder path to move files to (supports expression)
-        - expectcount: expected number of files to wait for before moving (default: "{10}")
-        - targetfilespath_key: key of data_chain to store the list of moved file paths (supports expression)
+        - source_path: source folder path to watch (supports expression)
+        - target_path: target folder path to move files to (supports expression)
+        - expect_count: expected number of files to wait for before moving (default: "{10}")
+        - data_key: key of data_chain to store the list of moved file paths (supports expression)
         - timeout: max seconds to wait for files (default: 30)
 
         {TPL}
@@ -25,10 +25,10 @@ class FOLDER_WATCH_MOVEProcessor(Processor):
 
     def process(self):
 
-        source_folder = self.expression2str(self.get_param('sourcefolder'))
-        target_folder = self.expression2str(self.get_param('targetfolder'))
-        expect_count = int(self.expression2str(self.get_param('expectcount'))) if self.has_param('expectcount') else 0
-        target_filespath_key = self.expression2str(self.get_param('targetfilespath_key'))
+        source_folder = self.expression2str(self.get_param('source_path'))
+        target_folder = self.expression2str(self.get_param('target_path'))
+        expect_count = int(self.expression2str(self.get_param('expect_count'))) if self.has_param('expect_count') else 0
+        target_filespath_key = self.expression2str(self.get_param('data_key'))
         timeout = self.explain_param_as_int('timeout', 2)
 
         logging.info(f'source_folder={source_folder}')

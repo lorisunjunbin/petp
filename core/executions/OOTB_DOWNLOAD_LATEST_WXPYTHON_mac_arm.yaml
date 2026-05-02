@@ -13,16 +13,11 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"collectby": "xpath", "identity": "//table//a[starts-with(@href, ''wxpython-'')
-    and substring(@href, string-length(@href) - 3) = ''.whl'']", "value_key": "wxpython_whl_collecttion",
-    "wait": 5, "timeout": 10, "skip_fn": "return \\\"{self.get_data(\"os_platform\")}\\\"
-    not in ele.get_property(\"innerHTML\")", "value_type": "innerHTML", "sort_lambda":
-    "item", "sort_reverse": "no"}'
+  input: '{"identity":"//table//a[starts-with(@href, ''wxpython-'') and substring(@href, string-length(@href) - 3) = ''.whl'']","value_key":"wxpython_whl_collecttion","wait":5,"timeout":10,"skip_fn":"return \\\"{self.get_data(\"os_platform\")}\\\" not in ele.get_property(\"innerHTML\")","value_type":"innerHTML","sort_lambda":"item","sort_reverse":"no","find_by":"xpath"}'
   skipped: false
   type: FIND_MULTI_THEN_COLLECT
 - !!python/object:core.task.Task
-  input: '{"clickby": "link", "identity": "{self.get_data(\"wxpython_whl_collecttion\")[-1]}",
-    "identity_key": "", "wait": 5, "timeout": 5, "skip_timeout_error": "yes|no"}'
+  input: '{"identity":"{self.get_data(\"wxpython_whl_collecttion\")[-1]}","identity_key":"","wait":5,"timeout":5,"skip_timeout_error":"yes|no","find_by":"link"}'
   skipped: false
   type: FIND_THEN_CLICK
 loops: []

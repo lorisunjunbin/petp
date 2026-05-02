@@ -4,16 +4,16 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 
 class DATA_GROUPBYProcessor(Processor):
-    TPL: str = '{"given_collection":"", "group_by_func":"return row[0] ", "mapping_func":"return row","collect_func":"return key + str(rows)", "target_dict_key":"dict_group_by"}'
+    TPL: str = '{"source_key":"", "group_by_func":"return row[0] ", "mapping_func":"return row","collect_func":"return key + str(rows)", "data_key":"dict_group_by"}'
 
     DESC: str = f'''
-        Group given_collection by a key function, optionally map and collect the grouped results into a dict.
+        Group source_key by a key function, optionally map and collect the grouped results into a dict.
 
-        - given_collection: key of data_chain pointing to the input list
+        - source_key: key of data_chain pointing to the input list
         - group_by_func: Python function body returning group key, variable "row" is available (default: "return row[0]")
         - mapping_func: Python function body to transform each row, variable "row" is available (default: "return row")
         - collect_func: Python function body to aggregate each group, variables "key" and "rows" are available (default: "return key + str(rows)")
-        - target_dict_key: key of data_chain to store the grouped dict result (default: "dict_group_by")
+        - data_key: key of data_chain to store the grouped dict result (default: "dict_group_by")
 
         {TPL}
     '''
@@ -24,11 +24,11 @@ class DATA_GROUPBYProcessor(Processor):
     def process(self):
         group_by_dict = {}
 
-        given_collection = self.get_data(self.get_param('given_collection'))
+        given_collection = self.get_data(self.get_param('source_key'))
         group_by_func = self.get_param('group_by_func')
         mapping_func = self.get_param('mapping_func')
         collect_func = self.get_param('collect_func')
-        target_dict_key = self.expression2str(self.get_param('target_dict_key'))
+        target_dict_key = self.expression2str(self.get_param('data_key'))
 
         group_by_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_group_by_func','(row)', group_by_func)
         mapping_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_mapping_func', '(row)', mapping_func)

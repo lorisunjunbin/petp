@@ -11,21 +11,19 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "xpath", "identity": "//c-wiz/span/span/div/textarea"}'
+  input: '{"identity":"//c-wiz/span/span/div/textarea","find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "xpath", "identity": "//c-wiz/span/span/div/textarea", "value":
-    "{self.get_data(\"input_value_param\")}"}'
+  input: '{"identity":"//c-wiz/span/span/div/textarea","value":"{self.get_data(\"input_value_param\")}","find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "xpath", "identity": "//div[1]/span[1]/span/span"}'
+  input: '{"identity":"//div[1]/span[1]/span/span","find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"collectby": "xpath", "identity": "//div[1]/span[1]/span/span", "value_type":
-    "text", "value_key": "translated_value"}'
+  input: '{"identity":"//div[1]/span[1]/span/span","value_type":"text","value_key":"translated_value","find_by":"xpath"}'
   skipped: false
   type: FIND_THEN_COLLECT
 - !!python/object:core.task.Task

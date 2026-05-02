@@ -6,14 +6,14 @@ from core.processor import Processor
 
 
 class FIBProcessor(Processor):
-    TPL: str = '{"seed":"","useCache":"yes|no","data_key":"fib_arr"}'
+    TPL: str = '{"seed":"","use_cache":"yes|no","data_key":"fib_arr"}'
 
     DESC: str = f'''
         Calculate Fibonacci numbers from 0 up to the given seed value. Supports both a cached (fast) and a non-cached
         (slow/recursive) computation mode. Results are stored as a list of formatted strings in the data chain.
 
         - seed: The upper bound (exclusive) for Fibonacci calculation; calculates fib(0) through fib(seed-1) (supports expression, default: "")
-        - useCache: Whether to use memoized/cached computation, "yes" for fast cached mode or "no" for plain recursive mode (default: "yes|no")
+        - use_cache: Whether to use memoized/cached computation, "yes" for fast cached mode or "no" for plain recursive mode (default: "yes")
         - data_key: The data chain key under which the resulting Fibonacci array will be stored (default: "fib_arr")
 
         {TPL}
@@ -25,7 +25,7 @@ class FIBProcessor(Processor):
     def process(self):
         seed: int = int(self.get_data('seed')) if self.has_data('seed') else int(self.get_param('seed'))
         data_key: str = self.get_param('data_key')
-        use_cache = True if "yes" == self.get_param('useCache') else False
+        use_cache = True if "yes" == self.get_param('use_cache') else False
         data = []
 
         if use_cache:

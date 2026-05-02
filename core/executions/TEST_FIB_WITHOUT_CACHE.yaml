@@ -2,5 +2,5 @@
 execution: TEST_FIB_WITHOUT_CACHE
 list:
 - !!python/object:core.task.Task
-  input: '{"seed": "40", "useCache": "no"}'
+  input: '{"seed":"40","use_cache":"no"}'
   type: FIB

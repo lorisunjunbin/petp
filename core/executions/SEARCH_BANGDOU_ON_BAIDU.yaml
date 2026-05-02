@@ -7,11 +7,11 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"keyinby": "id", "identity": "chat-textarea", "value": "\u4e2b\u68d2\u8c46\u798f\u513f"}'
+  input: '{"identity":"chat-textarea","value":"丫棒豆福儿","find_by":"id"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"clickby": "id", "identity": "chat-submit-button"}'
+  input: '{"identity":"chat-submit-button","find_by":"id"}'
   skipped: false
   type: FIND_THEN_CLICK
 loops: []

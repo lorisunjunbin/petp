@@ -16,15 +16,15 @@ Refer: https://docs.bigmodel.cn/cn/guide/develop/python/introduction
 
 
 class AI_LLM_ZHIPU_SETUPProcessor(Processor):
-    TPL: str = '{"api_key_name":"ZHIPU_ACCESS_KEY", "api_key":"", "base_url":"https://open.bigmodel.cn/api/paas/v4/", "llm_data_key":"llmZHIPU"}'
+    TPL: str = '{"api_key_env":"ZHIPU_ACCESS_KEY", "api_key":"", "base_url":"https://open.bigmodel.cn/api/paas/v4/", "llm_data_key":"llmZHIPU"}'
 
     DESC: str = f'''
         Initialize and configure a ZhipuAI LLM client instance by reading the API key from an environment variable
-        (specified by api_key_name) or directly from the api_key parameter. The client is then stored in the data chain
+        (specified by api_key_env) or directly from the api_key parameter. The client is then stored in the data chain
         for use by downstream processors such as AI_LLM_ZHIPU_QANDAProcessor. Skips setup if an instance already exists.
 
-        - api_key_name: The environment variable name that holds the ZhipuAI API key (default: "ZHIPU_ACCESS_KEY")
-        - api_key: The API key string; if empty, the key is read from the environment variable specified by api_key_name (default: "")
+        - api_key_env: The environment variable name that holds the ZhipuAI API key (default: "ZHIPU_ACCESS_KEY")
+        - api_key: The API key string; if empty, the key is read from the environment variable specified by api_key_env (default: "")
         - base_url: The base URL of the ZhipuAI API endpoint (default: "https://open.bigmodel.cn/api/paas/v4/")
         - llm_data_key: The data chain key under which the configured ZhipuAI client instance will be stored (default: "llmZHIPU")
 
@@ -41,14 +41,14 @@ class AI_LLM_ZHIPU_SETUPProcessor(Processor):
         if existed_llm is not None:
             logging.info(f'LLM ZHIPU was already setup, skip.')
             return
-        api_key_name = self.get_param('api_key_name')
+        api_key_env = self.get_param('api_key_env')
 
         api_key = self.get_param('api_key') if self.has_param('api_key') else \
-            (os.environ[api_key_name] if api_key_name in os.environ else None)
+            (os.environ[api_key_env] if api_key_env in os.environ else None)
 
         if api_key is None:
             raise ValueError(
-                f'No API Key found in environment variables with key: {api_key_name} or in parameter: api_key')
+                f'No API Key found in environment variables with key: {api_key_env} or in parameter: api_key')
 
         base_url = self.get_param('base_url')
 

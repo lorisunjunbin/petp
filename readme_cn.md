@@ -32,6 +32,7 @@ Task      1:1 Processor
 - [Web App（Docker & UGOS）](#web-appdocker--ugos)
 - [项目结构](#项目结构)
 - [常见问题](#常见问题)
+- [参数迁移指南](#参数迁移指南)
 - [致谢](#致谢)
 - [更新日志](#更新日志)
 
@@ -703,6 +704,48 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 ---
 
+## 参数迁移指南
+
+> **谁需要这个？** 在 **2026-05-02 之前**下载 PETP 并拥有自定义 Execution/Pipeline YAML 文件且使用旧参数名的用户。
+>
+> **以下情况可忽略本节：**
+> - 2026-05-02 之后下载的 PETP（新安装已使用新参数名）
+> - 仅使用内置 OOTB 执行文件，未做自定义修改
+> - 运行 `python tools/migrate_params.py --dry-run` 后提示 "No parameter renames needed"
+
+2026-05-02 更新将所有处理器参数名统一为 `snake_case` 命名规范。如果你在 `core/executions/` 或 `core/pipelines/` 下有使用旧参数名的 `.yaml` 文件（如 `useCache`、`sourcefolder`、`filepath`、`collectby`、`resp_func_body` 等），请运行迁移脚本自动更新：
+
+```bash
+# 1. 预览更改（不修改文件）
+python tools/migrate_params.py --dry-run
+
+# 2. 执行迁移
+python tools/migrate_params.py
+
+# 3.（可选）扫描自定义路径
+python tools/migrate_params.py --path /your/custom/executions/folder
+```
+
+**主要重命名列表：**
+
+| 旧名称 | 新名称 | 涉及处理器 |
+|--------|--------|-----------|
+| `useCache` | `use_cache` | FIB |
+| `sourcefile` / `sourcefolder` | `source_path` | FILE_WATCH_MOVE, FOLDER_WATCH_MOVE, ZIP |
+| `targetfile` / `targetfolder` | `target_path` | FILE_WATCH_MOVE, FOLDER_WATCH_MOVE, ZIP |
+| `filepath` | `file_path` | FILE_CHOOSER, SCREENSHOT |
+| `clickby` / `collectby` / `keyinby` / `findby` | `find_by` | FIND_THEN_CLICK, FIND_THEN_COLLECT, FIND_THEN_KEYIN, FIND_MULTI_* |
+| `resp_func_body` / `filter_func_body` / `convert_func_body` | `resp_fn` / `filter_fn` / `convert_fn` | HTTP_REQUEST |
+| `given_collection` | `source_key` | DATA_MAPPING, DATA_FILTER, DATA_GROUPBY, DATA_MASKING, DATA_MULTI_MASKING |
+| `lambda` | `map_fn` / `filter_fn` | DATA_MAPPING, DATA_FILTER |
+| `output_key` / `result_key` | `data_key` | RUN_SSH_COMMAND, CAPTCHA |
+| `key_name_gemini` / `api_key_name` | `api_key_env` | AI_LLM_GEMINI_SETUP, AI_LLM_DEEPSEEK_SETUP, AI_LLM_ZHIPU_SETUP |
+| `verify: "Y\|N"` | `verify: "yes\|no"` | HTTP_REQUEST（值规范化） |
+
+脚本是幂等的 — 对已迁移的文件多次运行不会产生变化。
+
+---
+
 ## 致谢
 
 - [wxPython](https://www.wxpython.org/) & [wxGlade](https://wxglade.sourceforge.net/)
@@ -716,6 +759,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 
 | 日期 | 更新内容                                                                                                                                                                                          |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | **处理器系统全面优化**：全部 81 个处理器统一 snake_case 参数命名（`source_path`、`target_path`、`data_key`、`find_by`、代码参数 `_fn` 后缀、布尔值 `yes\|no`）；完整 i18n 覆盖（全部处理器中英文描述）；DESC 文档质量提升 — 在属性编辑器中右键任意属性可查看参数介绍和使用方法。提供迁移脚本 `tools/migrate_params.py` 更新已有 YAML 文件 — 详见下方[参数迁移指南](#参数迁移指南)。 |
 | 2026-05 | 界面精简：移除 DC 查看器；日志级别和清除日志控件整合进 LogSearchBar；新增通用 `PopupMenuButton` 组件用于主题/语言/日志级别选择；新增 5 套主题（Nord、Dracula、Sakura、Cyberpunk，总计 9 套）；DEBUG 级别下每个 Task 执行后输出 `data_chain` JSON |
 | 2026-05 | 新增 `IF_ELSE` 处理器：声明式条件分支 — 根据 Python 条件表达式（基于 `data_chain`）跳过 "then" 或 "else" 任务块；支持在循环内正确运行 |
 | 2026-05 | 定时任务执行历史弹窗（Pipeline 标签页 History 按钮）：浏览最近 50 次执行记录，含状态、耗时、错误详情；支持按流水线名称过滤 |

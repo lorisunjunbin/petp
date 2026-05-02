@@ -5,12 +5,12 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_COLLECTProcessor(Processor):
-    TPL: str = '{"collectby":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10, "chrome_name":"chrome"}'
+    TPL: str = '{"find_by":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10, "chrome_name":"chrome"}'
 
     DESC = f'''
         Find a single element via selenium and collect its text, value, or any property/attribute, then store to data_chain.
 
-        - collectby: locator type to find the element, "id", "xpath" or "css"
+        - find_by: locator type to find the element, "id", "xpath" or "css"
         - identity: locator value for the target element
         - value_type: what to collect from the element - "text" for element.text, "value" for input value, or any attribute/property name (default: "text")
         - value_key: key of data_chain to store the collected value (supports expression)
@@ -27,7 +27,7 @@ class FIND_THEN_COLLECTProcessor(Processor):
 
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
 
-        collectby = self.get_param('collectby')
+        collectby = self.get_param('find_by')
         value_type = self.get_param('value_type')
         value_key = self.expression2str(self.get_param('value_key'))
         identity = self.get_param('identity')

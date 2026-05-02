@@ -27,17 +27,11 @@ list:
   skipped: false
   type: READ_EXCEL
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_value_2_supplier", "masking_columnnum": "5",
-    "masking_func": "return ''SNA'' + str(colnum) + str(rownum).rjust(4, ''0'')",
-    "masking_dict_name": "masking_dict_suppiler_name", "masking_dict_inverted": "Yes",
-    "content_clean_func": "return content.replace(\"\\n\",\"\")"}'
+  input: '{"masking_func":"return ''SNA'' + str(colnum) + str(rownum).rjust(4, ''0'')","masking_dict_name":"masking_dict_suppiler_name","masking_dict_inverted":"yes","content_clean_func":"return content.replace(\"\\n\",\"\")","source_key":"capacity_value_2_supplier","masking_column":"5"}'
   skipped: false
   type: DATA_MASKING
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_value_2_supplier", "masking_columnnum": "4",
-    "masking_func": "return ''SID'' + str(colnum) + str(rownum).rjust(4, ''0'')",
-    "masking_dict_inverted": "Yes", "masking_dict_name": "masking_dict_suppiler_code",
-    "content_clean_func": "return content.replace(\"\\n\",\"\")"}'
+  input: '{"masking_func":"return ''SID'' + str(colnum) + str(rownum).rjust(4, ''0'')","masking_dict_inverted":"yes","masking_dict_name":"masking_dict_suppiler_code","content_clean_func":"return content.replace(\"\\n\",\"\")","source_key":"capacity_value_2_supplier","masking_column":"4"}'
   skipped: false
   type: DATA_MASKING
 - !!python/object:core.task.Task
@@ -53,13 +47,7 @@ list:
   skipped: false
   type: COLLECTION_MERGE
 - !!python/object:core.task.Task
-  input: '{"given_collection": "capacity_map_final", "group_by_func": "return  ''\u4f9b\u5e94\u5546\u540d
-    '' + row[7] + '', \u4f9b\u5e94\u5546\u7801 '' + row[6]", "mapping_func": "return
-    ''\u54c1\u7c7b\u7801 ''+ row[0] +'', \u54c1\u7c7b\u540d '' + row[1] +'', \u4e00\u7ea7\u80fd\u529b
-    '' +row[3]+'',  \u4e8c\u7ea7\u80fd\u529b '' +row[4]+'', \u4e09\u7ea7\u80fd\u529b
-    '' +row[5] + '', \u7684\u5f97\u5206\u4e3a '' +row[8]", "target_dict_key": "capacity_map_rag_data",
-    "collect_func": "return key +''  \u7684\u80fd\u529b\u4fe1\u606f\u4e3a '' + '';
-    ''.join(rows)"}'
+  input: '{"group_by_func":"return  ''供应商名 '' + row[7] + '', 供应商码 '' + row[6]","mapping_func":"return ''品类码 ''+ row[0] +'', 品类名 '' + row[1] +'', 一级能力 '' +row[3]+'',  二级能力 '' +row[4]+'', 三级能力 '' +row[5] + '', 的得分为 '' +row[8]","collect_func":"return key +''  的能力信息为 '' + ''; ''.join(rows)","source_key":"capacity_map_final","data_key":"capacity_map_rag_data"}'
   skipped: false
   type: DATA_GROUPBY
 - !!python/object:core.task.Task

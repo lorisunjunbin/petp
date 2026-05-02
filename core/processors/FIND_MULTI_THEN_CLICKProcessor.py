@@ -6,13 +6,13 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_MULTI_THEN_CLICKProcessor(Processor):
-    TPL: str = '{"skip_fn":"return ele is None","findby":"xpath|css","identity":"", "wait":3, "timeout":10, "chrome_name":"chrome"}'
+    TPL: str = '{"skip_fn":"return ele is None","find_by":"xpath|css","identity":"", "wait":3, "timeout":10, "chrome_name":"chrome"}'
 
     DESC = f'''
         Find multiple elements via selenium within timeout, then click on them one by one.
 
         - skip_fn: Python function body to decide whether to skip an element, variable "ele" is available (default: "return ele is None")
-        - findby: locator type, "xpath" or "css"
+        - find_by: locator type, "xpath" or "css"
         - identity: locator value for the target elements (supports expression)
         - wait: extra wait in seconds between clicks (default: 3)
         - timeout: max seconds to wait for elements to appear (default: 10)
@@ -25,7 +25,7 @@ class FIND_MULTI_THEN_CLICKProcessor(Processor):
 
     def process(self):
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
-        findby = self.get_param('findby')
+        findby = self.get_param('find_by')
 
         skip_fn_body = self.expression2str(self.get_param('skip_fn')) \
             if self.has_param('skip_fn') and len(self.get_param('skip_fn')) > 0 \

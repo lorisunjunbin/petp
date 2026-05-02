@@ -6,15 +6,15 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"clickby": "css", "identity": ".i8-text-input__input", "wait": 3}'
+  input: '{"identity":".i8-text-input__input","wait":3,"find_by":"css"}'
   skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "robot"}'
+  input: '{"identity":".i8-text-input__input","value":"robot","find_by":"css"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"keyinby": "css", "identity": ".i8-text-input__input", "value": "KEY_ENTER"}'
+  input: '{"identity":".i8-text-input__input","value":"KEY_ENTER","find_by":"css"}'
   skipped: false
   type: FIND_THEN_KEYIN
 loops: []

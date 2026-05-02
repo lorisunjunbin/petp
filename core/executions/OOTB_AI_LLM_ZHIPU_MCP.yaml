@@ -3,8 +3,7 @@ astool: false
 execution: OOTB_AI_LLM_ZHIPU_MCP
 list:
 - !!python/object:core.task.Task
-  input: '{"api_key_name":"ZHIPU_ACCESS_KEY", "api_key":"", "base_url":"https://open.bigmodel.cn/api/paas/v4/",
-    "llm_data_key":"llmZHIPU"}'
+  input: '{"api_key":"","base_url":"https://open.bigmodel.cn/api/paas/v4/","llm_data_key":"llmZHIPU","api_key_env":"ZHIPU_ACCESS_KEY"}'
   skipped: false
   type: AI_LLM_ZHIPU_SETUP
 - !!python/object:core.task.Task

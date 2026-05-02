@@ -15,9 +15,7 @@ list:
   skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task
-  input: '{"given_collection": "TCode_DESC_In_Chinese", "lambda": "len(row) > 0 and
-    len(row[2]) > 0 and  not row[1].startswith(''Z'') and not row[1].startswith(''Y'')",
-    "filtered_collection": ""}'
+  input: '{"source_key":"TCode_DESC_In_Chinese","target_key":"","filter_fn":"len(row) > 0 and len(row[2]) > 0 and  not row[1].startswith(''Z'') and not row[1].startswith(''Y'')"}'
   skipped: false
   type: DATA_FILTER
 - !!python/object:core.task.Task
