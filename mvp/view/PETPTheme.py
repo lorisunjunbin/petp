@@ -5,7 +5,7 @@ RGB = Tuple[int, int, int]
 
 
 @dataclass(frozen=True)
-class Theme:
+class PETPTheme:
     name: str
 
     grid_sel_bg: RGB
@@ -31,8 +31,8 @@ class Theme:
     accent_pressed: RGB
 
 
-THEMES: dict[str, Theme] = {
-    "Forest": Theme(
+THEMES: dict[str, PETPTheme] = {
+    "Forest": PETPTheme(
         name="Forest",
         grid_sel_bg=(66, 111, 66),
         grid_sel_fg=(0, 0, 0),
@@ -50,7 +50,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(102, 197, 106),
         accent_pressed=(46, 125, 50),
     ),
-    "Ocean": Theme(
+    "Ocean": PETPTheme(
         name="Ocean",
         grid_sel_bg=(58, 107, 140),
         grid_sel_fg=(255, 255, 255),
@@ -68,7 +68,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(52, 152, 219),
         accent_pressed=(30, 100, 150),
     ),
-    "Monokai": Theme(
+    "Monokai": PETPTheme(
         name="Monokai",
         grid_sel_bg=(73, 72, 62),
         grid_sel_fg=(248, 248, 242),
@@ -86,7 +86,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(192, 240, 88),
         accent_pressed=(130, 180, 30),
     ),
-    "Solarized": Theme(
+    "Solarized": PETPTheme(
         name="Solarized",
         grid_sel_bg=(7, 54, 66),
         grid_sel_fg=(147, 161, 161),
@@ -104,7 +104,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(56, 185, 176),
         accent_pressed=(32, 130, 122),
     ),
-    "Nord": Theme(
+    "Nord": PETPTheme(
         name="Nord",
         grid_sel_bg=(67, 76, 94),
         grid_sel_fg=(229, 233, 240),
@@ -122,7 +122,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(143, 188, 187),
         accent_pressed=(94, 129, 172),
     ),
-    "Dracula": Theme(
+    "Dracula": PETPTheme(
         name="Dracula",
         grid_sel_bg=(68, 71, 90),
         grid_sel_fg=(248, 248, 242),
@@ -140,7 +140,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(210, 168, 255),
         accent_pressed=(139, 97, 199),
     ),
-    "Sakura": Theme(
+    "Sakura": PETPTheme(
         name="Sakura",
         grid_sel_bg=(183, 110, 121),
         grid_sel_fg=(255, 255, 255),
@@ -158,7 +158,7 @@ THEMES: dict[str, Theme] = {
         accent_hover=(238, 140, 170),
         accent_pressed=(180, 82, 117),
     ),
-    "Cyberpunk": Theme(
+    "Cyberpunk": PETPTheme(
         name="Cyberpunk",
         grid_sel_bg=(30, 0, 50),
         grid_sel_fg=(0, 255, 255),
@@ -181,7 +181,7 @@ THEMES: dict[str, Theme] = {
 DEFAULT_THEME = "Forest"
 SYSTEM_THEME_NAME = "System"
 
-_current: Theme = THEMES[DEFAULT_THEME]
+_current: PETPTheme = THEMES[DEFAULT_THEME]
 _system_mode: bool = False
 
 
@@ -193,7 +193,7 @@ def _resolve_system_theme() -> str:
         return DEFAULT_THEME
 
 
-def get_theme() -> Theme:
+def get_theme() -> PETPTheme:
     return _current
 
 

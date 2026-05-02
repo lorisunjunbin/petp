@@ -64,6 +64,9 @@ class Processor:
     global _cached_processor_classes
     _cached_processor_classes = {}
 
+    global _cached_category_map
+    _cached_category_map = {}
+
     global _expr_code_cache
     _expr_code_cache = {}
 
@@ -439,6 +442,32 @@ class Processor:
         )
         result.sort()
         return result
+
+    @staticmethod
+    def get_category_map() -> dict:
+        """Return {processor_name: category_string} for all processors.
+
+        Reads source files directly — no class loading, no instantiation.
+        Result is cached at module level.
+        """
+        global _cached_category_map
+        if _cached_category_map:
+            return _cached_category_map
+        processors_dir = os.path.realpath('core') + os.sep + 'processors'
+        for name in Processor.get_processors():
+            path = os.path.join(processors_dir, name + 'Processor.py')
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    src = f.read()
+                m = re.search(r'def get_category.*?return\s+super\(\)\.(\w+)', src, re.DOTALL)
+                if m:
+                    attr = m.group(1)
+                    _cached_category_map[name] = getattr(Processor, attr, '')
+                else:
+                    _cached_category_map[name] = ''
+            except Exception:
+                _cached_category_map[name] = ''
+        return _cached_category_map
 
     @staticmethod
     def get_processor_by_type(prefix: str):

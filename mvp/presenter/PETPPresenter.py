@@ -23,6 +23,8 @@ from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
 from mvp.view.common.InputDialog import InputDialog
 from mvp.view.common.SearchableGridChoiceEditor import SearchableGridChoiceEditor
+from mvp.view.common.ProcessorPalette import ProcessorPalette
+from mvp.view.common.TaskInfoRenderer import TaskInfoRenderer
 from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
 from mvp.view.sub.PETP_PIE_CHARTView import PETP_PIE_CHARTView
 from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
@@ -31,7 +33,7 @@ from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.CodeExplainerUtil import CodeExplainerUtil
 from i18n.translations import t, set_locale
-from mvp.view.theme import get_theme, set_theme, get_theme_names, is_system_theme, SYSTEM_THEME_NAME
+from mvp.view.PETPTheme import get_theme, set_theme, get_theme_names, is_system_theme, SYSTEM_THEME_NAME
 
 
 class PETPPresenter():
@@ -107,8 +109,8 @@ class PETPPresenter():
 
         view.Bind(wx.EVT_SYS_COLOUR_CHANGED, self._on_sys_appearance_changed)
 
-        self._welcome_index = random.randrange(10)
-        self._welcome_total = 10
+        self._welcome_index = random.randrange(20)
+        self._welcome_total = 20
         self._welcome_paused = False
         wx.CallLater(800, self._rotate_welcome)
 
@@ -149,7 +151,7 @@ class PETPPresenter():
 
         # Task grid headers
         v.taskGrid.SetColLabelValue(0, t("grid_task_chooser"))
-        v.taskGrid.SetColLabelValue(1, t("grid_input"))
+        v.taskGrid.SetColLabelValue(1, t("grid_task_desc"))
 
         # Loop editor
         v.addLoop.SetToolTip(t("tip_add_property"))
@@ -539,6 +541,13 @@ class PETPPresenter():
     def _init_taskgrid_choice_editor(self):
         self.available_processors = Processor.get_processors()
         task_grid = self.v.taskGrid
+        col0_attr = wx.grid.GridCellAttr()
+        col0_attr.SetReadOnly(True)
+        task_grid.SetColAttr(0, col0_attr)
+        col1_attr = wx.grid.GridCellAttr()
+        col1_attr.SetReadOnly(True)
+        col1_attr.SetRenderer(TaskInfoRenderer())
+        task_grid.SetColAttr(1, col1_attr)
         for row in range(task_grid.GetNumberRows()):
             self._bind_grid_cell_choice_editor(row, task_grid, self.available_processors)
 
@@ -674,6 +683,9 @@ class PETPPresenter():
             self.m.set_config('language', locale)
 
         set_locale(locale)
+        from mvp.view.common.TaskInfoRenderer import TaskInfoRenderer
+        TaskInfoRenderer._desc_cache.clear()
+        TaskInfoRenderer._cat_cache.clear()
         self._apply_i18n()
         self._apply_theme()
 
@@ -911,7 +923,12 @@ class PETPPresenter():
     def _autosize_input_col(self):
         grid = self.v.taskGrid
         grid.AutoSizeColumn(0, setAsMin=False)
-        grid.AutoSizeColumn(1, setAsMin=False)
+        total = grid.GetClientSize().width
+        col0 = grid.GetColSize(0)
+        label_w = grid.GetRowLabelSize()
+        col1 = total - col0 - label_w - 2
+        if col1 > 100:
+            grid.SetColSize(1, col1)
 
     def _validate_dynamic_func_bodies(self, tasks, grid):
         """
@@ -1236,9 +1253,28 @@ class PETPPresenter():
             )
 
     def on_grid_cell_editor_shown4e(self, evt):
-        current_row = evt.GetRow()
-        current_column = evt.GetCol()
         evt.Skip()
+
+    def _show_processor_palette(self, row):
+        grid = self.v.taskGrid
+        current_value = grid.GetCellValue(row, 0)
+        rect = grid.CellToRect(row, 0)
+        pos = grid.GetGridWindow().ClientToScreen(rect.GetBottomLeft())
+        palette = ProcessorPalette(
+            self.v, self.available_processors, current_value,
+            on_select=lambda val: self._on_processor_palette_selected(row, val)
+        )
+        palette.ShowAt(pos)
+
+    def _on_processor_palette_selected(self, row, value):
+        grid = self.v.taskGrid
+        if value not in self.available_processors:
+            return
+        grid.SetCellValue(row, 0, value)
+        p = Processor.get_processor_by_type(value)
+        grid.SetCellValue(row, 1, p.get_tpl())
+        logging.info(f'Processor {value} : {p.get_desc()}')
+        self._load_input_taskproperty(row)
 
     def on_grid_cell_change4e(self, evt):
         grid = self.v.taskGrid

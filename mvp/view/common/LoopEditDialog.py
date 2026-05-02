@@ -5,7 +5,7 @@ import wx
 import wx.grid
 
 from i18n.translations import t
-from mvp.view.theme import get_theme
+from mvp.view.PETPTheme import get_theme
 from mvp.view.common.HandyToolButton import HandyToolButton
 from mvp.view.common.InputDialog import InputDialog
 from mvp.view.common.ThemedButton import ThemedButton

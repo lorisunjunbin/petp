@@ -1,6 +1,6 @@
 import wx
 
-from mvp.view.theme import get_theme
+from mvp.view.PETPTheme import get_theme
 
 
 class ToggleSwitch(wx.Control):

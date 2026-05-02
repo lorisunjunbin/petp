@@ -130,7 +130,9 @@ class PETPInteractor():
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.on_grid_cell_change4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_grid_cell_select4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_grid_cell_right_click)
+        self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_task_grid_dclick)
         self.v.taskGrid.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.on_task_grid_key_down)
+        self.v.taskGrid.Bind(wx.EVT_SIZE, self.on_task_grid_size)
 
     def bind_view_event_4e_loop_editor(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_add_loop, self.v.addLoop)
@@ -372,6 +374,12 @@ class PETPInteractor():
                 return
         evt.Skip()
 
+    def on_task_grid_dclick(self, evt):
+        if evt.GetCol() == 0:
+            self.p._show_processor_palette(evt.GetRow())
+        else:
+            evt.Skip()
+
     def on_task_grid_key_down(self, evt):
         if evt.ControlDown():
             if evt.GetKeyCode() == ord('C'):
@@ -380,7 +388,17 @@ class PETPInteractor():
             if evt.GetKeyCode() == ord('V'):
                 self.p.on_task_grid_paste()
                 return
+        code = evt.GetKeyCode()
+        if code in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_F2):
+            grid = self.v.taskGrid
+            if grid.GetGridCursorCol() == 0:
+                self.p._show_processor_palette(grid.GetGridCursorRow())
+                return
         evt.Skip()
+
+    def on_task_grid_size(self, evt):
+        evt.Skip()
+        wx.CallAfter(self.p._autosize_input_col)
 
     def on_cron_actived(self, evt):
         self.p.on_cron_actived(evt)

@@ -3,7 +3,7 @@ import sys
 import wx
 
 from mvp.view.common.PopupMenuButton import PopupMenuButton
-from mvp.view.theme import get_theme
+from mvp.view.PETPTheme import get_theme
 
 _IS_WINDOWS = sys.platform == 'win32'
 _ICON_SEARCH = "🔍"

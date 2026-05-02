@@ -4,7 +4,7 @@ import wx
 import wx.grid
 
 from i18n.translations import t
-from mvp.view.theme import get_theme
+from mvp.view.PETPTheme import get_theme
 
 from mvp.view.common.ResultDialog import ResultDialog
 

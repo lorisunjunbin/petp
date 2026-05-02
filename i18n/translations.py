@@ -1195,6 +1195,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === Grid column headers ===
     "grid_task_chooser": {"en": "Task Chooser", "zh": "Task选择"},
+    "grid_task_desc": {"en": "Description", "zh": "描述"},
     "grid_input": {"en": "Input", "zh": "输入"},
     "grid_exec_chooser": {"en": "Execution Chooser", "zh": "Execution选择"},
 
@@ -1369,6 +1370,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Checkbox labels ===
     "cb_as_cron": {"en": "as cron", "zh": "定时任务"},
 
+    # === ProcessorPalette ===
+    "palette_hint": {"en": "type to filter...", "zh": "输入筛选..."},
+    "palette_footer_all": {"en": "{n} processors", "zh": "{n} 个处理器"},
+    "palette_footer_filtered": {"en": "{total} / {n}  (name: {nm}  cat: {ct})", "zh": "{total} / {n}  (名称: {nm}  分类: {ct})"},
+    "palette_sep_label": {"en": "── category matches ──", "zh": "── 分类匹配 ──"},
+
     # === Startup welcome / motivational messages ===
     "welcome_0": {
         "en": "Welcome back! Automation starts here.",
@@ -1409,6 +1416,46 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "welcome_9": {
         "en": "You build the tools; the tools build the future.",
         "zh": "你创造工具，工具创造未来。",
+    },
+    "welcome_10": {
+        "en": "The unexamined workflow is not worth running.",
+        "zh": "未经审视的流程，不值得运行。",
+    },
+    "welcome_11": {
+        "en": "I automate, therefore I am.",
+        "zh": "我自动化，故我在。",
+    },
+    "welcome_12": {
+        "en": "One cannot step into the same pipeline twice.",
+        "zh": "人不能两次踏入同一条流水线。",
+    },
+    "welcome_13": {
+        "en": "The only constant is change — so automate adaptively.",
+        "zh": "唯一不变的是变化——所以要自适应地自动化。",
+    },
+    "welcome_14": {
+        "en": "To do is to be; to automate is to transcend.",
+        "zh": "行动即存在；自动化即超越。",
+    },
+    "welcome_15": {
+        "en": "Simplicity is the ultimate sophistication.",
+        "zh": "简约是终极的精妙。",
+    },
+    "welcome_16": {
+        "en": "Between stimulus and response, there is a processor.",
+        "zh": "在刺激与响应之间，有一个处理器。",
+    },
+    "welcome_17": {
+        "en": "The task you automate today frees the mind of tomorrow.",
+        "zh": "今日自动化的任务，是明日自由的心智。",
+    },
+    "welcome_18": {
+        "en": "Knowing the path is not the same as running the pipeline.",
+        "zh": "知道路在哪里，不等于跑通了流水线。",
+    },
+    "welcome_19": {
+        "en": "All tasks are impermanent — but their output persists.",
+        "zh": "诸行无常——但输出永存。",
     },
 
 }
