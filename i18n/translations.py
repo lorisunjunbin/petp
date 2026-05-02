@@ -1376,6 +1376,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "palette_footer_filtered": {"en": "{total} / {n}  (name: {nm}  cat: {ct})", "zh": "{total} / {n}  (名称: {nm}  分类: {ct})"},
     "palette_sep_label": {"en": "── category matches ──", "zh": "── 分类匹配 ──"},
 
+    "badge_skipped": {"en": "⊖  skipped — this task will be skipped during execution", "zh": "⊖  已跳过 — 执行时此任务将被跳过"},
+    "badge_empty":   {"en": "⚠  empty param — one or more parameters are empty", "zh": "⚠  空参数 — 存在一个或多个空参数"},
+    "badge_expr":    {"en": "{…}  expression — parameter contains a dynamic expression", "zh": "{…}  表达式 — 参数中包含动态表达式"},
+
     # === Startup welcome / motivational messages ===
     "welcome_0": {
         "en": "Welcome back! Automation starts here.",

@@ -387,8 +387,11 @@ class PETPPresenter():
 
         menu.Destroy()
 
-    def _on_view_processor_usage(self, evt):
-        row = self.selected_row_2_copied_paste
+    def _on_view_processor_usage(self, row_or_evt):
+        if isinstance(row_or_evt, int):
+            row = row_or_evt
+        else:
+            row = self.selected_row_2_copied_paste
         processor_name = self.v.taskGrid.GetCellValue(row, 0).strip()
         if not processor_name:
             return
@@ -400,6 +403,19 @@ class PETPPresenter():
             content = f"[{category}]  {processor_name}\n{'=' * 60}\n\n"
             content += f"TPL:\n{self._format_tpl(tpl)}\n\n"
             content += f"Description:\n{desc.strip()}"
+
+            from mvp.view.common.TaskInfoRenderer import _analyse_input
+            input_json = self.v.taskGrid.GetTable().GetValue(row, 1)
+            is_skipped, has_empty, has_expr = _analyse_input(input_json)
+            badge_lines = []
+            if is_skipped:
+                badge_lines.append(t("badge_skipped"))
+            if has_empty:
+                badge_lines.append(t("badge_empty"))
+            if has_expr:
+                badge_lines.append(t("badge_expr"))
+            if badge_lines:
+                content += f"\n\n{'─' * 60}\n" + "\n".join(badge_lines)
         except Exception as e:
             content = f"Failed to load processor info: {e}"
 

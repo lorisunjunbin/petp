@@ -377,6 +377,8 @@ class PETPInteractor():
     def on_task_grid_dclick(self, evt):
         if evt.GetCol() == 0:
             self.p._show_processor_palette(evt.GetRow())
+        elif evt.GetCol() == 1:
+            self.p._on_view_processor_usage(evt.GetRow())
         else:
             evt.Skip()
 
