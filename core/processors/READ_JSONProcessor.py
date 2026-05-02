@@ -9,15 +9,13 @@ from core.processor import Processor
 class READ_JSONProcessor(Processor):
     TPL: str = '{"file_path":"", "file_path_key":"str on data_chain", "json_path":"$.*", "data_key":"name on data_chain"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Load JSON from file, optionally extract data via json_path, then save to data_chain.
 
         - file_path: JSON file path (supports expression)
         - file_path_key: key of data_chain to get the file path, takes priority over file_path if set
         - json_path: JSONPath expression to extract specific data (default: "$.*", refer to https://pypi.org/project/jsonpath-python/)
         - data_key: key of data_chain to store the parsed JSON data
-
-        {TPL}
     '''
     def get_category(self) -> str:
         return super().CATE_JSON

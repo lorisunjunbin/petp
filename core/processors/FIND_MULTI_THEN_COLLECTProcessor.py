@@ -8,7 +8,7 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_MULTI_THEN_COLLECTProcessor(Processor):
     TPL: str = '{"find_by":"xpath|css","identity":"","value_type":"text|value|ele|_any property or attribute_", "value_key":"name_of_collecttion", "wait":5, "timeout":10, "skip_fn":"return ele is None","sort_lambda":"item", "sort_reverse":"no", "chrome_name":"chrome"}'
 
-    DESC = f'''
+    DESC = '''
         Find multiple elements via selenium and collect their text, value, or any property/attribute into a list.
 
         - find_by: locator type, "xpath" or "css"
@@ -20,8 +20,6 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
         - skip_fn: Python function body to skip elements, variable "ele" is available (default: "return ele is None")
         - sort_lambda: Python expression for sorting, variable "item" is available (default: "item")
         - sort_reverse: "yes" to sort in descending order (default: "no")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

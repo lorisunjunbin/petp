@@ -9,15 +9,13 @@ from utils.OSUtils import OSUtils
 class OPEN_FILEProcessor(Processor):
     TPL: str = '{"file_path":"","file_path_key":"","timeout":10}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Open a file using the system's default application. Waits for the file to exist within the given timeout.
         The file path can be provided directly or retrieved from data_chain via a key.
 
         - file_path: direct path to the file to open (supports expression, default: "")
         - file_path_key: key in data_chain whose value is used as the file path when file_path is empty (supports expression, default: "")
         - timeout: maximum seconds to wait for the file to exist before attempting to open it (default: 10)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

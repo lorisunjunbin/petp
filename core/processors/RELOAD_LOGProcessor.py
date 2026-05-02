@@ -11,13 +11,11 @@ import logging
 class RELOAD_LOGProcessor(Processor):
     TPL: str = '{"name":"reload logger"}'
 
-    DESC: str = f''' 
+    DESC: str = ''' 
         Trigger a refresh of the log window in the PETP UI to display the latest log entries.
         Useful after a series of tasks to ensure the log view is up to date.
 
         - name: A descriptive label for this task step (supports expression, default: "reload logger")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

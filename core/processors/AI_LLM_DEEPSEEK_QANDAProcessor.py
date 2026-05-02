@@ -21,7 +21,7 @@ pip install openai
 class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
     TPL: str = '{"llm_data_key":"llmdeepseek", "prompt":"prompt", "model":"deepseek-chat","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Ask DeepSeek LLM a question and get the response. Depends on AI_LLM_DEEPSEEK_SETUPProcessor to setup the LLM instance first.
 
         - llm_data_key: key of data_chain where the LLM client instance is stored (default: "llmdeepseek")
@@ -31,8 +31,6 @@ class AI_LLM_DEEPSEEK_QANDAProcessor(Processor):
         - resp_content_key: key of data_chain to store the response content
         - convert_resp_2_json: "yes" to parse JSON from markdown code block in response (default: "yes")
         - show_in_popup: "yes" to display Q&A in popup dialog (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

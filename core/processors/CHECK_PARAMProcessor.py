@@ -5,12 +5,10 @@ from core.processor import Processor
 
 class CHECK_PARAMProcessor(Processor):
     TPL: str = '{"param_not_empty":"name1|>name2"}'
-    DESC: str = f'''
+    DESC: str = '''
         Check that required data_chain attributes exist and are non-empty. Terminates the execution if not satisfied.
 
-        - param_not_empty: attribute name(s) to check, use ""{Processor.SEPARATOR}"" for nested access, e.g. "name1{Processor.SEPARATOR}name2"
-
-        {TPL}
+        - param_not_empty: attribute name(s) to check, use "|>" for nested access, e.g. "name1|>name2"
     '''
 
     def get_category(self) -> str:

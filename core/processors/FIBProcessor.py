@@ -8,15 +8,13 @@ from core.processor import Processor
 class FIBProcessor(Processor):
     TPL: str = '{"seed":"","use_cache":"yes|no","data_key":"fib_arr"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Calculate Fibonacci numbers from 0 up to the given seed value. Supports both a cached (fast) and a non-cached
         (slow/recursive) computation mode. Results are stored as a list of formatted strings in the data chain.
 
         - seed: The upper bound (exclusive) for Fibonacci calculation; calculates fib(0) through fib(seed-1) (supports expression, default: "")
         - use_cache: Whether to use memoized/cached computation, "yes" for fast cached mode or "no" for plain recursive mode (default: "yes")
         - data_key: The data chain key under which the resulting Fibonacci array will be stored (default: "fib_arr")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -8,7 +8,7 @@ _pm = None
 
 class RUN_JAVASCRIPTProcessor(Processor):
 	TPL: str = '{"js_file":"", "params":"","data_key":"method_result"}'
-	DESC: str = f'''
+	DESC: str = '''
         Execute a JavaScript function from an external .js file using the PythonMonkey runtime.
         The JS file should export a module with a function that accepts a single argument
         (object/dict) and returns a single result object. The JS snippet is cached globally
@@ -19,8 +19,6 @@ class RUN_JAVASCRIPTProcessor(Processor):
         - js_file: Path to the JavaScript file to execute (supports expression, default: "")
         - params: Parameters to pass into the JavaScript function; parsed as JSON if applicable (supports expression, default: "")
         - data_key: Key in data_chain to store the JavaScript function's return value (supports expression, default: "method_result")
-
-        {TPL}
 
     '''
 

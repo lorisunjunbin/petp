@@ -50,7 +50,7 @@ class GeminiLLMClient:
 class AI_LLM_GEMINI_SETUPProcessor(Processor):
     TPL: str = '{"api_key_env":"GOOGLE_API_KEY", "model":"gemini-1.5-pro", "llm_data_key":"llmgemini","top_p":"0.85", "temperature":"0.8"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Initialize and configure a Google Gemini LLM instance with the specified model,
         temperature, and top_p, then store it in the data chain for use by downstream processors
         such as AI_LLM_GEMINI_QANDA_MCPProcessor. Requires the GOOGLE_API_KEY environment variable to be set.
@@ -61,8 +61,6 @@ class AI_LLM_GEMINI_SETUPProcessor(Processor):
         - llm_data_key: The data chain key under which the configured LLM instance will be stored (default: "llmgemini")
         - top_p: The top-p (nucleus) sampling parameter as a float string, controls diversity (default: "0.85")
         - temperature: The sampling temperature as a float string, higher values produce more creative output (default: "0.8")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -27,7 +27,7 @@ https://github.com/modelcontextprotocol/python-sdk/tree/main/examples/clients/si
 class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
     TPL: str = '{"llm_data_key":"llmdeepseek", "prompt":"prompt","petp_mcp_url":"http://localhost:8888", "model":"deepseek-chat","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Ask DeepSeek LLM a question with MCP tool support. Depends on AI_LLM_DEEPSEEK_SETUPProcessor to setup the LLM instance first.
         Runs another PETP as MCP server. If LLM decides to use a tool, it calls the MCP endpoint and feeds the result back.
 
@@ -39,8 +39,6 @@ class AI_LLM_DEEPSEEK_QANDA_MCPProcessor(Processor):
         - resp_content_key: key of data_chain to store the final response content
         - convert_resp_2_json: "yes" to parse JSON from markdown code block in response (default: "yes")
         - show_in_popup: "yes" to display Q&A in popup dialog (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

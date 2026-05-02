@@ -6,7 +6,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class DATA_MULTI_MASKINGProcessor(Processor):
     TPL: str = '{"source_key":"", "content_clean_func":"return content", "masking_func":"return \'SJB-\' + str(colnum) + str(rownum) ", "masking_columns":"0|>1|>2|>3", "masking_dict_name":"", "masking_dict_inverted":"Yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Perform multi-column data masking on a collection (list of rows). Unlike the single-column
         DATA_MASKINGProcessor, this processor supports masking multiple columns at once. Each specified
         column is cleaned and replaced with a masked value. Per-column masking dictionaries are
@@ -21,8 +21,6 @@ class DATA_MULTI_MASKINGProcessor(Processor):
         - masking_columns: Pipe-separated list of zero-based column indices to mask (supports expression, default: "0|>1|>2|>3")
         - masking_dict_name: Key in data_chain to store the masking dictionary after processing; if empty, the dict is discarded (supports expression, default: "")
         - masking_dict_inverted: If "Yes" or "yes", stores the inverted mapping (masked -> original) instead of (original -> masked) (supports expression, default: "Yes")
-
-        {TPL}
 
     '''
 

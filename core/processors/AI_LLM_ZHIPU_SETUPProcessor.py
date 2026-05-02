@@ -18,7 +18,7 @@ Refer: https://docs.bigmodel.cn/cn/guide/develop/python/introduction
 class AI_LLM_ZHIPU_SETUPProcessor(Processor):
     TPL: str = '{"api_key_env":"ZHIPU_ACCESS_KEY", "api_key":"", "base_url":"https://open.bigmodel.cn/api/paas/v4/", "llm_data_key":"llmZHIPU"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Initialize and configure a ZhipuAI LLM client instance by reading the API key from an environment variable
         (specified by api_key_env) or directly from the api_key parameter. The client is then stored in the data chain
         for use by downstream processors such as AI_LLM_ZHIPU_QANDAProcessor. Skips setup if an instance already exists.
@@ -27,8 +27,6 @@ class AI_LLM_ZHIPU_SETUPProcessor(Processor):
         - api_key: The API key string; if empty, the key is read from the environment variable specified by api_key_env (default: "")
         - base_url: The base URL of the ZhipuAI API endpoint (default: "https://open.bigmodel.cn/api/paas/v4/")
         - llm_data_key: The data chain key under which the configured ZhipuAI client instance will be stored (default: "llmZHIPU")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

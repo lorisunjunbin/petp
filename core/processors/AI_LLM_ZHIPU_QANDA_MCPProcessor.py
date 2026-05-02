@@ -26,7 +26,7 @@ Refer: https://docs.bigmodel.cn/cn/guide/develop/python/introduction
 class AI_LLM_ZHIPU_QANDA_MCPProcessor(Processor):
     TPL: str = '{"llm_data_key":"llmZHIPU","prompt":"prompt", "model":"glm-4.7","temperature":"1.0","show_thinking":"no", "petp_mcp_url":"http://localhost:8888", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Call ZhipuAI (GLM) LLM with tool-use capabilities via the PETP MCP server. Depends on AI_LLM_ZHIPU_SETUPProcessor
         to have previously initialized the ZhipuAI client. Fetches available tools from the MCP server, asks the LLM a question,
         and if the LLM decides to use a tool, executes it via the MCP endpoint and returns the refined answer.
@@ -40,8 +40,6 @@ class AI_LLM_ZHIPU_QANDA_MCPProcessor(Processor):
         - resp_content_key: The data chain key under which the final response content will be stored (default: "")
         - convert_resp_2_json: If "yes", attempts to parse the final response as JSON from a markdown code block (default: "yes")
         - show_in_popup: Whether to display the Q&A result in a popup dialog, "yes" or "no" (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

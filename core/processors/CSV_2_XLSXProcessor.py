@@ -6,15 +6,13 @@ from utils.ExcelUtil import ExcelUtil
 
 class CSV_2_XLSXProcessor(Processor):
     TPL: str = '{"source_path":"", "target_path":"", "data_key":"", "delimiter":""}'
-    DESC: str = f'''
+    DESC: str = '''
         Convert CSV file to XLSX format. Read from source_path, write to target_path, then save the target xlsx path to data_chain via data_key.
 
         - source_path: source CSV file path (supports expression)
         - target_path: target XLSX file path to write (supports expression)
         - data_key: key of data_chain to store the xlsx file path (supports expression)
         - delimiter: delimiter used in the CSV file, e.g. "," or "\\t" (supports expression)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

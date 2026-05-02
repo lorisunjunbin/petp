@@ -6,7 +6,7 @@ from utils.ParamikoUtil import ParamikoUtil
 
 class CREATE_SFTP_CLIENTProcessor(Processor):
     TPL: str = '{"sftp_ip":"","sftp_port": 22, "uname":"", "pwd":"","sftp_client_key":"sftpclient"}'
-    DESC: str = f'''
+    DESC: str = '''
         Create paramiko SFTP client, save to data_chain associated with sftp_client_key.
 
         - sftp_ip: SFTP server IP address (supports expression)
@@ -14,8 +14,6 @@ class CREATE_SFTP_CLIENTProcessor(Processor):
         - uname: username for authentication (supports expression)
         - pwd: password for authentication (supports expression)
         - sftp_client_key: key of data_chain to store the SFTP client instance (default: "sftpclient")
-
-        {TPL}
     '''
     def get_category(self) -> str:
         return super().CATE_PARAMIKO

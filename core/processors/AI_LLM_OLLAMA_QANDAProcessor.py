@@ -33,7 +33,7 @@ curl http://localhost:11434/api/generate -d '{
 class AI_LLM_OLLAMA_QANDAProcessor(Processor):
     TPL: str = '{"model":"deepseek-r1:7b", "prompt":"How old are you?", "role":"user","show_in_popup":"yes","resp_content_key":"ollama_resp"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Ask Ollama LLM a question via a locally running Ollama instance, retrieve the response, parse it to JSON if needed,
         and optionally display the response in a popup dialog. Requires Ollama to be running locally.
 
@@ -42,8 +42,6 @@ class AI_LLM_OLLAMA_QANDAProcessor(Processor):
         - role: The chat role for the message, typically "user" or "system" (default: "user")
         - show_in_popup: Whether to display the Q&A result in a popup dialog, "yes" or "no" (default: "yes")
         - resp_content_key: The data chain key under which the raw LLM response will be stored (default: "ollama_resp")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

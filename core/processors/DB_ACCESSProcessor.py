@@ -8,7 +8,7 @@ class DB_ACCESSProcessor(Processor):
 
     TPL: str = '{"type":"Mysql|Hana|Postgres|Sqlite", "host":"192.168.8.8", "port":"3306", "database":"customdb", "user":"admin", "pwd":"nimda","sql":"select * from user where username=%s and id=%s","param":"admin, id","data_key":"dataset", "param_key":"sql_param"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Provide generic Database access capacity. Connects to a database, executes a SQL query,
         and stores the result set in the data_chain under the specified key.
 
@@ -28,8 +28,6 @@ class DB_ACCESSProcessor(Processor):
         - param: Comma-separated parameter values for the parameterized SQL query (supports expression, default: "admin, id")
         - data_key: Key name in data_chain to store the query result set (supports expression, default: "dataset")
         - param_key: Key name in data_chain to retrieve SQL parameters from; takes precedence over "param" if provided (supports expression, default: "sql_param")
-
-        {TPL}
 
     '''
     def get_category(self) -> str:

@@ -7,7 +7,7 @@ from utils.OSUtils import OSUtils
 
 class OCRProcessor(Processor):
     TPL: str = '{"image_path":"", "image_path_key":"", "lang":"ch", "backend":"auto", "preprocess":"none", "filter_func":"return True", "result_key":"ocr_result", "text_key":"ocr_text"}'
-    DESC: str = f'''
+    DESC: str = '''
         Extract text from an image using local OCR (no API key required).
         Supports Chinese, English, and many other languages.
 
@@ -62,8 +62,6 @@ class OCRProcessor(Processor):
           (default: "return True")
         - result_key: key of data_chain to store the full OCR result list (each item has text/confidence/box)
         - text_key: key of data_chain to store the joined plain text string
-
-        {TPL}
     '''
 
     _AUTO_RAPID = {('darwin', 'arm64'), ('linux', 'arm64')}

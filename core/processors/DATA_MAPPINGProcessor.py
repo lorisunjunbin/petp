@@ -5,7 +5,7 @@ from core.processor import Processor
 class DATA_MAPPINGProcessor(Processor):
     TPL: str = '{"source_key":"", "map_fn":"[item.id, item.title]", "start_idx":"","end_idx":"", "target_key":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Map/transform each element in source_key using map_fn expression and store result in target_key.
         Supports slicing via start_idx/end_idx. Replace source_key if target_key is not given.
 
@@ -14,8 +14,6 @@ class DATA_MAPPINGProcessor(Processor):
         - start_idx: start index for slicing the collection (optional, supports expression)
         - end_idx: end index for slicing the collection, inclusive (optional, supports expression)
         - target_key: key of data_chain to store the mapped result (optional, defaults to source_key)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -6,7 +6,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class DATA_CONVERTProcessor(Processor):
     TPL: str = '{"given_key":"", "convertor_func":"return [p.get_now_str(), given]", "target_key":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Retrieve a value from the data_chain by key, transform it using a custom Python
         function string, and store the result back into the data_chain under a target key.
 
@@ -17,8 +17,6 @@ class DATA_CONVERTProcessor(Processor):
         - given_key: Key in data_chain whose value will be converted (supports expression, default: "")
         - convertor_func: Python function body that takes (p, given) and returns the converted value (supports expression, default: "return [p.get_now_str(), given]")
         - target_key: Key in data_chain to store the converted result (supports expression, default: "")
-
-        {TPL}
 
     '''
 

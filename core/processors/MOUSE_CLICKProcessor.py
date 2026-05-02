@@ -17,7 +17,7 @@ pip install pyautogui
 class MOUSE_CLICKProcessor(Processor):
     TPL: str = '{"x_from":"mouse_at_x","y_from":"mouse_at_y", "x":-1, "y":-1, "wait":5}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Perform mouse click at position (x, y). If x and y are both -1, uses position from data_chain (x_from, y_from).
 
         - x_from: key of data_chain for stored x position when x is -1 (default: "mouse_at_x")
@@ -25,8 +25,6 @@ class MOUSE_CLICKProcessor(Processor):
         - x: click x coordinate, set -1 to use position from data_chain (default: -1)
         - y: click y coordinate, set -1 to use position from data_chain (default: -1)
         - wait: seconds to wait after clicking (default: 5)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

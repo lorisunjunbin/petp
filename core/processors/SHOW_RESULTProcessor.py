@@ -12,14 +12,12 @@ from core.processor import Processor
 class SHOW_RESULTProcessor(Processor):
     TPL: str = '{"title":"","msg":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Display a message in a rich popup dialog (ResultDialog).
         Also logs the title and message to the console.
 
         - title: title of the popup dialog window (supports expression, default: "")
         - msg: message content displayed in the popup dialog (supports expression, default: "")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

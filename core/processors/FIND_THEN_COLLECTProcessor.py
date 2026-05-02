@@ -7,7 +7,7 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_THEN_COLLECTProcessor(Processor):
     TPL: str = '{"find_by":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10, "chrome_name":"chrome"}'
 
-    DESC = f'''
+    DESC = '''
         Find a single element via selenium and collect its text, value, or any property/attribute, then store to data_chain.
 
         - find_by: locator type to find the element, "id", "xpath" or "css"
@@ -16,8 +16,6 @@ class FIND_THEN_COLLECTProcessor(Processor):
         - value_key: key of data_chain to store the collected value (supports expression)
         - timeout: max seconds to wait for the element to appear (default: 10)
         - wait: extra wait in seconds before locating the element (default: 1)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

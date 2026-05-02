@@ -19,7 +19,7 @@ pip install pyautogui
 class FILE_CHOOSERProcessor(Processor):
     TPL: str = '{"fileuploadby":"id|xpath", "identity":"", "file_path":"", "file_path_key":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Find the file upload element via selenium, then select the file to upload using system file chooser dialog.
         Supports unicode file names via copy-paste mechanism.
 
@@ -27,8 +27,6 @@ class FILE_CHOOSERProcessor(Processor):
         - identity: locator value for the upload element (supports expression)
         - file_path: the file path to upload (supports expression), used when file_path_key is not set
         - file_path_key: key of data_chain to get the file path, falls back to file_path param if not set
-
-        {TPL}
     '''
     def get_category(self) -> str:
         return super().CATE_FILE

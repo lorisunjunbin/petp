@@ -8,7 +8,7 @@ from core.processor import Processor
 class SEND_EMAILProcessor(Processor):
     TPL: str = '{"smtp":"","port":25, "name":"", "pwd":"","to":"6099012@qq.com,lori.sun@qq.com","subject":"","content":"","attachment":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Send an email via a specified SMTP server. Supports plain text content and optional file attachments.
         The attachment file type is automatically detected via MIME type guessing.
 
@@ -20,8 +20,6 @@ class SEND_EMAILProcessor(Processor):
         - subject: The email subject line (supports expression, default: "")
         - content: The email body text content (supports expression, default: "")
         - attachment: The absolute file path of a file to attach; leave empty for no attachment (supports expression, default: "")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

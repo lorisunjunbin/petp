@@ -14,7 +14,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 
 class HTTP_REQUESTProcessor(Processor):
     TPL: str = '{"timeout":60, "session_key":"__session_key","resp_fn":"return response.text if response.status_code == 200 else response.status_code", "request_url":"", "headers":"header1[>value1|header2[>value2", "method":"get|post", "params":"pk1[>pv1|pk2[>pv2","data_raw":"","data":"dk1[>dv1|dk2[>dv2", "data_key":"", "value_key":"", "verify":"yes|no", "is_zip_response":"yes|no", "filter_fn":"return True", "convert_fn":"return file_content.decode(\'utf-8\')", "basic_auth_user":"", "basic_auth_pwd":"", "oauth_token_url":"", "oauth_client_id":"", "oauth_client_secret":"", "oauth_scope":"", "oauth_token":"", "xsrf_token_url":"", "xsrf_token_header":"X-CSRF-Token"}'
-    DESC: str = f'''
+    DESC: str = '''
         Send HTTP request (get/post/etc.) to request_url, process response via resp_fn, then store to value_key.
         Supports session persistence via session_key, built-in Basic Auth and OAuth authentication.
 
@@ -44,8 +44,6 @@ class HTTP_REQUESTProcessor(Processor):
         - xsrf_token_header: custom header name for the XSRF token (default: "X-CSRF-Token")
 
         Auth priority: OAuth > Basic Auth > manual Authorization header.
-
-        {TPL}
     '''
 
     _OAUTH2_EXPIRY_MARGIN_SECONDS = 30

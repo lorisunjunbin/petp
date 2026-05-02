@@ -7,15 +7,13 @@ from httpservice.HttpServer import HttpRequestHandler
 class HTTP_RESPONSE_KEYProcessor(Processor):
     TPL: str = '{"http_response_key":"result"}'
 
-    DESC: str = f''' 
+    DESC: str = ''' 
 
         Required when calling PETP from an HTTP service. Specifies which data chain key's value should be used
         as the HTTP response body. The processor reads data from the data chain using the given key and registers
         it as the response key for the HTTP handler.
 
         - http_response_key: The data chain key whose value will be returned as the HTTP response body (supports expression, default: "result")
-
-        {TPL}
 
     '''
 

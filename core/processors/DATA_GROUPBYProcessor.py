@@ -6,7 +6,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class DATA_GROUPBYProcessor(Processor):
     TPL: str = '{"source_key":"", "group_by_func":"return row[0] ", "mapping_func":"return row","collect_func":"return key + str(rows)", "data_key":"dict_group_by"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Group source_key by a key function, optionally map and collect the grouped results into a dict.
 
         - source_key: key of data_chain pointing to the input list
@@ -14,8 +14,6 @@ class DATA_GROUPBYProcessor(Processor):
         - mapping_func: Python function body to transform each row, variable "row" is available (default: "return row")
         - collect_func: Python function body to aggregate each group, variables "key" and "rows" are available (default: "return key + str(rows)")
         - data_key: key of data_chain to store the grouped dict result (default: "dict_group_by")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

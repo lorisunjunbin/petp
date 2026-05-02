@@ -7,15 +7,13 @@ from datetime import datetime, timedelta
 class STOPPERProcessor(Processor):
     TPL: str = '{"stop_after":"2025-12-31 23:59:59", "stop_in_minutes":"0"}'
 
-    DESC: str = f''' 
+    DESC: str = ''' 
         Conditionally stop the execution based on time constraints. Supports two stop modes:
         (1) stop_after: stops if the current time is after the specified datetime.
         (2) stop_in_minutes: stops if the execution has been running for more than the given number of minutes.
 
         - stop_after: A datetime string in "YYYY-MM-DD HH:MM:SS" format; stops execution if current time is after this value (supports expression, default: "2025-12-31 23:59:59")
         - stop_in_minutes: Number of minutes the execution is allowed to run before stopping; set to "0" to disable this check (supports expression, default: "0")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

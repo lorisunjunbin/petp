@@ -23,7 +23,7 @@ pip install requests
 class AI_LLM_GEMINI_QANDA_MCPProcessor(Processor):
     TPL: str = '{"llm_data_key":"llmgemini", "prompt":"prompt", "petp_mcp_url":"http://localhost:8888", "resp_content_key":"gemini_response","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Ask Google Gemini LLM a question with tool-use capabilities via the PETP MCP server. Depends on AI_LLM_GEMINI_SETUPProcessor
         to have previously initialized the LLM instance. Fetches available tools from the MCP server, and if the LLM decides
         to use a tool, executes it via the MCP endpoint and returns the refined answer.
@@ -34,8 +34,6 @@ class AI_LLM_GEMINI_QANDA_MCPProcessor(Processor):
         - resp_content_key: The data chain key under which the final response content will be stored (default: "gemini_response")
         - convert_resp_2_json: If "yes", attempts to parse the final response as JSON from a markdown code block (default: "yes")
         - show_in_popup: Whether to display the Q&A result in a popup dialog, "yes" or "no" (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -26,7 +26,7 @@ Refer: https://docs.bigmodel.cn/cn/guide/develop/python/introduction
 class AI_LLM_ZHIPU_QANDAProcessor(Processor):
     TPL: str = '{"llm_data_key":"llmZHIPU","prompt":"prompt", "model":"GLM-5","temperature":"1.0", "resp_content_key":"","convert_resp_2_json":"yes","show_in_popup":"yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Ask ZhipuAI (GLM) big model a question, retrieve the response, optionally parse it as JSON from a markdown block,
         and optionally display the Q&A in a popup dialog. Depends on AI_LLM_ZHIPU_SETUPProcessor to have previously
         initialized the ZhipuAI client instance.
@@ -38,8 +38,6 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
         - resp_content_key: The data chain key under which the final response content will be stored (default: "")
         - convert_resp_2_json: If "yes", attempts to parse the response as JSON from a markdown code block (default: "yes")
         - show_in_popup: Whether to display the Q&A result in a popup dialog, "yes" or "no" (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

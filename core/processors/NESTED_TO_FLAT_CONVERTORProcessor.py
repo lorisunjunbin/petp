@@ -7,7 +7,7 @@ from core.processor import Processor
 class NESTED_TO_FLAT_CONVERTORProcessor(Processor):
     TPL: str = '{"data":"", "data_key":"", "data_flat_key":"", "prefix":"", "separator":"."}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Convert nested dict to flat dict. Supports nested dicts and lists.
 
         - data: nested JSON string to convert (used when data_key is not set)
@@ -15,8 +15,6 @@ class NESTED_TO_FLAT_CONVERTORProcessor(Processor):
         - data_flat_key: key of data_chain to store the flattened dict result
         - prefix: prefix for flattened keys (optional, default: "")
         - separator: separator between nested key levels (default: ".")
-
-        {TPL}
     '''
     def get_category(self) -> str:
         return super().CATE_DATA_PROCESSING

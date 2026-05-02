@@ -8,16 +8,14 @@ from utils.OSUtils import OSUtils
 
 class FOLDER_WATCH_MOVEProcessor(Processor):
     TPL: str = '{"source_path":"","target_path":"endwith/","expect_count":"{10}", "data_key":"", "timeout":30}'
-    DESC: str = f'''
+    DESC: str = '''
         Move files from source folder to target folder. Supports waiting for expected file count or timeout before moving.
 
         - source_path: source folder path to watch (supports expression)
         - target_path: target folder path to move files to (supports expression)
-        - expect_count: expected number of files to wait for before moving (default: "{10}")
+        - expect_count: expected number of files to wait for before moving (supports expression, default: 10)
         - data_key: key of data_chain to store the list of moved file paths (supports expression)
         - timeout: max seconds to wait for files (default: 30)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

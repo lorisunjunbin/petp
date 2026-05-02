@@ -5,15 +5,13 @@ from core.processor import Processor
 class DATA_FILTERProcessor(Processor):
     TPL: str = '{"source_key":"", "filter_fn":"len(row) > 0 and len(row[0]) > 0", "target_key":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Filter source_key with filter_fn expression and store result in target_key.
         Replace source_key if target_key is not given.
 
         - source_key: key of data_chain pointing to the list to filter
         - filter_fn: Python lambda expression as string, variable "row" represents each element (default: "len(row) > 0 and len(row[0]) > 0")
         - target_key: key of data_chain to store the filtered result (optional, defaults to source_key)
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

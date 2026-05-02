@@ -5,7 +5,7 @@ from core.processor import Processor
 
 class CAPTCHAProcessor(Processor):
     TPL: str = '{"image_path":"", "image_path_key":"", "mode":"ocr", "slide_target_key":"", "data_key":"captcha_result"}'
-    DESC: str = f'''
+    DESC: str = '''
         Recognise captcha images locally using ddddocr (no API key required).
         pip install ddddocr
 
@@ -23,8 +23,6 @@ class CAPTCHAProcessor(Processor):
         - mode: recognition mode — ocr | slide | det (default: "ocr")
         - slide_target_key: data_chain key for the slide background image path (required for mode=slide)
         - data_key: data_chain key to store the result (default: "captcha_result")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -5,7 +5,7 @@ from core.processor import Processor
 class DATA_COLLECTProcessor(Processor):
     TPL: str = '{"clean_before_collect":"yes|no","target":"", "type":"list|dict", "list_flatten":"yes|no", "list_row_lambda":"[me.get_data(\\"\\")]", "dict_key_lambda":"[me.get_data(\\"\\")]", "dict_value_lambda":"[me.get_data(\\"\\")]"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Collect data into a list or dict in data_chain via lambda expressions. Supports cleaning before collect.
 
         - clean_before_collect: "yes" to clear the target before collecting, "no" to append (default: "no")
@@ -15,8 +15,6 @@ class DATA_COLLECTProcessor(Processor):
         - list_row_lambda: Python expression for list row value, variable "me" (current processor) is available (required when type is "list")
         - dict_key_lambda: Python expression for dict key, variable "me" is available (required when type is "dict")
         - dict_value_lambda: Python expression for dict value, variable "me" is available (required when type is "dict")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

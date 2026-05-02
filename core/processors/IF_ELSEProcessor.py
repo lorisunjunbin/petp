@@ -7,7 +7,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class IF_ELSEProcessor(Processor):
     TPL: str = '{"condition_fn":"return True", "then_tasks":"1", "else_tasks":"0"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Conditional branching — skip "then" or "else" task blocks based on a condition.
 
         - condition_fn: Python function body receiving (data_chain), must return bool.
@@ -30,8 +30,6 @@ class IF_ELSEProcessor(Processor):
           - Nesting IF_ELSE is NOT supported (inner IF_ELSE overwrites the skip range of the outer one)
           - Do NOT combine with GO_TO_TASK jumping into/out of then/else blocks
           - then_tasks + else_tasks count must be exact — miscounting will skip or execute wrong tasks
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

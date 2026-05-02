@@ -6,13 +6,11 @@ from utils.SeleniumUtil import SeleniumUtil
 
 class CLOSE_CHROMEProcessor(Processor):
     TPL: str = '{"chrome_name":"chrome", "skip_in_pipeline":"no"}'
-    DESC: str = f'''
+    DESC: str = '''
         Close existing chrome driver of data_chain according to given chrome_name. Able to skip when running in pipeline.
 
         - chrome_name: key of data_chain where the chrome driver instance is stored (default: "chrome")
         - skip_in_pipeline: set to "yes" to skip this task when running in pipeline (default: "no")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

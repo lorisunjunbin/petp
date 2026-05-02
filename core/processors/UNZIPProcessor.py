@@ -8,7 +8,7 @@ from core.processor import Processor
 class UNZIPProcessor(Processor):
     TPL: str = '{"path_to_zip_file":"", "directory_to_extract":"", "path_after_extract_key":"path_after_extract", "pwd":"", "name_appended":""}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Simply unzip the file from path_to_zip_file to directory_to_extract, if protected with password, use pwd.
         path_after_extract_key is key of data_chain, points to final path after unzip.
         name_appended will be appended to directory_to_extract.
@@ -18,8 +18,6 @@ class UNZIPProcessor(Processor):
         - path_after_extract_key: key in data_chain to store the final extraction path (supports expression, default: "path_after_extract")
         - pwd: password for protected zip files (supports expression, default: "")
         - name_appended: sub-path appended to directory_to_extract to form the final path (supports expression, default: "")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

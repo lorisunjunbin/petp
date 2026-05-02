@@ -11,7 +11,7 @@ from mvp.presenter.event.PETPEvent import PETPEvent
 class MATPLOTLIBProcessor(Processor):
     TPL: str = '{"title":"Show MatPlotLib View","chart_type":"PIE|LINE|BAR","top":100,"left":100,"msg":"","show_toolbar":"True","data_json":"{\\"x\\":1,\\"y\\":2}"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Send a PETPEvent to launch a Matplotlib chart view in a popup window.
         Supports PIE, LINE, and BAR chart types with configurable position and data.
 
@@ -22,8 +22,6 @@ class MATPLOTLIBProcessor(Processor):
         - msg: Additional message text to display alongside the chart (supports expression, default: "")
         - show_toolbar: If "True", displays the matplotlib toolbar in the popup (supports expression, default: "True")
         - data_json: JSON string providing the chart data, e.g. {{"x":1,"y":2}} (supports expression, default: "{{\"x\":1,\"y\":2}}")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

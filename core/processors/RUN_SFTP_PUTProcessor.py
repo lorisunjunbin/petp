@@ -8,7 +8,7 @@ from utils.ParamikoUtil import ParamikoUtil
 
 class RUN_SFTP_PUTProcessor(Processor):
     TPL: str = '{"from_local":"","to_remote": "","sftp_client_key":"sftpclient", "sftp_put_file_key":"", "close_after_run":"yes|no"}'
-    DESC: str = f'''
+    DESC: str = '''
         Put (upload) file from local to remote server via paramiko SFTP client.
 
         - from_local: local file path to upload (supports expression)
@@ -16,8 +16,6 @@ class RUN_SFTP_PUTProcessor(Processor):
         - sftp_client_key: key of data_chain where the SFTP client instance is stored (default: "sftpclient")
         - sftp_put_file_key: key of data_chain to store the remote file path after upload
         - close_after_run: "yes" to close the SFTP client after upload, "no" to keep it open (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

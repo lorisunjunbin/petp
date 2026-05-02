@@ -31,7 +31,7 @@ class PYTUBEProcessor(Processor):
                ',"max_retries":3' \
                ',"timeout":30' \
                '}'
-    DESC: str = f'''
+    DESC: str = '''
         Download a YouTube video with a specific link via pytube, support different video formats and resolutions.
 
         - video_url: YouTube video URL (supports expression, default: "https://www.youtube.com/shorts/Fn-osmFZbnA")
@@ -44,8 +44,6 @@ class PYTUBEProcessor(Processor):
         - file_download_path_key: key of data_chain to store the downloaded file path (optional)
         - max_retries: number of retry attempts on download failure (default: 3)
         - timeout: download timeout in seconds (optional)
-
-        {TPL}
     '''
 
     def __init__(self):

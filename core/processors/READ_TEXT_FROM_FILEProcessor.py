@@ -5,13 +5,11 @@ from core.processor import Processor
 
 class READ_TEXT_FROM_FILEProcessor(Processor):
     TPL: str = '{"file_path":"","data_key":""}'
-    DESC: str = f'''
+    DESC: str = '''
         Read the entire content of a text file and store it in data_chain under the specified key.
 
         - file_path: path to the text file to read from (supports expression, default: "")
         - data_key: key in data_chain to store the file content as a string (supports expression, default: "")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

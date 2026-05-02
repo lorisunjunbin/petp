@@ -17,7 +17,7 @@ pip install openai
 class AI_LLM_DEEPSEEK_SETUPProcessor(Processor):
     TPL: str = '{"api_key_env":"DEEPSEEK_API_KEY", "api_key":"", "base_url":"https://api.deepseek.com", "llm_data_key":"llmdeepseek"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Set up a DeepSeek LLM client instance (OpenAI-compatible). The API key can be provided
         directly or read from an environment variable. The client is stored in the data_chain
         for use by downstream tasks. Skips setup if the client already exists.
@@ -28,8 +28,6 @@ class AI_LLM_DEEPSEEK_SETUPProcessor(Processor):
         - api_key: API key string; if provided, takes precedence over the environment variable (supports expression, default: "")
         - base_url: Base URL of the DeepSeek API endpoint (supports expression, default: "https://api.deepseek.com")
         - llm_data_key: Key in data_chain to store the initialized OpenAI/DeepSeek client instance (supports expression, default: "llmdeepseek")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

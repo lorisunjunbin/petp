@@ -8,7 +8,7 @@ from utils.SeleniumUtil import SeleniumUtil
 class FIND_THEN_CLICKProcessor(Processor):
     TPL: str = '{"find_by":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "condition_fn":"return True", "chrome_name":"chrome"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Find a web element via Selenium using the specified locator strategy and click it.
         If the element is not found within the timeout, an exception is raised unless skip_timeout_error is set.
 
@@ -20,8 +20,6 @@ class FIND_THEN_CLICKProcessor(Processor):
         - skip_timeout_error: whether to suppress the exception when element is not found; "yes" to skip, "no" to raise (default: "yes|no")
         - condition_fn: Python function body; receives (ele) where ele is the located WebElement;
           click is only performed when the function returns True (default: "return True")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

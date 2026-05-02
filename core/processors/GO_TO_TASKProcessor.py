@@ -7,7 +7,7 @@ from utils.CodeExplainerUtil import CodeExplainerUtil
 class GO_TO_TASKProcessor(Processor):
     TPL: str = '{"target_task":"", "condition_fn":"return True"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Conditionally jump to a specific task within the current execution.
         When the condition evaluates to True, execution continues from the target task
         instead of the next sequential task. When False, execution proceeds normally.
@@ -15,8 +15,6 @@ class GO_TO_TASKProcessor(Processor):
         - target_task: 1-based task number to jump to (supports expression, required)
         - condition_fn: Python function body (data_chain); return True to jump,
           False to skip and continue normally (default: "return True")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

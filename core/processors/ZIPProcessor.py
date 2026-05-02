@@ -9,7 +9,7 @@ from utils.OSUtils import OSUtils
 
 class ZIPProcessor(Processor):
     TPL: str = '{"source_path":"","source_list":"|","zip_name":"", "path_in_zip":"","path_to_replace":"","target_path":"", "data_key":""}'
-    DESC: str = f'''
+    DESC: str = '''
         Create a zip file with the given name, including either all files in source_path or specific files from source_list.
         The resulting zip is placed in target_path, and its path is stored in data_chain via data_key.
         path_to_replace will be replaced by path_in_zip inside the archive, or removed if path_in_zip is empty.
@@ -21,8 +21,6 @@ class ZIPProcessor(Processor):
         - path_to_replace: portion of the file path to be replaced by path_in_zip within the archive (supports expression, default: "")
         - target_path: output directory where the zip file is created (supports expression, default: "")
         - data_key: key in data_chain to store the resulting zip file path (supports expression, default: "")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -6,13 +6,11 @@ from core.processor import Processor
 class INITIAL_PARAMSProcessor(Processor):
     TPL: str = '{"any_key":"any_value"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Initialize key-value pairs and save to data_chain. All parameters are treated as key-value pairs.
         Values support expression2str for dynamic evaluation.
 
         - any_key: any_value - arbitrary key-value pairs to initialize in data_chain
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

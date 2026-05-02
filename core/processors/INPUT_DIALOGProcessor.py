@@ -12,7 +12,7 @@ from core.processor import Processor
 class INPUT_DIALOGProcessor(Processor):
     TPL: str = '{"title":"Message Input","msg":"","value_key":"","default_value":"","stop_on_cancel":"yes"}'
 
-    DESC: str = f'''
+    DESC: str = '''
         Display a popup text entry dialog to collect user input at runtime, then store the entered value in the data chain.
         Supports stopping the execution if the user cancels the dialog.
 
@@ -21,8 +21,6 @@ class INPUT_DIALOGProcessor(Processor):
         - value_key: data chain key to store the entered value (supports expression, default: "")
         - default_value: pre-filled default text in the input field (supports expression, default: "")
         - stop_on_cancel: if "yes", stop execution when user cancels; if "no", continue (default: "yes")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

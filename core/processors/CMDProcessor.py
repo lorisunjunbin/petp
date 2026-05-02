@@ -7,7 +7,7 @@ from core.processor import Processor
 
 class CMDProcessor(Processor):
     TPL: str = '{"cmdstr":"","cmddir":"","data_key":"", "timeout":30}'
-    DESC: str = f'''
+    DESC: str = '''
         Run system command via subprocess.check_output, then save the output to data_chain associated with data_key.
 
         - cmdstr: command string to execute (supports expression)
@@ -16,8 +16,6 @@ class CMDProcessor(Processor):
         - timeout: command execution timeout in seconds (default: 30, set empty to disable)
         - shell: set to "yes" to enable shell mode (default: disabled)
         - encoding: output encoding for decoding byte results (default: "utf-8")
-
-        {TPL}
     '''
 
     def get_category(self) -> str:

@@ -5,15 +5,13 @@ from core.processor import Processor
 
 class WRITE_TO_FILEProcessor(Processor):
     TPL: str = '{"file_path":"", "content":"", "data_key":""}'
-    DESC: str = f'''
+    DESC: str = '''
         Write string content to a file on disk using UTF-8 encoding.
         On success, the file path is saved to the data_chain under the specified key.
 
         - file_path: Absolute or relative path of the file to write (supports expression, default: "")
         - content: String content to write into the file (supports expression, default: "")
         - data_key: Key name in data_chain to store the written file path; if empty, no data is stored (supports expression, default: "")
-
-        {TPL}
     '''
     def get_category(self) -> str:
         return super().CATE_FILE
