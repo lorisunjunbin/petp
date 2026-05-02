@@ -74,3 +74,12 @@ class TestExpression2Str:
     def test_empty_string(self, make_processor):
         proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', {})
         assert proc.expression2str("") == ""
+
+    def test_get_json_param_raw_json_object_literal(self, make_processor):
+        proc = make_processor("RUN_JAVASCRIPT", '{"params":"{\\"pyKey\\":1, \\"pyKey2\\":\\"dididadida\\"}"}', {})
+        assert proc.get_json_param("params") == {"pyKey": 1, "pyKey2": "dididadida"}
+
+    def test_get_json_param_with_expression_payload(self, make_processor):
+        proc = make_processor("RUN_JAVASCRIPT", '{"params":"{json.dumps(payload)}"}', {"payload": {"pyKey": 7}})
+        assert proc.get_json_param("params") == {"pyKey": 7}
+
