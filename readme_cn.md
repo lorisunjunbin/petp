@@ -689,7 +689,26 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `resources/` | 静态资源 |
 | `download/` | 默认下载目录 |
 | `testcoverage/` | 测试脚本 |
+| `tools/` | 开发与维护脚本 |
 | `log/` | 运行日志 |
+
+### 开发工具与脚本
+
+PETP 在 `tools/` 目录下包含了用于维护代码库的实用脚本。
+
+#### 同步 Processor 翻译
+当添加新处理器或更新现有处理器的 `DESC` 文档常量时，可以自动将英文参数声明同步更新到中文翻译文件中：
+
+```bash
+# 检查是否存在缺失或不匹配的翻译键（如存在将以错误退出码 1 退出）
+python tools/sync_processor_desc.py --check
+
+# 检查中文参数行中是否仍有疑似未翻译的英文描述（如存在将以错误退出码 1 退出）
+python tools/sync_processor_desc.py --check-zh
+
+# 自动、安全地更新 i18n/desc_translations.py 以覆盖同步 DESC 中的参数声明
+python tools/sync_processor_desc.py --update
+```
 
 ---
 

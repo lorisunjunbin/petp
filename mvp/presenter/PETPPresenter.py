@@ -2379,6 +2379,9 @@ class PETPPresenter():
 
     def on_search_log(self):
         keyword = self.v.logSearchBar.get_search_text().strip()
+        min_search_chars = getattr(self.v.logSearchBar, 'MIN_SEARCH_CHARS', 3)
+        if 0 < len(keyword) < min_search_chars:
+            keyword = ''
         self._log_search_keyword = keyword
         if self._log_filter_active:
             self._reapply_filter()

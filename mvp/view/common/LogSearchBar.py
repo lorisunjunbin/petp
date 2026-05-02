@@ -9,6 +9,7 @@ _IS_WINDOWS = sys.platform == 'win32'
 _ICON_SEARCH = "🔍"
 _ICON_FILTER = "🔎"
 _ICON = _ICON_SEARCH
+_MIN_SEARCH_CHARS = 3
 
 
 def _blend(c1, c2, t=0.5):
@@ -31,7 +32,8 @@ class LogBarEvent(wx.PyCommandEvent):
     """Single event class for all LogSearchBar actions.
 
     action values:
-      "search"        — text changed;          GetString() = current keyword
+      "search"        — text changed; fires when keyword is empty or has
+                         at least 3 non-space chars; GetString() = current keyword
       "prev"          — navigate to prev match
       "next"          — navigate to next match
       "filter"        — filter toggle;         GetInt() = 1 active / 0 off
@@ -170,7 +172,7 @@ class LogSearchBar(wx.Panel):
     All user actions emit a single ``LogBarEvent`` (bind with ``EVT_LOG_BAR``).
     Check ``evt.GetAction()``:
 
-      "search"     — keyword changed (GetString)
+      "search"     — keyword changed when empty or at least 3 non-space chars (GetString)
       "prev"       — navigate to previous match
       "next"       — navigate to next match
       "filter"     — filter-mode toggled (GetInt: 1=on, 0=off)
@@ -180,9 +182,12 @@ class LogSearchBar(wx.Panel):
       textCtrl, matchCount, prevBtn, nextBtn, filterBtn
     """
 
+    MIN_SEARCH_CHARS = _MIN_SEARCH_CHARS
+
     def __init__(self, parent, **kwargs):
         super().__init__(parent, wx.ID_ANY, style=wx.BORDER_NONE, **kwargs)
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self._search_threshold_active = False
 
         th = get_theme()
         self._bar_bg = wx.Colour(*th.log_bg)
@@ -317,7 +322,14 @@ class LogSearchBar(wx.Panel):
 
     def _on_text(self, evt):
         evt.Skip()
-        self._fire("search", string=self.textCtrl.GetValue())
+        text = self.textCtrl.GetValue()
+        keyword = text.strip()
+        if not keyword or len(keyword) >= self.MIN_SEARCH_CHARS:
+            self._search_threshold_active = bool(keyword)
+            self._fire("search", string=text)
+        elif self._search_threshold_active:
+            self._search_threshold_active = False
+            self._fire("search")
 
     def _on_key_down(self, evt):
         code = evt.GetKeyCode()

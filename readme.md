@@ -689,7 +689,26 @@ The standalone Web App (`webapp/`) has its own Docker packaging guide, including
 | `resources/` | Static resources |
 | `download/` | Default download directory |
 | `testcoverage/` | Test scripts |
+| `tools/` | Development and maintenance scripts |
 | `log/` | Runtime logs |
+
+### Development Tools & Scripts
+
+PETP includes helpful scripts under the `tools/` directory to maintain the codebase.
+
+#### Sync Processor Translations
+When adding new processors or updating the `DESC` array of existing processors, you can automatically synchronize the English parameter declarations to the Chinese translations file:
+
+```bash
+# Check if there are any missing or mismatched translation keys (returns error code 1 if found)
+python tools/sync_processor_desc.py --check
+
+# Check for likely untranslated English text in zh bullet lines (returns error code 1 if found)
+python tools/sync_processor_desc.py --check-zh
+
+# Safely auto-update i18n/desc_translations.py to mirror the DESC variables
+python tools/sync_processor_desc.py --update
+```
 
 ---
 

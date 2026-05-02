@@ -1,4 +1,5 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: ootb_find_icons
 list:
 - !!python/object:core.task.Task
@@ -18,3 +19,4 @@ list:
   skipped: false
   type: FIND_THEN_KEYIN
 loops: []
+mcp_desc: ''

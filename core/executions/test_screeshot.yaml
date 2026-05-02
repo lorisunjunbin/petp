@@ -1,16 +1,23 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: test_screeshot
 list:
 - !!python/object:core.task.Task
   input: '{"url":"http://www.baidu.com"}'
+  skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"data_key":"screeshot_xpath","format":"png","wait":3,"xpath":"//*[@id=\"s_lg_img\"]","file_path":"{self.get_tdir()}/test_screenshot/screenshotbaidu_xpath.png"}'
+  input: '{"data_key": "screeshot_xpath", "format": "png", "wait": 2, "xpath": "//*[@id=\"s_lg_img\"]",
+    "file_path": "{self.get_tdir()}/test_screenshot/screenshotbaidu_xpath.png"}'
+  skipped: false
   type: SCREENSHOT
 - !!python/object:core.task.Task
   input: '{"data_key":"screeshot_fullscreen","format":"png","wait":3,"file_path":"{self.get_tdir()}/test_screenshot/screenshotbaidu.png"}'
+  skipped: false
   type: SCREENSHOT
 - !!python/object:core.task.Task
   input: '{"crop":"800|>100|>3000|>800","show":"yes","data_key":"screeshot_crop","format":"png","wait":3,"file_path":"{self.get_tdir()}/test_screenshot/screenshotbaidu_crop.png"}'
+  skipped: false
   type: SCREENSHOT
 loops: []
+mcp_desc: ''
