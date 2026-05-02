@@ -1045,10 +1045,10 @@ class PETPPresenter():
             logging.info(t("msg_pipeline_name_empty"))
             return
 
-        if combo.FindString(name) == -1:
-            combo.Insert(name, 0)
+        if name not in self.available_pipelines:
+            self.available_pipelines.insert(0, name)
         else:
-            logging.warning(t("msg_pipeline_overwrite", name=combo.GetValue()))
+            logging.warning(t("msg_pipeline_overwrite", name=name))
 
         self._save_pipeline(name)
 
@@ -1059,9 +1059,9 @@ class PETPPresenter():
         if self._save_execcution(name) is False:
             return
 
-        is_new = combo.FindString(name) == -1
+        is_new = name not in self.available_executions
         if not is_new:
-            logging.warning(t("msg_execution_overwrite", name=combo.GetValue()))
+            logging.warning(t("msg_execution_overwrite", name=name))
 
         self._mark_clean()
         self._refresh_execution_chooser(name)
@@ -1069,18 +1069,18 @@ class PETPPresenter():
 
     def on_delete_pipeline(self):
         combo = self.v.pipelineChooser
-        found = combo.FindString(combo.GetValue())
+        name = combo.GetValue()
 
-        if not found == -1:
+        if name in self.available_pipelines:
             self.pipeline.delete()
-            combo.Delete(found)
+            self.available_pipelines.remove(name)
+            combo.SetValue("")
 
     def on_delete_execution(self):
         combo = self.v.executionChooser
         name = combo.GetValue()
-        found = combo.FindString(name)
 
-        if found == -1:
+        if name not in self.available_executions:
             return
 
         dlg = wx.MessageDialog(
@@ -1332,14 +1332,16 @@ class PETPPresenter():
         if current_column == 0:
             if len(current_value) <= 0 or not current_value in self.available_processors:
                 return
+            self._push_snapshot()
             p = Processor.get_processor_by_type(current_value)
 
             grid.SetCellValue(current_row, 1, p.get_tpl())
 
             logging.info(f'Processor {current_value} : {p.get_desc()}')
             self._load_input_taskproperty(current_row)
-
-        self._push_snapshot()
+            self._update_save_button()
+        else:
+            self._push_snapshot()
 
     def on_grid_cell_select4e(self, evt):
         current_row = evt.GetRow()
@@ -2067,8 +2069,10 @@ class PETPPresenter():
         )
 
     def _update_save_button(self):
-        self.v.saveExection.Enable(self._is_dirty())
-        self.v.snapshots.Enable(len(self._snapshots) > 0)
+        dirty = self._is_dirty()
+        has_snapshots = len(self._snapshots) > 0
+        self.v.saveExection.Enable(dirty or has_snapshots)
+        self.v.snapshots.Enable(has_snapshots)
 
     def _mark_clean(self):
         self._saved_snapshot = self._capture_snapshot()

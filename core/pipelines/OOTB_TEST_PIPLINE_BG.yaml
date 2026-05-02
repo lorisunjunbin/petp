@@ -1,11 +1,12 @@
 !!python/object:core.pipeline.Pipeline
+cronDesc: Every hour
 cronEnabled: false
 cronExp: 0 * * * *
 list:
 - execution: OOTB_RUN_JS
-  input: ''
-- execution: test_zip
   input: '{"Pipline","YES"}'
+- execution: test_zip
+  input: ''
 - execution: test_wait_for_seconds
   input: ''
 - execution: test_read_from_excel
