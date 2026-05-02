@@ -20,14 +20,18 @@ class PopupMenuButton(wx.Control):
 
     Fires wx.wxEVT_COMMAND_COMBOBOX_SELECTED on selection so callers can
     bind with EVT_COMBOBOX. Optionally accepts an on_select callback.
+
+    variant="log"    — dark log-panel style (default)
+    variant="button" — standard system button appearance
     """
 
     def __init__(self, parent, choices=None, default="",
-                 min_width=62, *, on_select=None, **kwargs):
+                 min_width=62, *, on_select=None, variant="log", **kwargs):
         super().__init__(parent, wx.ID_ANY, style=wx.BORDER_NONE, **kwargs)
         self._choices = list(choices or [])
         self._value = default
         self._on_select = on_select
+        self._variant = variant
         self._hover = False
         self._pressed = False
         self.SetMinSize((min_width, 22))
@@ -108,12 +112,18 @@ class PopupMenuButton(wx.Control):
         if gc is None:
             return
         w, h = self.GetClientSize()
-        th = get_theme()
         bg = self.GetParent().GetBackgroundColour()
         gc.SetBrush(wx.Brush(bg))
         gc.SetPen(wx.TRANSPARENT_PEN)
         gc.DrawRectangle(0, 0, w, h)
 
+        if self._variant == "button":
+            self._paint_button_variant(gc, w, h)
+        else:
+            self._paint_log_variant(gc, w, h)
+
+    def _paint_log_variant(self, gc, w, h):
+        th = get_theme()
         if self._pressed:
             fill = wx.Colour(*_blend(th.log_bg, th.accent, 0.5))
             txt_colour = wx.Colour(*th.log_search_fg)
@@ -126,6 +136,7 @@ class PopupMenuButton(wx.Control):
 
         r = 0 if _IS_WINDOWS else 5
         gc.SetBrush(wx.Brush(fill))
+        gc.SetPen(wx.TRANSPARENT_PEN)
         path = gc.CreatePath()
         path.AddRoundedRectangle(1, 1, w - 2, h - 2, r)
         gc.FillPath(path)
@@ -134,6 +145,39 @@ class PopupMenuButton(wx.Control):
         if not font.IsOk():
             font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         gc.SetFont(font, txt_colour)
+        label = self._value
+        tw, th2 = gc.GetTextExtent(label)[:2]
+        gc.DrawText(label, (w - tw) / 2, (h - th2) / 2)
+
+    def _paint_button_variant(self, gc, w, h):
+        btn_face = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
+        btn_text = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT)
+        btn_shadow = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNSHADOW)
+        btn_highlight = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT)
+
+        face_rgb = (btn_face.Red(), btn_face.Green(), btn_face.Blue())
+        shadow_rgb = (btn_shadow.Red(), btn_shadow.Green(), btn_shadow.Blue())
+        highlight_rgb = (btn_highlight.Red(), btn_highlight.Green(), btn_highlight.Blue())
+
+        if self._pressed:
+            fill = wx.Colour(*_blend(face_rgb, shadow_rgb, 0.3))
+        elif self._hover:
+            fill = wx.Colour(*_blend(face_rgb, highlight_rgb, 0.3))
+        else:
+            fill = btn_face
+
+        r = 0 if _IS_WINDOWS else 4
+        gc.SetBrush(wx.Brush(fill))
+        gc.SetPen(wx.Pen(btn_shadow, 1))
+        path = gc.CreatePath()
+        path.AddRoundedRectangle(1, 1, w - 2, h - 2, r)
+        gc.FillPath(path)
+        gc.StrokePath(path)
+
+        font = self.GetFont()
+        if not font.IsOk():
+            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        gc.SetFont(font, btn_text)
         label = self._value
         tw, th2 = gc.GetTextExtent(label)[:2]
         gc.DrawText(label, (w - tw) / 2, (h - th2) / 2)
