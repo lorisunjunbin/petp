@@ -26,6 +26,7 @@ class ProcessorPalette(wx.Frame):
     Loses focus → auto-close.
 
     tag_map: optional {name: tag_str} to show a right-aligned tag per item.
+             Values already wrapped like "[tag]" are kept as-is.
              When None, falls back to processor category lookup.
     hint:    placeholder text for the search box (overrides i18n default).
     """
@@ -40,6 +41,8 @@ class ProcessorPalette(wx.Frame):
         self._on_select = on_select
         self._total = len(choices)
         self._confirmed = False
+        self._is_rebuilding = False
+        self._last_render_width = -1
         # tag_map overrides category lookup when provided
         if tag_map is not None:
             self._cat_map = tag_map
@@ -87,67 +90,144 @@ class ProcessorPalette(wx.Frame):
 
         self._search.Bind(wx.EVT_TEXT, self._on_text)
         self._listbox.Bind(wx.EVT_LISTBOX_DCLICK, self._on_dclick)
+        self.Bind(wx.EVT_SIZE, self._on_size)
         self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
         self.Bind(wx.EVT_ACTIVATE, self._on_activate)
 
         self.SetSize((380, 440))
         self.Layout()
 
-    def _fmt(self, name):
-        cat = self._cat_map.get(name, '')
-        tag = f"[{cat}]" if cat else ""
-        # left: name fixed 28 chars, right: tag
-        return f"{name:<28}{tag}"
+    def _fmt(self, name, usable_px=0):
+        cat = str(self._cat_map.get(name, '')).strip()
+        if cat.startswith('[') and cat.endswith(']'):
+            tag = cat
+        else:
+            tag = f"[{cat}]" if cat else ""
+        if usable_px <= 0:
+            return f"{name}  {tag}" if tag else name
+
+        dc = wx.ClientDC(self._listbox)
+        dc.SetFont(self._listbox.GetFont())
+        space_w, _ = dc.GetTextExtent(" ")
+        if space_w <= 0:
+            space_w = 4
+
+        if not tag:
+            return self._ellipsize_to_px(name, usable_px, dc)
+
+        tag_w, _ = dc.GetTextExtent(tag)
+        min_gap_px = space_w * 2
+        name_budget = max(0, usable_px - tag_w - min_gap_px)
+        shown_name = self._ellipsize_to_px(name, name_budget, dc)
+        shown_name_w, _ = dc.GetTextExtent(shown_name)
+
+        pad_px = max(min_gap_px, usable_px - shown_name_w - tag_w)
+        pad_spaces = max(2, int(pad_px / space_w))
+        return f"{shown_name}{' ' * pad_spaces}{tag}"
+
+    def _ellipsize_to_px(self, text, max_px, dc):
+        if max_px <= 0:
+            return ''
+        text_w, _ = dc.GetTextExtent(text)
+        if text_w <= max_px:
+            return text
+
+        suffix = '...'
+        suffix_w, _ = dc.GetTextExtent(suffix)
+        if suffix_w >= max_px:
+            return suffix if suffix_w <= max_px else ''
+
+        head = text
+        while head:
+            head = head[:-1]
+            head_w, _ = dc.GetTextExtent(head)
+            if head_w + suffix_w <= max_px:
+                return f"{head}{suffix}"
+        return suffix
 
     def _rebuild_list(self, needle, init=False, current_value=""):
-        if self._use_cat_filter:
-            name_hits, cat_hits = _filter(self._choices, self._cat_map, needle)
-        else:
-            # simple name-only filter, no category split
-            if needle:
-                nl = needle.lower()
-                name_hits = [c for c in self._choices if nl in c.lower()]
+        if self._is_rebuilding:
+            return
+        self._is_rebuilding = True
+
+        try:
+            selected_name = None
+            if not init and self._names:
+                cur = self._listbox.GetSelection()
+                if cur != wx.NOT_FOUND and 0 <= cur < len(self._names):
+                    current = self._names[cur]
+                    if current != self._SEP_SENTINEL:
+                        selected_name = current
+
+            if self._use_cat_filter:
+                name_hits, cat_hits = _filter(self._choices, self._cat_map, needle)
             else:
-                name_hits = list(self._choices)
-            cat_hits = []
+                # simple name-only filter, no category split
+                if needle:
+                    nl = needle.lower()
+                    name_hits = [c for c in self._choices if nl in c.lower()]
+                else:
+                    name_hits = list(self._choices)
+                cat_hits = []
 
-        items = []
-        names = []
-        for n in name_hits:
-            items.append(self._fmt(n))
-            names.append(n)
-        if cat_hits:
-            items.append(t("palette_sep_label"))
-            names.append(self._SEP_SENTINEL)
-            for n in cat_hits:
-                items.append(self._fmt(n))
+            items = []
+            names = []
+            list_w = self._listbox.GetClientSize().GetWidth()
+            if list_w <= 0:
+                list_w = self._listbox.GetSize().GetWidth()
+            usable_px = max(0, list_w - 24)
+            self._last_render_width = usable_px
+
+            for n in name_hits:
+                items.append(self._fmt(n, usable_px))
                 names.append(n)
+            if cat_hits:
+                items.append(t("palette_sep_label"))
+                names.append(self._SEP_SENTINEL)
+                for n in cat_hits:
+                    items.append(self._fmt(n, usable_px))
+                    names.append(n)
 
-        self._names = names
-        self._listbox.Set(items)
+            self._names = names
+            self._listbox.Set(items)
 
-        total_matches = len(name_hits) + len(cat_hits)
-        if needle:
-            self._footer.SetLabel(t("palette_footer_filtered").format(
-                total=total_matches, n=self._total, nm=len(name_hits), ct=len(cat_hits)
-            ))
-        else:
-            self._footer.SetLabel(t("palette_footer_all").format(n=self._total))
+            total_matches = len(name_hits) + len(cat_hits)
+            if needle:
+                self._footer.SetLabel(t("palette_footer_filtered").format(
+                    total=total_matches, n=self._total, nm=len(name_hits), ct=len(cat_hits)
+                ))
+            else:
+                self._footer.SetLabel(t("palette_footer_all").format(n=self._total))
 
-        # initial selection
-        if init and current_value and current_value in self._choices:
-            try:
-                idx = names.index(current_value)
+            # initial selection
+            if init and current_value and current_value in self._choices:
+                try:
+                    idx = names.index(current_value)
+                    self._listbox.SetSelection(idx)
+                    self._listbox.EnsureVisible(idx)
+                except ValueError:
+                    pass
+            elif selected_name and selected_name in names:
+                idx = names.index(selected_name)
                 self._listbox.SetSelection(idx)
                 self._listbox.EnsureVisible(idx)
-            except ValueError:
-                pass
-        elif names:
-            first = 0
-            if names and names[0] == self._SEP_SENTINEL:
-                first = 1
-            if first < len(names):
-                self._listbox.SetSelection(first)
+            elif names:
+                first = 0
+                if names and names[0] == self._SEP_SENTINEL:
+                    first = 1
+                if first < len(names):
+                    self._listbox.SetSelection(first)
+        finally:
+            self._is_rebuilding = False
+
+    def _on_size(self, evt):
+        list_w = self._listbox.GetClientSize().GetWidth()
+        if list_w <= 0:
+            list_w = self._listbox.GetSize().GetWidth()
+        usable_px = max(0, list_w - 24)
+        if usable_px != self._last_render_width and not self._is_rebuilding:
+            wx.CallAfter(self._rebuild_list, self._search.GetValue())
+        evt.Skip()
 
     def _apply_theme(self, panel):
         bg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
