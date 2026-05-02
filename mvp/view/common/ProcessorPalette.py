@@ -3,8 +3,14 @@ import sys
 import wx
 
 from i18n.translations import t
+from mvp.view.PETPTheme import get_theme
 
 _IS_MAC = sys.platform == 'darwin'
+
+_ITEM_H = 24
+_SEP_H = 20
+_PAD_L = 8
+_PAD_R = 8
 
 
 def _filter(choices, cat_map, needle):
@@ -16,6 +22,143 @@ def _filter(choices, cat_map, needle):
     name_set = set(name_hits)
     cat_hits = [c for c in choices if c not in name_set and nl in cat_map.get(c, '').lower()]
     return name_hits, cat_hits
+
+
+class _PaletteListBox(wx.VListBox):
+
+    def __init__(self, parent, on_dclick=None):
+        super().__init__(parent, style=wx.BORDER_NONE)
+        self._items: list[tuple[str, str]] = []
+        self._separators: list[bool] = []
+        self._selection = -1
+        self._on_dclick = on_dclick
+        self._fg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOWTEXT)
+        self._tag_fg = wx.Colour(120, 120, 120)
+        self._sep_fg = wx.Colour(140, 140, 140)
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+        self.Bind(wx.EVT_LEFT_DOWN, self._on_left_down)
+        self.Bind(wx.EVT_LEFT_DCLICK, self._on_left_dclick)
+
+    def SetItems(self, items, separators):
+        self._items = list(items)
+        self._separators = list(separators)
+        self._selection = -1
+        self.SetItemCount(len(items))
+        self.Refresh()
+
+    def SetSelection(self, idx):
+        if 0 <= idx < len(self._items):
+            self._selection = idx
+            first = self.GetVisibleRowsBegin()
+            last = self.GetVisibleRowsEnd()
+            if idx < first or idx >= last:
+                self.ScrollToRow(max(0, idx - 3))
+            self.Refresh()
+
+    def GetSelection(self):
+        return self._selection
+
+    def GetCount(self):
+        return len(self._items)
+
+    def EnsureVisible(self, idx):
+        if 0 <= idx < len(self._items):
+            first = self.GetVisibleRowsBegin()
+            last = self.GetVisibleRowsEnd()
+            if idx < first or idx >= last:
+                self.ScrollToRow(max(0, idx - 3))
+
+    def OnMeasureItem(self, n):
+        if 0 <= n < len(self._separators) and self._separators[n]:
+            return _SEP_H
+        return _ITEM_H
+
+    def OnDrawBackground(self, dc, rect, n):
+        if n == self._selection and not (0 <= n < len(self._separators) and self._separators[n]):
+            th = get_theme()
+            r, g, b = th.accent
+            dc.SetBrush(wx.Brush(wx.Colour(r, g, b, 38)))
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            dc.DrawRectangle(rect)
+        else:
+            dc.SetBrush(wx.Brush(self.GetBackgroundColour()))
+            dc.SetPen(wx.TRANSPARENT_PEN)
+            dc.DrawRectangle(rect)
+
+    def OnDrawItem(self, dc, rect, n):
+        if n < 0 or n >= len(self._items):
+            return
+
+        font = self.GetFont()
+        if not font.IsOk():
+            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        dc.SetFont(font)
+
+        name, tag = self._items[n]
+
+        if self._separators[n]:
+            dc.SetTextForeground(self._sep_fg)
+            tw, th = dc.GetTextExtent(name)
+            x = rect.x + (rect.width - tw) // 2
+            y = rect.y + (rect.height - th) // 2
+            dc.DrawText(name, x, y)
+            return
+
+        is_sel = (n == self._selection)
+        theme = get_theme()
+
+        if is_sel:
+            name_fg = wx.Colour(*theme.accent)
+            ar, ag, ab = theme.accent
+            tag_fg = wx.Colour(ar, ag, ab, 180)
+        else:
+            name_fg = self._fg
+            tag_fg = self._tag_fg
+
+        _, text_h = dc.GetTextExtent("Ay")
+        y = rect.y + (rect.height - text_h) // 2
+
+        if tag:
+            tag_w, _ = dc.GetTextExtent(tag)
+            tag_x = rect.x + rect.width - _PAD_R - tag_w
+            name_budget = rect.width - _PAD_L - _PAD_R - tag_w - 8
+        else:
+            tag_x = 0
+            tag_w = 0
+            name_budget = rect.width - _PAD_L - _PAD_R
+
+        name_w, _ = dc.GetTextExtent(name)
+        if name_w > name_budget > 0:
+            ellipsis = "..."
+            ew, _ = dc.GetTextExtent(ellipsis)
+            truncated = name
+            while truncated and dc.GetTextExtent(truncated)[0] + ew > name_budget:
+                truncated = truncated[:-1]
+            draw_name = truncated + ellipsis
+        else:
+            draw_name = name
+
+        dc.SetTextForeground(name_fg)
+        dc.DrawText(draw_name, rect.x + _PAD_L, y)
+
+        if tag:
+            dc.SetTextForeground(tag_fg)
+            dc.DrawText(tag, tag_x, y)
+
+    def _on_left_down(self, evt):
+        pos = evt.GetPosition()
+        idx = self.VirtualHitTest(pos.y)
+        if 0 <= idx < len(self._items) and not self._separators[idx]:
+            self.SetSelection(idx)
+        evt.Skip()
+
+    def _on_left_dclick(self, evt):
+        pos = evt.GetPosition()
+        idx = self.VirtualHitTest(pos.y)
+        if 0 <= idx < len(self._items) and not self._separators[idx]:
+            self._selection = idx
+            if self._on_dclick:
+                self._on_dclick()
 
 
 class ProcessorPalette(wx.Frame):
@@ -31,7 +174,7 @@ class ProcessorPalette(wx.Frame):
     hint:    placeholder text for the search box (overrides i18n default).
     """
 
-    _SEP_SENTINEL = "\x00"    # internal sentinel stored parallel to _names
+    _SEP_SENTINEL = "\x00"
 
     def __init__(self, parent, choices, current_value="", on_select=None,
                  tag_map=None, hint=None):
@@ -41,18 +184,14 @@ class ProcessorPalette(wx.Frame):
         self._on_select = on_select
         self._total = len(choices)
         self._confirmed = False
-        self._is_rebuilding = False
-        self._last_render_width = -1
-        # tag_map overrides category lookup when provided
         if tag_map is not None:
             self._cat_map = tag_map
-            self._use_cat_filter = False  # don't split into name/cat groups
+            self._use_cat_filter = False
         else:
             from core.processor import Processor
             self._cat_map = Processor.get_category_map()
             self._use_cat_filter = True
         self._hint = hint
-        # _names[i] is the processor name for listbox row i (or _SEP_SENTINEL for separator rows)
         self._names = []
 
         panel = wx.Panel(self)
@@ -68,7 +207,7 @@ class ProcessorPalette(wx.Frame):
 
         sizer.Add(wx.StaticLine(panel), 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 4)
 
-        self._listbox = wx.ListBox(panel, style=wx.LB_SINGLE | wx.BORDER_NONE)
+        self._listbox = _PaletteListBox(panel, on_dclick=self._on_dclick)
         self._listbox.SetFont(wx.Font(
             wx.FontInfo(12).FaceName("Menlo" if _IS_MAC else "Consolas").AntiAliased()
         ))
@@ -89,145 +228,82 @@ class ProcessorPalette(wx.Frame):
         self._rebuild_list("", init=True, current_value=current_value)
 
         self._search.Bind(wx.EVT_TEXT, self._on_text)
-        self._listbox.Bind(wx.EVT_LISTBOX_DCLICK, self._on_dclick)
-        self.Bind(wx.EVT_SIZE, self._on_size)
         self.Bind(wx.EVT_CHAR_HOOK, self._on_char_hook)
         self.Bind(wx.EVT_ACTIVATE, self._on_activate)
 
         self.SetSize((380, 440))
         self.Layout()
 
-    def _fmt(self, name, usable_px=0):
+    def _get_tag(self, name):
         cat = str(self._cat_map.get(name, '')).strip()
         if cat.startswith('[') and cat.endswith(']'):
-            tag = cat
-        else:
-            tag = f"[{cat}]" if cat else ""
-        if usable_px <= 0:
-            return f"{name}  {tag}" if tag else name
-
-        dc = wx.ClientDC(self._listbox)
-        dc.SetFont(self._listbox.GetFont())
-        space_w, _ = dc.GetTextExtent(" ")
-        if space_w <= 0:
-            space_w = 4
-
-        if not tag:
-            return self._ellipsize_to_px(name, usable_px, dc)
-
-        tag_w, _ = dc.GetTextExtent(tag)
-        min_gap_px = space_w * 2
-        name_budget = max(0, usable_px - tag_w - min_gap_px)
-        shown_name = self._ellipsize_to_px(name, name_budget, dc)
-        shown_name_w, _ = dc.GetTextExtent(shown_name)
-
-        pad_px = max(min_gap_px, usable_px - shown_name_w - tag_w)
-        pad_spaces = max(2, int(pad_px / space_w))
-        return f"{shown_name}{' ' * pad_spaces}{tag}"
-
-    def _ellipsize_to_px(self, text, max_px, dc):
-        if max_px <= 0:
-            return ''
-        text_w, _ = dc.GetTextExtent(text)
-        if text_w <= max_px:
-            return text
-
-        suffix = '...'
-        suffix_w, _ = dc.GetTextExtent(suffix)
-        if suffix_w >= max_px:
-            return suffix if suffix_w <= max_px else ''
-
-        head = text
-        while head:
-            head = head[:-1]
-            head_w, _ = dc.GetTextExtent(head)
-            if head_w + suffix_w <= max_px:
-                return f"{head}{suffix}"
-        return suffix
+            return cat
+        return f"[{cat}]" if cat else ""
 
     def _rebuild_list(self, needle, init=False, current_value=""):
-        if self._is_rebuilding:
-            return
-        self._is_rebuilding = True
+        selected_name = None
+        if not init and self._names:
+            cur = self._listbox.GetSelection()
+            if 0 <= cur < len(self._names):
+                current = self._names[cur]
+                if current != self._SEP_SENTINEL:
+                    selected_name = current
 
-        try:
-            selected_name = None
-            if not init and self._names:
-                cur = self._listbox.GetSelection()
-                if cur != wx.NOT_FOUND and 0 <= cur < len(self._names):
-                    current = self._names[cur]
-                    if current != self._SEP_SENTINEL:
-                        selected_name = current
-
-            if self._use_cat_filter:
-                name_hits, cat_hits = _filter(self._choices, self._cat_map, needle)
-            else:
-                # simple name-only filter, no category split
-                if needle:
-                    nl = needle.lower()
-                    name_hits = [c for c in self._choices if nl in c.lower()]
-                else:
-                    name_hits = list(self._choices)
-                cat_hits = []
-
-            items = []
-            names = []
-            list_w = self._listbox.GetClientSize().GetWidth()
-            if list_w <= 0:
-                list_w = self._listbox.GetSize().GetWidth()
-            usable_px = max(0, list_w - 24)
-            self._last_render_width = usable_px
-
-            for n in name_hits:
-                items.append(self._fmt(n, usable_px))
-                names.append(n)
-            if cat_hits:
-                items.append(t("palette_sep_label"))
-                names.append(self._SEP_SENTINEL)
-                for n in cat_hits:
-                    items.append(self._fmt(n, usable_px))
-                    names.append(n)
-
-            self._names = names
-            self._listbox.Set(items)
-
-            total_matches = len(name_hits) + len(cat_hits)
+        if self._use_cat_filter:
+            name_hits, cat_hits = _filter(self._choices, self._cat_map, needle)
+        else:
             if needle:
-                self._footer.SetLabel(t("palette_footer_filtered").format(
-                    total=total_matches, n=self._total, nm=len(name_hits), ct=len(cat_hits)
-                ))
+                nl = needle.lower()
+                name_hits = [c for c in self._choices if nl in c.lower()]
             else:
-                self._footer.SetLabel(t("palette_footer_all").format(n=self._total))
+                name_hits = list(self._choices)
+            cat_hits = []
 
-            # initial selection
-            if init and current_value and current_value in self._choices:
-                try:
-                    idx = names.index(current_value)
-                    self._listbox.SetSelection(idx)
-                    self._listbox.EnsureVisible(idx)
-                except ValueError:
-                    pass
-            elif selected_name and selected_name in names:
-                idx = names.index(selected_name)
+        items = []
+        separators = []
+        names = []
+
+        for n in name_hits:
+            items.append((n, self._get_tag(n)))
+            separators.append(False)
+            names.append(n)
+        if cat_hits:
+            items.append((t("palette_sep_label"), ""))
+            separators.append(True)
+            names.append(self._SEP_SENTINEL)
+            for n in cat_hits:
+                items.append((n, self._get_tag(n)))
+                separators.append(False)
+                names.append(n)
+
+        self._names = names
+        self._listbox.SetItems(items, separators)
+
+        total_matches = len(name_hits) + len(cat_hits)
+        if needle:
+            self._footer.SetLabel(t("palette_footer_filtered").format(
+                total=total_matches, n=self._total, nm=len(name_hits), ct=len(cat_hits)
+            ))
+        else:
+            self._footer.SetLabel(t("palette_footer_all").format(n=self._total))
+
+        if init and current_value and current_value in self._choices:
+            try:
+                idx = names.index(current_value)
                 self._listbox.SetSelection(idx)
                 self._listbox.EnsureVisible(idx)
-            elif names:
-                first = 0
-                if names and names[0] == self._SEP_SENTINEL:
-                    first = 1
-                if first < len(names):
-                    self._listbox.SetSelection(first)
-        finally:
-            self._is_rebuilding = False
-
-    def _on_size(self, evt):
-        list_w = self._listbox.GetClientSize().GetWidth()
-        if list_w <= 0:
-            list_w = self._listbox.GetSize().GetWidth()
-        usable_px = max(0, list_w - 24)
-        if usable_px != self._last_render_width and not self._is_rebuilding:
-            wx.CallAfter(self._rebuild_list, self._search.GetValue())
-        evt.Skip()
+            except ValueError:
+                pass
+        elif selected_name and selected_name in names:
+            idx = names.index(selected_name)
+            self._listbox.SetSelection(idx)
+            self._listbox.EnsureVisible(idx)
+        elif names:
+            first = 0
+            if names and names[0] == self._SEP_SENTINEL:
+                first = 1
+            if first < len(names):
+                self._listbox.SetSelection(first)
 
     def _apply_theme(self, panel):
         bg = wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW)
@@ -236,7 +312,9 @@ class ProcessorPalette(wx.Frame):
         self._search.SetBackgroundColour(bg)
         self._search.SetForegroundColour(fg)
         self._listbox.SetBackgroundColour(bg)
-        self._listbox.SetForegroundColour(fg)
+        self._listbox._fg = fg
+        is_dark = wx.SystemSettings.GetAppearance().IsDark() if hasattr(wx.SystemSettings, 'GetAppearance') else False
+        self._listbox._tag_fg = wx.Colour(150, 150, 150) if is_dark else wx.Colour(120, 120, 120)
         self._footer.SetForegroundColour(wx.Colour(128, 128, 128))
 
     def ShowAt(self, pos):
@@ -278,10 +356,9 @@ class ProcessorPalette(wx.Frame):
         if count == 0:
             return
         cur = self._listbox.GetSelection()
-        if cur == wx.NOT_FOUND:
+        if cur < 0:
             cur = 0 if delta > 0 else count - 1
         nxt = cur + delta
-        # skip separator rows
         while 0 <= nxt < len(self._names) and self._names[nxt] == self._SEP_SENTINEL:
             nxt += delta
         nxt = max(0, min(count - 1, nxt))
@@ -289,17 +366,17 @@ class ProcessorPalette(wx.Frame):
             self._listbox.SetSelection(nxt)
             self._listbox.EnsureVisible(nxt)
 
-    def _on_dclick(self, _evt):
+    def _on_dclick(self):
         self._confirm_selection()
 
     def _confirm_selection(self):
         sel = self._listbox.GetSelection()
-        if sel == wx.NOT_FOUND or not self._names:
+        if sel < 0 or not self._names:
             self.Destroy()
             return
         name = self._names[sel] if sel < len(self._names) else self._SEP_SENTINEL
         if name == self._SEP_SENTINEL:
-            return  # separator row — ignore
+            return
         self._confirmed = True
         self.Destroy()
         if self._on_select:
