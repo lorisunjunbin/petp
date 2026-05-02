@@ -159,6 +159,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_05_palette_chooser": {
+        "en": "<code>ExecutionChooser</code> / <code>PipelineChooser</code> migrated to palette mode: replaced <code>SearchableComboBox</code> with <code>TextCtrl</code> + <code>ProcessorPalette</code> popup; supports tag-based filtering. Snapshot &amp; save button now correctly triggered for all execution edits: processor selection, cell change, property move, and property key rename.",
+        "zh": "<code>ExecutionChooser</code> / <code>PipelineChooser</code> 迁移为 Palette 模式：用 <code>TextCtrl</code> + <code>ProcessorPalette</code> 弹出窗口替换 <code>SearchableComboBox</code>，支持 tag 筛选。快照与保存按钮现可在所有编辑操作中正确触发：处理器选择、单元格更改、属性移动和属性键重命名。",
+    },
+    "cl_2026_05_command_palette": {
+        "en": "<code>ProcessorPalette</code>: new command-palette processor selector replacing the ComboBox editor in taskGrid col 0 — case-insensitive filter on name &amp; category, name-first ordering, keyboard navigation (Up/Down/Enter/Esc), auto-dismiss on focus loss. <code>TaskInfoRenderer</code>: taskGrid col 1 now shows localized description, category badge, skip indicator, and param count instead of raw JSON.",
+        "zh": "<code>ProcessorPalette</code>：新的命令面板处理器选择器，替换 taskGrid 第 0 列的 ComboBox 编辑器——名称与分类大小写不敏感过滤，名称优先排序，键盘导航（上/下/Enter/Esc），失焦自动关闭。<code>TaskInfoRenderer</code>：taskGrid 第 1 列现显示本地化描述、分类标签、跳过指示符和参数数量，替代原始 JSON。",
+    },
+    "cl_2026_05_i18n_split": {
+        "en": "I18N refactor: processor descriptions split into <code>i18n/desc_translations.py</code>; GUI look &amp; feel polish — <code>PopupMenuButton</code> enhanced with configurable width, icons, and hover style.",
+        "zh": "I18N 重构：处理器描述迁移至独立的 <code>i18n/desc_translations.py</code>；GUI 视觉优化 —— <code>PopupMenuButton</code> 新增可配置宽度、图标与悬停样式。",
+    },
     "cl_2026_05_ui_streamline": {
         "en": "UI streamlining: removed DC viewer; log-level and clean-log controls moved into <code>LogSearchBar</code>; new reusable <code>PopupMenuButton</code> for theme / lang / log-level choosers; 5 new themes (Nord, Dracula, Sakura, Cyberpunk — 9 total); DEBUG-level <code>data_chain</code> JSON dump after each task.",
         "zh": "界面精简：删除 DC 查看器；日志级别与清除控件并入 <code>LogSearchBar</code>；新增可复用 <code>PopupMenuButton</code> 组件（主题 / 语言 / 日志级别选择器）；新增 5 套主题（Nord、Dracula、Sakura、Cyberpunk，共 9 套）；每个任务执行后以 DEBUG 级别输出 <code>data_chain</code> JSON。",
