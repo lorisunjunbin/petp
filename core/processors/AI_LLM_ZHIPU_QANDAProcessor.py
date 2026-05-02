@@ -6,9 +6,6 @@ try:
     import wx
 except ImportError:
     wx = None
-import zai
-
-from zai import ZhipuAiClient
 from core.processor import Processor
 
 """
@@ -45,7 +42,7 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
 
     def process(self):
         llm_data_key = self.get_param('llm_data_key')
-        existed_llm: ZhipuAiClient = self.get_data(llm_data_key)
+        existed_llm = self.get_data(llm_data_key)
         prompt = self.expression2str(self.get_param('prompt'))
         resp_content_key = self.explain_param_or_default('resp_content_key', '')
         convert_resp_2_json = True if 'yes' == self.get_param("convert_resp_2_json") else False
@@ -74,10 +71,10 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
                 stream=False
             )
             answer = response.choices[0].message
+            answer_text = getattr(answer, 'reasoning_content', None) or getattr(answer, 'content', '')
             logging.debug(f'answer: {str(answer)}')
 
-            content = self.read_json_from_markdown(
-                answer.reasoning_content) if convert_resp_2_json else answer.reasoning_content
+            content = self.read_json_from_markdown(answer_text) if convert_resp_2_json else answer_text
             message = "Q:\n" + prompt + "\nA:\n" + content
             logging.info('Zhipu response received (model=%s)', model)
             logging.debug('Q and A:\n%s', message)
@@ -89,29 +86,8 @@ class AI_LLM_ZHIPU_QANDAProcessor(Processor):
                     logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {message}")
 
             self.populate_data(resp_content_key, content)
-        except zai.core.APIStatusError as err:
-            error_msg = f"API status Error: {err}"
-            logging.error(error_msg)
-            if wx is not None:
-                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
-            else:
-                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
-        except zai.core.APITimeoutError as err:
-            error_msg = f"request timeout: {err}"
-            logging.error(error_msg)
-            if wx is not None:
-                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
-            else:
-                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
         except Exception as err:
             error_msg = f'Unexpected error: {str(err)}'
-            logging.error(error_msg)
-            if wx is not None:
-                wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()
-            else:
-                logging.info(f"[Notification] AI_LLM_ZHIPU_QANDA: {error_msg}")
-        except Exception as e:
-            error_msg = f'Unexpected error: {str(e)}'
             logging.error(error_msg)
             if wx is not None:
                 wx.MessageDialog(None, error_msg, "AI_LLM_ZHIPU_QANDA").ShowModal()

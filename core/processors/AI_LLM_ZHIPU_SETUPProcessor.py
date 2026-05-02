@@ -1,6 +1,6 @@
 import logging
 import os
-from zai import ZhipuAiClient
+import importlib
 from core.processor import Processor
 
 """
@@ -32,6 +32,31 @@ class AI_LLM_ZHIPU_SETUPProcessor(Processor):
     def get_category(self) -> str:
         return super().CATE_AI_LLM
 
+    @staticmethod
+    def create_zhipu_client(api_key: str, base_url: str):
+        """Create a compatible Zhipu client across SDK variants."""
+        try:
+            zai = importlib.import_module('zai')
+            for cls_name in ('ZhipuAiClient', 'ZhipuAI', 'Client'):
+                cls = getattr(zai, cls_name, None)
+                if cls is None:
+                    continue
+                try:
+                    return cls(base_url=base_url, api_key=api_key), f'zai.{cls_name}'
+                except TypeError:
+                    return cls(api_key=api_key), f'zai.{cls_name}'
+        except Exception:
+            pass
+
+        try:
+            from openai import OpenAI
+            return OpenAI(api_key=api_key, base_url=base_url), 'openai.OpenAI'
+        except Exception as ex:
+            raise ImportError(
+                'No supported Zhipu client found. Please install a supported SDK. '
+                'Recommended: `pip install zai-sdk` (module `zai`) or ensure `openai` is available.'
+            ) from ex
+
     def process(self):
         llm_data_key = self.get_param('llm_data_key')
         existed_llm = self.get_data(llm_data_key)
@@ -50,6 +75,7 @@ class AI_LLM_ZHIPU_SETUPProcessor(Processor):
 
         base_url = self.get_param('base_url')
 
-        client = ZhipuAiClient(base_url=base_url, api_key=api_key)
+        client, backend = AI_LLM_ZHIPU_SETUPProcessor.create_zhipu_client(api_key=api_key, base_url=base_url)
+        logging.info('LLM ZHIPU client initialized via %s', backend)
 
         self.populate_data(llm_data_key, client)

@@ -1,11 +1,11 @@
 'use strict';
-(parameters) => {
+(params) => {
 
-    parameters.jsKey = 'jsVal';
-    parameters.jsKey1 = 'jsVal1';
+    params.jsKey = 'jsVal';
+    params.jsKey1 = 'jsVal1';
     let result = {};
-    for (let k in parameters) {
-        result[k] = parameters[k];
+    for (let k in params) {
+        result[k] = params[k];
     }
     result['JSKey'] = 'JSVal';
 

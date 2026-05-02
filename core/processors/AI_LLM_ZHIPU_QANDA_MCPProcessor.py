@@ -8,7 +8,6 @@ try:
     import wx
 except ImportError:
     wx = None
-from zai import ZhipuAiClient
 
 from core.processor import Processor
 
@@ -48,7 +47,7 @@ class AI_LLM_ZHIPU_QANDA_MCPProcessor(Processor):
     def process(self) -> None:
         """Process the LLM request with available tools and handle the response."""
         llm_data_key = self.get_param('llm_data_key')
-        existed_llm: ZhipuAiClient = self.get_data(llm_data_key)
+        existed_llm = self.get_data(llm_data_key)
 
         if existed_llm is None:
             msg = f'LLM ZHIPU is not setup yet, please add task AI_LLM_ZHIPU_SETUPProcessor as previous Task.'

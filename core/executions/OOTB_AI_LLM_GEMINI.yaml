@@ -3,7 +3,8 @@ astool: false
 execution: OOTB_AI_LLM_GEMINI
 list:
 - !!python/object:core.task.Task
-  input: '{"model":"gemini-2.5-flash-preview-05-20","llm_data_key":"llmgemini","top_p":"0.85","temperature":"0.8","api_key_env":"GOOGLE_API_KEY"}'
+  input: '{"model": "gemini-2.5", "llm_data_key": "llmgemini", "top_p": "0.85", "temperature":
+    "0.8", "api_key_env": "GOOGLE_API_KEY"}'
   skipped: false
   type: AI_LLM_GEMINI_SETUP
 - !!python/object:core.task.Task
