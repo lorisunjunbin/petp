@@ -77,7 +77,8 @@ class PETPInteractor():
 
     def bind_view_event_4p_pipeline_action_panel(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_pipeline, self.v.delPipeline)
-        self.v.Bind(wx.EVT_COMBOBOX, self.on_execution_pipeline_changed, self.v.pipelineChooser)
+        self.v.pipelineChooser.Bind(wx.EVT_LEFT_DOWN, self.on_pipeline_chooser_click)
+        self.v.pipelineChooser.Bind(wx.EVT_KEY_DOWN, self.on_pipeline_chooser_key)
         self.v.Bind(wx.EVT_BUTTON, self.on_save_pipeline, self.v.savePipeline)
         self.v.Bind(wx.EVT_BUTTON, self.on_run_pipeline, self.v.runPipeline)
         self.v.Bind(wx.EVT_CHECKBOX, self.on_cron_actived, self.v.asCronChecbox)
@@ -95,7 +96,8 @@ class PETPInteractor():
         # Execution action panel
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_execution, self.v.delExecution)
         self.v.Bind(wx.EVT_BUTTON, self.on_copy_execution, self.v.copyExecution)
-        self.v.Bind(wx.EVT_COMBOBOX, self.on_task_execution_changed, self.v.executionChooser)
+        self.v.executionChooser.Bind(wx.EVT_LEFT_DOWN, self.on_execution_chooser_click)
+        self.v.executionChooser.Bind(wx.EVT_KEY_DOWN, self.on_execution_chooser_key)
 
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_stop_execution, self.v.stopExection)
@@ -279,9 +281,29 @@ class PETPInteractor():
         evt.Skip()
         self.p.on_task_execution_changed()
 
+    def on_execution_chooser_click(self, evt):
+        wx.CallAfter(self.p._show_execution_palette)
+
+    def on_execution_chooser_key(self, evt):
+        code = evt.GetKeyCode()
+        if code in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_F2, wx.WXK_SPACE):
+            wx.CallAfter(self.p._show_execution_palette)
+        else:
+            evt.Skip()
+
     def on_execution_pipeline_changed(self, evt):
         evt.Skip()
         self.p.on_execution_pipeline_changed()
+
+    def on_pipeline_chooser_click(self, evt):
+        wx.CallAfter(self.p._show_pipeline_palette)
+
+    def on_pipeline_chooser_key(self, evt):
+        code = evt.GetKeyCode()
+        if code in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_F2, wx.WXK_SPACE):
+            wx.CallAfter(self.p._show_pipeline_palette)
+        else:
+            evt.Skip()
 
     def on_lang_changed(self, evt):
         evt.Skip()

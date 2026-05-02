@@ -24,19 +24,31 @@ class ProcessorPalette(wx.Frame):
     Name matches shown first, then category-only matches with a separator.
     Keyboard: Up/Down navigate, Enter confirms, Escape dismisses.
     Loses focus → auto-close.
+
+    tag_map: optional {name: tag_str} to show a right-aligned tag per item.
+             When None, falls back to processor category lookup.
+    hint:    placeholder text for the search box (overrides i18n default).
     """
 
     _SEP_SENTINEL = "\x00"    # internal sentinel stored parallel to _names
 
-    def __init__(self, parent, choices, current_value="", on_select=None):
+    def __init__(self, parent, choices, current_value="", on_select=None,
+                 tag_map=None, hint=None):
         style = wx.FRAME_NO_TASKBAR | wx.FRAME_FLOAT_ON_PARENT | wx.BORDER_SIMPLE | wx.STAY_ON_TOP
         super().__init__(parent, style=style)
         self._choices = list(choices)
         self._on_select = on_select
         self._total = len(choices)
         self._confirmed = False
-        from core.processor import Processor
-        self._cat_map = Processor.get_category_map()
+        # tag_map overrides category lookup when provided
+        if tag_map is not None:
+            self._cat_map = tag_map
+            self._use_cat_filter = False  # don't split into name/cat groups
+        else:
+            from core.processor import Processor
+            self._cat_map = Processor.get_category_map()
+            self._use_cat_filter = True
+        self._hint = hint
         # _names[i] is the processor name for listbox row i (or _SEP_SENTINEL for separator rows)
         self._names = []
 
@@ -46,7 +58,7 @@ class ProcessorPalette(wx.Frame):
         search_sizer = wx.BoxSizer(wx.HORIZONTAL)
         icon = wx.StaticText(panel, label=" \U0001f50d ")
         self._search = wx.TextCtrl(panel, style=wx.BORDER_NONE | wx.TE_PROCESS_ENTER)
-        self._search.SetHint(t("palette_hint"))
+        self._search.SetHint(self._hint if self._hint else t("palette_hint"))
         search_sizer.Add(icon, 0, wx.ALIGN_CENTER_VERTICAL)
         search_sizer.Add(self._search, 1, wx.EXPAND | wx.ALL, 2)
         sizer.Add(search_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 4)
@@ -88,7 +100,16 @@ class ProcessorPalette(wx.Frame):
         return f"{name:<28}{tag}"
 
     def _rebuild_list(self, needle, init=False, current_value=""):
-        name_hits, cat_hits = _filter(self._choices, self._cat_map, needle)
+        if self._use_cat_filter:
+            name_hits, cat_hits = _filter(self._choices, self._cat_map, needle)
+        else:
+            # simple name-only filter, no category split
+            if needle:
+                nl = needle.lower()
+                name_hits = [c for c in self._choices if nl in c.lower()]
+            else:
+                name_hits = list(self._choices)
+            cat_hits = []
 
         items = []
         names = []
@@ -141,7 +162,8 @@ class ProcessorPalette(wx.Frame):
     def ShowAt(self, pos):
         self.SetPosition(pos)
         self.Show()
-        self._search.SetFocus()
+        self.Raise()
+        wx.CallAfter(self._search.SetFocus)
 
     def _on_activate(self, evt):
         if not evt.GetActive():

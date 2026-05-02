@@ -526,27 +526,16 @@ class PETPPresenter():
 
     def _load_available_executions(self):
         self.available_executions = Execution.get_available_executions()
-        self.v.executionChooser.AppendItems(self.available_executions)
-        # Mark tool executions so they display with a 🔧 prefix
-        tool_names = Execution.get_tool_execution_names()
-        if tool_names:
-            self.v.executionChooser.set_tool_names(tool_names)
+        self._tool_names = set(Execution.get_tool_execution_names())
 
     def _refresh_execution_chooser(self, selected_name=''):
-        combo = self.v.executionChooser
-        combo.Clear()
         self.available_executions = Execution.get_available_executions()
-        combo.AppendItems(self.available_executions)
-        tool_names = Execution.get_tool_execution_names()
-        if tool_names:
-            combo.set_tool_names(tool_names)
-        if self.v.only_tool.IsChecked():
-            combo.set_visible_subset(tool_names)
+        self._tool_names = set(Execution.get_tool_execution_names())
         if selected_name:
-            combo.SetValue(selected_name)
+            self.v.executionChooser.SetValue(selected_name)
 
     def _load_available_pipelines(self):
-        self.v.pipelineChooser.AppendItems(Pipeline.get_available_pipelines())
+        self.available_pipelines = Pipeline.get_available_pipelines()
 
     def _init_executiongrid_choice_editor(self):
         self.available_executions = Execution.get_available_executions()
@@ -1199,12 +1188,7 @@ class PETPPresenter():
         self.m.set_config('execute_on_startup', self.m.execute_on_startup)
 
     def on_only_tool_changed(self, evt):
-        combo = self.v.executionChooser
-        if evt.IsChecked():
-            tool_names = Execution.get_tool_execution_names()
-            combo.set_visible_subset(tool_names)
-        else:
-            combo.set_visible_subset(None)
+        pass  # palette uses _tool_names + only_tool state dynamically
 
     def on_stop_execution(self):
         for executor in self.executors:
@@ -1286,11 +1270,57 @@ class PETPPresenter():
         grid = self.v.taskGrid
         if value not in self.available_processors:
             return
+        self._push_snapshot()
         grid.SetCellValue(row, 0, value)
         p = Processor.get_processor_by_type(value)
         grid.SetCellValue(row, 1, p.get_tpl())
         logging.info(f'Processor {value} : {p.get_desc()}')
         self._load_input_taskproperty(row)
+
+    def _show_execution_palette(self):
+        combo = self.v.executionChooser
+        current_value = combo.GetValue()
+        if self.v.only_tool.IsChecked():
+            choices = [n for n in self.available_executions if n in self._tool_names]
+        else:
+            choices = self.available_executions
+        tag_map = {n: "🦾" for n in self._tool_names}
+        pos = combo.ClientToScreen(wx.Point(0, combo.GetSize().height))
+        palette = ProcessorPalette(
+            self.v, choices, current_value,
+            on_select=self._on_execution_palette_selected,
+            tag_map=tag_map,
+            hint=t("palette_hint"),
+        )
+        palette.SetSize((max(combo.GetSize().width, 380), 440))
+        palette.ShowAt(pos)
+
+    def _on_execution_palette_selected(self, value):
+        self.v.executionChooser.SetValue(value)
+        self.on_task_execution_changed()
+
+    def _show_pipeline_palette(self):
+        combo = self.v.pipelineChooser
+        current_value = combo.GetValue()
+        choices = self.available_pipelines
+        tag_map = {}
+        for name in choices:
+            p = Pipeline.get_pipeline(name)
+            if p and getattr(p, 'cronEnabled', False):
+                tag_map[name] = "[cron]"
+        pos = combo.ClientToScreen(wx.Point(0, combo.GetSize().height))
+        palette = ProcessorPalette(
+            self.v, choices, current_value,
+            on_select=self._on_pipeline_palette_selected,
+            tag_map=tag_map,
+            hint=t("palette_hint"),
+        )
+        palette.SetSize((max(combo.GetSize().width, 380), 440))
+        palette.ShowAt(pos)
+
+    def _on_pipeline_palette_selected(self, value):
+        self.v.pipelineChooser.SetValue(value)
+        self.on_execution_pipeline_changed()
 
     def on_grid_cell_change4e(self, evt):
         grid = self.v.taskGrid
@@ -1308,6 +1338,8 @@ class PETPPresenter():
 
             logging.info(f'Processor {current_value} : {p.get_desc()}')
             self._load_input_taskproperty(current_row)
+
+        self._push_snapshot()
 
     def on_grid_cell_select4e(self, evt):
         current_row = evt.GetRow()
@@ -1434,11 +1466,11 @@ class PETPPresenter():
                 dlg.Destroy()
                 if result == wx.ID_YES:
                     self._insert_initial_params_task(input_params)
-        # Sync the tool icon prefix in the dropdown immediately
-        combo.set_tool_names(
-            combo._tool_names | {name} if evt.IsChecked()
-            else combo._tool_names - {name}
-        )
+        # Update tool names set for palette display
+        if evt.IsChecked():
+            self._tool_names.add(name)
+        else:
+            self._tool_names.discard(name)
         self._sync_mcp_panel_visibility()
 
     def _sync_mcp_panel_visibility(self):
@@ -1674,7 +1706,7 @@ class PETPPresenter():
             ordered = {name: input_dict[name] for name, _ in props if name in input_dict}
             rest = {k: v for k, v in input_dict.items() if k not in ordered}
             grid.SetCellValue(self._pgrid_bound_row, 1, json.dumps(ordered | rest))
-            self._update_save_button()
+            self._push_snapshot()
 
     def _delete_selected_property_from_page(self, pgm):
         prop = pgm.GetSelection()
@@ -1940,7 +1972,7 @@ class PETPPresenter():
         input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
         renamed = {(new_name if k == old_name else k): v for k, v in input_dict.items()}
         grid.SetCellValue(self._pgrid_bound_row, 1, json.dumps(renamed))
-        self._update_save_button()
+        self._push_snapshot()
         logging.info(f'Renamed property key: {old_name} → {new_name}')
 
     def _on_copy_property_value(self, evt):
@@ -2092,12 +2124,11 @@ class PETPPresenter():
         self.v.execution_desc.SetValue(snap["mcp_desc"])
         self.v.cb_astool.SetValue(snap["astool"])
 
-        combo = self.v.executionChooser
-        name = combo.GetValue()
-        combo.set_tool_names(
-            combo._tool_names | {name} if snap["astool"]
-            else combo._tool_names - {name}
-        )
+        name = self.v.executionChooser.GetValue()
+        if snap["astool"]:
+            self._tool_names.add(name)
+        else:
+            self._tool_names.discard(name)
 
         self._pgrid_bound_row = -1
         self._reset_task_pgrid()

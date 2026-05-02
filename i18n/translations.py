@@ -358,7 +358,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === ProcessorPalette ===
     "palette_hint": {"en": "type to filter...", "zh": "输入筛选..."},
-    "palette_footer_all": {"en": "{n} processors", "zh": "{n} 个处理器"},
+    "palette_footer_all": {"en": "{n} items", "zh": "{n} 项"},
     "palette_footer_filtered": {"en": "{total} / {n}  (name: {nm}  cat: {ct})", "zh": "{total} / {n}  (名称: {nm}  分类: {ct})"},
     "palette_sep_label": {"en": "── category matches ──", "zh": "── 分类匹配 ──"},
 
