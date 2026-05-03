@@ -202,9 +202,19 @@ class BackgroundHttpServer(McpMixin):
                 }, session_id)
             tool_exec_name: str = cast(str, tool_name)
             arguments_json = json.dumps(arguments, ensure_ascii=False)
+            info = f"call tool: {tool_exec_name} with params: {arguments_json}"
+
+            if not self._wants_sse(handler):
+                raw_result = self._run_with_timeout(
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments),
+                    self._timeout,
+                )
+                return self._mcp_tools_call_json_response(
+                    request_id, session_id, raw_result, tool_exec_name, info,
+                    self.runtime.get_tools, handler,
+                )
 
             def _stream_call_result() -> Generator[str, None, None]:
-                info = f"call tool: {tool_name} with params: {arguments_json}"
                 yield self._sse_event({
                     "jsonrpc": "2.0",
                     "method": "notifications/message",

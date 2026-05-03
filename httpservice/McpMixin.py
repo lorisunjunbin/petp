@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeou
 from typing import Any, Callable, Generator, Optional
 
 from httpservice.constants import HTTP_RESPONSE_KEY
-from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
+from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, RawJsonResponse, StreamingResponseData
 
 
 class McpMixin:
@@ -19,7 +19,7 @@ class McpMixin:
     # ------------------------------------------------------------------
 
     def _mcp_response(self, payload: dict, handler: HttpRequestHandler,
-                       session_id: Optional[str] = None) -> StreamingResponseData:
+                       session_id: Optional[str] = None):
         accept = handler.headers.get("Accept", "") if handler else ""
         if "text/event-stream" in accept:
             return self._single_sse_response(payload, session_id)
@@ -27,12 +27,7 @@ class McpMixin:
         if session_id:
             headers["mcp-session-id"] = session_id
         json_body = json.dumps(payload)
-        return StreamingResponseData(
-            iter([json_body]),
-            headers,
-            content_type="application/json",
-            status_code=200,
-        )
+        return RawJsonResponse(json_body, headers, status_code=200)
 
     def _single_sse_response(self, payload: dict, session_id: Optional[str] = None) -> StreamingResponseData:
         return StreamingResponseData(
@@ -240,6 +235,32 @@ class McpMixin:
         structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
         return client_result, structured_content
 
+    def _mcp_tools_call_json_response(self, request_id: Any, session_id: Optional[str],
+                                       raw_result: Any, tool_name: str, info: str,
+                                       tools_getter: Callable, handler: 'HttpRequestHandler') -> StreamingResponseData:
+        client_result, structured_content = self._build_tools_call_result(
+            tool_name, raw_result, tools_getter
+        )
+        content_text = self._to_mcp_text(client_result)
+        if isinstance(raw_result, dict) and raw_result.get("meta") is not None:
+            logging.info("MCP tools/call meta for %s: %s", tool_name,
+                         json.dumps(raw_result.get("meta"), ensure_ascii=False, default=str))
+        resp = {
+            "jsonrpc": "2.0",
+            "id": request_id,
+            "result": {
+                "content": [{"type": "text", "text": f" {info} -> {content_text}"}],
+                "structuredContent": structured_content,
+                "isError": self._is_mcp_error_result(raw_result),
+            },
+        }
+        return self._mcp_response(resp, handler, session_id)
+
+    @staticmethod
+    def _wants_sse(handler: 'HttpRequestHandler') -> bool:
+        accept = handler.headers.get("Accept", "") if handler else ""
+        return "text/event-stream" in accept
+
     def _run_with_timeout(self, fn: Callable[[], Any], timeout: int) -> Any:
         with ThreadPoolExecutor(1) as pool:
             future = pool.submit(fn)
@@ -248,12 +269,19 @@ class McpMixin:
             except FuturesTimeoutError:
                 return {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
 
-    _PROGRESS_INTERVAL: int = 5
+    _PROGRESS_INTERVAL: int = 1
+    _FAST_CHECK_TIMEOUT: float = 0.05
 
     def _run_with_progress(self, fn: Callable[[], Any], timeout: int,
                             tool_name: str) -> Generator[Any, None, None]:
         with ThreadPoolExecutor(1) as pool:
             future = pool.submit(fn)
+            try:
+                result = future.result(timeout=self._FAST_CHECK_TIMEOUT)
+                yield result
+                return
+            except FuturesTimeoutError:
+                pass
             elapsed = 0
             while not future.done():
                 try:

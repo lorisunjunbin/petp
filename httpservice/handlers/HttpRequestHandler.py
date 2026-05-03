@@ -20,6 +20,15 @@ class StreamingResponseData:
         self.status_code = status_code
 
 
+class RawJsonResponse:
+    """Non-chunked JSON response with custom headers (no wrapper envelope)."""
+
+    def __init__(self, body: str, headers=None, status_code=200):
+        self.body = body
+        self.headers = headers or {}
+        self.status_code = status_code
+
+
 class HttpRequestHandler(SimpleHTTPRequestHandler):
     """Enhanced HTTP request handler with routing capabilities"""
     protocol_version = "HTTP/1.1"
@@ -260,8 +269,11 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
             # Execute handler
             result = handler(self, params)
 
+            # Raw JSON response (MCP JSON path) -> Content-Length, no chunked
+            if isinstance(result, RawJsonResponse):
+                self.send_raw_json_response(result)
             # Streamed responses (generators/iterators) -> chunked transfer
-            if isinstance(result, StreamingResponseData):
+            elif isinstance(result, StreamingResponseData):
                 self.send_streaming_response(result.iterator, extra_headers=result.headers,
                                              content_type=result.content_type, status_code=result.status_code)
             elif self._is_streaming_result(result):
@@ -321,6 +333,19 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
             logging.debug("Client %s disconnected during streaming: %s", self.client_address, e)
         except Exception as e:
             logging.error(f"Error during streaming response: {e}")
+
+    def send_raw_json_response(self, response: 'RawJsonResponse'):
+        """Send a raw JSON response with Content-Length (no envelope wrapper)."""
+        body_bytes = response.body.encode('utf-8')
+        self.send_response(response.status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(body_bytes)))
+        for k, v in response.headers.items():
+            self.send_header(k, v)
+        self.send_cors_headers()
+        self.end_headers()
+        self.wfile.write(body_bytes)
+        self.wfile.flush()
 
     def send_failure_response(self, code=500, data=None, msg="Failure"):
         """Send a failure JSON response with appropriate status code"""

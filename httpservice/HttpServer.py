@@ -320,13 +320,38 @@ class HttpServer(McpMixin):
             )
         message: str = arguments.get("message") or ""
         arguments_json: str = json.dumps(arguments, ensure_ascii=False)
+        question_info = f"call tool: {action} with params: {arguments_json}"
+        if message:
+            question_info += f", message: {message}"
+
+        if not self._wants_sse(handler):
+            petp_param: dict = {"execution": action}
+            petp_param.update(arguments)
+            raw_result = self._run_with_timeout(
+                lambda: self._handle_petp_event(handler, {"action": "execution", "params": petp_param}),
+                self._timeout,
+            )
+            output_schema = self._get_output_schema(action)
+            if output_schema and isinstance(raw_result, dict) and not self._is_mcp_error_result(raw_result):
+                client_result = raw_result
+                structured_content = client_result
+            else:
+                client_result = self._strip_meta_for_client(raw_result)
+                structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
+            content_text = self._to_mcp_text(client_result)
+            resp = {
+                "jsonrpc": "2.0",
+                "id": request_id,
+                "result": {
+                    "content": [{"type": "text", "text": f" {question_info} -> {content_text}"}],
+                    "structuredContent": structured_content,
+                    "isError": self._is_mcp_error_result(raw_result),
+                },
+            }
+            return self._mcp_response(resp, handler, session_id)
 
         def _stream_call_result() -> Generator[str, None, None]:
             """Yield SSE frames: first a progress notification, then the tool result."""
-            question_info = f"call tool: {action} with params: {arguments_json}"
-            if message:
-                question_info += f", message: {message}"
-
             # Emit a progress / log notification
             yield self._sse_event({
                 "jsonrpc": "2.0",
