@@ -30,7 +30,7 @@ class SystemConfig():
             temp = temp[key]
         temp[keys[-1]] = value
         with open(self.config_path, 'w', encoding='utf8') as f:
-            yaml.dump(self.yamldoc, f, default_flow_style=False)
+            yaml.dump(self.yamldoc, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
         logging.debug('set_config -' + str(keys) + '= ' + str(value))
 
     def bind_model(self, model, keys=None, exclude_keys=None):

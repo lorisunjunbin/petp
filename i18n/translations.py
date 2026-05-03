@@ -270,6 +270,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "dlg_copy": {"en": "Copy", "zh": "复制"},
     "dlg_ok": {"en": "&OK", "zh": "确定(&O)"},
     "dlg_cancel": {"en": "&Cancel", "zh": "取消(&C)"},
+    "dlg_save_as_default": {"en": "Save as &Default", "zh": "保存为默认值(&D)"},
 
     # === Dialog messages ===
     "dlg_saved_to": {"en": "Saved to:\n{path}", "zh": "已保存至:\n{path}"},

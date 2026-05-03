@@ -1,7 +1,8 @@
 import json
 import logging
 import uuid
-from typing import Any, Generator, Optional
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from typing import Any, Callable, Generator, Optional
 
 from httpservice.constants import HTTP_RESPONSE_KEY
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
@@ -16,6 +17,22 @@ class McpMixin:
     # ------------------------------------------------------------------
     # SSE helpers
     # ------------------------------------------------------------------
+
+    def _mcp_response(self, payload: dict, handler: HttpRequestHandler,
+                       session_id: Optional[str] = None) -> StreamingResponseData:
+        accept = handler.headers.get("Accept", "") if handler else ""
+        if "text/event-stream" in accept:
+            return self._single_sse_response(payload, session_id)
+        headers = {}
+        if session_id:
+            headers["mcp-session-id"] = session_id
+        json_body = json.dumps(payload)
+        return StreamingResponseData(
+            iter([json_body]),
+            headers,
+            content_type="application/json",
+            status_code=200,
+        )
 
     def _single_sse_response(self, payload: dict, session_id: Optional[str] = None) -> StreamingResponseData:
         return StreamingResponseData(
@@ -37,8 +54,6 @@ class McpMixin:
         headers = {
             "Cache-Control": "no-cache, no-transform",
             "Connection": "keep-alive",
-            "Content-Type": "text/event-stream",
-            "Transfer-Encoding": "chunked",
             "X-Accel-Buffering": "no",
         }
         if session_id:
@@ -160,7 +175,11 @@ class McpMixin:
         for prop_name, prop_spec in properties.items():
             dc_key = prop_spec.get("mapKey") or prop_name
             if dc_key in data:
-                result[prop_name] = data[dc_key]
+                value = data[dc_key]
+                declared_type = prop_spec.get("type")
+                if declared_type == "string" and not isinstance(value, str):
+                    value = json.dumps(value, ensure_ascii=False, default=str)
+                result[prop_name] = value
         return result
 
     @staticmethod
@@ -221,56 +240,115 @@ class McpMixin:
         structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
         return client_result, structured_content
 
+    def _run_with_timeout(self, fn: Callable[[], Any], timeout: int) -> Any:
+        with ThreadPoolExecutor(1) as pool:
+            future = pool.submit(fn)
+            try:
+                return future.result(timeout=timeout)
+            except FuturesTimeoutError:
+                return {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
+
+    _PROGRESS_INTERVAL: int = 5
+
+    def _run_with_progress(self, fn: Callable[[], Any], timeout: int,
+                            tool_name: str) -> Generator[Any, None, None]:
+        with ThreadPoolExecutor(1) as pool:
+            future = pool.submit(fn)
+            elapsed = 0
+            while not future.done():
+                try:
+                    result = future.result(timeout=self._PROGRESS_INTERVAL)
+                    yield result
+                    return
+                except FuturesTimeoutError:
+                    elapsed += self._PROGRESS_INTERVAL
+                    if elapsed >= timeout:
+                        yield {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
+                        return
+                    yield self._sse_event({
+                        "jsonrpc": "2.0",
+                        "method": "notifications/message",
+                        "params": {"level": "info", "data": f"[{tool_name}] still running... ({elapsed}s)"},
+                    })
+            yield future.result()
+
+    # ------------------------------------------------------------------
+    # Batch request support
+    # ------------------------------------------------------------------
+
+    def _handle_mcp_batch(self, handler: 'HttpRequestHandler', batch: list,
+                           single_handler: Callable) -> StreamingResponseData:
+        session_id = self._extract_session_id(handler)
+        responses: list[dict] = []
+        for item in batch:
+            if not isinstance(item, dict):
+                responses.append({
+                    "jsonrpc": "2.0", "id": None,
+                    "error": {"code": -32600, "message": "Invalid Request"},
+                })
+                continue
+            result = single_handler(handler, item)
+            if isinstance(result, StreamingResponseData):
+                for chunk in result.iterator:
+                    if chunk.startswith("event: message\ndata: "):
+                        data_str = chunk.split("data: ", 1)[1].rstrip("\n")
+                        try:
+                            parsed = json.loads(data_str)
+                            if "id" in parsed:
+                                responses.append(parsed)
+                        except json.JSONDecodeError:
+                            pass
+            elif isinstance(result, dict):
+                responses.append(result)
+
+        resp_payload = responses if len(responses) > 1 else (responses[0] if responses else {})
+        return self._single_sse_response(resp_payload, session_id)
+
     # ------------------------------------------------------------------
     # MCP protocol frames
     # ------------------------------------------------------------------
 
     def _mcp_initialize_response(self, request_id: Any, protocol_version: str, session_id: str,
-                                  server_name: str) -> StreamingResponseData:
+                                  server_name: str, handler: Optional[HttpRequestHandler] = None) -> StreamingResponseData:
         resp = {
             "jsonrpc": "2.0",
             "id": request_id,
             "result": {
                 "protocolVersion": protocol_version,
                 "capabilities": {
-                    "experimental": {},
-                    "prompts": {"listChanged": False},
-                    "resources": {"subscribe": False, "listChanged": False},
                     "tools": {"listChanged": False},
                 },
                 "serverInfo": {"name": server_name, "version": "1.0.0"},
             },
         }
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_response(resp, handler, session_id)
 
     def _mcp_initialized_response(self, session_id: Optional[str]) -> StreamingResponseData:
+        headers = {}
+        if session_id:
+            headers["mcp-session-id"] = session_id
         return StreamingResponseData(
-            self._single_sse_chunk({}),
-            self._build_sse_headers(session_id),
-            content_type="text/event-stream",
+            iter([]),
+            headers,
+            content_type="text/plain",
             status_code=202,
         )
 
     def _mcp_tools_list_response(self, request_id: Any, session_id: Optional[str],
-                                  tools_petp: Any) -> StreamingResponseData:
+                                  tools_petp: Any, handler: Optional[HttpRequestHandler] = None) -> StreamingResponseData:
         tools_payload = self._normalize_tools(tools_petp)
         resp = {"jsonrpc": "2.0", "id": request_id, "result": {"tools": tools_payload}}
         logging.info("PETP MCP Tools: %s", json.dumps(resp))
-        return self._single_sse_response(resp, session_id)
-
-    def _mcp_empty_list_response(self, request_id: Any, session_id: Optional[str],
-                                  key: str) -> StreamingResponseData:
-        resp = {"jsonrpc": "2.0", "id": request_id, "result": {key: []}}
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_response(resp, handler, session_id)
 
     def _mcp_method_not_found(self, request_id: Any, method: str,
-                               session_id: Optional[str]) -> StreamingResponseData:
+                               session_id: Optional[str], handler: Optional[HttpRequestHandler] = None) -> StreamingResponseData:
         resp = {
             "jsonrpc": "2.0",
             "id": request_id,
             "error": {"code": -32601, "message": f"Method not found: {method}"},
         }
-        return self._single_sse_response(resp, session_id)
+        return self._mcp_response(resp, handler, session_id)
 
     @staticmethod
     def _generate_request_id() -> str:

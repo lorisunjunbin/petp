@@ -15,6 +15,7 @@ if _WX_AVAILABLE:
         HTTP_REQUEST = 88880005
         MATPLOTLIB = 88880006
         PIPELINE_STEP = 88880007
+        SYNC_TASK_INPUT = 88880008
 
         def __init__(self, etype, data=None, handler=None):
             wx.PyEvent.__init__(self)
@@ -37,6 +38,7 @@ else:
         HTTP_REQUEST = 88880005
         MATPLOTLIB = 88880006
         PIPELINE_STEP = 88880007
+        SYNC_TASK_INPUT = 88880008
 
         def __init__(self, etype, data=None, handler=None):
             self.etype = etype

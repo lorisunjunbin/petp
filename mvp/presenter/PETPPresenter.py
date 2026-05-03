@@ -2533,6 +2533,18 @@ class PETPPresenter():
         if evt.handler:
             evt.handler(result_value)
 
+    def on_sync_task_input(self, evt: PETPEvent):
+        row = evt.data['row']
+        new_input = evt.data['input']
+        task_grid = self.v.taskGrid
+        if row < 0 or row >= task_grid.GetNumberRows():
+            return
+        task_grid.SetCellValue(row, 1, new_input)
+        self._push_snapshot()
+        if self._pgrid_bound_row == row:
+            self._load_input_taskproperty(row)
+        self._update_save_button()
+
     def on_handle_http_request(self, evt: PETPEvent):
         action = evt.data['action']
         is_internal = evt.data.get('source') == 'internal'

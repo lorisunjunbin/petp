@@ -42,7 +42,7 @@ class BackgroundHttpServer(McpMixin):
             "GET:/petp/result": self._handle_result_check,
             "GET:/petp/crons": self._handle_cron_list,
             "GET:/petp/crons/history": self._handle_cron_history,
-            "GET:/mcp": self._handle_mcp,
+            "GET:/mcp": self._handle_mcp_get,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
             "GET:/mcp/.well-known/openid-configuration": self._handle_mcp_auth,
@@ -51,7 +51,8 @@ class BackgroundHttpServer(McpMixin):
     def _handle_index(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
         return {
             "server": "PETP Background HTTP Server",
-            "available_endpoints": ["/health", "/petp/exec", "/petp/tools", "/petp/result", "/petp/crons", "/petp/crons/history", "/mcp"],
+            "available_endpoints": ["/health", "/petp/exec", "/petp/tools", "/petp/result", "/petp/crons",
+                                    "/petp/crons/history", "/mcp"],
         }
 
     def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
@@ -150,6 +151,14 @@ class BackgroundHttpServer(McpMixin):
     def _handle_mcp_auth(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> tuple:
         return {"token": self._token}, 200
 
+    def _handle_mcp_get(self, handler: HttpRequestHandler, params: Optional[dict] = None):
+        """Handle GET /mcp — SSE stream for server-initiated notifications.
+        PETP does not push notifications, so return 204 No Content per MCP spec."""
+        token = handler.headers.get("Authorization")
+        if self._token and token != f"Bearer {self._token}":
+            return {"error": "Invalid token"}, 403
+        return {}, 204
+
     def _handle_mcp(
             self,
             handler: HttpRequestHandler,
@@ -160,28 +169,26 @@ class BackgroundHttpServer(McpMixin):
         if self._token and token != f"Bearer {self._token}":
             return {"error": "Invalid token"}, 403
 
+        # Batch request support
+        if '_batch' in params:
+            return self._handle_mcp_batch(handler, params['_batch'], self._handle_mcp)
+
         session_id = self._extract_session_id(handler)
         method = params.get("method")
 
         if not method:
-            return self._single_sse_response({"jsonrpc": "2.0", "id": None, "result": {"name": "PETP MCP"}}, session_id)
+            return self._mcp_method_not_found(params.get("id"), "(empty)", session_id, handler)
 
         if method == "initialize":
             session_id = session_id or (uuid.uuid4().hex + uuid.uuid4().hex)
-            protocol_version = handler.headers.get("mcp-protocol-version") or "2025-11-25"
-            return self._mcp_initialize_response(params.get("id"), protocol_version, session_id, "PETP Background MCP")
+            protocol_version = params.get("params", {}).get("protocolVersion") or "2025-03-26"
+            return self._mcp_initialize_response(params.get("id"), protocol_version, session_id, "PETP Background MCP", handler)
 
         if method == "notifications/initialized":
             return self._mcp_initialized_response(session_id)
 
         if method == "tools/list":
-            return self._mcp_tools_list_response(params.get("id"), session_id, self.runtime.get_tools())
-
-        if method == "prompts/list":
-            return self._mcp_empty_list_response(params.get("id"), session_id, "prompts")
-
-        if method == "resources/list":
-            return self._mcp_empty_list_response(params.get("id"), session_id, "resources")
+            return self._mcp_tools_list_response(params.get("id"), session_id, self.runtime.get_tools(), handler)
 
         if method == "tools/call":
             request_id = params.get("id")
@@ -204,7 +211,15 @@ class BackgroundHttpServer(McpMixin):
                     "params": {"level": "info", "data": info},
                 })
 
-                result = self.runtime.run_execution(tool_exec_name, arguments)
+                result = None
+                for item in self._run_with_progress(
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments),
+                    self._timeout, tool_exec_name,
+                ):
+                    if isinstance(item, str):
+                        yield item
+                    else:
+                        result = item
 
                 client_result, structured_content = self._build_tools_call_result(
                     tool_exec_name, result, self.runtime.get_tools
@@ -227,7 +242,7 @@ class BackgroundHttpServer(McpMixin):
             return StreamingResponseData(_stream_call_result(), self._build_sse_headers(session_id),
                                          "text/event-stream", 200)
 
-        return self._mcp_method_not_found(params.get("id"), method, session_id)
+        return self._mcp_method_not_found(params.get("id"), method, session_id, handler)
 
     @staticmethod
     def _status_code_for_result(result: Any) -> int:
@@ -273,10 +288,10 @@ class BackgroundHttpServer(McpMixin):
         self._httpd = ThreadingHTTPServer((self._host, self._port), handler_class)
         threading.Thread(target=self._httpd.serve_forever, daemon=True).start()
         self._running = True
-        logging.info("Background HTTP Server is serving at http://%s:%d", self._host or "localhost", self._port)
+        logging.info("PETP Background HTTP Server is serving at http://%s:%d", self._host or "localhost", self._port)
 
     def stop(self) -> None:
         if self._httpd and self._running:
             self._httpd.shutdown()
             self._running = False
-            logging.info("Background HTTP Server has been stopped")
+            logging.info("PETP Background HTTP Server has been stopped")

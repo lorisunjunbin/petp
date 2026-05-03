@@ -30,6 +30,7 @@ class PETPInteractor():
         PETPEvent.bind_to(self.v, PETPEvent.HTTP_REQUEST, self.on_handle_http_request)
         PETPEvent.bind_to(self.v, PETPEvent.MATPLOTLIB, self.on_handle_display_in_matplotlib_view)
         PETPEvent.bind_to(self.v, PETPEvent.PIPELINE_STEP, self.on_handle_pipeline_step)
+        PETPEvent.bind_to(self.v, PETPEvent.SYNC_TASK_INPUT, self.on_sync_task_input)
 
         # UI event binding
         self.v.Bind(wx.EVT_CLOSE, self.on_close_window)
@@ -171,6 +172,9 @@ class PETPInteractor():
         elif action == 'done':
             pipeline_name = evt.data[1]
             self.p.update_highlight_info_pipeline_done(pipeline_name)
+
+    def on_sync_task_input(self, evt: PETPEvent):
+        self.p.on_sync_task_input(evt)
 
     def on_handle_done(self, evt: PETPEvent):
         execution = evt.data[0]

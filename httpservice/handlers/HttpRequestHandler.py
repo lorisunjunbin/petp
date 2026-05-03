@@ -130,7 +130,10 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
                 if 'application/json' in content_type:
                     try:
                         json_params = json.loads(post_data.decode('utf-8'))
-                        params.update(json_params)
+                        if isinstance(json_params, list):
+                            params['_batch'] = json_params
+                        else:
+                            params.update(json_params)
                     except json.JSONDecodeError as e:
                         logging.error(f"JSON decode error: {e}")
                         self.send_error(400, message=f"Invalid JSON in request body: {str(e)}")

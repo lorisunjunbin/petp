@@ -3,9 +3,9 @@ astool: false
 execution: OOTB_AI_LLM_DEEPSEEK_MCP
 list:
 - !!python/object:core.task.Task
-  input: '{"api_key":"","base_url":"https://api.deepseek.com","llm_data_key":"llmdeepseek","api_key_env":"DEEPSEEK_API_KEY"}'
+  input: '{"provider": "deepseek", "llm_data_key": "llmdeepseek"}'
   skipped: false
-  type: AI_LLM_DEEPSEEK_SETUP
+  type: AI_LLM_SETUP
 - !!python/object:core.task.Task
   input: '{"title": "LLM DEEPSEEK", "msg": "Prompt", "value_key": "given_prompt",
     "default_value": "\u627e\u4e00\u4e0b\u6700\u8fd1\u5730\u9707\u4fe1\u606f", "stop_on_cancel":
@@ -15,12 +15,15 @@ list:
 - !!python/object:core.task.Task
   input: '{"llm_data_key": "llmdeepseek", "prompt": "{self.get_data(\"given_prompt\")}",
     "model": "deepseek-chat", "temperature": "0.8", "resp_content_key": "llm_respone_json_content",
-    "convert_resp_2_json": "no", "show_in_popup": "yes", "petp_mcp_url": "http://localhost:8888"}'
+    "convert_resp_2_json": "no", "show_in_popup": "yes", "mcp_server_url": "http://localhost:8888/mcp",
+    "mcp_auth_token": "{self.decrypt(\"baNG5TSHWG9Mei9mnj91jWUc+QQ/EFNm+bInIQFpaFTFBpZTvnQ7jy7XNJJMxiTCCKxmIRxJLehz5Y4l*Tr2Pj2Uq+jVSRvR3G9rcMA==*hwyZ+4oQuSJiAhycyTjh/A==*aAkNGth4w/kk2eB0ijJvIQ==\")}"}'
   skipped: false
-  type: AI_LLM_DEEPSEEK_QANDA_MCP
+  type: AI_LLM_QANDA_MCP
 loops: []
-mcp_desc: "Q: \u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u6570\u5217  7\uFF0C \u5217\u51FA\u5168\u90E8\u5185\u5BB9
-  call tool:  TEST_FIB_WITH_CACHE\nQ: \u67E5\u627E\u8FD1\u671F\u7684\u5730\u9707\u4FE1\u606F\uFF0C\u5217\u51FA\u6700\u8FD1\u53D1\u751F\u76845\u4E2A\uFF0C\u5916\u56FD\u4F18\u5148\uFF0Ccall
-  tool:  OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn\nQ: \u5C06yabangdou\u4F7F\u7528base64\u7F16\u7801
-  call tool:  ENDECODE\nQ: \u5C06eWFiYW5nZG91\u4F7F\u7528base64\u89E3\u7801 call too\uFF1A
-  \ ENDECODE"
+mcp_desc: "{\n  \"desc\": \"Q: \u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u6570\u5217  7\uFF0C
+  \u5217\u51FA\u5168\u90E8\u5185\u5BB9 call tool:  TEST_FIB_WITH_CACHE\\rQ: \u67E5\u627E\u8FD1\u671F\u7684\u5730\u9707\u4FE1\u606F\uFF0C\u5217\u51FA\u6700\u8FD1\u53D1\u751F\u76845\u4E2A\uFF0C\u5916\u56FD\u4F18\u5148\uFF0Ccall
+  tool:  OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn\\rQ: \u5C06yabangdou\u4F7F\u7528base64\u7F16\u7801
+  call tool:  ENDECODE\\rQ: \u5C06eWFiYW5nZG91\u4F7F\u7528base64\u89E3\u7801 call
+  too:  ENDECODE\",\n  \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\":
+  \"OOTB_AI_LLM_DEEPSEEK_MCPArguments\",\n    \"properties\": {},\n    \"required\":
+  []\n  }\n}"

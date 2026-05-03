@@ -3,9 +3,9 @@ astool: false
 execution: OOTB_AI_LLM_ZHIPU_MCP
 list:
 - !!python/object:core.task.Task
-  input: '{"api_key":"","base_url":"https://open.bigmodel.cn/api/paas/v4/","llm_data_key":"llmZHIPU","api_key_env":"ZHIPU_ACCESS_KEY"}'
+  input: '{"provider": "zhipu", "llm_data_key": "llmZHIPU"}'
   skipped: false
-  type: AI_LLM_ZHIPU_SETUP
+  type: AI_LLM_SETUP
 - !!python/object:core.task.Task
   input: '{"title": "LLM ZHIPU", "msg": "Prompt", "value_key": "given_prompt", "default_value":
     "tell a joke in chinese", "stop_on_cancel": "yes"}'
@@ -13,13 +13,16 @@ list:
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"llm_data_key": "llmZHIPU", "prompt": "{given_prompt}", "model": "GLM-5",
-    "temperature": "1.0", "show_thinking": "no", "petp_mcp_url": "http://localhost:8888",
-    "resp_content_key": "", "convert_resp_2_json": "yes", "show_in_popup": "yes"}'
+    "temperature": "1.0", "show_thinking": "no", "resp_content_key": "", "convert_resp_2_json":
+    "yes", "show_in_popup": "yes", "mcp_server_url": "http://localhost:8888/mcp",
+    "mcp_auth_token": "{self.decrypt(\"rUn7rZGlHiNeTwFNuadfhBJNUn0ISUs5mJrOg3Z43BZCHlgMpVhgpYmU2cplWr/rWdo5O/dbPk4nDud9*gR1+ruE09447s7mpZI/ZNg==*vTdcDUWGcfslgz7V8CbddQ==*H8WpJ+mWEBhkiHFFQoiiEg==\")}"}'
   skipped: false
-  type: AI_LLM_ZHIPU_QANDA_MCP
+  type: AI_LLM_QANDA_MCP
 loops: []
-mcp_desc: "Q: \u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u6570\u5217  7\uFF0C \u5217\u51FA\u5168\u90E8\u5185\u5BB9
-  call tool:  TEST_FIB_WITH_CACHE\nQ: \u67E5\u627E\u8FD1\u671F\u7684\u5730\u9707\u4FE1\u606F\uFF0C\u5217\u51FA\u6700\u8FD1\u53D1\u751F\u76845\u4E2A\uFF0C\u5916\u56FD\u4F18\u5148\uFF0Ccall
-  tool:  OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn\nQ: \u5C06yabangdou\u4F7F\u7528base64\u7F16\u7801
-  call tool:  ENDECODE\nQ: \u5C06eWFiYW5nZG91\u4F7F\u7528base64\u89E3\u7801 call too\uFF1A
-  \ ENDECODE"
+mcp_desc: "{\n  \"desc\": \"Q: \u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u6570\u5217  7\uFF0C
+  \u5217\u51FA\u5168\u90E8\u5185\u5BB9 call tool:  TEST_FIB_WITH_CACHE\\rQ: \u67E5\u627E\u8FD1\u671F\u7684\u5730\u9707\u4FE1\u606F\uFF0C\u5217\u51FA\u6700\u8FD1\u53D1\u751F\u76845\u4E2A\uFF0C\u5916\u56FD\u4F18\u5148\uFF0Ccall
+  tool:  OOTB_BS4_GET_DATA_FROM_news.ceic.ac.cn\\rQ: \u5C06yabangdou\u4F7F\u7528base64\u7F16\u7801
+  call tool:  ENDECODE\\rQ: \u5C06eWFiYW5nZG91\u4F7F\u7528base64\u89E3\u7801 call
+  too\uFF1A  ENDECODE\",\n  \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\":
+  \"OOTB_AI_LLM_ZHIPU_MCPArguments\",\n    \"properties\": {},\n    \"required\":
+  []\n  }\n}"

@@ -83,7 +83,7 @@ class HttpServer(McpMixin):
             "GET:/petp/tools": self._handle_petp_tools,
             "POST:/petp/exec": self._handle_petp_event,
             "GET:/petp/result": self._handle_result_check,
-            "GET:/mcp": self._handle_mcp,
+            "GET:/mcp": self._handle_mcp_get,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
             "GET:/mcp/.well-known/openid-configuration": self._handle_mcp_auth,
@@ -230,6 +230,14 @@ class HttpServer(McpMixin):
         """Return the bearer token for MCP authentication discovery."""
         return {"token": self._token}, 200
 
+    def _handle_mcp_get(self, handler: HttpRequestHandler, params: Optional[dict] = None):
+        """Handle GET /mcp — SSE stream for server-initiated notifications.
+        PETP does not push notifications, so return 204 No Content per MCP spec."""
+        token: Optional[str] = handler.headers.get("Authorization")
+        if self._token is not None and token != f"Bearer {self._token}":
+            return {"warning": "PETP Invalid token"}, 403
+        return {}, 204
+
     def _handle_mcp(
         self, handler: HttpRequestHandler, params: Optional[dict] = None
     ) -> Union[dict, tuple, StreamingResponseData]:
@@ -239,25 +247,28 @@ class HttpServer(McpMixin):
         in the JSON-RPC body.
         """
         params = params or {}
-        method: Optional[str] = params.get("method")
-        token: Optional[str] = handler.headers.get("Authorization")
 
-        logging.debug("_handle_mcp path: %s, method: %s", handler.path, method)
+        token: Optional[str] = handler.headers.get("Authorization")
 
         # Token-based access control (skip when _token is None)
         if self._token is not None and token != f"Bearer {self._token}":
             return {"warning": "PETP Invalid token"}, 403
 
+        # Batch request support
+        if '_batch' in params:
+            return self._handle_mcp_batch(handler, params['_batch'], self._handle_mcp)
+
+        method: Optional[str] = params.get("method")
+
         if not method:
-            return {"info": "PETP MCP Server"}, 200
+            session_id = self._extract_session_id(handler)
+            return self._mcp_method_not_found(params.get("id"), "(empty)", session_id, handler)
 
         dispatch: dict[str, Callable] = {
             "initialize": self._mcp_initialize,
             "notifications/initialized": self._mcp_initialized,
             "tools/list": self._mcp_tools_list,
             "tools/call": self._mcp_tools_call,
-            "prompts/list": self._mcp_prompts_list,
-            "resources/list": self._mcp_resources_list,
             ".well-known/openid-configuration": self._mcp_initialize,
         }
 
@@ -267,7 +278,7 @@ class HttpServer(McpMixin):
 
         logging.warning("_handle_mcp unsupported method: %s", method)
         session_id: Optional[str] = self._extract_session_id(handler)
-        return self._mcp_method_not_found(params.get("id"), method, session_id)
+        return self._mcp_method_not_found(params.get("id"), method, session_id, handler)
 
     # ---- MCP protocol handlers ----
 
@@ -275,8 +286,8 @@ class HttpServer(McpMixin):
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
         session_id: str = uuid.uuid4().hex + uuid.uuid4().hex
-        protocol_version: str = handler.headers.get("mcp-protocol-version") or "2025-11-25"
-        return self._mcp_initialize_response(params.get("id"), protocol_version, session_id, "PETP MCP server")
+        protocol_version: str = params.get("params", {}).get("protocolVersion") or "2025-03-26"
+        return self._mcp_initialize_response(params.get("id"), protocol_version, session_id, "PETP MCP server", handler)
 
     def _mcp_initialized(
         self, handler: HttpRequestHandler, params: dict
@@ -288,7 +299,7 @@ class HttpServer(McpMixin):
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
         session_id: Optional[str] = self._extract_session_id(handler)
-        return self._mcp_tools_list_response(params.get("id"), session_id, self.p.get_tools())
+        return self._mcp_tools_list_response(params.get("id"), session_id, self.p.get_tools(), handler)
 
     def _mcp_tools_call(
         self, handler: HttpRequestHandler, payload: dict
@@ -323,13 +334,18 @@ class HttpServer(McpMixin):
                 "params": {"level": "info", "data": question_info},
             })
 
-            # Execute the PETP event and emit the final result
+            # Execute the PETP event with progress notifications
             petp_param: dict = {"execution": action}
             petp_param.update(arguments)
-            result = self._handle_petp_event(handler, {
-                "action": "execution",
-                "params": petp_param,
-            })
+            result = None
+            for item in self._run_with_progress(
+                lambda: self._handle_petp_event(handler, {"action": "execution", "params": petp_param}),
+                self._timeout, action,
+            ):
+                if isinstance(item, str):
+                    yield item
+                else:
+                    result = item
 
             output_schema = self._get_output_schema(action)
             if output_schema and isinstance(result, dict) and not self._is_mcp_error_result(result):
@@ -354,18 +370,6 @@ class HttpServer(McpMixin):
             self._build_sse_headers(session_id),
             "text/event-stream",
         )
-
-    def _mcp_prompts_list(
-        self, handler: HttpRequestHandler, params: dict
-    ) -> StreamingResponseData:
-        session_id: Optional[str] = self._extract_session_id(handler)
-        return self._mcp_empty_list_response(params.get("id"), session_id, "prompts")
-
-    def _mcp_resources_list(
-        self, handler: HttpRequestHandler, params: dict
-    ) -> StreamingResponseData:
-        session_id: Optional[str] = self._extract_session_id(handler)
-        return self._mcp_empty_list_response(params.get("id"), session_id, "resources")
 
     def _get_output_schema(self, tool_name: str) -> Optional[dict]:
         raw = self.p.get_tools().get(tool_name)

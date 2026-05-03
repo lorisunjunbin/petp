@@ -16,6 +16,7 @@ class InputDialog(wx.Dialog):
         super().__init__(parent, title=t("dlg_input_title"), style=style)
 
         self.value = default_value
+        self.save_as_default = False
         self._build_ui(title, message, default_value)
         self._try_set_icon()
 
@@ -85,12 +86,15 @@ class InputDialog(wx.Dialog):
         btns = wx.BoxSizer(wx.HORIZONTAL)
 
         cancel_btn = wx.Button(self, wx.ID_CANCEL, t("dlg_cancel"))
+        save_default_btn = ThemedButton(self, wx.ID_ANY, t("dlg_save_as_default"))
+        save_default_btn.Bind(wx.EVT_BUTTON, self._on_save_as_default)
         ok_btn = ThemedButton(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
         ok_btn.Bind(wx.EVT_BUTTON, self._on_ok)
 
         btns.AddStretchSpacer()
         btns.Add(cancel_btn, 0, wx.RIGHT, 8)
+        btns.Add(save_default_btn, 0, wx.RIGHT, 8)
         btns.Add(ok_btn)
         sizer.AddSpacer(PAD)
         sizer.Add(btns, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, PAD)
@@ -146,6 +150,10 @@ class InputDialog(wx.Dialog):
     def _on_ok(self, _evt):
         self.value = self._text.GetText()
         self.EndModal(wx.ID_OK)
+
+    def _on_save_as_default(self, _evt):
+        self.save_as_default = True
+        self.saved_default_value = self._text.GetText()
 
     def GetValue(self):
         return self.value

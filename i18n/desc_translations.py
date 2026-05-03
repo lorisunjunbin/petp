@@ -6,170 +6,56 @@
 DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Processor descriptions (i18n) ===
 
-    "desc_AI_LLM_DEEPSEEK_QANDA": {
+    "desc_AI_LLM_SETUP": {
         "zh": (
-            
-             "\u5411 DeepSeek LLM \u63d0\u95ee\u5e76\u83b7\u53d6\u56de\u7b54\u3002\u4f9d\u8d56 AI_LLM_DEEPSEEK_SETUP \u5148\u521d\u59cb\u5316 LLM \u5b9e\u4f8b\u3002\n"
-             "\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8 LLM \u5ba2\u6237\u7aef\u5b9e\u4f8b\u7684\u952e\uff08\u9ed8\u8ba4: \"llmdeepseek\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- model: DeepSeek 模型名称（默认: \"deepseek-chat\"）\n"
-             "- temperature: 采样温度，编程/数学: 0.0，数据分析: 1.0，对话: 1.3，创意写作: 1.5（默认: \"1.0\"）\n"
-             "- resp_content_key: data_chain 中存储响应内容的键\n"
-             "- convert_resp_2_json: \"yes\" 解析 markdown 代码块中的 JSON 响应（默认: \"yes\"）\n"
-             "- show_in_popup: \"yes\" 在弹窗中显示问答结果（默认: \"yes\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_DEEPSEEK_QANDA_MCP": {
-        "zh": (
-            
-             "\u5411 DeepSeek LLM \u63d0\u95ee\u5e76\u652f\u6301 MCP \u5de5\u5177\u8c03\u7528\u3002\u4f9d\u8d56 AI_LLM_DEEPSEEK_SETUP \u5148\u521d\u59cb\u5316 LLM \u5b9e\u4f8b\u3002\n"
-             "\u8fd0\u884c\u53e6\u4e00\u4e2a PETP \u4f5c\u4e3a MCP \u670d\u52a1\u5668\u3002\u5982\u679c LLM \u51b3\u5b9a\u4f7f\u7528\u5de5\u5177\uff0c\u4f1a\u8c03\u7528 MCP \u7aef\u70b9\u5e76\u5c06\u7ed3\u679c\u53cd\u9988\u3002\n"
-             "\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8 LLM \u5ba2\u6237\u7aef\u5b9e\u4f8b\u7684\u952e\uff08\u9ed8\u8ba4: \"llmdeepseek\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- petp_mcp_url: PETP MCP 服务器的基础 URL（默认: \"http://localhost:8888\"）\n"
-             "- model: DeepSeek 模型名称（默认: \"deepseek-chat\"）\n"
-             "- temperature: 采样温度，编程/数学: 0.0，数据分析: 1.0，对话: 1.3，创意写作: 1.5（默认: \"1.0\"）\n"
-             "- resp_content_key: data_chain 中存储最终响应内容的键\n"
-             "- convert_resp_2_json: \"yes\" 解析 markdown 代码块中的 JSON 响应（默认: \"yes\"）\n"
-             "- show_in_popup: \"yes\" 在弹窗中显示问答结果（默认: \"yes\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_DEEPSEEK_SETUP": {
-        "zh": (
-            "设置 DeepSeek LLM 客户端实例（OpenAI 兼容）。API 密钥可直接提供或从环境变量读取。\n"
-            "客户端存储在 data_chain 中供后续任务使用。如果实例已存在则跳过设置。\n"
+            "设置统一的 LLM 客户端实例。通过 provider 参数支持所有 LLM 提供商。\n"
+            "支持的 provider: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moonshot, gemini, ollama, openai_compatible。\n"
+            "客户端实例存储在 data_chain 中供后续 QANDA/MCP 任务使用。\n"
             "\n"
-            "- api_key_env: 包含 API 密钥的环境变量名（默认: \"DEEPSEEK_API_KEY\"）\n"
-            "- api_key: 直接提供的 API 密钥（优先于 api_key_env）\n"
-            "- base_url: DeepSeek API 基础 URL（默认: \"https://api.deepseek.com\"）\n"
-            "- llm_data_key: data_chain 中存储客户端的键（默认: \"llmdeepseek\"）"
+            "- provider: LLM 提供商名称 — deepseek | zhipu | qianfan | minimax | doubao | moonshot | gemini | ollama | anthropic | openai_compatible（默认: \"deepseek\"）\n"
+            "- api_key_env: 包含 API 密钥的环境变量名（默认值因 provider 而异）\n"
+            "- api_key: 直接提供的 API 密钥（优先于 api_key_env，支持表达式）\n"
+            "- base_url: API 基础 URL；若为空则使用 provider 默认值（支持表达式）\n"
+            "- model: 模型名称；若为空则使用 provider 默认值（支持表达式）\n"
+            "- llm_data_key: data_chain 中存储客户端实例的键（默认: \"llm_client\"）\n"
+            "- top_p: Top-p 采样参数（默认: \"0.85\"）\n"
+            "- temperature: 采样温度（默认: \"0.8\"）"
         ),
     },
 
-    "desc_AI_LLM_GEMINI_QANDA": {
+    "desc_AI_LLM_QANDA": {
         "zh": (
-            
-             "\u4f7f\u7528\u5df2\u914d\u7f6e\u7684 Gemini \u5b9e\u4f8b\u5411 Google Gemini LLM \u63d0\u95ee\uff08\u7531 AI_LLM_GEMINI_SETUP \u521d\u59cb\u5316\uff09\u3002\n"
-             "\u63d0\u793a\u8bcd\u53d1\u9001\u5230\u6a21\u578b\uff0c\u54cd\u5e94\u53ef\u9009\u62e9\u89e3\u6790\u4e3a JSON \u548c/\u6216\u5728\u5f39\u7a97\u4e2d\u663e\u793a\u3002\n"
-             "\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8 LLM \u5b9e\u4f8b\u7684\u952e\uff08\u9ed8\u8ba4: \"llmgemini\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- resp_content_key: data_chain 中存储响应内容的键；若为空则不存储（支持表达式，默认: \"\"）\n"
-             "- convert_resp_2_json: 若为 \"yes\"，则从 markdown 响应中提取 JSON（支持表达式，默认: \"yes\"）\n"
-             "- show_in_popup: 若为 \"yes\"，在弹窗中显示问答结果（支持表达式，默认: \"yes\"）\n"
+            "向统一的 LLM 提问并获取回答。依赖 AI_LLM_SETUP 先初始化客户端。\n"
+            "支持所有 provider: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moonshot, gemini, ollama, openai_compatible。\n"
+            "\n"
+            "- llm_data_key: data_chain 中存储 LLM 客户端实例的键（默认: \"llm_client\"）\n"
+            "- prompt: 发送给 LLM 的提示/问题（支持表达式）\n"
+            "- model: 模型名称；若为空则使用 SETUP 时配置的模型（支持表达式，默认: \"\"）\n"
+            "- temperature: 采样温度（默认: \"1.0\"）\n"
+            "- system_prompt: 系统消息；若为空则不发送系统消息（支持表达式，默认: \"\"）\n"
+            "- resp_content_key: data_chain 中存储响应内容的键（支持表达式，默认: \"\"）\n"
+            "- convert_resp_2_json: \"yes\" 解析 markdown 代码块中的 JSON 响应（默认: \"no\"）\n"
+            "- show_in_popup: \"yes\" 在弹窗中显示问答结果（默认: \"yes\"）\n"
+            "- show_thinking: \"yes\" 保留 <think> 标签；\"no\" 去除（默认: \"no\"）"
         ),
     },
 
-    "desc_AI_LLM_GEMINI_QANDA_MCP": {
+    "desc_AI_LLM_QANDA_MCP": {
         "zh": (
-            
-             "\u5411 Google Gemini LLM \u63d0\u95ee\u5e76\u652f\u6301\u901a\u8fc7 PETP MCP \u670d\u52a1\u5668\u8fdb\u884c\u5de5\u5177\u8c03\u7528\u3002\n"
-             "\u4f9d\u8d56 AI_LLM_GEMINI_SETUP \u5df2\u521d\u59cb\u5316 LLM \u5b9e\u4f8b\u3002\u4ece MCP \u670d\u52a1\u5668\u83b7\u53d6\u53ef\u7528\u5de5\u5177\uff0c\u5982\u679c LLM \u51b3\u5b9a\u4f7f\u7528\u5de5\u5177\uff0c\n"
-             "\u901a\u8fc7 MCP \u7aef\u70b9\u6267\u884c\u5e76\u8fd4\u56de\u4f18\u5316\u540e\u7684\u7b54\u6848\u3002\n"
-             "\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8 LLM \u5b9e\u4f8b\u7684\u952e\uff08\u9ed8\u8ba4: \"llmgemini\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- petp_mcp_url: 用于工具发现和执行的 PETP MCP 服务器基础 URL（默认: \"http://localhost:8888\"）\n"
-             "- resp_content_key: 存储最终响应内容的 data_chain 键（默认: \"gemini_response\"）\n"
-             "- convert_resp_2_json: 若为 \"yes\"，尝试将最终响应作为 JSON 从 markdown 代码块中解析（默认: \"yes\"）\n"
-             "- show_in_popup: 是否在弹窗中显示问答结果，\"yes\" 或 \"no\"（默认: \"yes\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_GEMINI_SETUP": {
-        "zh": (
-            
-             "\u521d\u59cb\u5316\u5e76\u914d\u7f6e Google Gemini LLM \u5b9e\u4f8b\uff0c\u8bbe\u7f6e\u6307\u5b9a\u7684\u6a21\u578b\u3001\u6e29\u5ea6\u548c top_p \u53c2\u6570\uff0c\n"
-             "\u7136\u540e\u5b58\u50a8\u5728 data_chain \u4e2d\u4f9b\u540e\u7eed\u5904\u7406\u5668\u4f7f\u7528\u3002\u9700\u8981\u8bbe\u7f6e GOOGLE_API_KEY \u73af\u5883\u53d8\u91cf\u3002\n"
-             "\n"
-             "- api_key_env: \u5305\u542b API \u5bc6\u94a5\u7684\u73af\u5883\u53d8\u91cf\u540d\uff08\u9ed8\u8ba4: \"GOOGLE_API_KEY\"\uff09\n"
-             "- model: Gemini \u6a21\u578b\u540d\u79f0\uff08\u9ed8\u8ba4: \"gemini-2.0-flash\"\uff09\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8\u5ba2\u6237\u7aef\u7684\u952e\uff08\u9ed8\u8ba4: \"llmgemini\"\uff09\n"
-             "- top_p: Top-p \u91c7\u6837\u53c2\u6570\uff08\u9ed8\u8ba4: 0.95\uff09\n"
-             "- temperature: \u91c7\u6837\u6e29\u5ea6\uff0c0-2\uff08\u9ed8\u8ba4: 1.0\uff09\n"
-        ),
-    },
-
-    "desc_AI_LLM_OLLAMA_QANDA": {
-        "zh": (
-            
-             "\u901a\u8fc7\u672c\u5730\u8fd0\u884c\u7684 Ollama \u5b9e\u4f8b\u5411 LLM \u63d0\u95ee\uff0c\u83b7\u53d6\u56de\u7b54\uff0c\u6309\u9700\u89e3\u6790\u4e3a JSON\uff0c\n"
-             "\u5e76\u53ef\u9009\u62e9\u5728\u5f39\u7a97\u4e2d\u663e\u793a\u3002\u9700\u8981 Ollama \u5728\u672c\u5730\u8fd0\u884c\u3002\n"
-             "\n"
-             "- model: Ollama \u6a21\u578b\u540d\u79f0\uff08\u9ed8\u8ba4: \"deepseek-r1:1.5b\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- role: 消息的聊天角色，通常为 \"user\" 或 \"system\"（默认: \"user\"）\n"
-             "- show_in_popup: 是否在弹窗中显示问答结果，\"yes\" 或 \"no\"（默认: \"yes\"）\n"
-             "- resp_content_key: 存储原始 LLM 响应的 data_chain 键（默认: \"ollama_resp\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_OLLAMA_QANDA_MCP": {
-        "zh": (
-            
-             "\u901a\u8fc7 PETP MCP \u670d\u52a1\u5668\u8c03\u7528\u672c\u5730 Ollama LLM \u5e76\u652f\u6301\u5de5\u5177\u8c03\u7528\u3002\n"
-             "\u4ece MCP \u670d\u52a1\u5668\u83b7\u53d6\u53ef\u7528\u5de5\u5177\uff0c\u5411 LLM \u63d0\u95ee\uff0c\u5982\u679c LLM \u51b3\u5b9a\u4f7f\u7528\u5de5\u5177\uff0c\n"
-             "\u901a\u8fc7 MCP \u670d\u52a1\u5668\u6267\u884c\u5e76\u8fd4\u56de\u4f18\u5316\u540e\u7684\u7b54\u6848\u3002\n"
-             "\n"
-             "- model: Ollama \u6a21\u578b\u540d\u79f0\uff08\u9ed8\u8ba4: \"qwen2.5:7b\"\uff09\n"
-             "- show_thinking: 是否在输出中显示思考/推理标签，\"yes\" 或 \"no\"（默认: \"no\"）\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- petp_mcp_url: 用于工具发现和执行的 PETP MCP 服务器基础 URL（默认: \"http://localhost:8888\"）\n"
-             "- resp_content_key: 存储最终响应内容的 data_chain 键（默认: \"\"）\n"
-             "- convert_resp_2_json: 若为 \"yes\"，尝试将最终响应作为 JSON 从 markdown 代码块中解析（默认: \"yes\"）\n"
-             "- show_in_popup: 是否在弹窗中显示问答结果，\"yes\" 或 \"no\"（默认: \"yes\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_ZHIPU_QANDA": {
-        "zh": (
-            
-             "\u5411\u667a\u8c31 AI (GLM) \u5927\u6a21\u578b\u63d0\u95ee\uff0c\u83b7\u53d6\u56de\u7b54\uff0c\u53ef\u9009\u4ece markdown \u4ee3\u7801\u5757\u4e2d\u89e3\u6790 JSON\uff0c\n"
-             "\u5e76\u53ef\u9009\u5728\u5f39\u7a97\u4e2d\u663e\u793a\u95ee\u7b54\u5185\u5bb9\u3002\u4f9d\u8d56 AI_LLM_ZHIPU_SETUP \u5df2\u521d\u59cb\u5316\u5ba2\u6237\u7aef\u5b9e\u4f8b\u3002\n"
-             "\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8 LLM \u5b9e\u4f8b\u7684\u952e\uff08\u9ed8\u8ba4: \"llmzhipu\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- model: \u6a21\u578b\u540d\u79f0\uff08\u9ed8\u8ba4: \"glm-4-flash\"\uff09\n"
-             "- temperature: 作为浮点字符串的采样温度，值越高输出越具创意（默认: \"1.0\"）\n"
-             "- resp_content_key: 存储最终响应内容的 data_chain 键（默认: \"\"）\n"
-             "- convert_resp_2_json: 若为 \"yes\"，尝试将响应作为 JSON 从 markdown 代码块中解析（默认: \"yes\"）\n"
-             "- show_in_popup: 是否在弹窗中显示问答结果，\"yes\" 或 \"no\"（默认: \"yes\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_ZHIPU_QANDA_MCP": {
-        "zh": (
-            
-             "\u901a\u8fc7 PETP MCP \u670d\u52a1\u5668\u8c03\u7528\u667a\u8c31 AI (GLM) LLM \u5e76\u652f\u6301\u5de5\u5177\u8c03\u7528\u3002\n"
-             "\u4f9d\u8d56 AI_LLM_ZHIPU_SETUP \u5df2\u521d\u59cb\u5316\u5ba2\u6237\u7aef\u3002\u4ece MCP \u670d\u52a1\u5668\u83b7\u53d6\u53ef\u7528\u5de5\u5177\uff0c\u5411 LLM \u63d0\u95ee\uff0c\n"
-             "\u5982\u679c LLM \u51b3\u5b9a\u4f7f\u7528\u5de5\u5177\uff0c\u901a\u8fc7 MCP \u7aef\u70b9\u6267\u884c\u5e76\u8fd4\u56de\u4f18\u5316\u540e\u7684\u7b54\u6848\u3002\n"
-             "\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8 LLM \u5b9e\u4f8b\u7684\u952e\uff08\u9ed8\u8ba4: \"llmzhipu\"\uff09\n"
-             "- prompt: \u53d1\u9001\u7ed9 LLM \u7684\u63d0\u793a/\u95ee\u9898\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- model: \u6a21\u578b\u540d\u79f0\uff08\u9ed8\u8ba4: \"glm-4-flash\"\uff09\n"
-             "- temperature: 作为浮点字符串的采样温度，值越高输出越具创意（默认: \"1.0\"）\n"
-             "- show_thinking: 是否在输出中显示思考/推理标签，\"yes\" 或 \"no\"（默认: \"no\"）\n"
-             "- petp_mcp_url: 用于工具发现和执行的 PETP MCP 服务器基础 URL（默认: \"http://localhost:8888\"）\n"
-             "- resp_content_key: 存储最终响应内容的 data_chain 键（默认: \"\"）\n"
-             "- convert_resp_2_json: 若为 \"yes\"，尝试将最终响应作为 JSON 从 markdown 代码块中解析（默认: \"yes\"）\n"
-             "- show_in_popup: 是否在弹窗中显示问答结果，\"yes\" 或 \"no\"（默认: \"yes\"）\n"
-        ),
-    },
-
-    "desc_AI_LLM_ZHIPU_SETUP": {
-        "zh": (
-            
-             "\u521d\u59cb\u5316\u5e76\u914d\u7f6e\u667a\u8c31 AI LLM \u5ba2\u6237\u7aef\u5b9e\u4f8b\uff0c\u4ece\u73af\u5883\u53d8\u91cf\uff08api_key_env \u6307\u5b9a\uff09\u6216 api_key \u53c2\u6570\n"
-             "\u76f4\u63a5\u8bfb\u53d6 API \u5bc6\u94a5\u3002\u5ba2\u6237\u7aef\u5b58\u50a8\u5728 data_chain \u4e2d\u4f9b\u540e\u7eed\u5904\u7406\u5668\u4f7f\u7528\u3002\u5982\u679c\u5b9e\u4f8b\u5df2\u5b58\u5728\u5219\u8df3\u8fc7\u8bbe\u7f6e\u3002\n"
-             "\n"
-             "- api_key_env: \u5305\u542b API \u5bc6\u94a5\u7684\u73af\u5883\u53d8\u91cf\u540d\uff08\u9ed8\u8ba4: \"ZHIPU_API_KEY\"\uff09\n"
-             "- api_key: \u76f4\u63a5\u63d0\u4f9b\u7684 API \u5bc6\u94a5\uff08\u4f18\u5148\u4e8e api_key_env\uff09\n"
-             "- base_url: 智谱 AI API 端点的基础 URL（默认: \"https://open.bigmodel.cn/api/paas/v4/\"）\n"
-             "- llm_data_key: data_chain \u4e2d\u5b58\u50a8\u5ba2\u6237\u7aef\u7684\u952e\uff08\u9ed8\u8ba4: \"llmzhipu\"\uff09\n"
+            "向统一的 LLM 提问并支持通过 MCP 服务器进行工具调用。使用官方 MCP SDK（Streamable HTTP 传输）。\n"
+            "依赖 AI_LLM_SETUP 先初始化客户端。支持所有 provider。可连接任意标准 MCP server。\n"
+            "从 MCP 服务器获取可用工具，如果 LLM 决定使用工具，通过 MCP 协议执行后返回优化答案。\n"
+            "\n"
+            "- llm_data_key: data_chain 中存储 LLM 客户端实例的键（默认: \"llm_client\"）\n"
+            "- prompt: 发送给 LLM 的提示/问题（支持表达式）\n"
+            "- mcp_server_url: MCP 服务器端点 URL，需支持 Streamable HTTP 传输（默认: \"http://localhost:8866/mcp\"）\n"
+            "- model: 模型名称；若为空则使用 SETUP 时配置的模型（支持表达式，默认: \"\"）\n"
+            "- temperature: 采样温度（默认: \"1.0\"）\n"
+            "- system_prompt: 额外系统上下文（支持表达式，默认: \"\"）\n"
+            "- resp_content_key: data_chain 中存储最终响应内容的键（支持表达式，默认: \"\"）\n"
+            "- convert_resp_2_json: \"yes\" 解析 markdown 代码块中的 JSON 响应（默认: \"no\"）\n"
+            "- show_in_popup: \"yes\" 在弹窗中显示问答结果（默认: \"yes\"）\n"
+            "- show_thinking: \"yes\" 保留 <think> 标签；\"no\" 去除（默认: \"no\"）"
         ),
     },
 
