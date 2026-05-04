@@ -28,6 +28,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._on_after_change_callback = None
         self._on_undo_callback = None
         self._on_redo_callback = None
+        self._on_sync_input_callback = None
         self._suppress_change = False
         self._text_snapshot_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._on_text_snapshot_timer, self._text_snapshot_timer)
@@ -183,12 +184,23 @@ class McpDescEditor(wx.ScrolledWindow):
     def set_on_redo(self, callback):
         self._on_redo_callback = callback
 
+    def set_on_sync_input(self, callback):
+        self._on_sync_input_callback = callback
+
+    def sync_input_params(self, params: dict):
+        existing = {self._input_grid.GetCellValue(r, 0).strip()
+                    for r in range(self._input_grid.GetNumberRows())}
+        for name, value in params.items():
+            if name not in existing:
+                self._add_input_row(name, "string", "", True, str(value) if value else "")
+
     def apply_i18n(self):
         self._lbl_desc.SetLabel(t("mcp_lbl_tool_desc"))
         self._lbl_input.SetLabel(t("mcp_lbl_input_params"))
         self._lbl_output.SetLabel(t("mcp_lbl_output_params"))
         self._btn_add_input.SetToolTip(t("mcp_tip_add_input"))
         self._btn_del_input.SetToolTip(t("mcp_tip_del_input"))
+        self._btn_sync_input.SetToolTip(t("mcp_tip_sync_input"))
         self._btn_add_output.SetToolTip(t("mcp_tip_add_output"))
         self._btn_del_output.SetToolTip(t("mcp_tip_del_output"))
         self._desc_text.SetToolTip(t("mcp_tip_tool_desc"))
@@ -236,15 +248,18 @@ class McpDescEditor(wx.ScrolledWindow):
         desc_row.Add(self._btn_preview, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 4)
         main.Add(desc_row, 0, wx.EXPAND | wx.ALL, 3)
 
-        # --- input parameters: label ... +/- buttons ---
+        # --- input parameters: label ... sync/+/- buttons ---
         inp_hdr = wx.BoxSizer(wx.HORIZONTAL)
         self._lbl_input = wx.StaticText(self, label=t("mcp_lbl_input_params"))
         inp_hdr.Add(self._lbl_input, 0, wx.ALIGN_CENTER_VERTICAL)
         inp_hdr.AddStretchSpacer()
+        self._btn_sync_input = wx.Button(self, label="⇣", size=(28, 24))
+        self._btn_sync_input.SetToolTip(t("mcp_tip_sync_input"))
         self._btn_add_input = wx.Button(self, label="+", size=(28, 24))
         self._btn_del_input = wx.Button(self, label="-", size=(28, 24))
         self._btn_add_input.SetToolTip(t("mcp_tip_add_input"))
         self._btn_del_input.SetToolTip(t("mcp_tip_del_input"))
+        inp_hdr.Add(self._btn_sync_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 2)
         inp_hdr.Add(self._btn_add_input, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 2)
         inp_hdr.Add(self._btn_del_input, 0, wx.ALIGN_CENTER_VERTICAL)
         main.Add(inp_hdr, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 3)
@@ -310,6 +325,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self.FitInside()
 
     def _bind_events(self):
+        self._btn_sync_input.Bind(wx.EVT_BUTTON, self._on_sync_input)
         self._btn_add_input.Bind(wx.EVT_BUTTON, self._on_add_input)
         self._btn_del_input.Bind(wx.EVT_BUTTON, self._on_del_input)
         self._btn_add_output.Bind(wx.EVT_BUTTON, self._on_add_output)
@@ -364,6 +380,10 @@ class McpDescEditor(wx.ScrolledWindow):
     # ------------------------------------------------------------------ #
     # Event handlers
     # ------------------------------------------------------------------ #
+
+    def _on_sync_input(self, _evt):
+        if self._on_sync_input_callback:
+            self._on_sync_input_callback()
 
     def _on_add_input(self, _evt):
         self._fire_before_change()

@@ -1,0 +1,52 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: T_SEND_EMAIL
+list:
+- !!python/object:core.task.Task
+  input: '{"smtp_host": "smtp.qq.com", "smtp_port": 587, "imap_host": "imap.qq.com",
+    "imap_port": 993, "usr_pwd": "{self.decrypt(\"As8KnqL4E0A7vhRK3GwJFw==*4zJdJUYPQ7c45iMKvi1bSw==*wd3Leu5PzEwR+o6o4GMXIw==*9dp/4zOjkRON4wN57LjVJg==\")}",
+    "usr_name": "{self.decrypt(\"T3bMrJJgOEuQzy0Z4gQ=*VAp55ievnHZBECGh7YYSFA==*xTnhTFt3nSzILcmI2buDoQ==*nohy5h0ZaDc1gJTxmSb85A==\")}",
+    "to": "junbin.sun@sap.com", "cc": "", "subject": "Email notification", "content":
+    "test email content", "attachments": "{self.get_tdir()}{os.sep}excel{os.sep}test.xlsx"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"smtp": "{smtp_host}", "port": "{smtp_port}", "name": "{usr_name}", "pwd":
+    "{usr_pwd}", "to": "{to}", "cc": "{cc}", "bcc": "", "subject": "{subject}", "content":
+    "{content}", "content_type": "html", "attachment": "", "attachments": "{attachments}",
+    "use_tls": "yes", "use_ssl": "no", "timeout": "30", "fail_on_error": "yes"}'
+  skipped: false
+  type: SEND_EMAIL
+- !!python/object:core.task.Task
+  input: '{"title": " \u67e5\u770b data_chain", "msg": "", "skipped": "yes"}'
+  skipped: true
+  type: SHOW_RESULT
+loops: []
+mcp_desc: "{\n  \"desc\": \"Send email notification\",\n  \"inputSchema\": {\n    \"type\":
+  \"object\",\n    \"title\": \"T_SEND_EMAILArguments\",\n    \"properties\": {\n
+  \     \"smtp_host\": {\n        \"title\": \"smtp_host\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\",\n        \"default\": \"smtp.qq.com\"\n      },\n
+  \     \"smtp_port\": {\n        \"title\": \"smtp_port\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\",\n        \"default\": \"587\"\n      },\n      \"imap_host\":
+  {\n        \"title\": \"imap_host\",\n        \"type\": \"string\",\n        \"description\":
+  \"\",\n        \"default\": \"imap.qq.com\"\n      },\n      \"imap_port\": {\n
+  \       \"title\": \"imap_port\",\n        \"type\": \"string\",\n        \"description\":
+  \"\",\n        \"default\": \"993\"\n      },\n      \"usr_pwd\": {\n        \"title\":
+  \"usr_pwd\",\n        \"type\": \"string\",\n        \"description\": \"\",\n        \"default\":
+  \"{self.decrypt(\\\"As8KnqL4E0A7vhRK3GwJFw==*4zJdJUYPQ7c45iMKvi1bSw==*wd3Leu5PzEwR+o6o4GMXIw==*9dp/4zOjkRON4wN57LjVJg==\\\")}\"\n
+  \     },\n      \"usr_name\": {\n        \"title\": \"usr_name\",\n        \"type\":
+  \"string\",\n        \"description\": \"\",\n        \"default\": \"{self.decrypt(\\\"T3bMrJJgOEuQzy0Z4gQ=*VAp55ievnHZBECGh7YYSFA==*xTnhTFt3nSzILcmI2buDoQ==*nohy5h0ZaDc1gJTxmSb85A==\\\")}\"\n
+  \     },\n      \"to\": {\n        \"title\": \"to\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\",\n        \"default\": \"junbin.sun@sap.com\"\n      },\n
+  \     \"cc\": {\n        \"title\": \"cc\",\n        \"type\": \"string\",\n        \"description\":
+  \"\"\n      },\n      \"subject\": {\n        \"title\": \"subject\",\n        \"type\":
+  \"string\",\n        \"description\": \"\",\n        \"default\": \"Email notification\"\n
+  \     },\n      \"content\": {\n        \"title\": \"content\",\n        \"type\":
+  \"string\",\n        \"description\": \"\",\n        \"default\": \"test email content\"\n
+  \     },\n      \"attachments\": {\n        \"title\": \"attachments\",\n        \"type\":
+  \"string\",\n        \"description\": \"\"\n      }\n    },\n    \"required\": [\n
+  \     \"to\",\n      \"subject\",\n      \"content\"\n    ]\n  },\n  \"outputSchema\":
+  {\n    \"type\": \"object\",\n    \"title\": \"T_SEND_EMAILOutput\",\n    \"properties\":
+  {\n      \"to\": {\n        \"title\": \"to\",\n        \"type\": \"string\",\n
+  \       \"description\": \"email sent to the mail box\",\n        \"mapKey\": \"sent
+  to\"\n      }\n    },\n    \"required\": [\n      \"to\"\n    ]\n  }\n}"

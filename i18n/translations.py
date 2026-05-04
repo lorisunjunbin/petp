@@ -143,6 +143,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mcp_tip_del_output": {"en": "Remove selected output parameter", "zh": "删除选中的输出参数"},
     "mcp_tip_tool_desc": {"en": "Brief description of what this tool does", "zh": "简要描述此工具的功能"},
     "mcp_tip_preview_json": {"en": "Preview generated JSON", "zh": "预览生成的JSON"},
+    "mcp_tip_sync_input": {"en": "Sync from first task input", "zh": "从首个任务输入同步"},
+    "mcp_dlg_sync_title": {"en": "Sync Input Parameters", "zh": "同步输入参数"},
+    "mcp_sync_no_params": {"en": "First task has no parseable JSON parameters.", "zh": "首个任务没有可解析的JSON参数。"},
 
     # === Tooltips — pipeline actions ===
     "tip_add_row_p": {"en": "Add row", "zh": "添加行"},

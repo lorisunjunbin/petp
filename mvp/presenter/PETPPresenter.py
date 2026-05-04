@@ -88,6 +88,7 @@ class PETPPresenter():
         view.execution_desc.set_on_change(self._push_snapshot, self._update_save_button)
         view.execution_desc.set_on_undo(self._undo)
         view.execution_desc.set_on_redo(self._redo)
+        view.execution_desc.set_on_sync_input(self._on_sync_input_from_task)
 
         logging.info('Init PETPPresenter')
 
@@ -487,6 +488,8 @@ class PETPPresenter():
         self._on_grid_row_paste(None)
 
     def _on_grid_row_paste(self, evt):
+        if not hasattr(self, 'row_copied') or not self.row_copied:
+            return
         self._push_snapshot()
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 0, self.row_copied[0])
         self.v.taskGrid.SetCellValue(self.selected_row_2_copied_paste, 1, self.row_copied[1])
@@ -1095,7 +1098,10 @@ class PETPPresenter():
         if result != wx.ID_YES:
             return
 
-        self.execution.delete()
+        target = self.execution or Execution.get_execution(name)
+        if target is None:
+            return
+        target.delete()
         self._refresh_execution_chooser('')
         self.invalidate_tools_cache()
 
@@ -1126,7 +1132,8 @@ class PETPPresenter():
                 continue
             break
 
-        copy = Execution(new_name, list(source.list),
+        clean_tasks = [Task(t.type, t.input, t.skipped) for t in source.list]
+        copy = Execution(new_name, clean_tasks,
                          source.mcp_desc if hasattr(source, 'mcp_desc') else '',
                          source.astool if hasattr(source, 'astool') else False,
                          list(source.loops) if hasattr(source, 'loops') else [])
@@ -1551,6 +1558,45 @@ class PETPPresenter():
             if changed:
                 prop.SetValue(json.dumps(attrs, ensure_ascii=False))
 
+    def _on_sync_input_from_task(self):
+        params = self._extract_first_task_params()
+        if not params:
+            wx.MessageBox(t("mcp_sync_no_params"), "Info", wx.OK | wx.ICON_INFORMATION, self.v)
+            return
+
+        existing = {self.v.execution_desc._input_grid.GetCellValue(r, 0).strip()
+                    for r in range(self.v.execution_desc._input_grid.GetNumberRows())}
+
+        dlg = wx.Dialog(self.v, title=t("mcp_dlg_sync_title"), size=(350, 400))
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        scrolled = wx.ScrolledWindow(dlg)
+        scrolled.SetScrollRate(0, 10)
+        cb_sizer = wx.BoxSizer(wx.VERTICAL)
+        checkboxes = []
+        for key in params:
+            cb = wx.CheckBox(scrolled, label=key)
+            cb.SetValue(key not in existing)
+            checkboxes.append((key, cb))
+            cb_sizer.Add(cb, 0, wx.ALL, 4)
+        scrolled.SetSizer(cb_sizer)
+        sizer.Add(scrolled, 1, wx.EXPAND | wx.ALL, 8)
+        btn_sizer = dlg.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL)
+        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 8)
+        dlg.SetSizer(sizer)
+
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        selected = {key: params[key] for key, cb in checkboxes if cb.GetValue()}
+        dlg.Destroy()
+
+        if not selected:
+            return
+
+        self._push_snapshot()
+        self.v.execution_desc.sync_input_params(selected)
+        self._update_save_button()
+
     def _extract_initial_params(self):
         grid = self.v.taskGrid
         if grid.GetNumberRows() == 0:
@@ -1565,6 +1611,22 @@ class PETPPresenter():
             params = json.loads(first_input)
             if isinstance(params, dict) and params:
                 skipped = params.pop("skipped", None)
+                return params if params else None
+            return None
+        except (json.JSONDecodeError, TypeError):
+            return None
+
+    def _extract_first_task_params(self):
+        grid = self.v.taskGrid
+        if grid.GetNumberRows() == 0:
+            return None
+        first_input = grid.GetCellValue(0, 1).strip()
+        if not first_input:
+            return None
+        try:
+            params = json.loads(first_input)
+            if isinstance(params, dict) and params:
+                params.pop("skipped", None)
                 return params if params else None
             return None
         except (json.JSONDecodeError, TypeError):

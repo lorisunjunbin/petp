@@ -194,6 +194,7 @@ chmod +x scripts/macos/start_petp.sh scripts/macos/start_petp_gui.sh scripts/mac
 ./scripts/macos/start_petp.sh bg --run-pipeline MY_PIPELINE --no-http
 ./scripts/macos/start_petp.sh bg --run-execution MY_EXEC --headless --no-http
 ./scripts/macos/start_petp.sh bg --headless --http-port 9090
+./scripts/macos/start_petp.sh bg --http-port 8888
 
 # 后台脱离终端模式（nohup，终端关闭不影响运行）
 ./scripts/macos/start_petp.sh bgd
@@ -778,6 +779,7 @@ python tools/migrate_params.py --path /your/custom/executions/folder
 
 | 日期 | 更新内容                                                                                                                                                                                          |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | MCP 工具扩展：`T_SEND_EMAIL`（发送邮件，支持抄送、附件）和 `T_RECEIVE_EMAIL`（接收邮件，支持发件人/主题过滤）作为 MCP Tool 暴露，可通过 Claude Code 等 MCP 客户端直接调用；`McpDescEditor` 新增 `⇣` 同步按钮，从首个任务 input 选择性同步参数到 MCP inputSchema |
 | 2026-05 | 邮件处理器增强：`SEND_EMAIL` 支持抄送/密送、HTML、多附件、`use_tls`/`use_ssl` 兼容处理（针对 465/587 组合自动纠偏）、超时与失败策略；`RECEIVE_EMAIL` 支持 IMAP 发件人+主题过滤、附件下载（`save_attachments`）以及通过 `attachments_key` 输出已保存附件路径。 |
 | 2026-05 | **处理器系统全面优化**：全部 81 个处理器统一 snake_case 参数命名（`source_path`、`target_path`、`data_key`、`find_by`、代码参数 `_fn` 后缀、布尔值 `yes\|no`）；完整 i18n 覆盖（全部处理器中英文描述）；DESC 文档质量提升 — 在属性编辑器中右键任意属性可查看参数介绍和使用方法。提供迁移脚本 `tools/migrate_params.py` 更新已有 YAML 文件 — 详见下方[参数迁移指南](#参数迁移指南)。 |
 | 2026-05 | 界面精简：移除 DC 查看器；日志级别和清除日志控件整合进 LogSearchBar；新增通用 `PopupMenuButton` 组件用于主题/语言/日志级别选择；新增 5 套主题（Nord、Dracula、Sakura、Cyberpunk，总计 9 套）；DEBUG 级别下每个 Task 执行后输出 `data_chain` JSON |
