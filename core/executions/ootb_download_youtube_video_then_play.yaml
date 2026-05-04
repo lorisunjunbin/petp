@@ -1,9 +1,10 @@
 !!python/object:core.execution.Execution
+astool: false
 execution: ootb_download_youtube_video_then_play
 list:
 - !!python/object:core.task.Task
-  input: '{"title": "\u8bf7\u8f93\u5165", "msg": "\u60a8\u8981\u4e0b\u8f7d\u7684\u89c6\u9891\u5730\u5740",
-    "value_key": "youtube_video_url", "default_value": "https://www.youtube.com/watch?v=vMowPNqMPac"}'
+  input: "{\"title\": \"\u8BF7\u8F93\u5165\", \"msg\": \"\u60A8\u8981\u4E0B\u8F7D\u7684\u89C6\u9891\u5730\u5740\",
+    \"value_key\": \"youtube_video_url\", \"default_value\": \"https://www.youtube.com/shorts/q0UEBvqMnWo\"}"
   skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
@@ -18,3 +19,4 @@ list:
   skipped: false
   type: OPEN_FILE
 loops: []
+mcp_desc: ''

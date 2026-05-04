@@ -97,6 +97,7 @@ class PETPInteractor():
         # Execution action panel
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_execution, self.v.delExecution)
         self.v.Bind(wx.EVT_BUTTON, self.on_copy_execution, self.v.copyExecution)
+        self.v.Bind(wx.EVT_BUTTON, self.on_add_execution, self.v.addExecution)
         self.v.executionChooser.Bind(wx.EVT_LEFT_DOWN, self.on_execution_chooser_click)
         self.v.executionChooser.Bind(wx.EVT_KEY_DOWN, self.on_execution_chooser_key)
 
@@ -328,6 +329,10 @@ class PETPInteractor():
     def on_copy_execution(self, evt):
         evt.Skip()
         self.p.on_copy_execution()
+
+    def on_add_execution(self, evt):
+        evt.Skip()
+        self.p.on_add_execution()
 
     def on_run_execution(self, evt):
         evt.Skip()

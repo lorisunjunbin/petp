@@ -8,8 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Dict, Any
 
 from core.processor import Processor
-from pytube import YouTube, Playlist
-from pytube.exceptions import PytubeError
+from pytubefix import YouTube, Playlist
+from pytubefix.exceptions import PytubeFixError as PytubeError
 
 
 class PYTUBEProcessor(Processor):
@@ -202,7 +202,8 @@ class PYTUBEProcessor(Processor):
                 download_results['caption_path'] = caption_path
 
         if params['file_download_path_key']:
-            self.populate_data(params['file_download_path_key'], download_results)
+            primary_path = download_results.get('video_path') or download_results.get('audio_path')
+            self.populate_data(params['file_download_path_key'], primary_path)
 
     def _download_playlist(self, params: Dict[str, Any]):
         """Download a playlist"""

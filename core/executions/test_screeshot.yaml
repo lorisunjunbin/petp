@@ -7,7 +7,7 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"data_key": "screeshot_xpath", "format": "png", "wait": 2, "xpath": "//*[@id=\"s_lg_img\"]",
+  input: '{"data_key": "screeshot_xpath", "format": "png", "wait": 1, "xpath": "//*[@id=\"s_lg_img_new\"]",
     "file_path": "{self.get_tdir()}/test_screenshot/screenshotbaidu_xpath.png"}'
   skipped: false
   type: SCREENSHOT

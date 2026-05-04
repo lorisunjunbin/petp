@@ -82,6 +82,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Tooltips — execution actions ===
     "tip_delete_execution": {"en": "Delete selected Execution", "zh": "删除选中的Execution"},
     "tip_copy_execution": {"en": "Copy selected Execution", "zh": "复制选中Execution"},
+    "tip_create_execution": {"en": "Create new Execution", "zh": "新建Execution"},
+    "dlg_create_exec_title": {"en": "Create Execution", "zh": "新建Execution"},
+    "dlg_create_exec_name": {"en": "Execution name:", "zh": "Execution名称："},
+    "dlg_create_exec_mode": {"en": "Choose creation mode:", "zh": "选择创建方式："},
+    "dlg_create_exec_blank": {"en": "Blank (empty)", "zh": "空白新建"},
+    "dlg_create_exec_dup": {"en": "Name is empty or already exists.", "zh": "名称为空或已存在。"},
+    "dlg_no_exec_selected": {"en": "Please select an Execution first.", "zh": "请先选择一个Execution。"},
     "tip_save_execution": {"en": "Save or Update selected Execution", "zh": "保存或更新选中的Execution"},
     "tip_execute_on_startup": {"en": "Execute on startup", "zh": "启动时运行"},
     "tip_change_log_level": {"en": "Change Log Level", "zh": "更改日志级别"},

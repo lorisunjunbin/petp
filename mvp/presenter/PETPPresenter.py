@@ -180,6 +180,7 @@ class PETPPresenter():
         v.delExecution.SetToolTip(t("tip_delete_execution"))
         v.copyExecution.SetLabel(t("btn_copy"))
         v.copyExecution.SetToolTip(t("tip_copy_execution"))
+        v.addExecution.SetToolTip(t("tip_create_execution"))
         v.saveExection.SetLabel(t("btn_save"))
         v.saveExection.SetToolTip(t("tip_save_execution"))
         v.stopExection.SetLabel(t("btn_stop"))
@@ -534,8 +535,7 @@ class PETPPresenter():
     def _refresh_execution_chooser(self, selected_name=''):
         self.available_executions = Execution.get_available_executions()
         self._tool_names = set(Execution.get_tool_execution_names())
-        if selected_name:
-            self.v.executionChooser.SetValue(selected_name)
+        self.v.executionChooser.SetValue(selected_name)
 
     def _load_available_pipelines(self):
         self.available_pipelines = Pipeline.get_available_pipelines()
@@ -789,6 +789,9 @@ class PETPPresenter():
 
         self.execution = Execution.get_execution(combo.GetValue())
         if self.execution is None:
+            self._snapshots.clear()
+            self._snapshot_cursor = -1
+            self._mark_clean()
             return
         else:
             current_number_rows = grid.GetNumberRows()
@@ -1102,8 +1105,10 @@ class PETPPresenter():
         if target is None:
             return
         target.delete()
+        self.execution = None
         self._refresh_execution_chooser('')
         self.invalidate_tools_cache()
+        self.on_task_execution_changed()
 
     def on_copy_execution(self):
         combo = self.v.executionChooser
@@ -1142,6 +1147,48 @@ class PETPPresenter():
         self.invalidate_tools_cache()
         self.on_task_execution_changed()
 
+    def on_add_execution(self, _evt=None):
+        existing = set(Execution.get_available_executions())
+
+        dlg = wx.TextEntryDialog(self.v, t("dlg_create_exec_name"),
+                                 t("dlg_create_exec_title"), "NEW_EXECUTION")
+        while True:
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
+            new_name = dlg.GetValue().strip()
+            if not new_name or new_name in existing:
+                wx.MessageBox(t("dlg_create_exec_dup"), t("dlg_create_exec_title"),
+                              wx.OK | wx.ICON_WARNING, self.v)
+                continue
+            break
+        dlg.Destroy()
+
+        tpl_choices = [t("dlg_create_exec_blank")] + sorted(existing)
+        choice_dlg = wx.SingleChoiceDialog(
+            self.v, t("dlg_create_exec_mode"),
+            t("dlg_create_exec_title"), tpl_choices)
+        choice_dlg.SetSelection(0)
+        if choice_dlg.ShowModal() != wx.ID_OK:
+            choice_dlg.Destroy()
+            return
+        sel = choice_dlg.GetStringSelection()
+        choice_dlg.Destroy()
+
+        if sel != t("dlg_create_exec_blank") and sel in existing:
+            source = Execution.get_execution(sel)
+            clean_tasks = [Task(tk.type, tk.input, tk.skipped) for tk in source.list]
+            loops = list(source.loops) if hasattr(source, 'loops') else []
+        else:
+            clean_tasks = [Task('INITIAL_PARAMS', '{}', False)]
+            loops = []
+
+        new_exec = Execution(new_name, clean_tasks, '', False, loops)
+        new_exec.save()
+        self._refresh_execution_chooser(new_name)
+        self.invalidate_tools_cache()
+        self.on_task_execution_changed()
+
     def on_stop_all(self):
         self.cron.stop_all()
 
@@ -1158,6 +1205,10 @@ class PETPPresenter():
             Thread(target=self.pipeline.run, args=({"__m": self.m, "__p": self}, self.v), daemon=True).start()
 
     def on_run_execution(self, init_param: dict = None):
+        if self.execution is None:
+            wx.MessageBox(t("dlg_no_exec_selected"), t("dlg_create_exec_title"),
+                          wx.OK | wx.ICON_INFORMATION, self.v)
+            return
         if self._is_dirty():
             dlg = wx.MessageDialog(
                 self.v,

@@ -328,16 +328,20 @@ class Execution:
         return f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{self.execution}.yaml'
 
     def delete(self):
+        global _available_executions_cache
         trash_dir = os.path.realpath('core') + f'{os.sep}executions{os.sep}trash{os.sep}'
         os.makedirs(trash_dir, exist_ok=True)
         OSUtils.copy2(self._get_file_path(), trash_dir)
         OSUtils.delete_file_if_existed(self._get_file_path())
         _execution_cache.pop(self._get_file_path(), None)
+        _available_executions_cache = None
 
     def save(self):
+        global _available_executions_cache
         if len(self.list) > 0:
             YamlRO.write(self._get_file_path(), self)
             _execution_cache.pop(self._get_file_path(), None)
+            _available_executions_cache = None
             logging.info('Successfully save execution -> ' + self._get_file_path())
 
     def __str__(self):
