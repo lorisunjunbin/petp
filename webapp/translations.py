@@ -159,6 +159,26 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_05_create_execution": {
+        "en": "New <strong>Create Execution</strong> button (+): create blank execution or from template via dialog; chooser and all grids properly cleared on delete.",
+        "zh": "新增<strong>新建 Execution</strong>按钮（+）：通过对话框空白新建或从模板创建；删除后正确清空选择器与所有编辑区域。",
+    },
+    "cl_2026_05_mcp_sync_input": {
+        "en": "McpDescEditor <strong>⇣ Sync</strong> button: reads first task's input JSON and lets user selectively sync parameters into MCP inputSchema via checkbox dialog.",
+        "zh": "McpDescEditor <strong>⇣ 同步</strong>按钮：读取首个任务的输入 JSON，通过复选框对话框选择性同步参数到 MCP inputSchema。",
+    },
+    "cl_2026_05_email_mcp_tools": {
+        "en": "Email MCP tools: <code>T_SEND_EMAIL</code> (SMTP with attachments) and <code>T_RECEIVE_EMAIL</code> (IMAP with filters) exposed as MCP tools with full inputSchema/outputSchema.",
+        "zh": "邮件 MCP 工具：<code>T_SEND_EMAIL</code>（SMTP 发送含附件）和 <code>T_RECEIVE_EMAIL</code>（IMAP 接收含过滤）已作为 MCP 工具开放，配有完整 inputSchema/outputSchema。",
+    },
+    "cl_2026_05_pytube_fix": {
+        "en": "YouTube downloader migrated from <code>pytube</code> (abandoned) to <code>pytubefix</code> (actively maintained); <code>file_download_path_key</code> now stores file path string directly.",
+        "zh": "YouTube 下载器从 <code>pytube</code>（已废弃）迁移至 <code>pytubefix</code>（活跃维护）；<code>file_download_path_key</code> 现直接存储文件路径字符串。",
+    },
+    "cl_2026_05_ai_llm_unify": {
+        "en": "Unified AI LLM processors: 10 providers (DeepSeek, Zhipu, Qianfan, MiniMax, Anthropic, Doubao, Moonshot, Gemini, Ollama, OpenAI-compatible) with MCP tool-calling support.",
+        "zh": "统一 AI LLM 处理器：支持 10 个供应商（DeepSeek、智谱、千帆、MiniMax、Anthropic、豆包、月之暗面、Gemini、Ollama、OpenAI 兼容），含 MCP 工具调用能力。",
+    },
     "cl_2026_05_palette_chooser": {
         "en": "<code>ExecutionChooser</code> / <code>PipelineChooser</code> migrated to palette mode: replaced <code>SearchableComboBox</code> with <code>TextCtrl</code> + <code>ProcessorPalette</code> popup; supports tag-based filtering. Snapshot &amp; save button now correctly triggered for all execution edits: processor selection, cell change, property move, and property key rename.",
         "zh": "<code>ExecutionChooser</code> / <code>PipelineChooser</code> 迁移为 Palette 模式：用 <code>TextCtrl</code> + <code>ProcessorPalette</code> 弹出窗口替换 <code>SearchableComboBox</code>，支持 tag 筛选。快照与保存按钮现可在所有编辑操作中正确触发：处理器选择、单元格更改、属性移动和属性键重命名。",
