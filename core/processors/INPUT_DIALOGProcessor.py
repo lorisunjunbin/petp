@@ -76,7 +76,13 @@ class INPUT_DIALOGProcessor(Processor):
     @staticmethod
     def _show_on_main_thread(title, msg, default_value, result, done_event):
         from mvp.view.common.InputDialog import InputDialog
-        dlg = InputDialog(None, title=title, message=msg, default_value=default_value)
+        dlg = InputDialog(
+            None,
+            title=title,
+            message=msg,
+            default_value=default_value,
+            show_save_as_default=True,
+        )
         if dlg.ShowModal() == wx.ID_OK:
             result[0] = dlg.GetValue()
         if dlg.save_as_default:

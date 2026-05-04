@@ -54,7 +54,7 @@ Task      1:1 Processor
 | **HTTP / 网络** | 可配置的 HTTP 请求。提取响应字段。内置 HTTP 服务（端口 8866）。OAuth2 / PKCE。 |
 | **字符串工具** | 编码 / 解码（Base64、URL...）。哈希（MD5、SHA256...）。 |
 | **鼠标与 GUI** (PyAutoGUI) | 在绝对或相对坐标位置点击、滚动、查询鼠标位置。 |
-| **邮件** | 通过 SMTP 发送带附件的邮件。 |
+| **邮件** | `SEND_EMAIL`：SMTP 发信支持抄送/密送、纯文本/HTML 正文、单附件/多附件、TLS/SSL、超时与失败策略。`RECEIVE_EMAIL`：IMAP 收信支持 criteria/发件人/主题过滤，可选附件下载，并可通过 `attachments_key` 输出已保存路径列表。 |
 | **数据可视化** | 通过 Matplotlib 生成图表。 |
 | **媒体** | 下载 YouTube 视频（PyTube）。 |
 | **执行控制** | 初始化 / 校验参数。嵌套执行。条件停止。等待 / 延时。运行时重载日志配置。读取 JSON。执行 Shell 命令。条件跳转（`GO_TO_TASK`）。声明式条件分支（`IF_ELSE`）。 |
@@ -778,6 +778,7 @@ python tools/migrate_params.py --path /your/custom/executions/folder
 
 | 日期 | 更新内容                                                                                                                                                                                          |
 |------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | 邮件处理器增强：`SEND_EMAIL` 支持抄送/密送、HTML、多附件、`use_tls`/`use_ssl` 兼容处理（针对 465/587 组合自动纠偏）、超时与失败策略；`RECEIVE_EMAIL` 支持 IMAP 发件人+主题过滤、附件下载（`save_attachments`）以及通过 `attachments_key` 输出已保存附件路径。 |
 | 2026-05 | **处理器系统全面优化**：全部 81 个处理器统一 snake_case 参数命名（`source_path`、`target_path`、`data_key`、`find_by`、代码参数 `_fn` 后缀、布尔值 `yes\|no`）；完整 i18n 覆盖（全部处理器中英文描述）；DESC 文档质量提升 — 在属性编辑器中右键任意属性可查看参数介绍和使用方法。提供迁移脚本 `tools/migrate_params.py` 更新已有 YAML 文件 — 详见下方[参数迁移指南](#参数迁移指南)。 |
 | 2026-05 | 界面精简：移除 DC 查看器；日志级别和清除日志控件整合进 LogSearchBar；新增通用 `PopupMenuButton` 组件用于主题/语言/日志级别选择；新增 5 套主题（Nord、Dracula、Sakura、Cyberpunk，总计 9 套）；DEBUG 级别下每个 Task 执行后输出 `data_chain` JSON |
 | 2026-05 | 新增 `IF_ELSE` 处理器：声明式条件分支 — 根据 Python 条件表达式（基于 `data_chain`）跳过 "then" 或 "else" 任务块；支持在循环内正确运行 |

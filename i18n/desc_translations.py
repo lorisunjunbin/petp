@@ -762,6 +762,30 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
     },
 
+    "desc_RECEIVE_EMAIL": {
+        "zh": (
+            "通过 IMAP 从邮箱接收邮件，并将解析结果写入 data_chain。\n"
+            "\n"
+            "- host: IMAP 服务器地址（支持表达式）\n"
+            "- port: IMAP 服务器端口（默认: 993）\n"
+            "- name: IMAP 登录用户名/邮箱地址（支持表达式）\n"
+            "- pwd: IMAP 登录密码或应用专用密码（支持表达式）\n"
+            "- mailbox: 要读取的邮箱文件夹，如 \"INBOX\"（支持表达式，默认: \"INBOX\"）\n"
+            "- criteria: IMAP 搜索条件，如 \"UNSEEN\"、\"ALL\"、\"FROM \\\"x@x.com\\\"\"（支持表达式，默认: \"UNSEEN\"）\n"
+            "- sender: 可选的发件人邮箱过滤条件；仅接收该地址发来的邮件（支持表达式，默认: \"\"）\n"
+            "- subject_contains: 可选的邮件主题关键字/短语过滤条件（支持表达式，默认: \"\"）\n"
+            "- limit: 最多读取匹配到的最新邮件数；<=0 表示全部（支持表达式，默认: \"10\"）\n"
+            "- use_ssl: \"yes\" 使用 IMAP SSL，\"no\" 使用普通 IMAP（默认: \"yes\"）\n"
+            "- mark_seen: \"yes\" 将已读取邮件标记为已读（默认: \"yes\"）\n"
+            "- save_attachments: \"yes\" 保存邮件附件到本地目录（默认: \"no\"）\n"
+            "- attachments_dir: save_attachments=\"yes\" 时附件保存目录（支持表达式，默认: \"{self.get_ddir()}/email_attachments\"）\n"
+            "- data_key: data_chain 中存储邮件列表的键（默认: \"emails\"）\n"
+            "- attachments_key: data_chain 中存储所有已保存附件路径列表的键（默认: \"\"）\n"
+            "- timeout: IMAP 连接超时秒数（支持表达式，默认: \"30\"）\n"
+            "- fail_on_error: \"yes\" 出错时抛错；\"no\" 仅记录日志并继续（默认: \"yes\"）"
+        ),
+    },
+
     "desc_RUN_EXECUTION": {
         "zh": (
             
@@ -843,16 +867,24 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
 
     "desc_SEND_EMAIL": {
         "zh": (
-            "通过 SMTP 发送电子邮件。支持 HTML 正文和附件。\n"
+            "通过 SMTP 发送电子邮件。支持纯文本/HTML 正文、CC/BCC 和多附件。\n"
             "\n"
             "- smtp: SMTP 服务器地址（支持表达式）\n"
-            "- port: SMTP 服务器端口（默认: 465）\n"
+            "- port: SMTP 服务器端口（默认: 25）\n"
             "- name: SMTP 用户名/发件人（支持表达式）\n"
             "- pwd: SMTP 密码（支持表达式和加密值）\n"
             "- to: 收件人地址，多个用逗号分隔（支持表达式）\n"
+            "- cc: 抄送地址，多个用逗号分隔（支持表达式，可选）\n"
+            "- bcc: 密送地址，多个用逗号分隔（支持表达式，可选）\n"
             "- subject: 邮件主题（支持表达式）\n"
             "- content: 邮件正文内容（支持表达式）\n"
-            "- attachment: 附件文件路径，多个用逗号分隔（支持表达式，可选）"
+            "- content_type: 正文类型，\"plain\" 或 \"html\"（支持表达式，默认: \"plain\"）\n"
+            "- attachment: 兼容旧版的单附件路径（支持表达式，可选）\n"
+            "- attachments: 多附件路径，支持逗号/分号/换行分隔（支持表达式，可选）\n"
+            "- use_tls: \"yes\" 启用 STARTTLS（默认: \"no\"）\n"
+            "- use_ssl: \"yes\" 使用 SMTP SSL 直连（默认: \"no\"）\n"
+            "- timeout: SMTP 连接超时秒数（支持表达式，默认: \"30\"）\n"
+            "- fail_on_error: \"yes\" 发送失败时抛错；\"no\" 仅记录日志并继续（默认: \"yes\"）"
         ),
     },
 

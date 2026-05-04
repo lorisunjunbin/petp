@@ -268,6 +268,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "dlg_save_json": {"en": "Save as JSON", "zh": "另存为 JSON"},
     "dlg_save_csv": {"en": "Save as CSV", "zh": "另存为 CSV"},
     "dlg_copy": {"en": "Copy", "zh": "复制"},
+    "dlg_view_data_chain": {"en": "View data_chain", "zh": "查看 data_chain"},
     "dlg_ok": {"en": "&OK", "zh": "确定(&O)"},
     "dlg_cancel": {"en": "&Cancel", "zh": "取消(&C)"},
     "dlg_save_as_default": {"en": "Save as &Default", "zh": "保存为默认值(&D)"},
@@ -276,6 +277,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "dlg_saved_to": {"en": "Saved to:\n{path}", "zh": "已保存至:\n{path}"},
     "dlg_failed_to_save": {"en": "Failed to save:\n{error}", "zh": "保存失败:\n{error}"},
     "dlg_error": {"en": "Error", "zh": "错误"},
+    "dlg_data_chain_title": {"en": "data_chain JSON", "zh": "data_chain JSON"},
 
     # === File dialog ===
     "fdlg_open_recording": {

@@ -54,7 +54,7 @@ Orchestrate tasks as Executions (with dataset-loop or time-loop), combine Execut
 | **HTTP / Network** | Configurable HTTP requests. Extract response keys. Built-in HTTP service (port 8866). OAuth2 / PKCE. |
 | **String Utilities** | Encode / decode (Base64, URL...). Hash (MD5, SHA256...). |
 | **Mouse & GUI** (PyAutoGUI) | Click, scroll, query position at absolute or relative coordinates. |
-| **Email** | Send email via SMTP with attachments. |
+| **Email** | `SEND_EMAIL`: SMTP send with CC/BCC, plain/HTML body, single/multi-attachments, TLS/SSL + timeout + fail policy. `RECEIVE_EMAIL`: IMAP receive with criteria/sender/subject filtering, optional attachment saving, and saved-path output via `attachments_key`. |
 | **Data Visualization** | Charts and plots via Matplotlib. |
 | **Media** | Download YouTube videos (PyTube). |
 | **Execution Control** | Initialize / check params. Nested execution. Conditional stop. Wait / sleep. Reload log config. Read JSON. Run shell commands. Conditional jump (`GO_TO_TASK`). Declarative if/else branching (`IF_ELSE`). |
@@ -778,6 +778,7 @@ The script is idempotent — running it multiple times on already-migrated files
 
 | Date | What's New                                                                                                                                                                                        |
 |------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 2026-05 | Email processors enhanced: `SEND_EMAIL` supports CC/BCC, HTML, multi-attachments, `use_tls`/`use_ssl` compatibility handling (auto-correct for 465/587 patterns), timeout and fail policy; `RECEIVE_EMAIL` supports IMAP sender + subject filtering, attachment download (`save_attachments`), and exported saved paths via `attachments_key`. |
 | 2026-05 | **Processor system full optimization**: all 81 processors standardized to snake_case parameter naming (`source_path`, `target_path`, `data_key`, `find_by`, `_fn` suffix for code params, `yes\|no` booleans); full i18n coverage (English + Chinese descriptions for all processors); improved DESC documentation quality — right-click any property in the PropertyGrid to view its description and usage. Migration script `tools/migrate_params.py` provided for existing YAML files — see [Migration Guide](#parameter-migration-guide) below. |
 | 2026-05 | UI streamlining: removed DC viewer; moved log-level and clean-log controls into LogSearchBar; new reusable `PopupMenuButton` component for theme/lang/log-level choosers; 5 new themes (Nord, Dracula, Sakura, Cyberpunk + total 9); DEBUG-level `data_chain` JSON dump after each task |
 | 2026-05 | New `IF_ELSE` processor: declarative conditional branching — skip "then" or "else" task blocks based on a Python condition evaluated against `data_chain`; works correctly inside loops |

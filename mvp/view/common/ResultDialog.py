@@ -14,7 +14,7 @@ class ResultDialog(wx.Dialog):
     automatic JSON pretty-printing, copy-to-clipboard,
     and conditional Save-as-JSON / Save-as-CSV export."""
 
-    def __init__(self, parent=None, title="", message=""):
+    def __init__(self, parent=None, title="", message="", data_chain_json=""):
         style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         super().__init__(parent, title=t("dlg_result_title"), style=style)
 
@@ -23,6 +23,7 @@ class ResultDialog(wx.Dialog):
         self._parsed_json = _try_parse_json(self._raw_msg)
         # CSV export supports either JSON 2-D data or raw CSV text.
         self._csv_rows = _try_parse_2d_array(self._parsed_json) or _try_parse_csv_text(self._raw_msg)
+        self._data_chain_json = data_chain_json or ""
 
         self._build_ui(self._display_msg, title)
         self._try_set_icon()
@@ -85,6 +86,10 @@ class ResultDialog(wx.Dialog):
         self._copy_btn = wx.Button(self, label=t("dlg_copy"))
         self._copy_btn.Bind(wx.EVT_BUTTON, self._on_copy)
 
+        self._view_dc_btn = wx.Button(self, label=t("dlg_view_data_chain"))
+        self._view_dc_btn.Bind(wx.EVT_BUTTON, self._on_view_data_chain)
+        self._view_dc_btn.Enable(bool(self._data_chain_json))
+
         ok_btn = ThemedButton(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
 
@@ -92,6 +97,7 @@ class ResultDialog(wx.Dialog):
         btns.Add(self._json_btn, 0, wx.RIGHT, 8)
         btns.Add(self._csv_btn, 0, wx.RIGHT, 8)
         btns.Add(self._copy_btn, 0, wx.RIGHT, 8)
+        btns.Add(self._view_dc_btn, 0, wx.RIGHT, 8)
         btns.Add(ok_btn)
         sizer.AddSpacer(PAD)
         sizer.Add(btns, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, PAD)
@@ -155,6 +161,11 @@ class ResultDialog(wx.Dialog):
         except Exception as e:
             wx.MessageBox(t("dlg_failed_to_save", error=e), t("dlg_error"),
                           wx.OK | wx.ICON_ERROR, self)
+
+    def _on_view_data_chain(self, _evt):
+        dlg = ResultDialog(self, title=t("dlg_data_chain_title"), message=self._data_chain_json)
+        dlg.ShowModal()
+        dlg.Destroy()
 
 
 # ------------------------------------------------------------------ #
