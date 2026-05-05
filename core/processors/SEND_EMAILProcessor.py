@@ -8,7 +8,7 @@ from email.message import EmailMessage
 from core.processor import Processor
 
 class SEND_EMAILProcessor(Processor):
-    TPL: str = '{"smtp":"","port":25, "name":"", "pwd":"","to":"6099012@qq.com,lori.sun@qq.com","cc":"","bcc":"","subject":"","content":"","content_type":"plain","attachment":"","attachments":"","use_tls":"no","use_ssl":"no","timeout":"30","fail_on_error":"yes"}'
+    TPL: str = '{"smtp":"","port":25, "name":"", "pwd":"","to":"6099012@qq.com,lori.sun@qq.com","cc":"","bcc":"","subject":"","content":"","content_type":"plain","attachment":"","attachments":"","use_tls":"no","use_ssl":"no","timeout":"30","fail_on_error":"yes","result_key":""}'
 
     DESC: str = '''
         Send an email via a specified SMTP server.
@@ -30,6 +30,7 @@ class SEND_EMAILProcessor(Processor):
         - use_ssl: "yes" to use SMTP over SSL directly (default: "no")
         - timeout: SMTP connection timeout seconds (supports expression, default: "30")
         - fail_on_error: "yes" to raise error; "no" to log and continue (default: "yes")
+        - result_key: data_chain key to store send result {"ok": bool, "error": str|None}; only written when set (default: "")
     '''
 
     def get_category(self) -> str:
@@ -74,6 +75,7 @@ class SEND_EMAILProcessor(Processor):
 
     def process(self):
         fail_on_error = self._as_yes(self.explain_param_or_default('fail_on_error', 'yes'))
+        result_key = self.explain_param_or_default('result_key', '').strip()
 
         try:
             smtp = self.explain_param_or_default('smtp', '').strip()
@@ -153,6 +155,8 @@ class SEND_EMAILProcessor(Processor):
                 s.send_message(msg, to_addrs=recipients)
 
             logging.info('Email sent to %s (subject: %s)', ','.join(to + cc + bcc), subject)
+            if result_key:
+                self.populate_data(result_key, {'ok': True, 'error': None})
         except ssl.SSLError as ex:
             msg = str(ex)
             if 'WRONG_VERSION_NUMBER' in msg:
@@ -163,7 +167,11 @@ class SEND_EMAILProcessor(Processor):
             if fail_on_error:
                 raise
             logging.error('SEND_EMAIL ignored SSL error due to fail_on_error=no: %s', ex)
+            if result_key:
+                self.populate_data(result_key, {'ok': False, 'error': str(ex)})
         except Exception as ex:
             if fail_on_error:
                 raise
             logging.error('SEND_EMAIL ignored error due to fail_on_error=no: %s', ex)
+            if result_key:
+                self.populate_data(result_key, {'ok': False, 'error': str(ex)})

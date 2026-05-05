@@ -37,6 +37,8 @@ EXECUTIONS_RELEASED = [
     'OOTB_RUN_JS.yaml',
     'T_CENC_EARTHQUAKE_SEARCH.yaml',
     'ootb_keep_screen_unlocked.yaml',
+    'T_SEND_EMAIL.yaml',
+    'T_RECEIVE_EMAIL.yaml'
 ]
 
 KNOWN_PROBLEMATIC_MODULES = [
@@ -153,7 +155,10 @@ def collect_hidden_imports(template_spec, work_spec, extra_hidden_imports=None):
         os.remove(work_spec)
     shutil.copy(template_spec, work_spec)
 
-    loaded_files = glob.glob(os.path.join('utils', '**/*.py'), recursive=True)
+    loaded_files = (
+        glob.glob(os.path.join('utils', '**/*.py'), recursive=True) +
+        glob.glob(os.path.join('core', 'processors', 'sub', '**/*.py'), recursive=True)
+    )
     loaded_imports = [
         f.replace('\\', '.').replace('/', '.').rstrip('.py')
         for f in loaded_files

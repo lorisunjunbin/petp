@@ -1,3 +1,4 @@
+import difflib
 import json
 import os
 
@@ -5,6 +6,11 @@ import wx
 
 from i18n.translations import t
 from mvp.view.common.ThemedButton import ThemedButton
+
+_CLR_ADD = wx.Colour(0, 128, 0)
+_CLR_DEL = wx.Colour(180, 0, 0)
+_CLR_HDR = wx.Colour(80, 80, 160)
+_CLR_DEF = wx.Colour(80, 80, 80)
 
 
 class SnapshotDialog(wx.Dialog):
@@ -19,7 +25,7 @@ class SnapshotDialog(wx.Dialog):
 
         self._build_ui()
         self._try_set_icon()
-        self.SetSize((720, 480))
+        self.SetSize((860, 520))
         self.CentreOnScreen()
 
     def _build_ui(self):
@@ -37,7 +43,7 @@ class SnapshotDialog(wx.Dialog):
         self._preview = wx.TextCtrl(
             splitter, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH2 | wx.HSCROLL
         )
-        self._preview.SetFont(wx.Font(wx.FontInfo(12).Family(wx.FONTFAMILY_MODERN)))
+        self._preview.SetFont(wx.Font(wx.FontInfo(11).Family(wx.FONTFAMILY_MODERN)))
 
         splitter.SplitVertically(self._list, self._preview, 220)
         splitter.SetMinimumPaneSize(150)
@@ -87,9 +93,51 @@ class SnapshotDialog(wx.Dialog):
             self.EndModal(wx.ID_OK)
 
     def _show_preview(self, idx):
-        snap = self._snapshots[idx]
-        display = json.dumps(snap, indent=2, ensure_ascii=False)
-        self._preview.SetValue(display)
+        self._preview.SetValue("")
+        if idx == 0:
+            # First snapshot — no previous to diff against, show full content
+            snap = self._snapshots[idx]
+            self._append_colored(t("snap_first_snapshot") + "\n\n", _CLR_HDR)
+            self._append_colored(json.dumps(snap, indent=2, ensure_ascii=False), _CLR_DEF)
+            return
+
+        prev = self._snapshots[idx - 1]
+        curr = self._snapshots[idx]
+        self._render_diff(prev, curr)
+
+    def _render_diff(self, prev, curr):
+        prev_lines = json.dumps(prev, indent=2, ensure_ascii=False).splitlines(keepends=True)
+        curr_lines = json.dumps(curr, indent=2, ensure_ascii=False).splitlines(keepends=True)
+
+        diff = list(difflib.unified_diff(
+            prev_lines, curr_lines,
+            fromfile=f"#{self._snapshots.index(prev) + 1} {prev['timestamp']}",
+            tofile=f"#{self._snapshots.index(curr) + 1} {curr['timestamp']}",
+            lineterm="",
+        ))
+
+        if not diff:
+            self._append_colored(t("snap_no_changes"), _CLR_DEF)
+            return
+
+        for line in diff:
+            if line.startswith("+++") or line.startswith("---"):
+                self._append_colored(line + "\n", _CLR_HDR)
+            elif line.startswith("@@"):
+                self._append_colored(line + "\n", _CLR_HDR)
+            elif line.startswith("+"):
+                self._append_colored(line + "\n", _CLR_ADD)
+            elif line.startswith("-"):
+                self._append_colored(line + "\n", _CLR_DEL)
+            else:
+                self._append_colored(line + "\n", _CLR_DEF)
+
+    def _append_colored(self, text: str, color: wx.Colour):
+        ctrl = self._preview
+        attr = wx.TextAttr(color)
+        start = ctrl.GetLastPosition()
+        ctrl.AppendText(text)
+        ctrl.SetStyle(start, ctrl.GetLastPosition(), attr)
 
     def get_selected_index(self):
         return self._selected_index

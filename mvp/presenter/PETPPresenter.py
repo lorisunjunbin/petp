@@ -1635,36 +1635,12 @@ class PETPPresenter():
         if not params:
             wx.MessageBox(t("mcp_sync_no_params"), "Info", wx.OK | wx.ICON_INFORMATION, self.v)
             return
-
         existing = {self.v.execution_desc._input_grid.GetCellValue(r, 0).strip()
                     for r in range(self.v.execution_desc._input_grid.GetNumberRows())}
-
-        dlg = wx.Dialog(self.v, title=t("mcp_dlg_sync_title"), size=(350, 400))
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        scrolled = wx.ScrolledWindow(dlg)
-        scrolled.SetScrollRate(0, 10)
-        cb_sizer = wx.BoxSizer(wx.VERTICAL)
-        checkboxes = []
-        for key in params:
-            cb = wx.CheckBox(scrolled, label=key)
-            cb.SetValue(key not in existing)
-            checkboxes.append((key, cb))
-            cb_sizer.Add(cb, 0, wx.ALL, 4)
-        scrolled.SetSizer(cb_sizer)
-        sizer.Add(scrolled, 1, wx.EXPAND | wx.ALL, 8)
-        btn_sizer = dlg.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL)
-        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 8)
-        dlg.SetSizer(sizer)
-
-        if dlg.ShowModal() != wx.ID_OK:
-            dlg.Destroy()
+        selected = self._show_sync_param_dialog(
+            t("mcp_dlg_sync_title"), params, existing)
+        if selected is None:
             return
-        selected = {key: params[key] for key, cb in checkboxes if cb.GetValue()}
-        dlg.Destroy()
-
-        if not selected:
-            return
-
         self._push_snapshot()
         self.v.execution_desc.sync_input_params(selected)
         self._update_save_button()
@@ -1674,12 +1650,32 @@ class PETPPresenter():
         if not params:
             wx.MessageBox(t("mcp_sync_output_no_params"), "Info", wx.OK | wx.ICON_INFORMATION, self.v)
             return
-
         existing = {self.v.execution_desc._output_grid.GetCellValue(r, 0).strip()
                     for r in range(self.v.execution_desc._output_grid.GetNumberRows())}
+        selected = self._show_sync_param_dialog(
+            t("mcp_dlg_sync_output_title"), params, existing)
+        if selected is None:
+            return
+        self._push_snapshot()
+        self.v.execution_desc.sync_output_params(selected)
+        self._update_save_button()
 
-        dlg = wx.Dialog(self.v, title=t("mcp_dlg_sync_output_title"), size=(350, 400))
+    def _show_sync_param_dialog(self, title: str, params: dict, existing: set):
+        """Show a checkbox dialog for selecting params to sync.
+
+        Returns a dict of selected {key: value}, or None if cancelled.
+        """
+        dlg = wx.Dialog(self.v, title=title, size=(350, 430))
         sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # check/uncheck all row
+        toggle_row = wx.BoxSizer(wx.HORIZONTAL)
+        btn_all = wx.Button(dlg, label=t("mcp_sync_check_all"), size=(-1, 24))
+        btn_none = wx.Button(dlg, label=t("mcp_sync_uncheck_all"), size=(-1, 24))
+        toggle_row.Add(btn_all, 0, wx.RIGHT, 4)
+        toggle_row.Add(btn_none, 0)
+        sizer.Add(toggle_row, 0, wx.LEFT | wx.RIGHT | wx.TOP, 8)
+
         scrolled = wx.ScrolledWindow(dlg)
         scrolled.SetScrollRate(0, 10)
         cb_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1695,18 +1691,23 @@ class PETPPresenter():
         sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 8)
         dlg.SetSizer(sizer)
 
+        def _check_all(_evt):
+            for _, cb in checkboxes:
+                cb.SetValue(True)
+
+        def _uncheck_all(_evt):
+            for _, cb in checkboxes:
+                cb.SetValue(False)
+
+        btn_all.Bind(wx.EVT_BUTTON, _check_all)
+        btn_none.Bind(wx.EVT_BUTTON, _uncheck_all)
+
         if dlg.ShowModal() != wx.ID_OK:
             dlg.Destroy()
-            return
+            return None
         selected = {key: params[key] for key, cb in checkboxes if cb.GetValue()}
         dlg.Destroy()
-
-        if not selected:
-            return
-
-        self._push_snapshot()
-        self.v.execution_desc.sync_output_params(selected)
-        self._update_save_button()
+        return selected if selected else {}
 
     def _extract_initial_params(self):
         grid = self.v.taskGrid

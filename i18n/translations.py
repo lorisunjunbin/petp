@@ -157,6 +157,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mcp_tip_sync_output": {"en": "Sync from selected task (default: last)", "zh": "从选中任务同步（默认：末尾）"},
     "mcp_dlg_sync_output_title": {"en": "Sync Output Parameters", "zh": "同步输出参数"},
     "mcp_sync_output_no_params": {"en": "Selected task has no parseable JSON parameters.", "zh": "选中任务没有可解析的JSON参数。"},
+    "mcp_sync_check_all": {"en": "Check All", "zh": "全选"},
+    "mcp_sync_uncheck_all": {"en": "Uncheck All", "zh": "全不选"},
 
     # === Tooltips — pipeline actions ===
     "tip_add_row_p": {"en": "Add row", "zh": "添加行"},
@@ -242,6 +244,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # === Snapshot dialog ===
     "dlg_snapshot_title": {"en": "Execution Snapshots", "zh": "Execution 快照"},
     "btn_apply_snapshot": {"en": "Apply", "zh": "应用"},
+    "snap_no_changes": {"en": "(no changes from previous snapshot)", "zh": "（与上一快照无变化）"},
+    "snap_first_snapshot": {"en": "(first snapshot — full content)", "zh": "（第一个快照 — 完整内容）"},
     "btn_close": {"en": "Close", "zh": "关闭"},
 
     # === Unsaved changes dialog ===

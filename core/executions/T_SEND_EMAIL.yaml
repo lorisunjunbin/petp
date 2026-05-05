@@ -14,7 +14,8 @@ list:
   input: '{"smtp": "{smtp_host}", "port": "{smtp_port}", "name": "{usr_name}", "pwd":
     "{usr_pwd}", "to": "{to}", "cc": "{cc}", "bcc": "", "subject": "{subject}", "content":
     "{content}", "content_type": "html", "attachment": "", "attachments": "{attachments}",
-    "use_tls": "yes", "use_ssl": "no", "timeout": "30", "fail_on_error": "yes"}'
+    "use_tls": "yes", "use_ssl": "no", "timeout": "30", "fail_on_error": "yes", "result_key":
+    "sending_result"}'
   skipped: false
   type: SEND_EMAIL
 - !!python/object:core.task.Task
@@ -48,5 +49,7 @@ mcp_desc: "{\n  \"desc\": \"Send email notification\",\n  \"inputSchema\": {\n  
   \     \"to\",\n      \"subject\",\n      \"content\"\n    ]\n  },\n  \"outputSchema\":
   {\n    \"type\": \"object\",\n    \"title\": \"T_SEND_EMAILOutput\",\n    \"properties\":
   {\n      \"to\": {\n        \"title\": \"to\",\n        \"type\": \"string\",\n
-  \       \"description\": \"email sent to the mail box\",\n        \"mapKey\": \"sent
-  to\"\n      }\n    },\n    \"required\": [\n      \"to\"\n    ]\n  }\n}"
+  \       \"description\": \"\",\n        \"mapKey\": \"{to}\"\n      },\n      \"result\":
+  {\n        \"title\": \"result\",\n        \"type\": \"string\",\n        \"description\":
+  \"\",\n        \"mapKey\": \"sending_result\"\n      }\n    },\n    \"required\":
+  [\n      \"to\",\n      \"result\"\n    ]\n  }\n}"

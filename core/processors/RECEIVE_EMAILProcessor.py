@@ -9,7 +9,7 @@ from core.processor import Processor
 
 
 class RECEIVE_EMAILProcessor(Processor):
-    TPL: str = '{"host":"","port":993,"name":"","pwd":"","mailbox":"INBOX","criteria":"UNSEEN","sender":"","subject_contains":"","limit":"10","use_ssl":"yes","mark_seen":"yes","save_attachments":"no","attachments_dir":"{self.get_ddir()}/email_attachments","data_key":"emails","attachments_key":"","timeout":"30","fail_on_error":"yes"}'
+    TPL: str = '{"host":"","port":993,"name":"","pwd":"","mailbox":"INBOX","criteria":"UNSEEN","sender":"","subject_contains":"","limit":"10","use_ssl":"yes","mark_seen":"yes","save_attachments":"no","attachments_dir":"{self.get_ddir()}/email_attachments","data_key":"emails","attachments_key":"","timeout":"30","fail_on_error":"yes","result_key":""}'
 
     DESC: str = '''
         Receive emails from an IMAP mailbox and store parsed results into data_chain.
@@ -31,6 +31,7 @@ class RECEIVE_EMAILProcessor(Processor):
         - attachments_key: Optional data_chain key to store all saved attachment file paths (default: "")
         - timeout: IMAP connection timeout seconds (supports expression, default: "30")
         - fail_on_error: "yes" to raise error; "no" to log and continue (default: "yes")
+        - result_key: data_chain key to store fetch result {"ok": bool, "count": int, "error": str|None}; only written when set (default: "")
     '''
 
     def get_category(self) -> str:
@@ -162,6 +163,7 @@ class RECEIVE_EMAILProcessor(Processor):
         fail_on_error = self._as_yes(self.explain_param_or_default('fail_on_error', 'yes'))
         data_key = self.explain_param_or_default('data_key', 'emails')
         attachments_key = self.explain_param_or_default('attachments_key', '').strip()
+        result_key = self.explain_param_or_default('result_key', '').strip()
 
         client = None
         try:
@@ -244,6 +246,8 @@ class RECEIVE_EMAILProcessor(Processor):
             self.populate_data(data_key, result)
             if attachments_key:
                 self.populate_data(attachments_key, all_saved_paths)
+            if result_key:
+                self.populate_data(result_key, {'ok': True, 'count': len(result), 'error': None})
             logging.info('RECEIVE_EMAIL fetched %d message(s) into %s', len(result), data_key)
         except Exception as ex:
             if fail_on_error:
@@ -252,6 +256,8 @@ class RECEIVE_EMAILProcessor(Processor):
             self.populate_data(data_key, [])
             if attachments_key:
                 self.populate_data(attachments_key, [])
+            if result_key:
+                self.populate_data(result_key, {'ok': False, 'count': 0, 'error': str(ex)})
         finally:
             if client is not None:
                 try:

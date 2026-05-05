@@ -7,9 +7,12 @@ list:
   skipped: false
   type: AI_LLM_SETUP
 - !!python/object:core.task.Task
-  input: "{\"title\": \"LLM ZHIPU\", \"msg\": \"Prompt\", \"value_key\": \"given_prompt\",
-    \"default_value\": \"\u8F93\u51FA\u6590\u6CE2\u90A3\u5951\u989D\u6570\u5217 99\",
-    \"stop_on_cancel\": \"yes\"}"
+  input: '{"title": "LLM ZHIPU", "msg": "Prompt", "value_key": "given_prompt", "default_value":
+    "\u53d1\u90ae\u4ef6\u7ed9 junbin.sun@sap.com \\n\\n\u4e3b\u9898\uff1aPETP User
+    Manual\\n\\n\u90ae\u4ef6\u5185\u5bb9\uff1a\\n<p>\\nHi Junbin\\n<br>\\n<br>\\nPlease
+    refer to attached for more detail\\n<br>\\n<br>\\nThanks,\\n<br>\\nPETP\\n</p>\\n\\n\u9644\u4ef6\uff1a
+    /Users/i335607/MyProject/opensource/petp/image/user_manual.png\\n", "stop_on_cancel":
+    "yes"}'
   skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task

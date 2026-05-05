@@ -782,7 +782,8 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- data_key: data_chain 中存储邮件列表的键（默认: \"emails\"）\n"
             "- attachments_key: data_chain 中存储所有已保存附件路径列表的键（默认: \"\"）\n"
             "- timeout: IMAP 连接超时秒数（支持表达式，默认: \"30\"）\n"
-            "- fail_on_error: \"yes\" 出错时抛错；\"no\" 仅记录日志并继续（默认: \"yes\"）"
+            "- fail_on_error: \"yes\" 出错时抛错；\"no\" 仅记录日志并继续（默认: \"yes\"）\n"
+            "- result_key: data_chain 中存储接收结果 {\"ok\": bool, \"count\": int, \"error\": str|None} 的键；不填则不写入（默认: \"\"）"
         ),
     },
 
@@ -884,7 +885,8 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- use_tls: \"yes\" 启用 STARTTLS（默认: \"no\"）\n"
             "- use_ssl: \"yes\" 使用 SMTP SSL 直连（默认: \"no\"）\n"
             "- timeout: SMTP 连接超时秒数（支持表达式，默认: \"30\"）\n"
-            "- fail_on_error: \"yes\" 发送失败时抛错；\"no\" 仅记录日志并继续（默认: \"yes\"）"
+            "- fail_on_error: \"yes\" 发送失败时抛错；\"no\" 仅记录日志并继续（默认: \"yes\"）\n"
+            "- result_key: data_chain 中存储发送结果 {\"ok\": bool, \"error\": str|None} 的键；不填则不写入（默认: \"\"）"
         ),
     },
 
