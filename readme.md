@@ -222,7 +222,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `requirements/` | Modular dependency groups |
 | `build/` | PyInstaller & Docker build scripts |
 | `tools/` | Maintenance scripts (migration, sync) |
-| `testcoverage/` | Tests and smoke scripts |
+| `testcoverage/` | Tests and smoke scripts (incl. `petp_http_endpoints.http` for HTTP/MCP endpoint testing) |
 
 ---
 
