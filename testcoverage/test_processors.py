@@ -520,4 +520,108 @@ class TestReceiveEmail:
         assert att['filename'].endswith('report.txt')
         assert chain['saved_attachment_paths'] == [att['saved_path']]
 
+    @patch('core.processors.RECEIVE_EMAILProcessor.imaplib.IMAP4_SSL', _DummyIMAP)
+    def test_receive_email_result_key_on_success(self, make_processor):
+        chain = {}
+        proc = make_processor(
+            'RECEIVE_EMAIL',
+            json.dumps({
+                'host': 'imap.example.com',
+                'name': 'user@example.com',
+                'pwd': 'pwd',
+                'limit': '2',
+                'data_key': 'mail_rows',
+                'result_key': 'recv_result',
+            }),
+            chain,
+        )
+        proc.process()
+        assert chain['recv_result']['ok'] is True
+        assert chain['recv_result']['error'] is None
+        assert chain['recv_result']['count'] == len(chain['mail_rows'])
 
+    @patch('core.processors.RECEIVE_EMAILProcessor.imaplib.IMAP4_SSL', _BrokenIMAP)
+    def test_receive_email_result_key_on_failure(self, make_processor):
+        chain = {}
+        proc = make_processor(
+            'RECEIVE_EMAIL',
+            json.dumps({
+                'host': 'imap.example.com',
+                'name': 'user@example.com',
+                'pwd': 'pwd',
+                'fail_on_error': 'no',
+                'data_key': 'mail_rows',
+                'result_key': 'recv_result',
+            }),
+            chain,
+        )
+        proc.process()
+        assert chain['recv_result']['ok'] is False
+        assert chain['recv_result']['count'] == 0
+        assert 'imap down' in chain['recv_result']['error']
+
+    @patch('core.processors.RECEIVE_EMAILProcessor.imaplib.IMAP4_SSL', _DummyIMAP)
+    def test_receive_email_no_result_key_writes_nothing(self, make_processor):
+        chain = {}
+        proc = make_processor(
+            'RECEIVE_EMAIL',
+            json.dumps({
+                'host': 'imap.example.com',
+                'name': 'user@example.com',
+                'pwd': 'pwd',
+                'data_key': 'mail_rows',
+            }),
+            chain,
+        )
+        proc.process()
+        assert 'result_key' not in chain
+
+
+class TestSendEmailResultKey:
+
+    @patch('core.processors.SEND_EMAILProcessor.smtplib.SMTP', _DummySMTP)
+    def test_send_email_result_key_on_success(self, make_processor):
+        chain = {}
+        proc = make_processor(
+            'SEND_EMAIL',
+            json.dumps({
+                'smtp': 'smtp.example.com',
+                'to': 'a@example.com',
+                'result_key': 'send_result',
+            }),
+            chain,
+        )
+        proc.process()
+        assert chain['send_result']['ok'] is True
+        assert chain['send_result']['error'] is None
+
+    @patch('core.processors.SEND_EMAILProcessor.smtplib.SMTP', _BrokenSMTP)
+    def test_send_email_result_key_on_failure(self, make_processor):
+        chain = {}
+        proc = make_processor(
+            'SEND_EMAIL',
+            json.dumps({
+                'smtp': 'smtp.example.com',
+                'to': 'a@example.com',
+                'fail_on_error': 'no',
+                'result_key': 'send_result',
+            }),
+            chain,
+        )
+        proc.process()
+        assert chain['send_result']['ok'] is False
+        assert chain['send_result']['error'] is not None
+
+    @patch('core.processors.SEND_EMAILProcessor.smtplib.SMTP', _DummySMTP)
+    def test_send_email_no_result_key_writes_nothing(self, make_processor):
+        chain = {}
+        proc = make_processor(
+            'SEND_EMAIL',
+            json.dumps({
+                'smtp': 'smtp.example.com',
+                'to': 'a@example.com',
+            }),
+            chain,
+        )
+        proc.process()
+        assert 'result_key' not in chain
