@@ -14,6 +14,7 @@ auth = HTTPBasicAuth()
 WEBAPP_DIR = Path(__file__).resolve().parent
 LOCAL_IMAGE_DIR = WEBAPP_DIR / 'static' / 'images'
 PROJECT_IMAGE_DIR = (WEBAPP_DIR / '..' / 'image').resolve()
+BUILD_ASSETS_DIR = WEBAPP_DIR / 'build_assets'
 
 
 @app.context_processor
@@ -35,13 +36,16 @@ def serve_static(path):
     return send_from_directory('static', path)
 
 
-# PETP project image assets from repository root /image
+# PETP project image assets — self-contained for Docker.
 @app.route('/petp-image/<path:path>')
 def serve_petp_image(path):
-    # Prefer images packaged with webapp so Docker build can be fully standalone.
     local_target = (LOCAL_IMAGE_DIR / path)
     if local_target.is_file():
         return send_from_directory(str(LOCAL_IMAGE_DIR), path)
+
+    build_target = (BUILD_ASSETS_DIR / path)
+    if build_target.is_file():
+        return send_from_directory(str(BUILD_ASSETS_DIR), path)
 
     fallback_target = (PROJECT_IMAGE_DIR / path)
     if fallback_target.is_file():

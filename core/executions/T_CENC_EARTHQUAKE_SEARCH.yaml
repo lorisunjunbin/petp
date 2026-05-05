@@ -10,13 +10,16 @@ list:
   skipped: false
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
-  input: '{"request_url":"{request_url}","method":"get","value_key":"earth_quake_info","session_key":"__session_key","timeout":60,"verify":"no","headers":"User-Agent[>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36","resp_fn":"return response.text if response.status_code == 200 else response.status_code"}'
+  input: '{"request_url":"{request_url}","method":"get","value_key":"earth_quake_info","session_key":"__session_key","timeout":60,"verify":"no","headers":"User-Agent[>Mozilla/5.0
+    (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0
+    Safari/537.36","resp_fn":"return response.text if response.status_code == 200
+    else response.status_code"}'
   skipped: false
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
-  input: '{"skipped": "no", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
+  input: '{"skipped": "yes", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f",
     "msg": "{earth_quake_info}"}'
-  skipped: false
+  skipped: true
   type: SHOW_RESULT
 loops: []
 mcp_desc: "{\n  \"desc\": \"inquire about the information of recent earthquakes that

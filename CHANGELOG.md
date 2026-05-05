@@ -6,6 +6,7 @@ All notable changes to PETP are documented here.
 
 | Date | What's New |
 |------|------------|
+| 2026-05 | MCP output expression: `mapKey` evaluates `{expr}` via f-string against data_chain; `McpDescEditor` adds `⇡` output sync button; both sync buttons use selected task row (fallback first/last); dynamic MCP panel sash based on property count; fix add-property on empty input; `os.getenv()` HandyTool snippet; webapp Docker self-containment via `build_assets/` |
 | 2026-05 | MCP tool expansion: `T_SEND_EMAIL` (send email with CC, attachments) and `T_RECEIVE_EMAIL` (receive email with sender/subject filtering) exposed as MCP Tools; `McpDescEditor` adds `⇣` sync button to selectively sync parameters from first task input into MCP inputSchema |
 | 2026-05 | Email processors enhanced: `SEND_EMAIL` supports CC/BCC, HTML, multi-attachments, TLS/SSL, timeout and fail policy; `RECEIVE_EMAIL` supports IMAP sender + subject filtering, attachment download, and exported saved paths via `attachments_key` |
 | 2026-05 | **Processor system full optimization**: all 81 processors standardized to snake_case parameter naming; full i18n coverage (English + Chinese); improved DESC documentation quality. Migration script `tools/migrate_params.py` provided for existing YAML files |

@@ -69,6 +69,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "handy_get_deep_data": {"en": "get_deep_data([\"\",\"\"])", "zh": "get_deep_data([\"\",\"\"])"},
     "handy_date_str": {"en": "Date String\t{self.get_now_str()}", "zh": "日期字符串\t{self.get_now_str()}"},
     "handy_os_sep": {"en": "OS Separator\t{os.sep}", "zh": "系统路径分隔符\t{os.sep}"},
+    "handy_os_getenv": {"en": "OS Env Var\t{os.getenv(\"\")}", "zh": "系统环境变量\t{os.getenv(\"\")}"},
     "handy_str2dict": {"en": "str2dict(\"k1|>v1\")", "zh": "str2dict(\"k1|>v1\")"},
     "handy_feed_tpl": {"en": "feed_tpl(\"tpl\", {})", "zh": "feed_tpl(\"tpl\", {})"},
     "handy_prop2dict": {"en": "prop2dict(\"k=v\")", "zh": "prop2dict(\"k=v\")"},
@@ -150,9 +151,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mcp_tip_del_output": {"en": "Remove selected output parameter", "zh": "删除选中的输出参数"},
     "mcp_tip_tool_desc": {"en": "Brief description of what this tool does", "zh": "简要描述此工具的功能"},
     "mcp_tip_preview_json": {"en": "Preview generated JSON", "zh": "预览生成的JSON"},
-    "mcp_tip_sync_input": {"en": "Sync from first task input", "zh": "从首个任务输入同步"},
+    "mcp_tip_sync_input": {"en": "Sync from selected task (default: first)", "zh": "从选中任务同步（默认：首个）"},
     "mcp_dlg_sync_title": {"en": "Sync Input Parameters", "zh": "同步输入参数"},
-    "mcp_sync_no_params": {"en": "First task has no parseable JSON parameters.", "zh": "首个任务没有可解析的JSON参数。"},
+    "mcp_sync_no_params": {"en": "Selected task has no parseable JSON parameters.", "zh": "选中任务没有可解析的JSON参数。"},
+    "mcp_tip_sync_output": {"en": "Sync from selected task (default: last)", "zh": "从选中任务同步（默认：末尾）"},
+    "mcp_dlg_sync_output_title": {"en": "Sync Output Parameters", "zh": "同步输出参数"},
+    "mcp_sync_output_no_params": {"en": "Selected task has no parseable JSON parameters.", "zh": "选中任务没有可解析的JSON参数。"},
 
     # === Tooltips — pipeline actions ===
     "tip_add_row_p": {"en": "Add row", "zh": "添加行"},

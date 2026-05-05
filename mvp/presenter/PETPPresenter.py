@@ -89,6 +89,7 @@ class PETPPresenter():
         view.execution_desc.set_on_undo(self._undo)
         view.execution_desc.set_on_redo(self._redo)
         view.execution_desc.set_on_sync_input(self._on_sync_input_from_task)
+        view.execution_desc.set_on_sync_output(self._on_sync_output_from_task)
 
         logging.info('Init PETPPresenter')
 
@@ -779,6 +780,7 @@ class PETPPresenter():
         self.v.availableProperties.Clear()
 
     def on_task_execution_changed(self):
+        import time as _t; _t0 = _t.time()
         self._reset_grids()
         combo = self.v.executionChooser
         grid = self.v.taskGrid
@@ -794,6 +796,7 @@ class PETPPresenter():
             self._mark_clean()
             return
         else:
+            logging.debug(f'[PERF] get_execution: {(_t.time()-_t0)*1000:.0f}ms')
             current_number_rows = grid.GetNumberRows()
             task_number = len(self.execution.list)
 
@@ -810,6 +813,7 @@ class PETPPresenter():
             self._apply_all_row_skip_styles()
             self._autosize_input_col()
             grid.EndBatch()
+            logging.debug(f'[PERF] grid populate: {(_t.time()-_t0)*1000:.0f}ms')
 
             if hasattr(self.execution, 'loops') and len(self.execution.loops) > 0:
                 for idx, itm in enumerate(self.execution.loops):
@@ -822,12 +826,12 @@ class PETPPresenter():
             if hasattr(self.execution, 'mcp_desc') and self.execution.mcp_desc is not None:
                 execution_desc.set_execution_name(combo.GetValue())
                 execution_desc.SetValue(self.execution.mcp_desc)
+            logging.debug(f'[PERF] mcp_desc: {(_t.time()-_t0)*1000:.0f}ms')
 
             if hasattr(self.execution, 'astool') and self.execution.astool is not None:
                 cb_astool.SetValue(self.execution.astool)
             else:
                 cb_astool.SetValue(False)
-            self._sync_mcp_panel_visibility()
 
             self._snapshots.clear()
             self._snapshot_cursor = -1
@@ -835,7 +839,12 @@ class PETPPresenter():
 
             if self.v.taskGrid.GetNumberRows() > 0:
                 self.v.taskGrid.SelectRow(0)
-                self._load_input_taskproperty(0)
+                if self.current_selected_row != 0:
+                    self._load_input_taskproperty(0)
+            logging.debug(f'[PERF] load_property: {(_t.time()-_t0)*1000:.0f}ms')
+
+            self._sync_mcp_panel_visibility()
+            logging.debug(f'[PERF] total: {(_t.time()-_t0)*1000:.0f}ms')
 
     def _save_execcution(self, name):
         grid = self.v.taskGrid
@@ -1411,9 +1420,14 @@ class PETPPresenter():
         self.current_selected_row = current_row
         self._pgrid_bound_row = current_row  # lock property grid to this row
         current_input = grid.GetCellValue(current_row, 1)
-        if len(current_input) > 5:
+        current_processor = grid.GetCellValue(current_row, 0)
 
-            input_dict = json.loads(current_input)
+        try:
+            input_dict = json.loads(current_input) if current_input.strip() else {}
+        except (json.JSONDecodeError, TypeError):
+            input_dict = None
+
+        if isinstance(input_dict, dict):
             page = self.v.taskProperty.GetPage(self.single_page)
             self._reset_task_pgrid(current_row + 1)
 
@@ -1423,8 +1437,8 @@ class PETPPresenter():
 
             page.FitColumns()
 
-            current_processor = grid.GetCellValue(current_row, 0)
-            self._fill_available_properties(current_processor, input_dict)
+            if current_processor in self.available_processors:
+                self._fill_available_properties(current_processor, input_dict)
         else:
             self._reset_task_pgrid()
             self._pgrid_bound_row = -1  # no valid property binding
@@ -1538,7 +1552,14 @@ class PETPPresenter():
         is_tool = self.v.cb_astool.IsChecked()
         h = splitter.GetSize()[1]
         if is_tool:
-            splitter.SetSashPosition(h - 150 if h > 200 else h // 2)
+            pgrid = self.v.taskProperty
+            row_h = pgrid.GetGrid().GetRowHeight()
+            page = pgrid.GetPage(self.single_page)
+            prop_count = sum(1 for _ in page.GetPyIterator(wx.propgrid.PG_ITERATE_ALL))
+            display_rows = min(prop_count, 5)
+            pgrid_needed = (display_rows + 1) * row_h + 40
+            sash = max(pgrid_needed, 50)
+            splitter.SetSashPosition(sash)
         else:
             splitter.SetSashPosition(h - 28)
 
@@ -1610,7 +1631,7 @@ class PETPPresenter():
                 prop.SetValue(json.dumps(attrs, ensure_ascii=False))
 
     def _on_sync_input_from_task(self):
-        params = self._extract_first_task_params()
+        params = self._extract_selected_task_params(fallback_row=0)
         if not params:
             wx.MessageBox(t("mcp_sync_no_params"), "Info", wx.OK | wx.ICON_INFORMATION, self.v)
             return
@@ -1648,6 +1669,45 @@ class PETPPresenter():
         self.v.execution_desc.sync_input_params(selected)
         self._update_save_button()
 
+    def _on_sync_output_from_task(self):
+        params = self._extract_selected_task_params(fallback_row=-1)
+        if not params:
+            wx.MessageBox(t("mcp_sync_output_no_params"), "Info", wx.OK | wx.ICON_INFORMATION, self.v)
+            return
+
+        existing = {self.v.execution_desc._output_grid.GetCellValue(r, 0).strip()
+                    for r in range(self.v.execution_desc._output_grid.GetNumberRows())}
+
+        dlg = wx.Dialog(self.v, title=t("mcp_dlg_sync_output_title"), size=(350, 400))
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        scrolled = wx.ScrolledWindow(dlg)
+        scrolled.SetScrollRate(0, 10)
+        cb_sizer = wx.BoxSizer(wx.VERTICAL)
+        checkboxes = []
+        for key in params:
+            cb = wx.CheckBox(scrolled, label=key)
+            cb.SetValue(key not in existing)
+            checkboxes.append((key, cb))
+            cb_sizer.Add(cb, 0, wx.ALL, 4)
+        scrolled.SetSizer(cb_sizer)
+        sizer.Add(scrolled, 1, wx.EXPAND | wx.ALL, 8)
+        btn_sizer = dlg.CreateStdDialogButtonSizer(wx.OK | wx.CANCEL)
+        sizer.Add(btn_sizer, 0, wx.EXPAND | wx.ALL, 8)
+        dlg.SetSizer(sizer)
+
+        if dlg.ShowModal() != wx.ID_OK:
+            dlg.Destroy()
+            return
+        selected = {key: params[key] for key, cb in checkboxes if cb.GetValue()}
+        dlg.Destroy()
+
+        if not selected:
+            return
+
+        self._push_snapshot()
+        self.v.execution_desc.sync_output_params(selected)
+        self._update_save_button()
+
     def _extract_initial_params(self):
         grid = self.v.taskGrid
         if grid.GetNumberRows() == 0:
@@ -1667,15 +1727,21 @@ class PETPPresenter():
         except (json.JSONDecodeError, TypeError):
             return None
 
-    def _extract_first_task_params(self):
+    def _extract_selected_task_params(self, fallback_row=0):
         grid = self.v.taskGrid
-        if grid.GetNumberRows() == 0:
+        row_count = grid.GetNumberRows()
+        if row_count == 0:
             return None
-        first_input = grid.GetCellValue(0, 1).strip()
-        if not first_input:
+        row = self.current_selected_row if self.current_selected_row >= 0 else (
+            row_count - 1 if fallback_row == -1 else fallback_row
+        )
+        if row >= row_count:
+            return None
+        task_input = grid.GetCellValue(row, 1).strip()
+        if not task_input:
             return None
         try:
-            params = json.loads(first_input)
+            params = json.loads(task_input)
             if isinstance(params, dict) and params:
                 params.pop("skipped", None)
                 return params if params else None
@@ -1745,7 +1811,11 @@ class PETPPresenter():
         self._append_or_update_property_to_page(k, v, page)
         self._add_property(k, v)
 
-        input_dict = json.loads(grid.GetCellValue(self._pgrid_bound_row, 1))
+        raw = grid.GetCellValue(self._pgrid_bound_row, 1)
+        try:
+            input_dict = json.loads(raw) if raw.strip() else {}
+        except (json.JSONDecodeError, TypeError):
+            input_dict = {}
         self._fill_available_properties(processor, input_dict)
 
     def on_skip_task_changed(self, evt):
@@ -2162,12 +2232,14 @@ class PETPPresenter():
                 f'Property grid bound to row {target_row} but grid selection is at row '
                 f'{self.current_selected_row} — writing to row {target_row} (property grid source).')
 
-        input = task_grid.GetCellValue(target_row, input_col)
+        raw = task_grid.GetCellValue(target_row, input_col)
         self._push_snapshot()
-        input_dict = json.loads(input)
+        try:
+            input_dict = json.loads(raw) if raw.strip() else {}
+        except (json.JSONDecodeError, TypeError):
+            input_dict = {}
         input_dict = func(input_dict, key, value)
-        input = json.dumps(input_dict)
-        task_grid.SetCellValue(target_row, input_col, input)
+        task_grid.SetCellValue(target_row, input_col, json.dumps(input_dict))
         self._update_save_button()
 
     def _is_dirty(self):

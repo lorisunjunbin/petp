@@ -1,0 +1,21 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: test_mcp_input_output
+list:
+- !!python/object:core.task.Task
+  input: '{"given": "SUNJUNBIN", "convert_given": "{given}"}'
+  skipped: false
+  type: INITIAL_PARAMS
+loops: []
+mcp_desc: "{\n  \"desc\": \"<Brief description of what test_mcp_input_output does>\",\n
+  \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"test_mcp_input_outputArguments\",\n
+  \   \"properties\": {\n      \"given\": {\n        \"title\": \"given\",\n        \"type\":
+  \"string\",\n        \"description\": \"\",\n        \"default\": \"SUNJUNBIN\"\n
+  \     },\n      \"convert_given\": {\n        \"title\": \"convert_given\",\n        \"type\":
+  \"string\",\n        \"description\": \"\",\n        \"default\": \"{given}\"\n
+  \     }\n    },\n    \"required\": [\n      \"given\",\n      \"convert_given\"\n
+  \   ]\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"test_mcp_input_outputOutput\",\n
+  \   \"properties\": {\n      \"resp_convert_given\": {\n        \"title\": \"resp_convert_given\",\n
+  \       \"type\": \"string\",\n        \"description\": \"\",\n        \"mapKey\":
+  \"{convert_given+\\\"-YOLO\\\"}\"\n      }\n    },\n    \"required\": [\n      \"resp_convert_given\"\n
+  \   ]\n  }\n}"

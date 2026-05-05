@@ -222,7 +222,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | `requirements/` | 模块化依赖分组 |
 | `build/` | PyInstaller 与 Docker 构建脚本 |
 | `tools/` | 维护脚本（迁移、同步） |
-| `testcoverage/` | 测试与冒烟脚本 |
+| `testcoverage/` | 测试与冒烟脚本（含 `petp_http_endpoints.http` HTTP/MCP 接口测试） |
 
 ---
 

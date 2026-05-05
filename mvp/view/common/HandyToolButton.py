@@ -24,6 +24,7 @@ _HANDY_ITEMS = [
     None,
     ("handy_date_str", '{self.get_now_str()}', False),
     ("handy_os_sep", '{os.sep}', False),
+    ("handy_os_getenv", '{os.getenv("")}', False),
 ]
 
 _ENCRYPT_PREFIX = '{self.decrypt("'

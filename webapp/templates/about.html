@@ -255,6 +255,30 @@
         </div>
     </div>
 
+    <!-- ── Quick Start ────────────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('about_quickstart_title') }}</span></div>
+
+    <div class="quickstart-block">
+        <div class="code-block">
+<pre><code><span class="cm"># 1. Install dependencies</span>
+pip install -U uv
+uv pip install -r requirements.txt
+
+<span class="cm"># 2. Run GUI</span>
+python PETP.py
+
+<span class="cm"># 3. Or run headless with MCP server on port 8866</span>
+python PETP_backgroud.py</code></pre>
+        </div>
+    </div>
+
+    <!-- ── First Run (4 steps) ────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('about_first_run_title') }}</span></div>
+
+    <figure style="margin:16px 0;text-align:center">
+        <img src="/petp-image/user_manual.png" alt="PETP first run 4 steps" style="max-width:100%;border-radius:8px;border:1px solid var(--border)">
+    </figure>
+
     <!-- ── Processor capabilities ─────────────────────────── -->
     <div class="section-divider"><span>{{ t('about_processor_lib') }}</span></div>
 
@@ -441,6 +465,20 @@
   }
 }</pre>
         </div>
+    </div>
+
+    <!-- ── AI Agent Integration Screenshots ───────────────── -->
+    <div class="section-divider"><span>{{ t('about_mcp_screenshots_title') }}</span></div>
+
+    <div class="mcp-screenshots">
+        <figure>
+            <img src="/petp-image/claude-code-mcp-tool.png" alt="Claude Code using PETP MCP tools">
+            <figcaption>Claude Code — MCP Tool Invocation</figcaption>
+        </figure>
+        <figure>
+            <img src="/petp-image/DEEPSEEK-MCP.png" alt="DeepSeek calling PETP via MCP">
+            <figcaption>DeepSeek — MCP Client Integration</figcaption>
+        </figure>
     </div>
 
     <!-- ── Dependency groups ───────────────────────────────── -->
@@ -655,6 +693,14 @@
             <tr><td>2026-05</td><td>{{ t('cl_2026_05_cron_history') | safe }}</td></tr>
             <tr><td>2026-05</td><td>{{ t('cl_2026_05_input_dialog_bg') | safe }}</td></tr>
             <tr><td>2026-05</td><td>{{ t('cl_2026_05_task_progress') | safe }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="changelog-earlier" id="changelogEarlier">
+    <div class="table-wrap" style="margin-top:12px">
+        <table class="data-table">
+            <tbody>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_highlight_info') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_system_theme') | safe }}</td></tr>
             <tr><td>2026-04</td><td>{{ t('cl_2026_04_theme') | safe }}</td></tr>
@@ -683,6 +729,11 @@
             </tbody>
         </table>
     </div>
+    </div>
+
+    <div style="text-align:center">
+        <button class="changelog-toggle" id="changelogToggle" type="button">{{ t('about_changelog_show_earlier') }}</button>
+    </div>
 
     <!-- ── Bottom CTA ─────────────────────────────────────── -->
     <div class="highlight-banner" style="margin-top:24px">
@@ -699,5 +750,16 @@
     </div>
 
 </main>
+<script>
+(function () {
+    var btn = document.getElementById('changelogToggle');
+    var section = document.getElementById('changelogEarlier');
+    if (!btn || !section) return;
+    btn.addEventListener('click', function () {
+        section.classList.toggle('is-open');
+        btn.style.display = 'none';
+    });
+})();
+</script>
 </body>
 </html>

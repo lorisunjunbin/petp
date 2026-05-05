@@ -20,13 +20,13 @@ list:
     "Location: {self.get_data(\"ipfilter_location\")}"}'
   skipped: false
   type: SHOW_RESULT
-- !!python/object:core.task.Task
-  input: '{"http_response_key":"ipfilter_location"}'
-  skipped: false
-  type: HTTP_RESPONSE_KEY
 loops: []
 mcp_desc: "{\n  \"desc\": \"\u751F\u6210cloud\u7CFB\u7EDF\u8FDC\u7A0B\u8BBF\u95EE\u7684IPFilter\u6587\u4EF6\",\n
   \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"CREATE_IP_FILTER_FILE_NEWArguments\",\n
   \   \"properties\": {\n      \"params\": {\n        \"title\": \"params\",\n        \"type\":
   \"string\",\n        \"description\": \"\"\n      }\n    },\n    \"required\": [\n
-  \     \"params\"\n    ]\n  }\n}"
+  \     \"params\"\n    ]\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n
+  \   \"title\": \"CREATE_IP_FILTER_FILE_NEWOutput\",\n    \"properties\": {\n      \"ipfilter_location\":
+  {\n        \"title\": \"ipfilter_location\",\n        \"type\": \"string\",\n        \"description\":
+  \"\"\n      }\n    },\n    \"required\": [\n      \"ipfilter_location\"\n    ]\n
+  \ }\n}"

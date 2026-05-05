@@ -29,6 +29,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._on_undo_callback = None
         self._on_redo_callback = None
         self._on_sync_input_callback = None
+        self._on_sync_output_callback = None
         self._suppress_change = False
         self._text_snapshot_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._on_text_snapshot_timer, self._text_snapshot_timer)
@@ -187,12 +188,23 @@ class McpDescEditor(wx.ScrolledWindow):
     def set_on_sync_input(self, callback):
         self._on_sync_input_callback = callback
 
+    def set_on_sync_output(self, callback):
+        self._on_sync_output_callback = callback
+
     def sync_input_params(self, params: dict):
         existing = {self._input_grid.GetCellValue(r, 0).strip()
                     for r in range(self._input_grid.GetNumberRows())}
         for name, value in params.items():
             if name not in existing:
                 self._add_input_row(name, "string", "", True, str(value) if value else "")
+
+    def sync_output_params(self, params: dict):
+        existing = {self._output_grid.GetCellValue(r, 0).strip()
+                    for r in range(self._output_grid.GetNumberRows())}
+        for name, value in params.items():
+            if name not in existing:
+                map_key = str(value).strip() if value else name
+                self._add_output_row(name, "string", map_key, "")
 
     def apply_i18n(self):
         self._lbl_desc.SetLabel(t("mcp_lbl_tool_desc"))
@@ -201,6 +213,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._btn_add_input.SetToolTip(t("mcp_tip_add_input"))
         self._btn_del_input.SetToolTip(t("mcp_tip_del_input"))
         self._btn_sync_input.SetToolTip(t("mcp_tip_sync_input"))
+        self._btn_sync_output.SetToolTip(t("mcp_tip_sync_output"))
         self._btn_add_output.SetToolTip(t("mcp_tip_add_output"))
         self._btn_del_output.SetToolTip(t("mcp_tip_del_output"))
         self._desc_text.SetToolTip(t("mcp_tip_tool_desc"))
@@ -273,15 +286,18 @@ class McpDescEditor(wx.ScrolledWindow):
         ])
         main.Add(self._input_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
 
-        # --- output parameters: label ... +/- buttons ---
+        # --- output parameters: label ... sync/+/- buttons ---
         out_hdr = wx.BoxSizer(wx.HORIZONTAL)
         self._lbl_output = wx.StaticText(self, label=t("mcp_lbl_output_params"))
         out_hdr.Add(self._lbl_output, 0, wx.ALIGN_CENTER_VERTICAL)
         out_hdr.AddStretchSpacer()
+        self._btn_sync_output = wx.Button(self, label="⇡", size=(28, 24))
+        self._btn_sync_output.SetToolTip(t("mcp_tip_sync_output"))
         self._btn_add_output = wx.Button(self, label="+", size=(28, 24))
         self._btn_del_output = wx.Button(self, label="-", size=(28, 24))
         self._btn_add_output.SetToolTip(t("mcp_tip_add_output"))
         self._btn_del_output.SetToolTip(t("mcp_tip_del_output"))
+        out_hdr.Add(self._btn_sync_output, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 2)
         out_hdr.Add(self._btn_add_output, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 2)
         out_hdr.Add(self._btn_del_output, 0, wx.ALIGN_CENTER_VERTICAL)
         main.Add(out_hdr, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 3)
@@ -326,6 +342,7 @@ class McpDescEditor(wx.ScrolledWindow):
 
     def _bind_events(self):
         self._btn_sync_input.Bind(wx.EVT_BUTTON, self._on_sync_input)
+        self._btn_sync_output.Bind(wx.EVT_BUTTON, self._on_sync_output)
         self._btn_add_input.Bind(wx.EVT_BUTTON, self._on_add_input)
         self._btn_del_input.Bind(wx.EVT_BUTTON, self._on_del_input)
         self._btn_add_output.Bind(wx.EVT_BUTTON, self._on_add_output)
@@ -384,6 +401,10 @@ class McpDescEditor(wx.ScrolledWindow):
     def _on_sync_input(self, _evt):
         if self._on_sync_input_callback:
             self._on_sync_input_callback()
+
+    def _on_sync_output(self, _evt):
+        if self._on_sync_output_callback:
+            self._on_sync_output_callback()
 
     def _on_add_input(self, _evt):
         self._fire_before_change()

@@ -82,3 +82,60 @@ Authorization: Bearer {{token}}
     }
   }
 }
+
+###
+POST {{baseURL}}/petp/exec
+Content-Type: application/json
+Content-Length: 157
+
+{
+    "action": "execution",
+    "params":{
+        "execution":"test_mcp_input_output",
+        "fromHTTPservice":true,
+        "given":"DIDIDADIDA"
+    }
+}
+
+###
+POST /petp/exec HTTP/1.1
+Host: localhost:8866
+Content-Type: application/json
+Content-Length: 126
+
+{
+    "action": "execution",
+    "params":{
+        "execution":"test_read_from_excel",
+        "fromHTTPservice":true
+    }
+}
+
+###
+POST /petp/exec HTTP/1.1
+Host: localhost:8866
+Content-Type: application/json
+Content-Length: 131
+
+{
+    "action": "execution",
+    "params":{
+        "execution":"CREATE_IP_FILTER_FILE_NEW",
+        "fromHTTPservice":true
+    }
+}
+
+###
+POST /petp/exec HTTP/1.1
+Host: localhost:8866
+Content-Type: application/json
+Content-Length: 144
+
+{
+    "action": "execution",
+    "params":{
+        "execution":"TEST_FIB_WITH_CACHE",
+        "seed":16,
+        "fromHTTPservice":true
+    }
+}

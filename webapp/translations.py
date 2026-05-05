@@ -91,9 +91,22 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # ── Index — stats ────────────────────────────────────────────
     "stat_processors": {"en": "Built-in processor types", "zh": "内置处理器类型"},
-    "stat_config":     {"en": "Low-code configuration",  "zh": "少代码配置"},
-    "stat_mcp":        {"en": "Native tool server",       "zh": "原生工具服务器"},
-    "stat_toolsets":   {"en": "Composable tool-sets",     "zh": "可组合工具集"},
+    "stat_ai":         {"en": "AI/LLM providers",         "zh": "AI/LLM 供应商"},
+    "stat_modes":      {"en": "Running modes",            "zh": "运行模式"},
+    "stat_cron":       {"en": "Cron scheduling",          "zh": "定时调度"},
+
+    # ── Index — How It Works ─────────────────────────────────────
+    "howto_divider":     {"en": "How It Works",                       "zh": "工作原理"},
+    "howto_step1_title": {"en": "Define",                             "zh": "定义"},
+    "howto_step1_desc":  {"en": "Configure tasks visually in GUI or write YAML directly", "zh": "在 GUI 中可视化配置任务，或直接编写 YAML"},
+    "howto_step2_title": {"en": "Run",                                "zh": "运行"},
+    "howto_step2_desc":  {"en": "Desktop, headless service, or Docker container", "zh": "桌面应用、后台服务或 Docker 容器"},
+    "howto_step3_title": {"en": "Integrate",                          "zh": "集成"},
+    "howto_step3_desc":  {"en": "Expose as MCP tools for AI agents to discover and invoke", "zh": "暴露为 MCP 工具，供 AI Agent 发现与调用"},
+
+    # ── Index — YAML example ─────────────────────────────────────
+    "yaml_section_title": {"en": "Simple Configuration",              "zh": "简洁配置"},
+    "yaml_section_desc":  {"en": "Define a complete automation in YAML — no code, no SDK, just declare what to do.", "zh": "用 YAML 定义完整自动化——无需代码，无需 SDK，只需声明要做什么。"},
 
     # ── Index — bottom CTA ───────────────────────────────────────
     "cta_home_title": {
@@ -117,11 +130,15 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     # ── About — sections ─────────────────────────────────────────
     "about_processor_lib":    {"en": "Processor Library",         "zh": "处理器库"},
     "about_running_modes":    {"en": "Running Modes",             "zh": "运行模式"},
+    "about_quickstart_title": {"en": "Quick Start",               "zh": "快速开始"},
+    "about_first_run_title":  {"en": "Run Your First Execution in 4 Steps", "zh": "4 步运行你的第一个执行任务"},
+    "about_mcp_screenshots_title": {"en": "AI Agent Integration in Action", "zh": "AI Agent 集成实战"},
     "about_http_mcp":         {"en": "HTTP Service & MCP Endpoints", "zh": "HTTP 服务与 MCP 端点"},
     "about_http_server_label":{"en": "Built-in HTTP server — port 8866", "zh": "内置 HTTP 服务器 — 端口 8866"},
     "about_dep_groups":       {"en": "Dependency Groups",         "zh": "依赖分组"},
     "about_project_struct":   {"en": "Project Structure",         "zh": "项目结构"},
     "about_changelog":        {"en": "Changelog",                 "zh": "更新日志"},
+    "about_changelog_show_earlier": {"en": "Show earlier updates", "zh": "显示更早的更新"},
 
     # ── About — table headers ────────────────────────────────────
     "th_category":    {"en": "Category",    "zh": "分类"},

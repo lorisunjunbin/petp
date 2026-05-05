@@ -5,7 +5,7 @@ application:
   email: 6099012@qq.com
   cell: +86-13478653323
   language: en
-  theme: Forest
+  theme: System
   log_level: INFO
   enable_windows_hdpi: false
   http_port: 8866
@@ -14,6 +14,6 @@ application:
   nogui_enabled: true
   nogui_ui_processor_policy: skip
   execute_on_startup: false
-  last_run: T_CENC_EARTHQUAKE_SEARCH
+  last_run: ENDECODER
   snapshot_max: 20
   cron_history_max_records: 500

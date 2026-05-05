@@ -33,14 +33,35 @@ Tip:
 - `GET /fileviewer` - session-protected file viewer
 - `POST /<SHARED_FOLDER>/<path>` - session-protected file download endpoint used by the viewer
 - `GET /api/v1/search/files/?q=<keyword>` - Basic Auth API for searching files
-- `GET /petp-image/<path>` - project images (prefer `webapp/static/images`, fallback to repository `image/`)
+- `GET /petp-image/<path>` - project images (priority: `static/images/` → `build_assets/` → repository `image/`)
 
 ### Docker (Standalone Image)
 
 - Base image: `python:3.14-slim`
-- Build step runs `scripts/prepare_assets.py` to copy required overview images from `build_assets/` to `static/images/`:
-  - `PETP_overview.png`
-  - `PETP_overview_windows.png`
+- Build step runs `scripts/prepare_assets.py` to copy required images from `build_assets/` to `static/images/` (no external dependencies at runtime).
+
+**Image assets managed in `build_assets/`:**
+
+| File | Description |
+|------|-------------|
+| `PETP_overview.png` | macOS GUI overview |
+| `PETP_overview_windows.png` | Windows GUI overview |
+| `HTTP_SERVICE_ENABLED.png` | HTTP service screenshot |
+| `petp_as_standard_mcp_server.png` | MCP server architecture |
+| `claude-code-mcp-tool.png` | Claude Code integration |
+| `DEEPSEEK-MCP.png` | DeepSeek MCP client |
+| `user_manual.png` | First-run 4-step guide |
+
+**Sync images from project `image/` directory** (run when upstream images change):
+
+```bash
+python scripts/prepare_assets.py \
+    --source ../image \
+    --target build_assets \
+    --files PETP_overview.png PETP_overview_windows.png \
+            HTTP_SERVICE_ENABLED.png petp_as_standard_mcp_server.png \
+            claude-code-mcp-tool.png DEEPSEEK-MCP.png user_manual.png
+```
 
 Build from `webapp/` directory:
 

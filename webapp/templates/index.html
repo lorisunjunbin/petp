@@ -62,11 +62,49 @@
                     <img src="/petp-image/PETP_overview_windows.png" alt="PETP overview on Windows">
                     <figcaption>Overview - Windows</figcaption>
                 </figure>
+                <figure class="carousel-slide">
+                    <img src="/petp-image/HTTP_SERVICE_ENABLED.png" alt="PETP HTTP service enabled">
+                    <figcaption>HTTP Service & MCP</figcaption>
+                </figure>
+                <figure class="carousel-slide">
+                    <img src="/petp-image/petp_as_standard_mcp_server.png" alt="PETP as MCP server">
+                    <figcaption>MCP Tool Server</figcaption>
+                </figure>
+                <figure class="carousel-slide">
+                    <img src="/petp-image/claude-code-mcp-tool.png" alt="Claude Code MCP integration">
+                    <figcaption>Claude Code Integration</figcaption>
+                </figure>
                 <div class="carousel-controls" id="overviewDots" role="tablist" aria-label="Overview slides">
                     <button class="dot is-active" type="button" aria-label="Show macOS overview"></button>
                     <button class="dot" type="button" aria-label="Show Windows overview"></button>
+                    <button class="dot" type="button" aria-label="Show HTTP service"></button>
+                    <button class="dot" type="button" aria-label="Show MCP server"></button>
+                    <button class="dot" type="button" aria-label="Show Claude Code"></button>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- ── How It Works ─────────────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('howto_divider') }}</span></div>
+
+    <section class="howto-steps">
+        <div class="howto-step">
+            <div class="howto-num">1</div>
+            <h3>{{ t('howto_step1_title') }}</h3>
+            <p>{{ t('howto_step1_desc') }}</p>
+        </div>
+        <div class="howto-connector"></div>
+        <div class="howto-step">
+            <div class="howto-num">2</div>
+            <h3>{{ t('howto_step2_title') }}</h3>
+            <p>{{ t('howto_step2_desc') }}</p>
+        </div>
+        <div class="howto-connector"></div>
+        <div class="howto-step">
+            <div class="howto-num">3</div>
+            <h3>{{ t('howto_step3_title') }}</h3>
+            <p>{{ t('howto_step3_desc') }}</p>
         </div>
     </section>
 
@@ -99,16 +137,16 @@
             <div class="stat-label">{{ t('stat_processors') }}</div>
         </div>
         <div class="stat-item">
-            <div class="stat-num">GUI</div>
-            <div class="stat-label">{{ t('stat_config') }}</div>
+            <div class="stat-num">10</div>
+            <div class="stat-label">{{ t('stat_ai') }}</div>
         </div>
         <div class="stat-item">
-            <div class="stat-num">MCP</div>
-            <div class="stat-label">{{ t('stat_mcp') }}</div>
+            <div class="stat-num">3</div>
+            <div class="stat-label">{{ t('stat_modes') }}</div>
         </div>
         <div class="stat-item">
-            <div class="stat-num">∞</div>
-            <div class="stat-label">{{ t('stat_toolsets') }}</div>
+            <div class="stat-num">Cron</div>
+            <div class="stat-label">{{ t('stat_cron') }}</div>
         </div>
     </div>
 
@@ -235,6 +273,25 @@
             </div>
         </div>
     </div>
+
+    <!-- ── YAML Example ─────────────────────────────────────── -->
+    <div class="section-divider"><span>{{ t('yaml_section_title') }}</span></div>
+
+    <section class="yaml-example-section">
+        <p class="yaml-desc">{{ t('yaml_section_desc') }}</p>
+        <div class="code-block">
+<pre><code>execution: DAILY_REPORT
+astool: true
+mcp_desc: '{"desc":"Generate daily report","params":["date"]}'
+list:
+  - type: HTTP_REQUEST
+    input: '{"url":"https://api.example.com/data?date={date}"}'
+  - type: AI_LLM_QANDA
+    input: '{"prompt":"Summarize: {http_response}"}'
+  - type: SEND_EMAIL
+    input: '{"to":"team@co.com","body":"{llm_answer}"}'</code></pre>
+        </div>
+    </section>
 
     <!-- ── Bottom CTA ─────────────────────────────────────── -->
     <section class="card panel value-strip" style="margin-top:24px">

@@ -169,12 +169,19 @@ class McpMixin:
         result = {}
         for prop_name, prop_spec in properties.items():
             dc_key = prop_spec.get("mapKey") or prop_name
-            if dc_key in data:
+            if '{' in dc_key and '}' in dc_key:
+                try:
+                    value = eval(f"f'{dc_key}'", {"__builtins__": {}}, data)
+                except Exception:
+                    continue
+            elif dc_key in data:
                 value = data[dc_key]
-                declared_type = prop_spec.get("type")
-                if declared_type == "string" and not isinstance(value, str):
-                    value = json.dumps(value, ensure_ascii=False, default=str)
-                result[prop_name] = value
+            else:
+                continue
+            declared_type = prop_spec.get("type")
+            if declared_type == "string" and not isinstance(value, str):
+                value = json.dumps(value, ensure_ascii=False, default=str)
+            result[prop_name] = value
         return result
 
     @staticmethod
