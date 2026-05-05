@@ -253,6 +253,21 @@ def run_pyinstaller(spec_path):
         sys.exit(1)
 
 
+def sync_dist_to_build(dist_name):
+    source_dir = os.path.join('dist', dist_name)
+    target_dir = os.path.join('build', dist_name)
+
+    if not os.path.isdir(source_dir):
+        print(f'Warning: dist output directory not found at {source_dir}')
+        return
+
+    try:
+        shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
+        print(f'Synced dist output to build directory: {source_dir} -> {target_dir}')
+    except Exception as e:
+        print(f'Warning: failed to sync dist output to build directory: {e}')
+
+
 def verify_executable(dist_name, exe_name):
     if sys.platform.startswith('win'):
         executable = os.path.join('dist', dist_name, f'{exe_name}.exe')
@@ -263,3 +278,15 @@ def verify_executable(dist_name, exe_name):
         print(f'Executable created at: {executable}')
     else:
         print(f'WARNING: executable not found at expected path: {executable}')
+
+    # onedir build requires the bundled Python runtime under dist/<name>/_internal
+    if sys.platform.startswith('win'):
+        runtime_dll = os.path.join('dist', dist_name, '_internal', 'python314.dll')
+        if os.path.exists(runtime_dll):
+            print(f'Runtime DLL verified at: {runtime_dll}')
+        else:
+            print(
+                'WARNING: python314.dll not found in dist runtime folder. '
+                'Do not run build/<name>/<exe>.exe; run the executable under dist/<name>/ instead.'
+            )
+

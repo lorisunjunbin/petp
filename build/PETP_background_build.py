@@ -6,6 +6,7 @@ from build_common import (
     collect_hidden_imports, run_pyinstaller,
     verify_executable, copy_folder_to_dist,
     keep_released_execution_only, change_http_port,
+    sync_dist_to_build,
 )
 
 DIST_NAME = 'PETP_background'
@@ -30,3 +31,4 @@ if __name__ == '__main__':
     copy_folder_to_dist(COPY_DIRS_COMMON, DIST_NAME)
     keep_released_execution_only(DIST_NAME)
     change_http_port(DIST_NAME, 8866)
+    sync_dist_to_build(DIST_NAME)
