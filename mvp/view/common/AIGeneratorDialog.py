@@ -127,9 +127,7 @@ class AIGeneratorDialog(wx.Frame):
             warnings = self._generator.validate_tasks(tasks)
             if self._on_apply:
                 self._on_apply('apply', tasks, loops)
-            summary = f"✓ {len(tasks)} tasks"
-            if warnings:
-                summary += "\n" + "\n".join(warnings)
+            summary = self._format_task_summary(tasks, warnings)
             self._add_message(summary, is_user=False)
 
         elif action == 'modify':
@@ -140,9 +138,8 @@ class AIGeneratorDialog(wx.Frame):
             warnings = self._generator.validate_tasks(new_tasks)
             if self._on_apply:
                 self._on_apply('apply', new_tasks, None)
-            summary = f"✓ {len(new_tasks)} tasks (modified)"
-            if warnings:
-                summary += "\n" + "\n".join(warnings)
+            ops = result.get('operations', [])
+            summary = self._format_modify_summary(ops, new_tasks, warnings)
             self._add_message(summary, is_user=False)
 
         else:
@@ -150,6 +147,49 @@ class AIGeneratorDialog(wx.Frame):
 
         prompt_t, comp_t = self._generator.get_token_usage()
         self._token_label.SetLabel(t("ai_gen_tokens", input=prompt_t, output=comp_t))
+
+    def _format_task_summary(self, tasks, warnings):
+        import json
+        lines = [f"✓ {len(tasks)} tasks:"]
+        for i, tk in enumerate(tasks, 1):
+            desc = self._brief_input(tk.input)
+            lines.append(f"  {i}. {tk.type}  {desc}")
+        if warnings:
+            lines.append("")
+            lines.extend(warnings)
+        return "\n".join(lines)
+
+    def _format_modify_summary(self, operations, new_tasks, warnings):
+        import json
+        lines = []
+        for op_dict in operations:
+            op = op_dict.get('op', '')
+            if op == 'insert':
+                after = op_dict.get('after', 0)
+                inserted = op_dict.get('tasks', [])
+                for t_dict in inserted:
+                    desc = self._brief_input(json.dumps(t_dict.get('input', {}), ensure_ascii=False))
+                    lines.append(f"+ insert after #{after}: {t_dict.get('type', '')}  {desc}")
+            elif op == 'delete':
+                idx = op_dict.get('index', 0)
+                lines.append(f"- delete #{idx}")
+            elif op == 'replace':
+                idx = op_dict.get('index', 0)
+                t_dict = op_dict.get('task', {})
+                desc = self._brief_input(json.dumps(t_dict.get('input', {}), ensure_ascii=False))
+                lines.append(f"~ replace #{idx}: {t_dict.get('type', '')}  {desc}")
+        lines.append(f"✓ {len(new_tasks)} tasks total")
+        if warnings:
+            lines.append("")
+            lines.extend(warnings)
+        return "\n".join(lines)
+
+    def _brief_input(self, input_str):
+        if not input_str or input_str == '{}':
+            return ''
+        if len(input_str) > 60:
+            return input_str[:57] + '...'
+        return input_str
 
     def _add_message(self, text, is_user=False, is_thinking=False):
         msg_panel = wx.Panel(self._chat_panel)
