@@ -90,6 +90,7 @@ class PETPPresenter():
         view.execution_desc.set_on_redo(self._redo)
         view.execution_desc.set_on_sync_input(self._on_sync_input_from_task)
         view.execution_desc.set_on_sync_output(self._on_sync_output_from_task)
+        view.execution_desc.set_on_ai_generate(self._on_ai_generate_mcp_desc)
 
         logging.info('Init PETPPresenter')
 
@@ -1251,6 +1252,34 @@ class PETPPresenter():
             new_exec.save()
             self.on_task_execution_changed()
             self._push_snapshot()
+
+    def _on_ai_generate_mcp_desc(self):
+        from core.ai.ExecutionGenerator import ExecutionGenerator, resolve_api_key
+
+        provider = getattr(self.model, 'ai_provider', '')
+        api_key = getattr(self.model, 'ai_api_key', '')
+        model_name = getattr(self.model, 'ai_model', '')
+        base_url = getattr(self.model, 'ai_base_url', '')
+        locale = getattr(self.model, 'language', 'en')
+
+        if not provider or not api_key:
+            wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
+            return
+
+        if not self.execution or not self.execution.list:
+            return
+
+        tasks = list(self.execution.list)
+        wx.BeginBusyCursor()
+        try:
+            generator = ExecutionGenerator([], locale)
+            generator.init_client(provider, resolve_api_key(api_key), base_url, model_name)
+            result = generator.generate_mcp_desc(tasks)
+            if result:
+                self._push_snapshot()
+                self.v.execution_desc.SetValue(result)
+        finally:
+            wx.EndBusyCursor()
 
     def on_stop_all(self):
         self.cron.stop_all()

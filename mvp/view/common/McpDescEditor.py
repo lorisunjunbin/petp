@@ -30,6 +30,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._on_redo_callback = None
         self._on_sync_input_callback = None
         self._on_sync_output_callback = None
+        self._on_ai_generate_callback = None
         self._suppress_change = False
         self._text_snapshot_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._on_text_snapshot_timer, self._text_snapshot_timer)
@@ -191,6 +192,9 @@ class McpDescEditor(wx.ScrolledWindow):
     def set_on_sync_output(self, callback):
         self._on_sync_output_callback = callback
 
+    def set_on_ai_generate(self, callback):
+        self._on_ai_generate_callback = callback
+
     def sync_input_params(self, params: dict):
         existing = {self._input_grid.GetCellValue(r, 0).strip()
                     for r in range(self._input_grid.GetNumberRows())}
@@ -218,6 +222,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._btn_del_output.SetToolTip(t("mcp_tip_del_output"))
         self._desc_text.SetToolTip(t("mcp_tip_tool_desc"))
         self._btn_preview.SetToolTip(t("mcp_tip_preview_json"))
+        self._btn_ai_gen.SetToolTip(t("ai_gen_mcp_tip"))
 
         for grid, cols in [
             (self._input_grid, [
@@ -259,6 +264,9 @@ class McpDescEditor(wx.ScrolledWindow):
         self._btn_preview = wx.Button(self, label="{ }", size=(36, 24))
         self._btn_preview.SetToolTip(t("mcp_tip_preview_json"))
         desc_row.Add(self._btn_preview, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 4)
+        self._btn_ai_gen = wx.Button(self, label=t("ai_gen_mcp_btn"), size=(36, 24))
+        self._btn_ai_gen.SetToolTip(t("ai_gen_mcp_tip"))
+        desc_row.Add(self._btn_ai_gen, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT, 2)
         main.Add(desc_row, 0, wx.EXPAND | wx.ALL, 3)
 
         # --- input parameters: label ... sync/+/- buttons ---
@@ -348,6 +356,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._btn_add_output.Bind(wx.EVT_BUTTON, self._on_add_output)
         self._btn_del_output.Bind(wx.EVT_BUTTON, self._on_del_output)
         self._btn_preview.Bind(wx.EVT_BUTTON, self._on_preview_json)
+        self._btn_ai_gen.Bind(wx.EVT_BUTTON, self._on_ai_generate)
         self._desc_text.Bind(wx.EVT_TEXT, self._on_text_change)
         self._desc_text.Bind(wx.EVT_KEY_DOWN, self._on_key_down)
         self._input_grid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self._on_grid_change)
@@ -405,6 +414,10 @@ class McpDescEditor(wx.ScrolledWindow):
     def _on_sync_output(self, _evt):
         if self._on_sync_output_callback:
             self._on_sync_output_callback()
+
+    def _on_ai_generate(self, _evt):
+        if self._on_ai_generate_callback:
+            self._on_ai_generate_callback()
 
     def _on_add_input(self, _evt):
         self._fire_before_change()
