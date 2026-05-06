@@ -389,9 +389,8 @@ class PETPPresenter():
             menu.Append(item_refs)
 
         menu.AppendSeparator()
-        item_ai = wx.MenuItem(menu, self.popup_id_ai_assist, t("ai_gen_assist"))
-        self.v.Bind(wx.EVT_MENU, self._on_ai_assist_execution, item_ai)
-        menu.Append(item_ai)
+        menu.Append(self.popup_id_ai_assist, t("ai_gen_assist"))
+        self.v.Bind(wx.EVT_MENU, self._on_ai_assist_execution, id=self.popup_id_ai_assist)
 
         self.v.PopupMenu(menu)
 
@@ -401,9 +400,8 @@ class PETPPresenter():
         if not hasattr(self, "popup_id_ai_assist"):
             self.popup_id_ai_assist = wx.NewId()
         menu = wx.Menu()
-        item_ai = wx.MenuItem(menu, self.popup_id_ai_assist, t("ai_gen_assist"))
-        self.v.Bind(wx.EVT_MENU, self._on_ai_assist_execution, item_ai)
-        menu.Append(item_ai)
+        menu.Append(self.popup_id_ai_assist, t("ai_gen_assist"))
+        self.v.Bind(wx.EVT_MENU, self._on_ai_assist_execution, id=self.popup_id_ai_assist)
         self.v.PopupMenu(menu)
         menu.Destroy()
 
@@ -1299,7 +1297,14 @@ class PETPPresenter():
 
     def _on_ai_assist_execution(self, _evt=None):
         if not self.execution:
-            return
+            combo = self.v.executionChooser
+            name = combo.GetValue().strip() if combo else ''
+            if not name:
+                return
+            self.execution = Execution.get_execution(name)
+            if not self.execution:
+                return
+
         execution_name = self.execution.execution
         from core.ai.ExecutionGenerator import ExecutionGenerator
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
