@@ -485,6 +485,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_invalid_type": {"en": "Warning: unknown processor type '{ptype}'", "zh": "警告: 未知处理器类型 '{ptype}'"},
     "ai_gen_mcp_btn": {"en": "AI", "zh": "AI"},
     "ai_gen_mcp_tip": {"en": "AI generate MCP description", "zh": "AI 生成 MCP 描述"},
+    "ai_gen_assist": {"en": "AI Assist", "zh": "AI 协助"},
 
     # === Processor descriptions — loaded from desc_translations.py ===
 }

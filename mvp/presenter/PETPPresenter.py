@@ -351,6 +351,7 @@ class PETPPresenter():
             self.popup_id_skip_toggle = wx.NewId()
             self.popup_id_view_processor_usage = wx.NewId()
             self.popup_id_find_referencing_executions = wx.NewId()
+            self.popup_id_ai_assist = wx.NewId()
 
         menu = wx.Menu()
 
@@ -386,6 +387,11 @@ class PETPPresenter():
                                     t("menu_find_referencing_executions").format(name=processor_name))
             self.v.Bind(wx.EVT_MENU, self._on_find_referencing_executions, item_refs)
             menu.Append(item_refs)
+
+        menu.AppendSeparator()
+        item_ai = wx.MenuItem(menu, self.popup_id_ai_assist, t("ai_gen_assist"))
+        self.v.Bind(wx.EVT_MENU, self._on_ai_assist_execution, item_ai)
+        menu.Append(item_ai)
 
         self.v.PopupMenu(menu)
 
@@ -1280,6 +1286,34 @@ class PETPPresenter():
                 self.v.execution_desc.SetValue(result)
         finally:
             wx.EndBusyCursor()
+
+    def _on_ai_assist_execution(self, _evt=None):
+        if not self.execution:
+            return
+        execution_name = self.execution.execution
+        from core.ai.ExecutionGenerator import ExecutionGenerator
+        from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
+
+        provider = getattr(self.m, 'ai_provider', '')
+        api_key = getattr(self.m, 'ai_api_key', '')
+        model = getattr(self.m, 'ai_model', '')
+        base_url = getattr(self.m, 'ai_base_url', '')
+
+        if not provider or not api_key:
+            wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
+            return
+
+        locale = getattr(self.m, 'language', 'en')
+        dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
+        dialog.set_undo_redo_handlers(self._undo, self._redo)
+
+        generator = ExecutionGenerator(dialog.get_selected_categories(), locale)
+        generator.init_client(provider, api_key, base_url, model)
+        dialog.set_generator(generator)
+
+        self._ai_dialog = dialog
+        self._ai_execution_name = execution_name
+        dialog.Show()
 
     def on_stop_all(self):
         self.cron.stop_all()
