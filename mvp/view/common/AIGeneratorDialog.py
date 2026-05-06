@@ -42,7 +42,7 @@ class AIGeneratorDialog(wx.Frame):
 
         # Chat area
         self._chat_panel = scrolled.ScrolledPanel(panel)
-        self._chat_panel.SetBackgroundColour(wx.WHITE)
+        self._chat_panel.SetBackgroundColour(wx.Colour(250, 250, 250))
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False)
@@ -153,16 +153,20 @@ class AIGeneratorDialog(wx.Frame):
 
     def _add_message(self, text, is_user=False, is_thinking=False):
         msg_panel = wx.Panel(self._chat_panel)
-        msg_panel.SetBackgroundColour(
-            wx.Colour(220, 235, 255) if is_user else wx.Colour(245, 245, 245)
-        )
+        if is_user:
+            msg_panel.SetBackgroundColour(wx.Colour(179, 210, 255))
+        elif is_thinking:
+            msg_panel.SetBackgroundColour(wx.Colour(255, 243, 205))
+        else:
+            msg_panel.SetBackgroundColour(wx.Colour(225, 225, 225))
         if is_thinking:
             msg_panel.SetName("thinking_panel")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         label = wx.StaticText(msg_panel, label=text)
+        label.SetForegroundColour(wx.Colour(30, 30, 30))
         label.Wrap(max(200, self._chat_panel.GetClientSize().width - 40))
-        sizer.Add(label, 0, wx.ALL, 6)
+        sizer.Add(label, 0, wx.ALL, 8)
         msg_panel.SetSizer(sizer)
 
         self._chat_sizer.Add(msg_panel, 0, wx.ALL | wx.EXPAND, 4)
