@@ -1254,7 +1254,7 @@ class PETPPresenter():
     def _ai_apply_callback(self, action, tasks=None, loops=None):
         if action == 'get_tasks':
             if self.execution:
-                return list(self.execution.list)
+                return [Task(tk.type, tk.input, tk.skipped) for tk in self.execution.list]
             return []
 
         if action == 'apply' and tasks is not None:
@@ -1262,7 +1262,8 @@ class PETPPresenter():
             execution_loops = loops if loops is not None else (
                 list(self.execution.loops) if self.execution and hasattr(self.execution, 'loops') else []
             )
-            new_exec = Execution(name, tasks, '', False, execution_loops)
+            clean_tasks = [Task(tk.type, tk.input, tk.skipped) for tk in tasks]
+            new_exec = Execution(name, clean_tasks, '', False, execution_loops)
             new_exec.save()
             self.on_task_execution_changed()
             self._push_snapshot()
