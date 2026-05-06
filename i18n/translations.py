@@ -514,3 +514,14 @@ def t(key: str, **kwargs) -> str:
         except (KeyError, IndexError):
             pass
     return text
+
+
+def get_localized_desc(cls, locale: str = None) -> str:
+    if locale is None:
+        locale = _current_locale
+    if locale == "zh":
+        key = f"desc_{cls.__name__.replace('Processor', '')}"
+        entry = TRANSLATIONS.get(key)
+        if entry and "zh" in entry:
+            return entry["zh"]
+    return getattr(cls, 'DESC', '')
