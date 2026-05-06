@@ -19,6 +19,8 @@ class AIGeneratorDialog(wx.Frame):
         self._generator = None
         self._undo_handler = None
         self._redo_handler = None
+        self._input_history = []
+        self._history_cursor = -1
         self._build_ui()
         self._bind_events()
 
@@ -79,6 +81,7 @@ class AIGeneratorDialog(wx.Frame):
     def _bind_events(self):
         self._btn_send.Bind(wx.EVT_BUTTON, self._on_send)
         self._input_text.Bind(wx.EVT_TEXT_ENTER, self._on_send)
+        self._input_text.Bind(wx.EVT_KEY_DOWN, self._on_input_key_down)
         self._btn_done.Bind(wx.EVT_BUTTON, self._on_done)
         self._btn_undo.Bind(wx.EVT_BUTTON, self._on_undo)
         self._btn_redo.Bind(wx.EVT_BUTTON, self._on_redo)
@@ -94,6 +97,10 @@ class AIGeneratorDialog(wx.Frame):
         msg = self._input_text.GetValue().strip()
         if not msg or self._generator is None:
             return
+        self._input_history.append(msg)
+        if len(self._input_history) > 20:
+            self._input_history.pop(0)
+        self._history_cursor = -1
         current_tasks = self._on_apply('get_tasks') if self._on_apply else None
         self._input_text.Clear()
         self._input_text.Disable()
@@ -103,6 +110,29 @@ class AIGeneratorDialog(wx.Frame):
 
         thread = threading.Thread(target=self._do_chat, args=(msg, current_tasks), daemon=True)
         thread.start()
+
+    def _on_input_key_down(self, evt):
+        key = evt.GetKeyCode()
+        if key == wx.WXK_UP and self._input_history:
+            if self._history_cursor == -1:
+                self._history_cursor = len(self._input_history) - 1
+            elif self._history_cursor > 0:
+                self._history_cursor -= 1
+            self._input_text.SetValue(self._input_history[self._history_cursor])
+            self._input_text.SetInsertionPointEnd()
+        elif key == wx.WXK_DOWN and self._input_history:
+            if self._history_cursor == -1:
+                evt.Skip()
+                return
+            if self._history_cursor < len(self._input_history) - 1:
+                self._history_cursor += 1
+                self._input_text.SetValue(self._input_history[self._history_cursor])
+            else:
+                self._history_cursor = -1
+                self._input_text.Clear()
+            self._input_text.SetInsertionPointEnd()
+        else:
+            evt.Skip()
 
     def _do_chat(self, msg, current_tasks):
         result = self._generator.chat(msg, current_tasks)
