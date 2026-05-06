@@ -38,7 +38,12 @@ class AnthropicClient(BaseLLMClient):
             elif block.type == 'text':
                 content += block.text
 
-        return LLMResponse(content=content, reasoning_content=reasoning or None)
+        return LLMResponse(
+            content=content,
+            reasoning_content=reasoning or None,
+            prompt_tokens=getattr(response.usage, 'input_tokens', 0) if hasattr(response, 'usage') else 0,
+            completion_tokens=getattr(response.usage, 'output_tokens', 0) if hasattr(response, 'usage') else 0,
+        )
 
     @classmethod
     def create(cls, provider: str, api_key: str = '', base_url: str = '', model: str = 'claude-sonnet-4-20250514', **kwargs) -> 'AnthropicClient':

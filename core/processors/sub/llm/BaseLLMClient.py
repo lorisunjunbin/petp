@@ -10,6 +10,8 @@ from typing import Optional
 class LLMResponse:
     content: str = ''
     reasoning_content: Optional[str] = None
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
 
 
 class BaseLLMClient(ABC):

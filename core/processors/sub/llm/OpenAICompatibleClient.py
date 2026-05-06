@@ -26,7 +26,13 @@ class OpenAICompatibleClient(BaseLLMClient):
         answer = response.choices[0].message
         content = getattr(answer, 'content', '') or ''
         reasoning = getattr(answer, 'reasoning_content', None)
-        return LLMResponse(content=content, reasoning_content=reasoning)
+        usage = getattr(response, 'usage', None)
+        return LLMResponse(
+            content=content,
+            reasoning_content=reasoning,
+            prompt_tokens=getattr(usage, 'prompt_tokens', 0) or 0,
+            completion_tokens=getattr(usage, 'completion_tokens', 0) or 0,
+        )
 
     @classmethod
     def create(cls, provider: str, api_key: str = '', base_url: str = '', **kwargs) -> 'OpenAICompatibleClient':
