@@ -1173,7 +1173,7 @@ class PETPPresenter():
             break
         dlg.Destroy()
 
-        tpl_choices = [t("dlg_create_exec_blank")] + sorted(existing)
+        tpl_choices = [t("dlg_create_exec_blank"), t("ai_gen_btn")] + sorted(existing)
         choice_dlg = wx.SingleChoiceDialog(
             self.v, t("dlg_create_exec_mode"),
             t("dlg_create_exec_title"), tpl_choices)
@@ -1184,19 +1184,73 @@ class PETPPresenter():
         sel = choice_dlg.GetStringSelection()
         choice_dlg.Destroy()
 
-        if sel != t("dlg_create_exec_blank") and sel in existing:
+        if sel == t("ai_gen_btn"):
+            self._start_ai_generator(new_name)
+        elif sel != t("dlg_create_exec_blank") and sel in existing:
             source = Execution.get_execution(sel)
             clean_tasks = [Task(tk.type, tk.input, tk.skipped) for tk in source.list]
             loops = list(source.loops) if hasattr(source, 'loops') else []
+            new_exec = Execution(new_name, clean_tasks, '', False, loops)
+            new_exec.save()
+            self._refresh_execution_chooser(new_name)
+            self.invalidate_tools_cache()
+            self.on_task_execution_changed()
         else:
             clean_tasks = [Task('INITIAL_PARAMS', '{}', False)]
             loops = []
+            new_exec = Execution(new_name, clean_tasks, '', False, loops)
+            new_exec.save()
+            self._refresh_execution_chooser(new_name)
+            self.invalidate_tools_cache()
+            self.on_task_execution_changed()
 
-        new_exec = Execution(new_name, clean_tasks, '', False, loops)
+    def _start_ai_generator(self, execution_name):
+        from core.ai.ExecutionGenerator import ExecutionGenerator
+        from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
+
+        provider = getattr(self.model, 'ai_provider', '')
+        api_key = getattr(self.model, 'ai_api_key', '')
+        model = getattr(self.model, 'ai_model', '')
+        base_url = getattr(self.model, 'ai_base_url', '')
+
+        if not provider or not api_key:
+            wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
+            return
+
+        clean_tasks = [Task('INITIAL_PARAMS', '{}', False)]
+        new_exec = Execution(execution_name, clean_tasks, '', False, [])
         new_exec.save()
-        self._refresh_execution_chooser(new_name)
+        self._refresh_execution_chooser(execution_name)
         self.invalidate_tools_cache()
         self.on_task_execution_changed()
+
+        locale = getattr(self.model, 'language', 'en')
+        dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
+        dialog.set_undo_redo_handlers(self._undo, self._redo)
+
+        generator = ExecutionGenerator(dialog.get_selected_categories(), locale)
+        generator.init_client(provider, api_key, base_url, model)
+        dialog.set_generator(generator)
+
+        self._ai_dialog = dialog
+        self._ai_execution_name = execution_name
+        dialog.Show()
+
+    def _ai_apply_callback(self, action, tasks=None, loops=None):
+        if action == 'get_tasks':
+            if self.execution:
+                return list(self.execution.list)
+            return []
+
+        if action == 'apply' and tasks is not None:
+            name = self._ai_execution_name
+            execution_loops = loops if loops is not None else (
+                list(self.execution.loops) if self.execution and hasattr(self.execution, 'loops') else []
+            )
+            new_exec = Execution(name, tasks, '', False, execution_loops)
+            new_exec.save()
+            self.on_task_execution_changed()
+            self._push_snapshot()
 
     def on_stop_all(self):
         self.cron.stop_all()
