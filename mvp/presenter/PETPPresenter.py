@@ -1209,10 +1209,10 @@ class PETPPresenter():
         from core.ai.ExecutionGenerator import ExecutionGenerator
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
-        provider = getattr(self.model, 'ai_provider', '')
-        api_key = getattr(self.model, 'ai_api_key', '')
-        model = getattr(self.model, 'ai_model', '')
-        base_url = getattr(self.model, 'ai_base_url', '')
+        provider = getattr(self.m, 'ai_provider', '')
+        api_key = getattr(self.m, 'ai_api_key', '')
+        model = getattr(self.m, 'ai_model', '')
+        base_url = getattr(self.m, 'ai_base_url', '')
 
         if not provider or not api_key:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
@@ -1225,7 +1225,7 @@ class PETPPresenter():
         self.invalidate_tools_cache()
         self.on_task_execution_changed()
 
-        locale = getattr(self.model, 'language', 'en')
+        locale = getattr(self.m, 'language', 'en')
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
@@ -1256,11 +1256,11 @@ class PETPPresenter():
     def _on_ai_generate_mcp_desc(self):
         from core.ai.ExecutionGenerator import ExecutionGenerator, resolve_api_key
 
-        provider = getattr(self.model, 'ai_provider', '')
-        api_key = getattr(self.model, 'ai_api_key', '')
-        model_name = getattr(self.model, 'ai_model', '')
-        base_url = getattr(self.model, 'ai_base_url', '')
-        locale = getattr(self.model, 'language', 'en')
+        provider = getattr(self.m, 'ai_provider', '')
+        api_key = getattr(self.m, 'ai_api_key', '')
+        model_name = getattr(self.m, 'ai_model', '')
+        base_url = getattr(self.m, 'ai_base_url', '')
+        locale = getattr(self.m, 'language', 'en')
 
         if not provider or not api_key:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
