@@ -134,6 +134,7 @@ class PETPInteractor():
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.on_grid_cell_change4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_grid_cell_select4e)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_grid_cell_right_click)
+        self.v.taskGrid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.on_grid_empty_right_click)
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_task_grid_dclick)
         self.v.taskGrid.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.on_task_grid_key_down)
         self.v.taskGrid.Bind(wx.EVT_SIZE, self.on_task_grid_size)
@@ -228,6 +229,10 @@ class PETPInteractor():
     def on_grid_cell_right_click(self, evt):
         evt.Skip()
         self.p.on_grid_cell_right_click(evt)
+
+    def on_grid_empty_right_click(self, evt):
+        evt.Skip()
+        self.p.on_grid_empty_right_click(evt)
 
     def on_notebook_page_changed(self, evt):
         self.p.on_notebook_page_changed(evt)

@@ -397,6 +397,16 @@ class PETPPresenter():
 
         menu.Destroy()
 
+    def on_grid_empty_right_click(self, evt):
+        if not hasattr(self, "popup_id_ai_assist"):
+            self.popup_id_ai_assist = wx.NewId()
+        menu = wx.Menu()
+        item_ai = wx.MenuItem(menu, self.popup_id_ai_assist, t("ai_gen_assist"))
+        self.v.Bind(wx.EVT_MENU, self._on_ai_assist_execution, item_ai)
+        menu.Append(item_ai)
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
     def _on_view_processor_usage(self, row_or_evt):
         if isinstance(row_or_evt, int):
             row = row_or_evt
