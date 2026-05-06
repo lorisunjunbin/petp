@@ -1,0 +1,152 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: CONTRACT_DOCUMENT_DOWNLOADER_by_LastPublishedDate
+list:
+- !!python/object:core.task.Task
+  input: '{"usr": "{self.decrypt(\"E2jVS0HQko3Ypg==*Gc3nhCKRvslsC8iW3WJKIw==*GngsKZaOQLJ3YKcXsMPSAQ==*G6Vpaov7GvfH1IOVbWd8kw==\")}",
+    "pwd": "{self.decrypt(\"RkuedC2liqK6Uy7IX3RWfQ==*MYhyJz9NambTzSAR40bNSg==*Oxlnk6n5hu4LtJHtTJuKAA==*Ri99eIIA7+WT5EQPD/NeAw==\")}",
+    "dateFrom": "01/01/2025", "dateTo": "12/31/2025", "ftfolder": "{self.get_data(\"dateFrom\").replace(\"/\",\"\")}_{self.get_data(\"dateTo\").replace(\"/\",\"\")}",
+    "date_format": "mm/dd/yyyy", "contract_status": "Published"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"url": "http://aiibcorpprocurement-t.sourcing-eu.ariba.com/?passwordadapter=ThirdPartyUser",
+    "download_folder": "{self.get_ddir()}{os.sep}{self.get_data(\"dateFrom\").replace(\"/\",\"\")}_{self.get_data(\"dateTo\").replace(\"/\",\"\")}{os.sep}"}'
+  skipped: false
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"chrome_name":"chrome"}'
+  skipped: false
+  type: ENTER_FULLSCREEN
+- !!python/object:core.task.Task
+  input: '{"identity":"UserName","value":"{self.get_data(\"usr\")}","find_by":"id"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":"Password","value":"{self.get_data(\"pwd\")}","find_by":"id"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":".w-login-form-btn","find_by":"css"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//div/div/ul/span[3]","find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//input[@_pl=\"Search using Title, ID, or any other term\"]","value":"KEY_ENTER","value_key":"","wait":5,"find_by":"xpath","clear_before_input":"yes"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":"#\\_b40h1d > .w-dropdown-pic-ct","find_by":"css"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//div[@id=\"Items__b40h1d\"]/div[contains(text(),\"{self.get_data(\"contract_status\")}\")]","wait":1,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"#\\_pk2sld > .w-dropdown-pic-ct","wait":3,"find_by":"css"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//div[@id=\"Items__pk2sld\"]/div[contains(text(),\"Custom\")]","wait":1,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"_33jlcb","value_key":"dateFrom","wait":2,"find_by":"id","clear_before_input":"yes"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":"_zjvq4","value_key":"dateTo","wait":1,"find_by":"id","clear_before_input":"yes"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_mgaopc\"]","wait":3,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//div[@class=\"scrollTableWrapper is-of-visible w-tbl-wrapper\"]/table/tbody/tr/td/table[@class=\"tableBody\"]/tbody/tr[@class]//a[@class=\"noLine\"]","value_type":"ele","value_key":"eles_of_published_contract","wait":10,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_MULTI_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"source_key":"eles_of_published_contract","target_key":"published_contract_id_title","map_fn":"[item.get_attribute(\"id\"), item.get_attribute(\"title\")]"}'
+  skipped: false
+  type: DATA_MAPPING
+- !!python/object:core.task.Task
+  input: '{"identity":"{self.get_data(\"loop_item\")[0]}","wait":2,"find_by":"id"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_hkqjkb\"]/div[1]/ul/li[1]","wait":2,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_pqbsj\"]/td[3]","value_type":"text","value_key":"contract_id","find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_oetgob\"]/td[3]","value_type":"text","value_key":"contract_amount","find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_ebtftd\"]/td[3]","value_type":"text","value_key":"hierarchical_type","find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_5hamvb\"]/span","value_type":"text","value_key":"request_department","find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@id=\"_hkqjkb\"]/div[1]/ul/li[2]","wait":4,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//a[contains(text(),\"Contract Document\")]/../../..//a[@role=\"treeitem\" and @aria-expanded=\"false\"]","wait":2,"timeout":6,"skip_timeout_error":"yes","find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity":"//a[contains(text(),\"Contract Document\")]/../../..//a[@role=\"treeitem\" and @aria-expanded=\"true\"]/../../../../../../following-sibling::tr/td[1]//a[@class=\"noLine\" and @_sf=\"false\"]","value_type":"id","value_key":"{self.get_data(\"loop_item\")[0]}-doc-item-ele","wait":2,"timeout":2,"expectcount":"{self.get_data(\"\")}","find_by":"xpath"}'
+  skipped: false
+  type: FIND_MULTI_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//a[contains(text(),\"Contract Document\")]/../../..//a[@role=\"treeitem\" and @aria-expanded=\"true\"]/../../../../../../following-sibling::tr/td[1]//td[3]//a[@title]","value_type":"text","value_key":"{self.get_data(\"loop_item\")[0]}-doc-title-ele","wait":1,"timeout":1,"targetfolder":"{self.get_rdir()}/{self.get_data(\"contract_id\")}","find_by":"xpath"}'
+  skipped: false
+  type: FIND_MULTI_THEN_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//a[contains(text(),\"Contract Document\")]/../../..//a[@role=\"treeitem\" and @aria-expanded=\"true\"]/../../../../../../following-sibling::tr/td[1]//a[@class=\"noLine\" and @_sf=\"false\"]","wait":1,"timeout":2,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_MULTI_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"timeout":30,"source_path":"{self.get_ddir()}{os.sep}{self.get_data(\"ftfolder\")}{os.sep}","target_path":"{self.get_rdir()}{os.sep}aiib{os.sep}{self.get_data(\"ftfolder\")}{os.sep}{self.get_data_by_loop(\"contract_amount\").replace(\"$\",\"\").replace(\" \",\"\").replace(\",\",\"\")}_{str(self.get_data_by_loop(\"request_department\"))[0:3]}_{self.get_data_by_loop(\"hierarchical_type\").replace(\" \",\"\").replace(\"-\",\"\")}_{self.get_data_by_loop(\"contract_id\")}{os.sep}","data_key":"{self.get_data_by_loop(\"contract_id\")}-files","expect_count":"{len(self.get_data(self.get_data(\"loop_item\")[0]+\"-doc-item-ele\"))}"}'
+  skipped: false
+  type: FOLDER_WATCH_MOVE
+- !!python/object:core.task.Task
+  input: '{"target": "aiib_contact_download_summary_{self.get_data(\"ftfolder\")}",
+    "type": "list", "list_row_lambda": "[me.get_data(\"loop_item\")[1], me.get_data_by_loop(\"contract_amount\"),
+    str(me.get_data_by_loop(\"request_department\"))[0:3],me.get_data_by_loop(\"contract_id\"),
+    str(me.get_data(me.get_data_by_loop(\"contract_id\") +''-files''))]"}'
+  skipped: false
+  type: DATA_COLLECT
+- !!python/object:core.task.Task
+  input: '{"identity":"//*[@title=\"Back\"]","wait":3,"find_by":"xpath"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}{os.sep}aiib{os.sep}{self.get_data(\"ftfolder\")}_contract_files_by_last_published.xlsx",
+    "value_key": "aiib_contact_download_summary_{self.get_data(\"ftfolder\")}", "data_key":
+    "report_location_{self.get_data(\"ftfolder\")}"}'
+  skipped: false
+  type: WRITE_TO_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path_key": "report_location_{self.get_data(\"ftfolder\")}", "timeout":
+    10}'
+  skipped: false
+  type: OPEN_FILE
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":18, "task_end":31, "loop_key":"published_contract_id_title",
+    "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20231213163631
+mcp_desc: ''

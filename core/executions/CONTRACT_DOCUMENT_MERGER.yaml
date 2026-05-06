@@ -1,0 +1,50 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: CONTRACT_DOCUMENT_MERGER
+list:
+- !!python/object:core.task.Task
+  input: '{"path_to_find": "{self.get_rdir()}{os.sep}aiib{os.sep}", "depth_lambda":
+    "depth == 1", "found_file_key": "found_aiib_file", "file_name_lambda": "\".\"
+    in file_name and not file_name.startswith(\".\")"}'
+  skipped: false
+  type: FIND_FILES
+- !!python/object:core.task.Task
+  input: '{"aiib_documents_merged": []}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"current_full": "{self.get_data(\"loop_item\")}", "current_file_name":
+    "{os.path.basename(self.get_data(\"current_full\"))}", "current_file_parent":
+    "{self.get_data(\"loop_item\").split(os.sep)[-2]}", "itm_request_org": "{self.get_data(\"current_file_parent\").split(\"_\")[1]}",
+    "itm_type": "{self.get_data(\"current_file_parent\").split(\"_\")[2]}", "itm_amount":
+    "{self.get_data(\"current_file_parent\").split(\"_\")[0]}", "itm_amount_num":
+    "{self.get_data(\"itm_amount\")[:-3]}", "itm_cwnum": "{self.get_data(\"current_file_parent\").split(\"_\")[3]}",
+    "itm_largerthan70": "{\"lessEqual70\" if (int(self.get_data(\"itm_amount_num\"))
+    <= 700000 or \"SubAgreement\"== self.get_data(\"itm_type\")) else \"largerthan70\"}",
+    "target_file": "{self.get_rdir()}{os.sep}aiib{os.sep}output{os.sep}{self.get_data(\"itm_request_org\")}{os.sep}{self.get_data(\"itm_largerthan70\")}{os.sep}{self.get_data(\"itm_cwnum\")}{os.sep}{self.get_data(\"current_file_name\")}"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"timeout":1,"source_path":"{self.get_data(\"current_full\")}","target_path":"{self.get_data(\"target_file\")}"}'
+  skipped: false
+  type: FILE_WATCH_MOVE
+- !!python/object:core.task.Task
+  input: '{"target":"aiib_documents_merged","type":"list","list_row_lambda":"[me.get_data(\"itm_request_org\"),me.get_data(\"itm_largerthan70\"),me.get_data(\"itm_amount\"),me.get_data(\"itm_cwnum\"),me.get_data(\"current_file_name\"),me.get_data(\"current_full\"),me.get_data(\"target_file\")]","clean_before_collect":"no"}'
+  skipped: false
+  type: DATA_COLLECT
+- !!python/object:core.task.Task
+  input: '{"file_path": "{self.get_rdir()}{os.sep}aiib{os.sep}output{os.sep}merged_files_summary.xlsx",
+    "value_key": "aiib_documents_merged", "data_key": "merged_report_location"}'
+  skipped: false
+  type: WRITE_TO_EXCEL
+- !!python/object:core.task.Task
+  input: '{"file_path": "", "file_path_key": "merged_report_location", "timeout":
+    10}'
+  skipped: false
+  type: OPEN_FILE
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":3, "task_end":5, "loop_key":"found_aiib_file", "loop_times":"0",
+    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20231213163631
+mcp_desc: ''

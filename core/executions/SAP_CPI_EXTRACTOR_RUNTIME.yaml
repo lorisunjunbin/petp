@@ -1,0 +1,88 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: SAP_CPI_EXTRACTOR_RUNTIME
+list:
+- !!python/object:core.task.Task
+  input: '{"SCPI_Host": "e350056-tmn.hci.ca1.hana.ondemand.com", "user": "I335607",
+    "password": "{self.decrypt(\"pM/pgsFtmw13SJ9IEsv8o+eu08REsA==*QRh7SWOWn48A5+/S7B2SxA==*M0HwzAPmCrkGmkPeTKoiDQ==*O2XOLtcUBDoanE2EF+9lIA==\")}",
+    "filename": "{self.get_ddir()}/config_runtime.json", "mode": "runtime", "mode_desc":
+    "designtime | runtime | designtime", "url_list_command": "https://{SCPI_Host}/itspaces/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentsListCommand",
+    "url_artifact_prefix": "https://{SCPI_Host}/Operations/com.sap.it.op.tmn.commands.dashboard.webui.IntegrationComponentDetailCommand?artifactId=",
+    "basicAuth": "{user}:{password}"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"type": "ENCODE", "inbound": "{basicAuth}", "outbound_key": "basicAuth",
+    "algorithms": "base64"}'
+  skipped: false
+  type: ENCODE_DECODE_STR
+- !!python/object:core.task.Task
+  input: '{"request_url":"{url_list_command}","method":"get","value_key":"resp","timeout":60,"headers":"Authorization[>Basic {basicAuth}|>ACCEPT[>application/json","resp_fn":"return response.text if response.status_code == 200 else response.status_code"}'
+  skipped: false
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"title": "HTTP\u670d\u52a1\u7aef\u8fd4\u56de", "msg": "{resp}"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"given_key": "resp", "target_key": "artifactInformations", "convertor_func":
+    "return p.json2dict(given)[''artifactInformations'']"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"start_idx":"","end_idx":"","source_key":"artifactInformations","target_key":"iflow_id_arr","map_fn":"[item[''id''], item[''name''], next((i[''value''] for i in item[''tags''] if i[''name''] == ''artifact.package.name''), None) ]"}'
+  skipped: false
+  type: DATA_MAPPING
+- !!python/object:core.task.Task
+  input: '{"title": "found {len(iflow_id_arr)} items", "msg": "{json.dumps(iflow_id_arr)}",
+    "skipped": "no"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"request_url":"{url_artifact_prefix}{loop_item[0]}","method":"get","value_key":"artifact_resp","timeout":60,"headers":"Authorization[>Basic {basicAuth}|>ACCEPT[>application/json","resp_fn":"return response.text if response.status_code == 200 else response.status_code"}'
+  skipped: false
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"title": "Get Artifact : {loop_item[1]}", "msg": "{artifact_resp}", "skipped":
+    "yes"}'
+  skipped: true
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"given_key": "artifact_resp", "target_key": "aobj", "convertor_func": "return
+    p.json2dict(given)"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"given_key": "aobj", "target_key": "artifactInformation", "convertor_func":
+    "return given[''artifactInformation''] if ''artifactInformation'' in given else
+    {}"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"given_key": "aobj", "target_key": "logConfiguration", "convertor_func":
+    "return given[''logConfiguration''] if ''logConfiguration'' in given else {}"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"given_key": "aobj", "target_key": "endpoints", "convertor_func": "return
+    given[''endpoints''] if ''endpoints'' in given else []"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"target":"iflow_obj_list","type":"list","list_row_lambda":"[me.get_data(\"loop_item\")[2], me.get_data_by_loop(''artifactInformation'')[''name''],me.get_data_by_loop(''artifactInformation'')[''symbolicName''],me.get_data_by_loop(''artifactInformation'')[''type''],me.get_data_by_loop(''artifactInformation'')[''version''],me.get_data_by_loop(''artifactInformation'')[''deployedBy''],me.get_data_by_loop(''artifactInformation'')[''deployedOn''],me.get_data_by_loop(''logConfiguration'')[''logLevel''],str(me.get_data_by_loop(''endpoints'')),''N/A'']","clean_before_collect":"no"}'
+  skipped: false
+  type: DATA_COLLECT
+- !!python/object:core.task.Task
+  input: '{"name":"reload logger"}'
+  skipped: false
+  type: RELOAD_LOG
+- !!python/object:core.task.Task
+  input: '{"title": "Collect iflow Object - {len(iflow_obj_list)}", "msg": "{json.dumps(iflow_obj_list)}"}'
+  skipped: false
+  type: SHOW_RESULT
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":8, "task_end":15, "loop_key":"iflow_id_arr", "loop_times":"0",
+    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20260414230025
+mcp_desc: ''

@@ -470,6 +470,22 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
 
 
+    # === AI Execution Generator ===
+    "ai_gen_title": {"en": "AI Execution Generator", "zh": "AI 执行生成器"},
+    "ai_gen_btn": {"en": "AI Generate", "zh": "AI 生成"},
+    "ai_gen_send": {"en": "Send", "zh": "发送"},
+    "ai_gen_done": {"en": "Done", "zh": "完成"},
+    "ai_gen_cancel": {"en": "Cancel", "zh": "取消"},
+    "ai_gen_thinking": {"en": "Thinking...", "zh": "思考中..."},
+    "ai_gen_category": {"en": "Category", "zh": "类别"},
+    "ai_gen_input_hint": {"en": "Describe what you want to automate...", "zh": "描述你想自动化的流程..."},
+    "ai_gen_no_config": {"en": "AI config not set. Please configure ai_provider and ai_api_key in settings.", "zh": "AI 配置未设置。请在设置中配置 ai_provider 和 ai_api_key。"},
+    "ai_gen_tokens": {"en": "Tokens: {input} in / {output} out", "zh": "Token: {input} 输入 / {output} 输出"},
+    "ai_gen_error": {"en": "Error: {msg}", "zh": "错误: {msg}"},
+    "ai_gen_invalid_type": {"en": "Warning: unknown processor type '{ptype}'", "zh": "警告: 未知处理器类型 '{ptype}'"},
+    "ai_gen_mcp_btn": {"en": "AI", "zh": "AI"},
+    "ai_gen_mcp_tip": {"en": "AI generate MCP description", "zh": "AI 生成 MCP 描述"},
+
     # === Processor descriptions — loaded from desc_translations.py ===
 }
 

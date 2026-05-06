@@ -1,0 +1,30 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: TEST_ACL_DEV_CHECKLIST
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://dev.activate.only.sap/#/checklist"}'
+  skipped: false
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"identity":"UserName","value":"iris.li","wait":2,"find_by":"id"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":"Password","value":"{self.decrypt(\"hq39jb8CxAj+ttaP5A==*Sr/nNBfw8GSBIrsP96WY5w==*tejltfxb490hpQSeVxL/CQ==*p/rXqFew9nOa4b2eTlOuyA==\")}","find_by":"id"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":"Password","value":"{KEY_ENTER}","find_by":"id"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"identity":".a-srch-bar-create","wait":2,"find_by":"css"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+loops:
+- !!python/object:core.loop.Loop
+  loop_attributes: '{"task_start":5, "task_end":14, "loop_key":"", "loop_times":"5000",
+    "loop_index_key":"loop_idx", "item_key":"loop_item"}'
+  loop_code: loop-20220328155714
+mcp_desc: ''
