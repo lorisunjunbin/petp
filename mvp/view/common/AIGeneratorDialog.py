@@ -11,7 +11,7 @@ class AIGeneratorDialog(wx.Frame):
     def __init__(self, parent, locale: str, on_apply=None):
         super().__init__(
             parent, title=t("ai_gen_title"),
-            size=(420, 560),
+            size=(450, 620),
             style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
         )
         self._locale = locale
@@ -26,7 +26,7 @@ class AIGeneratorDialog(wx.Frame):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Category selector
+        # Category selector with splitter
         cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
         main_sizer.Add(cat_label, 0, wx.LEFT | wx.TOP, 8)
 
@@ -34,19 +34,19 @@ class AIGeneratorDialog(wx.Frame):
             Processor.get_processor_by_type(p).get_category()
             for p in Processor.get_processors()
         ))
-        self._category_list = wx.CheckListBox(panel, choices=categories, size=(-1, 80))
+        self._category_list = wx.CheckListBox(panel, choices=categories)
         for i, cat in enumerate(categories):
             if cat in ('Selenium', 'HTTP', 'General'):
                 self._category_list.Check(i, True)
-        main_sizer.Add(self._category_list, 0, wx.EXPAND | wx.ALL, 8)
+        main_sizer.Add(self._category_list, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         # Chat area
-        self._chat_panel = scrolled.ScrolledPanel(panel, size=(-1, 300))
+        self._chat_panel = scrolled.ScrolledPanel(panel)
         self._chat_panel.SetBackgroundColour(wx.WHITE)
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False)
-        main_sizer.Add(self._chat_panel, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        main_sizer.Add(self._chat_panel, 3, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
 
         # Input area
         input_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -165,8 +165,7 @@ class AIGeneratorDialog(wx.Frame):
         sizer.Add(label, 0, wx.ALL, 6)
         msg_panel.SetSizer(sizer)
 
-        flags = wx.ALIGN_RIGHT if is_user else wx.ALIGN_LEFT
-        self._chat_sizer.Add(msg_panel, 0, flags | wx.ALL | wx.EXPAND, 4)
+        self._chat_sizer.Add(msg_panel, 0, wx.ALL | wx.EXPAND, 4)
         self._chat_panel.Layout()
         self._chat_panel.FitInside()
         self._chat_panel.Scroll(-1, self._chat_panel.GetVirtualSize()[1])
