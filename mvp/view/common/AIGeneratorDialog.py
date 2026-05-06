@@ -233,10 +233,20 @@ class AIGeneratorDialog(wx.Frame):
             msg_panel.SetName("thinking_panel")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        label = wx.StaticText(msg_panel, label=text)
-        label.SetForegroundColour(wx.Colour(30, 30, 30))
-        label.Wrap(max(200, self._chat_panel.GetClientSize().width - 40))
-        sizer.Add(label, 0, wx.ALL, 8)
+        text_ctrl = wx.TextCtrl(
+            msg_panel, value=text,
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE | wx.TE_NO_VSCROLL
+        )
+        text_ctrl.SetBackgroundColour(msg_panel.GetBackgroundColour())
+        text_ctrl.SetForegroundColour(wx.Colour(30, 30, 30))
+        line_count = text.count('\n') + 1
+        char_width = text_ctrl.GetCharWidth()
+        panel_width = max(200, self._chat_panel.GetClientSize().width - 56)
+        max_line_len = max((len(line) for line in text.split('\n')), default=0)
+        wrap_lines = sum((len(line) * char_width // panel_width + 1) for line in text.split('\n'))
+        height = max(wrap_lines, line_count) * (text_ctrl.GetCharHeight() + 2) + 4
+        text_ctrl.SetMinSize((panel_width, height))
+        sizer.Add(text_ctrl, 0, wx.ALL | wx.EXPAND, 6)
         msg_panel.SetSizer(sizer)
 
         self._chat_sizer.Add(msg_panel, 0, wx.ALL | wx.EXPAND, 4)
