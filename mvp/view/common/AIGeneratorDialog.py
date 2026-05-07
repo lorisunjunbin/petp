@@ -50,12 +50,12 @@ class AIGeneratorDialog(wx.Frame):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # --- Toolbar row: search + icon buttons ---
-        toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self._search_text = wx.SearchCtrl(panel, size=(200, -1))
-        self._search_text.SetDescriptiveText(t("ai_gen_search"))
-        toolbar_sizer.Add(self._search_text, 1, wx.EXPAND | wx.RIGHT, 6)
+        # --- Header row: "Category" label + icon buttons ---
+        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
+        cat_label.SetFont(cat_label.GetFont().Bold())
+        header_sizer.Add(cat_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
+        header_sizer.AddStretchSpacer()
 
         btn_size = (28, 28)
         self._btn_select_all = wx.Button(panel, label="☑", size=btn_size)
@@ -67,11 +67,11 @@ class AIGeneratorDialog(wx.Frame):
         self._btn_collapse_all = wx.Button(panel, label="⊟", size=btn_size)
         self._btn_collapse_all.SetToolTip(t("ai_gen_collapse_all_tip"))
 
-        toolbar_sizer.Add(self._btn_select_all, 0, wx.RIGHT, 2)
-        toolbar_sizer.Add(self._btn_select_none, 0, wx.RIGHT, 6)
-        toolbar_sizer.Add(self._btn_expand_all, 0, wx.RIGHT, 2)
-        toolbar_sizer.Add(self._btn_collapse_all, 0)
-        main_sizer.Add(toolbar_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+        header_sizer.Add(self._btn_select_all, 0, wx.RIGHT, 2)
+        header_sizer.Add(self._btn_select_none, 0, wx.RIGHT, 6)
+        header_sizer.Add(self._btn_expand_all, 0, wx.RIGHT, 2)
+        header_sizer.Add(self._btn_collapse_all, 0)
+        main_sizer.Add(header_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # --- Vertical splitter: (processor selector area) / (chat area) ---
         self._v_splitter = wx.SplitterWindow(
@@ -79,25 +79,35 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._v_splitter.SetMinimumPaneSize(100)
 
-        # Top pane: horizontal splitter (tree list | desc panel)
+        # Top pane: horizontal splitter (tree panel | desc panel)
         self._h_splitter = wx.SplitterWindow(
             self._v_splitter, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
         )
         self._h_splitter.SetMinimumPaneSize(150)
 
+        # Left: search + tree in a panel
+        tree_panel = wx.Panel(self._h_splitter)
+        tree_sizer = wx.BoxSizer(wx.VERTICAL)
+        self._search_text = wx.SearchCtrl(tree_panel, size=(-1, -1))
+        self._search_text.SetDescriptiveText(t("ai_gen_search"))
+        tree_sizer.Add(self._search_text, 0, wx.EXPAND | wx.BOTTOM, 4)
+
         self._tree = dv.TreeListCtrl(
-            self._h_splitter, style=dv.TL_CHECKBOX | dv.TL_3STATE
+            tree_panel, style=dv.TL_CHECKBOX | dv.TL_3STATE
         )
         self._tree.AppendColumn(t("ai_gen_category"), width=320)
         self._populate_tree()
+        tree_sizer.Add(self._tree, 1, wx.EXPAND)
+        tree_panel.SetSizer(tree_sizer)
 
+        # Right: desc panel
         self._desc_panel = wx.TextCtrl(
             self._h_splitter, style=wx.TE_MULTILINE | wx.TE_READONLY
         )
         self._desc_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._desc_panel.SetForegroundColour(wx.Colour(*th.log_fg))
 
-        self._h_splitter.SplitVertically(self._tree, self._desc_panel, 400)
+        self._h_splitter.SplitVertically(tree_panel, self._desc_panel, 400)
 
         # Bottom pane: chat area
         self._chat_panel = scrolled.ScrolledPanel(self._v_splitter)
@@ -115,6 +125,8 @@ class AIGeneratorDialog(wx.Frame):
         self._input_text = wx.TextCtrl(
             panel, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER, size=(-1, 36)
         )
+        self._input_text.SetBackgroundColour(wx.Colour(*th.log_search_bg))
+        self._input_text.SetForegroundColour(wx.Colour(*th.log_search_fg))
         self._input_text.SetHint(t("ai_gen_input_hint"))
         input_sizer.Add(self._input_text, 1, wx.EXPAND)
         self._btn_send = wx.Button(panel, label=t("ai_gen_send"), size=(50, 36))
