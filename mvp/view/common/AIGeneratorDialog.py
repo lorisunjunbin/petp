@@ -150,7 +150,9 @@ class AIGeneratorDialog(wx.Frame):
                 self._tree.CheckItem(p_item)
                 full_desc = self._full_desc_map.get(ptype, '')
                 if full_desc:
-                    for line in full_desc.strip().split('\n'):
+                    lines = full_desc.strip().split('\n')
+                    first_non_empty_idx = next((i for i, l in enumerate(lines) if l.strip()), 0)
+                    for line in lines[first_non_empty_idx + 1:]:
                         stripped = line.strip()
                         if stripped:
                             desc_item = self._tree.AppendItem(p_item, '')
