@@ -1258,14 +1258,36 @@ class PETPPresenter():
             return []
 
         if action == 'apply' and tasks is not None:
-            name = self._ai_execution_name
+            clean_tasks = [Task(tk.type, tk.input, tk.skipped) for tk in tasks]
             execution_loops = loops if loops is not None else (
                 list(self.execution.loops) if self.execution and hasattr(self.execution, 'loops') else []
             )
-            clean_tasks = [Task(tk.type, tk.input, tk.skipped) for tk in tasks]
-            new_exec = Execution(name, clean_tasks, '', False, execution_loops)
-            new_exec.save()
-            self.on_task_execution_changed()
+            self.execution.list = clean_tasks
+            self.execution.loops = execution_loops
+
+            grid = self.v.taskGrid
+            grid.BeginBatch()
+            current_rows = grid.GetNumberRows()
+            needed = len(clean_tasks)
+            if needed > current_rows:
+                for _ in range(needed - current_rows):
+                    self._insert_row(grid, self.available_processors)
+            elif current_rows > needed:
+                grid.DeleteRows(needed, current_rows - needed)
+            for idx, tk in enumerate(clean_tasks):
+                grid.SetCellValue(idx, 0, tk.type)
+                grid.SetCellValue(idx, 1, tk.input)
+            self._apply_all_row_skip_styles()
+            self._autosize_input_col()
+            grid.EndBatch()
+
+            if execution_loops:
+                page = self.v.loopProperty.GetPage(self.single_page)
+                page.Clear()
+                for itm in execution_loops:
+                    self._append_or_update_property_to_page(
+                        itm.loop_code, itm.loop_attributes, page)
+
             self._push_snapshot()
 
     def _on_ai_generate_mcp_desc(self):

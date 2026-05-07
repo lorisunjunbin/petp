@@ -522,8 +522,9 @@ def t(key: str, **kwargs) -> str:
 def get_localized_desc(cls, locale: str = None) -> str:
     if locale is None:
         locale = _current_locale
+    name = cls.__name__ if hasattr(cls, '__name__') else cls.__class__.__name__
     if locale == "zh":
-        key = f"desc_{cls.__name__.replace('Processor', '')}"
+        key = f"desc_{name.replace('Processor', '')}"
         entry = TRANSLATIONS.get(key)
         if entry and "zh" in entry:
             return entry["zh"]
