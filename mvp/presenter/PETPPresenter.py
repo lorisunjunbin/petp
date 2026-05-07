@@ -1351,7 +1351,6 @@ class PETPPresenter():
         cached_gen = getattr(self, '_ai_cached_generator', None)
 
         if cached_gen and cached_key == config_key:
-            cached_gen._messages = []
             dialog.set_generator(cached_gen)
             dialog._build_processor_map()
             dialog._populate_tree()
