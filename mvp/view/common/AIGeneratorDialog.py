@@ -66,33 +66,28 @@ class AIGeneratorDialog(wx.Frame):
         tree_panel = wx.Panel(self._h_splitter)
         tree_sizer = wx.BoxSizer(wx.VERTICAL)
 
+        # Search row: search + select all checkbox + expand/collapse toggle
+        search_row = wx.BoxSizer(wx.HORIZONTAL)
         self._search_text = wx.SearchCtrl(tree_panel, size=(-1, -1))
         self._search_text.SetDescriptiveText(t("ai_gen_search"))
-        tree_sizer.Add(self._search_text, 0, wx.EXPAND | wx.BOTTOM, 4)
-
-        # Category row: label + select all checkbox + expand/collapse toggle
-        cat_row = wx.BoxSizer(wx.HORIZONTAL)
-        cat_label = wx.StaticText(tree_panel, label=t("ai_gen_category"))
-        cat_label.SetFont(cat_label.GetFont().Bold())
-        cat_row.Add(cat_label, 0, wx.ALIGN_CENTER_VERTICAL)
-        cat_row.AddStretchSpacer()
+        search_row.Add(self._search_text, 1, wx.EXPAND | wx.RIGHT, 4)
 
         self._cb_select_all = wx.CheckBox(tree_panel, label=t("ai_gen_select_all"))
         self._cb_select_all.SetValue(True)
         self._cb_select_all.SetToolTip(t("ai_gen_select_all_tip"))
-        cat_row.Add(self._cb_select_all, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        search_row.Add(self._cb_select_all, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 4)
 
         self._expanded = True
         self._btn_toggle_expand = wx.Button(tree_panel, label="⊟", size=(28, 24))
         self._btn_toggle_expand.SetToolTip(t("ai_gen_collapse_all_tip"))
-        cat_row.Add(self._btn_toggle_expand, 0, wx.ALIGN_CENTER_VERTICAL)
+        search_row.Add(self._btn_toggle_expand, 0, wx.ALIGN_CENTER_VERTICAL)
 
-        tree_sizer.Add(cat_row, 0, wx.EXPAND | wx.BOTTOM, 4)
+        tree_sizer.Add(search_row, 0, wx.EXPAND | wx.BOTTOM, 4)
 
         self._tree = dv.TreeListCtrl(
-            tree_panel, style=dv.TL_CHECKBOX | dv.TL_3STATE
+            tree_panel, style=dv.TL_CHECKBOX | dv.TL_3STATE | dv.TL_NO_HEADER
         )
-        self._tree.AppendColumn(t("ai_gen_category"), width=320)
+        self._tree.AppendColumn("", width=320)
         self._populate_tree()
         tree_sizer.Add(self._tree, 1, wx.EXPAND)
         tree_panel.SetSizer(tree_sizer)
