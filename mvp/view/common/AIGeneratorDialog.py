@@ -84,9 +84,10 @@ class AIGeneratorDialog(wx.Frame):
         tree_sizer.Add(search_row, 0, wx.EXPAND | wx.BOTTOM, 4)
 
         self._tree = dv.TreeListCtrl(
-            tree_panel, style=dv.TL_CHECKBOX | dv.TL_3STATE | dv.TL_NO_HEADER
+            tree_panel, style=dv.TL_CHECKBOX | dv.TL_3STATE
         )
-        self._tree.AppendColumn("", width=320)
+        self._tree.AppendColumn("Processor", width=180)
+        self._tree.AppendColumn("Description", width=280)
         self._populate_tree()
         tree_sizer.Add(self._tree, 1, wx.EXPAND)
         tree_panel.SetSizer(tree_sizer)
@@ -158,8 +159,8 @@ class AIGeneratorDialog(wx.Frame):
             cat_item = self._tree.AppendItem(root, f"{cat} ({len(matched)})")
             self._tree_item_map[cat_item] = ('category', cat)
             for ptype, desc in sorted(matched, key=lambda x: x[0]):
-                label = f"{ptype} — {desc}" if desc else ptype
-                p_item = self._tree.AppendItem(cat_item, label)
+                p_item = self._tree.AppendItem(cat_item, ptype)
+                self._tree.SetItemText(p_item, 1, desc)
                 self._tree_item_map[p_item] = ('processor', ptype)
                 self._tree.CheckItem(p_item)
             self._tree.Expand(cat_item)
