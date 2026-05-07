@@ -35,6 +35,87 @@
 | `http_request_timeout` | `600` | HTTP 请求超时秒数 |
 | `log_level` | `INFO` | 运行时日志详细程度 |
 | `execute_on_startup` | `false` | 服务启动时自动运行的 Execution 名称 |
+| `ai_provider` | `""` | AI 助手使用的 LLM 提供商（见下方说明） |
+| `ai_model` | `""` | LLM 模型名称；留空则使用 provider 默认值 |
+| `ai_api_key` | `""` | API 密钥；支持 `${ENV_VAR}` 从环境变量读取；留空则从 provider 默认环境变量读取 |
+| `ai_base_url` | `""` | API 地址；留空则使用 provider 默认值 |
+
+---
+
+## AI 助手配置
+
+AI 助手功能（AI Execution Generator）用于通过自然语言生成和修改 PETP Execution 任务流。
+
+### 最简配置
+
+只需设置 `ai_provider`，其余字段留空将从 `AI_LLM_SETUPProcessor.PROVIDER_DEFAULTS` 自动填充：
+
+```yaml
+application:
+  ai_provider: zhipu
+  ai_model: ""
+  ai_api_key: ""
+  ai_base_url: ""
+```
+
+等价于：
+
+```yaml
+application:
+  ai_provider: zhipu
+  ai_model: GLM-5
+  ai_api_key: "${ZHIPU_ACCESS_KEY}"
+  ai_base_url: "https://open.bigmodel.cn/api/paas/v4/"
+```
+
+### 支持的 Provider 及默认值
+
+| Provider | 默认模型 | 默认环境变量 | 默认 Base URL |
+|----------|---------|-------------|--------------|
+| `deepseek` | deepseek-chat | DEEPSEEK_API_KEY | https://api.deepseek.com |
+| `zhipu` | GLM-5 | ZHIPU_ACCESS_KEY | https://open.bigmodel.cn/api/paas/v4/ |
+| `qianfan` | ernie-4.5-8k | QIANFAN_API_KEY | https://qianfan.baidubce.com/v2 |
+| `minimax` | MiniMax-Text-01 | MINIMAX_API_KEY | https://api.minimaxi.com/v1 |
+| `anthropic` | claude-sonnet-4-20250514 | ANTHROPIC_API_KEY | — |
+| `doubao` | doubao-1.5-pro-32k | DOUBAO_API_KEY | https://ark.cn-beijing.volces.com/api/v3 |
+| `moonshot` | moonshot-v1-8k | MOONSHOT_API_KEY | https://api.moonshot.cn/v1 |
+| `gemini` | gemini-1.5-pro | GOOGLE_API_KEY | — |
+| `ollama` | deepseek-r1:7b | — | — |
+| `openai_compatible` | gpt-4o | OPENAI_API_KEY | https://api.openai.com/v1 |
+
+### `ai_api_key` 环境变量解析
+
+如果值匹配 `${...}` 模式（如 `${DEEPSEEK_API_KEY}`），运行时从 `os.environ` 读取。否则作为字面量 API 密钥使用。
+
+---
+
+## AI 助手功能
+
+### 入口
+
+- **创建 Execution** → 模板选择中选 "AI 生成"
+- **taskGrid 右键** → "AI 协助"（对现有 Execution 进行对话式修改）
+- **MCP 描述编辑器** → "AI" 按钮（自动生成 mcp_desc JSON）
+
+### 功能
+
+| 功能 | 说明 |
+|------|------|
+| 咨询 Processor | 询问哪些 Processor 适合你的场景，AI 用自然语言推荐 |
+| 生成任务流 | 描述自动化需求，AI 生成完整 Task 序列并加载到 taskGrid |
+| 修改任务 | 对现有任务进行增量修改（插入、删除、替换） |
+| 生成 MCP 描述 | 根据当前 Execution 的任务自动生成 mcp_desc JSON |
+
+### Processor 选择器
+
+- TreeListCtrl 显示所有 Processor 分类树，支持展开查看完整 DESC 文档
+- 支持搜索过滤、全选/全不选、展开/收起所有
+- 只有勾选的 Processor 会作为上下文发送给 LLM（节省 Token）
+- "General" 分类始终包含在内
+
+### 连接缓存
+
+首次打开 AI 助手窗口时验证 LLM 连接，后续复用已有连接（瞬间打开）。配置变更时自动重新初始化。对话历史在本次启动期间保留。
 
 ---
 
