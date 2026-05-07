@@ -103,6 +103,16 @@ If the value matches `${...}` pattern (e.g., `${DEEPSEEK_API_KEY}`), it is resol
 - Only checked Processors are sent as LLM context (saves tokens)
 - "General" category always included
 
+### Action Buttons
+
+| Button | Function |
+|--------|----------|
+| Undo | Revert taskGrid to the snapshot before AI modification (same as Ctrl+Z) |
+| Redo | Restore an undone operation (same as Ctrl+Y) |
+| Done | Close AI dialog; taskGrid content is preserved but not auto-saved — use Ctrl+S to save |
+
+A snapshot is pushed automatically after each AI generation or modification. LLM connection and conversation history persist after closing — reused on next open.
+
 ### Connection Caching
 
 LLM connection is validated on first open and reused across dialog sessions. Config changes trigger re-initialization. Conversation history is preserved within the current app session.
