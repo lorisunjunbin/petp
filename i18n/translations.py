@@ -491,6 +491,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_search": {"en": "Search processor...", "zh": "搜索 Processor..."},
     "ai_gen_select_all": {"en": "All", "zh": "全选"},
     "ai_gen_select_none": {"en": "None", "zh": "全不选"},
+    "ai_gen_select_all_tip": {"en": "Select all processors", "zh": "选中所有 Processor"},
+    "ai_gen_select_none_tip": {"en": "Deselect all processors", "zh": "取消选中所有 Processor"},
+    "ai_gen_expand_all_tip": {"en": "Expand all categories", "zh": "展开所有分类"},
+    "ai_gen_collapse_all_tip": {"en": "Collapse all categories", "zh": "收起所有分类"},
 
     # === Processor descriptions — loaded from desc_translations.py ===
 }

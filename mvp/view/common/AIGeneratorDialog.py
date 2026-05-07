@@ -50,21 +50,28 @@ class AIGeneratorDialog(wx.Frame):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # --- Top row: label + search + buttons ---
-        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
-        cat_label.SetFont(cat_label.GetFont().Bold())
-        top_sizer.Add(cat_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
+        # --- Toolbar row: search + icon buttons ---
+        toolbar_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        self._search_text = wx.SearchCtrl(panel, size=(180, -1))
+        self._search_text = wx.SearchCtrl(panel, size=(200, -1))
         self._search_text.SetDescriptiveText(t("ai_gen_search"))
-        top_sizer.Add(self._search_text, 1, wx.EXPAND | wx.RIGHT, 4)
+        toolbar_sizer.Add(self._search_text, 1, wx.EXPAND | wx.RIGHT, 6)
 
-        self._btn_select_all = wx.Button(panel, label=t("ai_gen_select_all"), size=(60, -1))
-        self._btn_select_none = wx.Button(panel, label=t("ai_gen_select_none"), size=(60, -1))
-        top_sizer.Add(self._btn_select_all, 0, wx.RIGHT, 2)
-        top_sizer.Add(self._btn_select_none, 0)
-        main_sizer.Add(top_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+        btn_size = (28, 28)
+        self._btn_select_all = wx.Button(panel, label="☑", size=btn_size)
+        self._btn_select_all.SetToolTip(t("ai_gen_select_all_tip"))
+        self._btn_select_none = wx.Button(panel, label="☐", size=btn_size)
+        self._btn_select_none.SetToolTip(t("ai_gen_select_none_tip"))
+        self._btn_expand_all = wx.Button(panel, label="⊞", size=btn_size)
+        self._btn_expand_all.SetToolTip(t("ai_gen_expand_all_tip"))
+        self._btn_collapse_all = wx.Button(panel, label="⊟", size=btn_size)
+        self._btn_collapse_all.SetToolTip(t("ai_gen_collapse_all_tip"))
+
+        toolbar_sizer.Add(self._btn_select_all, 0, wx.RIGHT, 2)
+        toolbar_sizer.Add(self._btn_select_none, 0, wx.RIGHT, 6)
+        toolbar_sizer.Add(self._btn_expand_all, 0, wx.RIGHT, 2)
+        toolbar_sizer.Add(self._btn_collapse_all, 0)
+        main_sizer.Add(toolbar_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # --- Vertical splitter: (processor selector area) / (chat area) ---
         self._v_splitter = wx.SplitterWindow(
@@ -161,6 +168,8 @@ class AIGeneratorDialog(wx.Frame):
         self._btn_redo.Bind(wx.EVT_BUTTON, self._on_redo)
         self._btn_select_all.Bind(wx.EVT_BUTTON, self._on_select_all)
         self._btn_select_none.Bind(wx.EVT_BUTTON, self._on_select_none)
+        self._btn_expand_all.Bind(wx.EVT_BUTTON, self._on_expand_all)
+        self._btn_collapse_all.Bind(wx.EVT_BUTTON, self._on_collapse_all)
         self._search_text.Bind(wx.EVT_TEXT, self._on_search)
         self._tree.Bind(dv.EVT_TREELIST_SELECTION_CHANGED, self._on_tree_select)
         self._tree.Bind(dv.EVT_TREELIST_ITEM_CHECKED, self._on_tree_check)
@@ -177,6 +186,20 @@ class AIGeneratorDialog(wx.Frame):
         cat_item = self._tree.GetFirstChild(root)
         while cat_item.IsOk():
             self._tree.CheckItemRecursively(cat_item, wx.CHK_UNCHECKED)
+            cat_item = self._tree.GetNextSibling(cat_item)
+
+    def _on_expand_all(self, evt):
+        root = self._tree.GetRootItem()
+        cat_item = self._tree.GetFirstChild(root)
+        while cat_item.IsOk():
+            self._tree.Expand(cat_item)
+            cat_item = self._tree.GetNextSibling(cat_item)
+
+    def _on_collapse_all(self, evt):
+        root = self._tree.GetRootItem()
+        cat_item = self._tree.GetFirstChild(root)
+        while cat_item.IsOk():
+            self._tree.Collapse(cat_item)
             cat_item = self._tree.GetNextSibling(cat_item)
 
     def _on_search(self, evt):
