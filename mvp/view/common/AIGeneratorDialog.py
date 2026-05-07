@@ -50,29 +50,6 @@ class AIGeneratorDialog(wx.Frame):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # --- Header row: "Category" label + icon buttons ---
-        header_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
-        cat_label.SetFont(cat_label.GetFont().Bold())
-        header_sizer.Add(cat_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
-        header_sizer.AddStretchSpacer()
-
-        btn_size = (28, 28)
-        self._btn_select_all = wx.Button(panel, label="☑", size=btn_size)
-        self._btn_select_all.SetToolTip(t("ai_gen_select_all_tip"))
-        self._btn_select_none = wx.Button(panel, label="☐", size=btn_size)
-        self._btn_select_none.SetToolTip(t("ai_gen_select_none_tip"))
-        self._btn_expand_all = wx.Button(panel, label="⊞", size=btn_size)
-        self._btn_expand_all.SetToolTip(t("ai_gen_expand_all_tip"))
-        self._btn_collapse_all = wx.Button(panel, label="⊟", size=btn_size)
-        self._btn_collapse_all.SetToolTip(t("ai_gen_collapse_all_tip"))
-
-        header_sizer.Add(self._btn_select_all, 0, wx.RIGHT, 2)
-        header_sizer.Add(self._btn_select_none, 0, wx.RIGHT, 6)
-        header_sizer.Add(self._btn_expand_all, 0, wx.RIGHT, 2)
-        header_sizer.Add(self._btn_collapse_all, 0)
-        main_sizer.Add(header_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
-
         # --- Vertical splitter: (processor selector area) / (chat area) ---
         self._v_splitter = wx.SplitterWindow(
             panel, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
@@ -85,12 +62,32 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._h_splitter.SetMinimumPaneSize(150)
 
-        # Left: search + tree in a panel
+        # Left: search + category row + tree
         tree_panel = wx.Panel(self._h_splitter)
         tree_sizer = wx.BoxSizer(wx.VERTICAL)
+
         self._search_text = wx.SearchCtrl(tree_panel, size=(-1, -1))
         self._search_text.SetDescriptiveText(t("ai_gen_search"))
         tree_sizer.Add(self._search_text, 0, wx.EXPAND | wx.BOTTOM, 4)
+
+        # Category row: label + select all checkbox + expand/collapse toggle
+        cat_row = wx.BoxSizer(wx.HORIZONTAL)
+        cat_label = wx.StaticText(tree_panel, label=t("ai_gen_category"))
+        cat_label.SetFont(cat_label.GetFont().Bold())
+        cat_row.Add(cat_label, 0, wx.ALIGN_CENTER_VERTICAL)
+        cat_row.AddStretchSpacer()
+
+        self._cb_select_all = wx.CheckBox(tree_panel, label=t("ai_gen_select_all"))
+        self._cb_select_all.SetValue(True)
+        self._cb_select_all.SetToolTip(t("ai_gen_select_all_tip"))
+        cat_row.Add(self._cb_select_all, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+
+        self._expanded = True
+        self._btn_toggle_expand = wx.Button(tree_panel, label="⊟", size=(28, 24))
+        self._btn_toggle_expand.SetToolTip(t("ai_gen_collapse_all_tip"))
+        cat_row.Add(self._btn_toggle_expand, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        tree_sizer.Add(cat_row, 0, wx.EXPAND | wx.BOTTOM, 4)
 
         self._tree = dv.TreeListCtrl(
             tree_panel, style=dv.TL_CHECKBOX | dv.TL_3STATE
@@ -178,41 +175,38 @@ class AIGeneratorDialog(wx.Frame):
         self._btn_done.Bind(wx.EVT_BUTTON, self._on_done)
         self._btn_undo.Bind(wx.EVT_BUTTON, self._on_undo)
         self._btn_redo.Bind(wx.EVT_BUTTON, self._on_redo)
-        self._btn_select_all.Bind(wx.EVT_BUTTON, self._on_select_all)
-        self._btn_select_none.Bind(wx.EVT_BUTTON, self._on_select_none)
-        self._btn_expand_all.Bind(wx.EVT_BUTTON, self._on_expand_all)
-        self._btn_collapse_all.Bind(wx.EVT_BUTTON, self._on_collapse_all)
+        self._cb_select_all.Bind(wx.EVT_CHECKBOX, self._on_toggle_select_all)
+        self._btn_toggle_expand.Bind(wx.EVT_BUTTON, self._on_toggle_expand)
         self._search_text.Bind(wx.EVT_TEXT, self._on_search)
         self._tree.Bind(dv.EVT_TREELIST_SELECTION_CHANGED, self._on_tree_select)
         self._tree.Bind(dv.EVT_TREELIST_ITEM_CHECKED, self._on_tree_check)
 
-    def _on_select_all(self, evt):
+    def _on_toggle_select_all(self, evt):
+        checked = self._cb_select_all.GetValue()
+        state = wx.CHK_CHECKED if checked else wx.CHK_UNCHECKED
         root = self._tree.GetRootItem()
         cat_item = self._tree.GetFirstChild(root)
         while cat_item.IsOk():
-            self._tree.CheckItemRecursively(cat_item)
+            self._tree.CheckItemRecursively(cat_item, state)
             cat_item = self._tree.GetNextSibling(cat_item)
 
-    def _on_select_none(self, evt):
+    def _on_toggle_expand(self, evt):
         root = self._tree.GetRootItem()
         cat_item = self._tree.GetFirstChild(root)
-        while cat_item.IsOk():
-            self._tree.CheckItemRecursively(cat_item, wx.CHK_UNCHECKED)
-            cat_item = self._tree.GetNextSibling(cat_item)
-
-    def _on_expand_all(self, evt):
-        root = self._tree.GetRootItem()
-        cat_item = self._tree.GetFirstChild(root)
-        while cat_item.IsOk():
-            self._tree.Expand(cat_item)
-            cat_item = self._tree.GetNextSibling(cat_item)
-
-    def _on_collapse_all(self, evt):
-        root = self._tree.GetRootItem()
-        cat_item = self._tree.GetFirstChild(root)
-        while cat_item.IsOk():
-            self._tree.Collapse(cat_item)
-            cat_item = self._tree.GetNextSibling(cat_item)
+        if self._expanded:
+            while cat_item.IsOk():
+                self._tree.Collapse(cat_item)
+                cat_item = self._tree.GetNextSibling(cat_item)
+            self._expanded = False
+            self._btn_toggle_expand.SetLabel("⊞")
+            self._btn_toggle_expand.SetToolTip(t("ai_gen_expand_all_tip"))
+        else:
+            while cat_item.IsOk():
+                self._tree.Expand(cat_item)
+                cat_item = self._tree.GetNextSibling(cat_item)
+            self._expanded = True
+            self._btn_toggle_expand.SetLabel("⊟")
+            self._btn_toggle_expand.SetToolTip(t("ai_gen_collapse_all_tip"))
 
     def _on_search(self, evt):
         checked_before = set(self.get_selected_processors())
