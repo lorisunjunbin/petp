@@ -457,6 +457,8 @@ class AIGeneratorDialog(wx.Frame):
         )
         text_ctrl.SetBackgroundColour(bg)
         text_ctrl.SetForegroundColour(fg)
+        text_ctrl.Bind(wx.EVT_MOUSEWHEEL, self._on_chat_mousewheel)
+        msg_panel.Bind(wx.EVT_MOUSEWHEEL, self._on_chat_mousewheel)
         line_count = text.count('\n') + 1
         char_width = text_ctrl.GetCharWidth()
         panel_width = max(200, self._chat_panel.GetClientSize().width - 56)
@@ -482,6 +484,9 @@ class AIGeneratorDialog(wx.Frame):
                 break
         self._chat_panel.Layout()
         self._chat_panel.FitInside()
+
+    def _on_chat_mousewheel(self, evt):
+        self._chat_panel.GetEventHandler().ProcessEvent(evt)
 
     def _on_done(self, evt):
         self.Close()
