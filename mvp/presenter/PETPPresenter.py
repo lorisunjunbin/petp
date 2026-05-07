@@ -753,16 +753,196 @@ class PETPPresenter():
             grid.SelectRow(row_idx)
             grid.MakeCellVisible(row_idx, 0)
 
-    def update_highlight_info_done(self, name: str, error: str = None):
+    def update_highlight_info_done(self, name: str, error: str = None, error_context: dict = None):
+        if error_context:
+            task_idx = getattr(self, '_last_running_task_index', None)
+            if task_idx is not None:
+                error_context['task_index'] = task_idx
+                if self.execution and 0 <= task_idx < len(self.execution.list):
+                    failed_task = self.execution.list[task_idx]
+                    error_context['task_type'] = failed_task.type
+                    error_context['task_input'] = getattr(failed_task, 'input', '')
+        self._last_error_context = error_context
         if error:
             msg = f"{name}: {error}"
             if len(msg) > 80:
                 msg = msg[:77] + "..."
             self._set_highlight_info(f"[ERROR] {msg}")
+            if error_context and getattr(self.m, 'ai_provider', ''):
+                wx.CallAfter(self._prompt_ai_error_analysis)
         else:
             elapsed = time.time() - self._exec_start_time if self._exec_start_time else 0
             self._set_highlight_info(f"[DONE] {name}  {elapsed:.1f}s")
         wx.CallLater(8000, self._resume_welcome)
+
+    def _prompt_ai_error_analysis(self):
+        ctx = self._last_error_context
+        if not ctx:
+            return
+        task_idx = ctx.get('task_index', -1)
+        display_idx = task_idx + 1 if isinstance(task_idx, int) and task_idx >= 0 else '?'
+        summary = t("ai_error_summary", index=display_idx, ptype=ctx.get('task_type', '?'))
+        dlg = wx.MessageDialog(
+            self.v,
+            f"{summary}\n{ctx.get('error', '')[:150]}\n\n{t('ai_error_ask_analyze')}",
+            t("ai_error_title"),
+            wx.YES_NO | wx.ICON_ERROR
+        )
+        dlg.SetYesNoLabels(t("ai_error_analyze_btn"), t("ai_gen_done"))
+        if dlg.ShowModal() == wx.ID_YES:
+            self._on_ai_analyze_error()
+        dlg.Destroy()
+
+    def _on_ai_analyze_error(self, evt=None):
+        import threading
+        from mvp.view.PETPTheme import get_theme
+
+        ctx = getattr(self, '_last_error_context', None)
+        if not ctx:
+            return
+
+        provider, api_key, base_url, model, locale = self._get_ai_config()
+        if not provider:
+            wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
+            return
+
+        th = get_theme()
+        dlg = wx.Dialog(self.v, title=t("ai_error_title"), size=(550, 400))
+        dlg_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        task_idx = ctx.get('task_index', -1)
+        display_idx = task_idx + 1 if isinstance(task_idx, int) and task_idx >= 0 else '?'
+        summary = t("ai_error_summary", index=display_idx, ptype=ctx.get('task_type', '?'))
+        summary_label = wx.StaticText(dlg, label=f"⚠ {summary}")
+        summary_label.SetFont(summary_label.GetFont().Bold())
+        dlg_sizer.Add(summary_label, 0, wx.ALL, 12)
+
+        error_label = wx.StaticText(dlg, label=ctx.get('error', '')[:200])
+        error_label.SetForegroundColour(wx.Colour(180, 40, 40))
+        dlg_sizer.Add(error_label, 0, wx.LEFT | wx.RIGHT, 12)
+
+        status_label = wx.StaticText(dlg, label="")
+        status_label.SetForegroundColour(wx.Colour(*th.accent))
+        dlg_sizer.Add(status_label, 0, wx.LEFT | wx.RIGHT | wx.TOP, 12)
+
+        result_text = wx.TextCtrl(dlg, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(-1, 200))
+        result_text.SetBackgroundColour(wx.Colour(*th.log_bg))
+        result_text.SetForegroundColour(wx.Colour(*th.log_fg))
+        dlg_sizer.Add(result_text, 1, wx.EXPAND | wx.ALL, 12)
+
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_assist = wx.Button(dlg, label=t("ai_error_open_assist"))
+        btn_close = wx.Button(dlg, wx.ID_CANCEL, label=t("ai_gen_done"))
+        btn_assist.Disable()
+        btn_sizer.Add(btn_assist, 0, wx.RIGHT, 8)
+        btn_sizer.Add(btn_close, 0)
+        dlg_sizer.Add(btn_sizer, 0, wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.BOTTOM, 12)
+
+        dlg.SetSizer(dlg_sizer)
+
+        emojis = ["🤔", "🧐", "💭", "🔍", "⚙️", "🔗", "🚀", "✨"]
+        anim_state = [0]
+        base_text = t("ai_error_analyzing")
+        anim_timer = wx.Timer(dlg)
+        def _tick(e):
+            status_label.SetLabel(f"{emojis[anim_state[0] % len(emojis)]} {base_text}")
+            anim_state[0] += 1
+        dlg.Bind(wx.EVT_TIMER, _tick, anim_timer)
+        anim_timer.Start(400)
+
+        analysis_result = [None]
+
+        def _analyze():
+            try:
+                generator = self._get_or_create_ai_generator()
+                surrounding = self._get_surrounding_tasks(ctx.get('task_index', -1))
+                prompt = self._build_error_analysis_prompt(ctx, surrounding, locale)
+                messages = [{"role": "user", "content": prompt}]
+                response = generator._client.chat(messages=messages, model=generator._model, temperature=0.3)
+                analysis_result[0] = response.content or response.reasoning_content or ''
+                wx.CallAfter(_on_result, analysis_result[0])
+            except Exception as ex:
+                wx.CallAfter(_on_fail, str(ex))
+
+        def _on_result(text):
+            anim_timer.Stop()
+            status_label.SetLabel(t("ai_error_done"))
+            result_text.SetValue(text)
+            btn_assist.Enable()
+
+        def _on_fail(err):
+            anim_timer.Stop()
+            status_label.SetLabel(t("ai_error_failed"))
+            result_text.SetValue(err)
+
+        threading.Thread(target=_analyze, daemon=True).start()
+
+        def _on_open_assist(e):
+            dlg.EndModal(wx.ID_YES)
+
+        btn_assist.Bind(wx.EVT_BUTTON, _on_open_assist)
+
+        result = dlg.ShowModal()
+        anim_timer.Stop()
+        dlg.Destroy()
+
+        if result == wx.ID_YES:
+            self._on_ai_assist_with_error(ctx, analysis_result[0])
+
+    def _on_ai_assist_with_error(self, error_context, analysis):
+        if not self.execution:
+            return
+        self._on_ai_assist_execution()
+        if hasattr(self, '_ai_dialog') and self._ai_dialog:
+            task_idx = error_context.get('task_index', -1)
+            display_idx = task_idx + 1 if isinstance(task_idx, int) and task_idx >= 0 else '?'
+            msg = t("ai_error_inject_msg",
+                    index=display_idx,
+                    ptype=error_context.get('task_type', '?'),
+                    error=error_context.get('error', ''))
+            if analysis:
+                msg += f"\n\n{t('ai_error_analysis_label')}\n{analysis}"
+
+            def _prefill():
+                dialog = self._ai_dialog
+                if dialog:
+                    dialog._input_text.SetValue(msg)
+                    dialog._input_text.SetInsertionPointEnd()
+                    dialog._input_text.SetFocus()
+
+            wx.CallLater(800, _prefill)
+
+    def _get_surrounding_tasks(self, failed_index):
+        if not self.execution or failed_index < 0:
+            return []
+        tasks = self.execution.list
+        start = max(0, failed_index - 2)
+        end = min(len(tasks), failed_index + 3)
+        result = []
+        for i in range(start, end):
+            tk = tasks[i]
+            marker = " ← FAILED" if i == failed_index else ""
+            result.append(f"  {i+1}. {tk.type}: {getattr(tk, 'input', '')}{marker}")
+        return result
+
+    def _build_error_analysis_prompt(self, ctx, surrounding, locale):
+        if locale == 'zh':
+            return (f"分析以下 PETP 执行错误并建议修复方法。\n\n"
+                    f"执行: {ctx.get('execution_name', '')}\n"
+                    f"失败任务 #{ctx.get('task_index', '?')}: {ctx.get('task_type', '')}\n"
+                    f"任务输入: {ctx.get('task_input', '')}\n"
+                    f"错误: {ctx.get('error', '')}\n"
+                    f"堆栈:\n{ctx.get('traceback', '')[-500:]}\n\n"
+                    f"上下文任务:\n" + "\n".join(surrounding) + "\n\n"
+                    f"请解释可能的原因并给出具体修复建议。")
+        return (f"Analyze this PETP execution error and suggest fixes.\n\n"
+                f"Execution: {ctx.get('execution_name', '')}\n"
+                f"Failed Task #{ctx.get('task_index', '?')}: {ctx.get('task_type', '')}\n"
+                f"Task Input: {ctx.get('task_input', '')}\n"
+                f"Error: {ctx.get('error', '')}\n"
+                f"Traceback:\n{ctx.get('traceback', '')[-500:]}\n\n"
+                f"Surrounding tasks:\n" + "\n".join(surrounding) + "\n\n"
+                f"Explain the likely cause and suggest specific fixes.")
 
     def on_execution_pipeline_changed(self):
         combo = self.v.pipelineChooser
@@ -1222,12 +1402,9 @@ class PETPPresenter():
     def _start_ai_generator(self, execution_name):
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
-        provider = getattr(self.m, 'ai_provider', '')
-        api_key = getattr(self.m, 'ai_api_key', '')
-        model = getattr(self.m, 'ai_model', '')
-        base_url = getattr(self.m, 'ai_base_url', '')
+        provider, api_key, base_url, model, locale = self._get_ai_config()
 
-        if not provider or not api_key:
+        if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
             return
 
@@ -1238,7 +1415,6 @@ class PETPPresenter():
         self.invalidate_tools_cache()
         self.on_task_execution_changed()
 
-        locale = getattr(self.m, 'language', 'en')
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
@@ -1287,15 +1463,11 @@ class PETPPresenter():
             self._push_snapshot()
 
     def _on_ai_generate_mcp_desc(self):
-        from core.ai.ExecutionGenerator import ExecutionGenerator, resolve_api_key
+        import threading
 
-        provider = getattr(self.m, 'ai_provider', '')
-        api_key = getattr(self.m, 'ai_api_key', '')
-        model_name = getattr(self.m, 'ai_model', '')
-        base_url = getattr(self.m, 'ai_base_url', '')
-        locale = getattr(self.m, 'language', 'en')
+        provider, api_key, base_url, model_name, locale = self._get_ai_config()
 
-        if not provider or not api_key:
+        if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
             return
 
@@ -1303,16 +1475,163 @@ class PETPPresenter():
             return
 
         tasks = list(self.execution.list)
-        wx.BeginBusyCursor()
-        try:
-            generator = ExecutionGenerator([], locale)
-            generator.init_client(provider, resolve_api_key(api_key), base_url, model_name)
-            result = generator.generate_mcp_desc(tasks)
+        existing_value = self.v.execution_desc.GetValue().strip()
+
+        # Extract info for display
+        initial_params = {}
+        for tk in tasks:
+            if tk.type == 'INITIAL_PARAMS':
+                try:
+                    initial_params = json.loads(tk.input)
+                    initial_params.pop('skipped', None)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+                break
+
+        # Show progress dialog with theme colors
+        from mvp.view.PETPTheme import get_theme
+        th = get_theme()
+
+        dlg = wx.Dialog(self.v, title=t("ai_gen_mcp_title"), size=(500, 360))
+        dlg_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        info_text = t("ai_gen_mcp_info",
+                      inputs=', '.join(initial_params.keys()) if initial_params else '-',
+                      task_count=len(tasks))
+        info_label = wx.StaticText(dlg, label=info_text)
+        info_label.SetFont(info_label.GetFont().Bold())
+        dlg_sizer.Add(info_label, 0, wx.ALL, 12)
+
+        status_label = wx.StaticText(dlg, label=t("ai_gen_mcp_generating"))
+        status_label.SetForegroundColour(wx.Colour(*th.accent))
+        dlg_sizer.Add(status_label, 0, wx.LEFT | wx.RIGHT, 12)
+
+        result_text = wx.TextCtrl(dlg, style=wx.TE_MULTILINE | wx.TE_READONLY, size=(-1, 180))
+        result_text.SetBackgroundColour(wx.Colour(*th.log_bg))
+        result_text.SetForegroundColour(wx.Colour(*th.log_fg))
+        dlg_sizer.Add(result_text, 1, wx.EXPAND | wx.ALL, 12)
+
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_apply = wx.Button(dlg, wx.ID_OK, label=t("ai_gen_mcp_apply"))
+        btn_apply.SetBackgroundColour(wx.Colour(*th.accent))
+        btn_apply.SetForegroundColour(wx.WHITE)
+        btn_cancel = wx.Button(dlg, wx.ID_CANCEL, label=t("ai_gen_cancel"))
+        btn_apply.Disable()
+        btn_sizer.Add(btn_apply, 0, wx.RIGHT, 8)
+        btn_sizer.Add(btn_cancel, 0)
+        dlg_sizer.Add(btn_sizer, 0, wx.ALIGN_RIGHT | wx.LEFT | wx.RIGHT | wx.BOTTOM, 12)
+
+        dlg.SetSizer(dlg_sizer)
+
+        gen_result = [None]
+        emojis = ["🤔", "🧐", "💭", "🔍", "🚀", "✨"]
+        anim_state = [0]
+        base_status = t("ai_gen_mcp_generating")
+
+        anim_timer = wx.Timer(dlg)
+        def _on_tick(evt):
+            frame = emojis[anim_state[0] % len(emojis)]
+            status_label.SetLabel(f"{frame} {base_status}")
+            anim_state[0] += 1
+        dlg.Bind(wx.EVT_TIMER, _on_tick, anim_timer)
+        anim_timer.Start(400)
+
+        def _generate():
+            try:
+                generator = self._get_or_create_ai_generator()
+                result = generator.generate_mcp_desc(tasks)
+                gen_result[0] = result
+                wx.CallAfter(_on_done, result)
+            except Exception as e:
+                wx.CallAfter(_on_error, str(e))
+
+        def _on_done(result):
+            anim_timer.Stop()
+            status_label.SetLabel(t("ai_gen_mcp_done"))
             if result:
+                result_text.SetValue(result)
+                btn_apply.Enable()
+            else:
+                status_label.SetLabel(t("ai_gen_mcp_empty"))
+
+        def _on_error(err):
+            anim_timer.Stop()
+            status_label.SetLabel(t("ai_gen_mcp_error_status"))
+            result_text.SetValue(t("ai_gen_mcp_error_detail", error=err))
+
+        threading.Thread(target=_generate, daemon=True).start()
+
+        if dlg.ShowModal() == wx.ID_OK and gen_result[0]:
+            result = gen_result[0]
+            if existing_value:
+                merge_dlg = wx.MessageDialog(
+                    self.v,
+                    t("ai_gen_mcp_overwrite"),
+                    t("ai_gen_mcp_title"),
+                    wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION
+                )
+                merge_dlg.SetYesNoCancelLabels(
+                    t("ai_gen_mcp_merge"), t("ai_gen_mcp_replace"), t("ai_gen_cancel"))
+                choice = merge_dlg.ShowModal()
+                merge_dlg.Destroy()
+                if choice == wx.ID_YES:
+                    self._push_snapshot()
+                    self._merge_mcp_desc(result)
+                elif choice == wx.ID_NO:
+                    self._push_snapshot()
+                    self.v.execution_desc.SetValue(result)
+            else:
                 self._push_snapshot()
                 self.v.execution_desc.SetValue(result)
-        finally:
-            wx.EndBusyCursor()
+        anim_timer.Stop()
+        dlg.Destroy()
+
+    def _merge_mcp_desc(self, new_json_str):
+        import json as _json
+        existing_str = self.v.execution_desc.GetValue().strip()
+        try:
+            existing = _json.loads(existing_str) if existing_str else {}
+        except (ValueError, TypeError):
+            existing = {}
+        try:
+            new_data = _json.loads(new_json_str)
+        except (ValueError, TypeError):
+            self.v.execution_desc.SetValue(new_json_str)
+            return
+
+        if not existing.get('desc') and new_data.get('desc'):
+            existing['desc'] = new_data['desc']
+
+        if 'inputSchema' in new_data:
+            if 'inputSchema' not in existing:
+                existing['inputSchema'] = new_data['inputSchema']
+            else:
+                new_props = new_data['inputSchema'].get('properties', {})
+                existing_props = existing['inputSchema'].setdefault('properties', {})
+                existing_req = existing['inputSchema'].setdefault('required', [])
+                for k, v in new_props.items():
+                    if k not in existing_props:
+                        existing_props[k] = v
+                        if k in new_data['inputSchema'].get('required', []):
+                            existing_req.append(k)
+
+        if 'outParams' in new_data:
+            existing_out = existing.setdefault('outParams', [])
+            for p in new_data['outParams']:
+                if p not in existing_out:
+                    existing_out.append(p)
+
+        if 'outputSchema' in new_data:
+            if 'outputSchema' not in existing:
+                existing['outputSchema'] = new_data['outputSchema']
+            else:
+                new_out_props = new_data['outputSchema'].get('properties', {})
+                existing_out_props = existing['outputSchema'].setdefault('properties', {})
+                for k, v in new_out_props.items():
+                    if k not in existing_out_props:
+                        existing_out_props[k] = v
+
+        self.v.execution_desc.SetValue(_json.dumps(existing, ensure_ascii=False, indent=None))
 
     def _on_ai_assist_execution(self, _evt=None):
         if not self.execution:
@@ -1327,16 +1646,12 @@ class PETPPresenter():
         execution_name = self.execution.execution
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
-        provider = getattr(self.m, 'ai_provider', '')
-        api_key = getattr(self.m, 'ai_api_key', '')
-        model = getattr(self.m, 'ai_model', '')
-        base_url = getattr(self.m, 'ai_base_url', '')
+        provider, api_key, base_url, model, locale = self._get_ai_config()
 
-        if not provider or not api_key:
+        if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
             return
 
-        locale = getattr(self.m, 'language', 'en')
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
@@ -1356,23 +1671,44 @@ class PETPPresenter():
             dialog._populate_tree()
             dialog._input_text.Enable()
             dialog._btn_send.Enable()
-            dialog._add_message(t("ai_gen_reuse", provider=provider, model=model), is_user=False)
+            actual_model = cached_gen._model or model
+            dialog._add_message(t("ai_gen_reuse", provider=provider, model=actual_model), is_user=False)
+            dialog._add_message(t("ai_gen_welcome", provider=provider, model=actual_model), is_user=False)
             for msg in cached_gen._messages:
                 if msg.get('role') == 'user':
                     dialog._add_message(msg['content'], is_user=True)
                 elif msg.get('role') == 'assistant':
                     dialog._add_message(msg['content'], is_user=False)
         else:
-            def _on_success(generator, p, m):
-                self._ai_cached_generator = generator
-                self._ai_config_key = config_key
-            dialog._orig_on_init_success = dialog._on_init_success
             def _wrapped_success(generator, p, m):
                 self._ai_cached_generator = generator
                 self._ai_config_key = config_key
                 dialog._orig_on_init_success(generator, p, m)
+            dialog._orig_on_init_success = dialog._on_init_success
             dialog._on_init_success = _wrapped_success
             dialog.init_generator_async(provider, api_key, base_url, model)
+
+    def _get_ai_config(self):
+        provider = getattr(self.m, 'ai_provider', '')
+        api_key = getattr(self.m, 'ai_api_key', '')
+        model = getattr(self.m, 'ai_model', '')
+        base_url = getattr(self.m, 'ai_base_url', '')
+        locale = getattr(self.m, 'language', 'en')
+        return provider, api_key, base_url, model, locale
+
+    def _get_or_create_ai_generator(self):
+        from core.ai.ExecutionGenerator import ExecutionGenerator, resolve_api_key
+        provider, api_key, base_url, model, locale = self._get_ai_config()
+        config_key = f"{provider}|{api_key}|{base_url}|{model}"
+        cached_key = getattr(self, '_ai_config_key', None)
+        cached_gen = getattr(self, '_ai_cached_generator', None)
+        if cached_gen and cached_key == config_key:
+            return cached_gen
+        generator = ExecutionGenerator([], locale)
+        generator.init_client(provider, resolve_api_key(api_key), base_url, model)
+        self._ai_cached_generator = generator
+        self._ai_config_key = config_key
+        return generator
 
     def on_stop_all(self):
         self.cron.stop_all()
@@ -2584,6 +2920,7 @@ class PETPPresenter():
             return
         exec_name = data.get("execution")
         task_index = data.get("task_index")
+        self._last_running_task_index = task_index
         task_total = data.get("task_total")
         proc_name = data.get("proc_name", "")
         if exec_name is None or task_index is None:

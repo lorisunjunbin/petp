@@ -64,8 +64,12 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
 
+## 5. No Auto-Commit
 
-## 5. What is PETP, about current project:
+**Never run `git commit` unless the user explicitly asks.** Make code changes, report what was modified, and wait for the user to decide when to commit. This includes bug fixes, docs updates, and feature work — all of it.
+
+
+## 6. What is PETP, about current project:
 
 PETP is a Python-based RPA toolkit — a configurable task runner, execution engine, and MCP Tool Server. The acronym encodes the runtime hierarchy:
 
@@ -328,6 +332,10 @@ Task objects deserialized from old YAML files may lack the `skipped` attribute. 
 - `Processor.get_processor_by_type()` returns an instance, not a class — use `cls.__class__.__name__` for instance objects
 - `EVT_GRID_CELL_RIGHT_CLICK` doesn't fire on empty grid areas — use `EVT_RIGHT_DOWN` on `GetGridWindow()` with `YToRow()` check
 - English `DESC` multiline docstrings have empty first line — use `next(l for l in lines if l.strip())` for first meaningful line
+- **[CRITICAL] `wx.Timer` must be explicitly stopped before window close/destroy** — a running timer on a destroyed window causes segfault. Always bind `EVT_CLOSE` to stop timers, and call `timer.Stop()` before `dlg.Destroy()` in modal dialogs
+- **[CRITICAL] wxPython widget parent must match the sizer's containing window** — adding a Button with parent=Frame to a sizer owned by a Panel causes `CheckExpectedParentIs` assertion failure. Always use the Panel that owns the sizer as parent.
+- Nested `wx.SplitterWindow` for 3+ resizable panes — wxSplitter only supports 2 panes, nest them for tree/chat/input layouts. Use `SplitHorizontally(pane1, pane2, sash_position)` with negative sash_position to measure from bottom.
+- `resolve_api_key()` must handle `None` input — config values from `getattr(self.m, key, '')` can be `None` if yaml field exists but has no value
 
 #### AI Apply Pattern
 
@@ -346,6 +354,9 @@ When AI generates/modifies tasks, update `self.execution.list` and refresh taskG
 - Config: `ai_provider`, `ai_model`, `ai_api_key`, `ai_base_url` in petpconfig.yaml
 - `ai_api_key` supports `${ENV_VAR}` pattern via `resolve_api_key()`
 - `validate_connection()` sends minimal "hi" to verify API reachability before enabling input
+- AI Error Analysis: on execution failure, `_prompt_ai_error_analysis()` auto-prompts user. Error context (task index, type, input, traceback) collected in `Executor.run()` via DONE event's 4th element.
+- `_last_running_task_index` (updated by LOG event in `highlight_running_task`) provides accurate failed task position — more reliable than `execution.state`
+- To pre-fill AI Assist input with error context: use `wx.CallLater(800, _prefill)` to ensure generator is initialized before setting text
 
 ### Background Runtime (`core/runtime/BackgroundRuntime.py`)
 

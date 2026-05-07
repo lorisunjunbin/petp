@@ -23,12 +23,31 @@ class Executor(Thread):
         if wx is not None and self.wx_comp is not None:
             wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.START, [self.execution.execution, self.init_data]))
         error = None
+        error_context = None
         try:
             data_chain = self.execution.run(self.init_data, self.condition, self.wx_comp)
         except Exception as e:
             import logging
+            import traceback as tb
             logging.exception('Executor caught unhandled exception in %s', self.execution.execution)
             data_chain = self.init_data
             error = str(e)
+            task_index = -1
+            task_type = ''
+            task_input = ''
+            if hasattr(self.execution, 'state') and self.execution.state:
+                task_index = self.execution.state.get_current_index()
+            if task_index >= 0 and task_index < len(self.execution.list):
+                failed_task = self.execution.list[task_index]
+                task_type = failed_task.type
+                task_input = getattr(failed_task, 'input', '')
+            error_context = {
+                'error': error,
+                'traceback': tb.format_exc(),
+                'task_index': task_index,
+                'task_type': task_type,
+                'task_input': task_input,
+                'execution_name': self.execution.execution,
+            }
         if wx is not None and self.wx_comp is not None:
-            wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.DONE, [self.execution.execution, data_chain, error]))
+            wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.DONE, [self.execution.execution, data_chain, error, error_context]))

@@ -32,6 +32,13 @@ Task      1:1  Processor
 - 连接缓存 — 首次验证后即时复用，对话历史保留
 - 10 家 LLM — 最简配置：只需设置 `ai_provider`
 
+**AI 驱动的 MCP Tool 发布：**
+- 一键生成 `mcp_desc` JSON，将 Execution 发布为 MCP 工具
+- 自动从 INITIAL_PARAMS 提取输入参数，从结果任务提取输出键
+- 生成 AI Agent 可理解的描述，帮助大模型判断何时调用此工具
+- 智能合并 — 新字段补充到已有配置中，不覆盖已有内容
+- 进度弹窗实时显示状态，预览结果后再应用
+
 **配置**（仅 `ai_provider` 必填，其余自动从 provider 默认值填充）：
 
 ```yaml

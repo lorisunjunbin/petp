@@ -90,6 +90,8 @@ When the user asks to generate or modify a flow, use these JSON formats:
 
 
 def resolve_api_key(raw: str) -> str:
+    if not raw:
+        return ''
     m = re.fullmatch(r'\$\{(.+)\}', raw.strip())
     if m:
         return os.environ.get(m.group(1), '')
@@ -111,6 +113,21 @@ class ExecutionGenerator:
     def init_client(self, provider: str, api_key: str, base_url: str, model: str):
         from core.processors.AI_LLM_SETUPProcessor import AI_LLM_SETUPProcessor
         defaults = AI_LLM_SETUPProcessor.PROVIDER_DEFAULTS.get(provider, {})
+
+        if not defaults:
+            missing = []
+            if not api_key:
+                missing.append('ai_api_key')
+            if not base_url:
+                missing.append('ai_base_url')
+            if not model:
+                missing.append('ai_model')
+            if missing:
+                supported = ', '.join(AI_LLM_SETUPProcessor.PROVIDER_DEFAULTS.keys())
+                raise ValueError(
+                    t("ai_gen_unknown_provider", provider=provider,
+                      missing=', '.join(missing), supported=supported)
+                )
 
         if not api_key and defaults.get('api_key_env'):
             api_key = f"${{{defaults['api_key_env']}}}"
@@ -232,20 +249,55 @@ class ExecutionGenerator:
         task_summary = "\n".join(
             f"{i+1}. {tk.type}: {tk.input}" for i, tk in enumerate(tasks)
         )
-        locale_hint = "请用中文回复。" if self._locale == 'zh' else "Reply in English."
+
+        initial_params = {}
+        for tk in tasks:
+            if tk.type == 'INITIAL_PARAMS':
+                try:
+                    initial_params = json.loads(tk.input)
+                    initial_params.pop('skipped', None)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+                break
+
+        output_keys = []
+        for tk in tasks:
+            if tk.type == 'HTTP_RESPONSE_KEY':
+                try:
+                    d = json.loads(tk.input)
+                    if 'data_key' in d:
+                        output_keys.append(d['data_key'])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+            elif tk.type in ('WRITE_TO_EXCEL', 'DATA_COLLECT', 'DATA_CONVERT'):
+                try:
+                    d = json.loads(tk.input)
+                    for k in ('data_key', 'target_key', 'value_key'):
+                        if k in d:
+                            output_keys.append(d[k])
+                            break
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        locale_hint = "请用中文生成 desc 描述。" if self._locale == 'zh' else "Generate desc in English."
 
         prompt = f"""{locale_hint}
-Based on the following PETP Execution task list, generate a mcp_desc JSON.
+Generate a mcp_desc JSON for publishing this PETP Execution as an MCP Tool.
 
-Task list:
+## Task list:
 {task_summary}
 
-Generate JSON with this exact structure:
-{{"desc": "what the tool does", "inputSchema": {{"type": "object", "properties": {{"param1": {{"type": "string", "title": "param1", "description": "..."}}}}, "required": ["param1"]}}, "outParams": ["result_key"]}}
+## Extracted info:
+- INITIAL_PARAMS keys (tool inputs): {json.dumps(initial_params, ensure_ascii=False) if initial_params else 'None found'}
+- Output keys found: {output_keys if output_keys else 'None found'}
 
-- inputSchema: derive from INITIAL_PARAMS keys (first task if type is INITIAL_PARAMS)
-- outParams: derive from HTTP_RESPONSE_KEY or the last data_key written
-- desc: one-line description of what this execution does
+## Rules:
+1. "desc": Write a clear, concise description (1-2 sentences) of what this tool does. It should be understandable by an AI agent deciding whether to call this tool.
+2. "inputSchema": For each INITIAL_PARAMS key, infer the type (string/number/boolean), write a helpful title and description. Mark keys without default values as required.
+3. "outParams": List the output keys that the caller can expect in the result.
+
+## Required JSON structure:
+{{"desc": "...", "inputSchema": {{"type": "object", "properties": {{"param1": {{"type": "string", "title": "Param 1", "description": "What this param is for"}}}}, "required": ["param1"]}}, "outParams": ["output_key"]}}
 
 Return ONLY the JSON, no markdown wrapping."""
 

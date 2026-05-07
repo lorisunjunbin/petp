@@ -86,33 +86,43 @@ class AIGeneratorDialog(wx.Frame):
         tree_sizer.Add(self._tree, 1, wx.EXPAND)
         tree_panel.SetSizer(tree_sizer)
 
-        # Bottom pane: chat area
+        # Bottom pane: chat + input splitter
+        self._chat_input_splitter = wx.SplitterWindow(
+            self._v_splitter, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
+        )
+        self._chat_input_splitter.SetMinimumPaneSize(36)
+
+        # Chat area (top of bottom pane)
         self._chat_panel = scrolled.ScrolledPanel(
-            self._v_splitter, style=wx.VSCROLL | wx.ALWAYS_SHOW_SB
+            self._chat_input_splitter, style=wx.VSCROLL | wx.ALWAYS_SHOW_SB
         )
         self._chat_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False, rate_y=20)
 
-        self._v_splitter.SplitHorizontally(tree_panel, self._chat_panel, 280)
-
-        main_sizer.Add(self._v_splitter, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
-
-        # --- Input area ---
+        # Input area (bottom of bottom pane)
+        input_panel = wx.Panel(self._chat_input_splitter)
         input_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._input_text = wx.TextCtrl(
-            panel, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER, size=(-1, 36)
+            input_panel, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER
         )
+        self._input_text.SetMinSize((-1, 36))
         self._input_text.SetBackgroundColour(wx.Colour(*th.log_search_bg))
         self._input_text.SetForegroundColour(wx.Colour(*th.log_search_fg))
         self._input_text.Disable()
         input_sizer.Add(self._input_text, 1, wx.EXPAND)
-        self._btn_send = wx.Button(panel, label=t("ai_gen_send"), size=(50, 36))
+        self._btn_send = wx.Button(input_panel, label=t("ai_gen_send"), size=(50, -1))
         self._btn_send.SetBackgroundColour(wx.Colour(*th.accent))
         self._btn_send.SetForegroundColour(wx.WHITE)
-        input_sizer.Add(self._btn_send, 0, wx.LEFT, 4)
-        main_sizer.Add(input_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+        input_sizer.Add(self._btn_send, 0, wx.LEFT | wx.EXPAND, 4)
+        input_panel.SetSizer(input_sizer)
+
+        self._chat_input_splitter.SplitHorizontally(self._chat_panel, input_panel, -80)
+
+        self._v_splitter.SplitHorizontally(tree_panel, self._chat_input_splitter, 280)
+
+        main_sizer.Add(self._v_splitter, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # --- Bottom row ---
         bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -171,6 +181,11 @@ class AIGeneratorDialog(wx.Frame):
         self._btn_toggle_expand.Bind(wx.EVT_BUTTON, self._on_toggle_expand)
         self._search_text.Bind(wx.EVT_TEXT, self._on_search)
         self._tree.Bind(dv.EVT_TREELIST_ITEM_CHECKED, self._on_tree_check)
+        self.Bind(wx.EVT_CLOSE, self._on_close)
+
+    def _on_close(self, evt):
+        self._cleanup_timers()
+        evt.Skip()
 
     def _on_toggle_select_all(self, evt):
         checked = self._cb_select_all.GetValue()
@@ -227,6 +242,7 @@ class AIGeneratorDialog(wx.Frame):
             state = self._tree.GetCheckedState(item)
             new_state = wx.CHK_CHECKED if state == wx.CHK_CHECKED else wx.CHK_UNCHECKED
             self._check_category_processors(item, new_state)
+        self._sync_select_all_checkbox()
 
     def _check_category_processors(self, cat_item, state):
         p_item = self._tree.GetFirstChild(cat_item)
@@ -239,12 +255,18 @@ class AIGeneratorDialog(wx.Frame):
                     self._tree.UncheckItem(p_item)
             p_item = self._tree.GetNextSibling(p_item)
 
+    def _sync_select_all_checkbox(self):
+        all_processors = self.get_selected_processors()
+        total = sum(1 for info in self._tree_item_map.values() if info[0] == 'processor')
+        self._cb_select_all.SetValue(len(all_processors) == total)
+
     def set_generator(self, generator):
         self._generator = generator
 
     def init_generator_async(self, provider, api_key, base_url, model):
         from core.ai.ExecutionGenerator import ExecutionGenerator
-        self._add_message(t("ai_gen_loading", provider=provider, model=model), is_user=False, is_thinking=True)
+        self._init_params = (provider, api_key, base_url, model)
+        self._start_loading_animation(t("ai_gen_loading_short", provider=provider))
         self._btn_send.Disable()
 
         def _init():
@@ -254,7 +276,8 @@ class AIGeneratorDialog(wx.Frame):
                 generator = ExecutionGenerator([], self._locale)
                 generator.init_client(provider, api_key, base_url, model)
                 generator.validate_connection()
-                wx.CallAfter(self._on_init_success, generator, provider, model)
+                actual_model = generator._model
+                wx.CallAfter(self._on_init_success, generator, provider, actual_model)
             except Exception as e:
                 wx.CallAfter(self._on_init_failure, str(e))
 
@@ -263,15 +286,65 @@ class AIGeneratorDialog(wx.Frame):
 
     def _on_init_success(self, generator, provider, model):
         self._generator = generator
-        self._remove_thinking()
+        self._stop_loading_animation()
         self._input_text.Enable()
         self._btn_send.Enable()
         self._input_text.SetFocus()
         self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
 
     def _on_init_failure(self, error_msg):
-        self._remove_thinking()
+        self._stop_loading_animation()
         self._add_message(t("ai_gen_init_fail", error=error_msg), is_user=False)
+        self._input_text.Enable()
+        self._btn_send.Enable()
+        self._input_text.SetHint(t("ai_gen_retry_hint"))
+
+    _CLIMB_FRAMES = [
+        "🤔",
+        "🧐",
+        "💭",
+        "🚀",
+        "✨",
+    ]
+
+    def _start_loading_animation(self, message):
+        self._anim_frame = 0
+        self._anim_message = message
+        self._anim_panel = wx.Panel(self._chat_panel)
+        self._anim_panel.SetBackgroundColour(wx.Colour(255, 243, 205))
+        self._anim_panel.SetName("thinking_panel")
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        self._anim_label = wx.StaticText(self._anim_panel, label="")
+        self._anim_label.SetForegroundColour(wx.Colour(80, 60, 0))
+        font = self._anim_label.GetFont()
+        font.SetPointSize(font.GetPointSize() + 6)
+        self._anim_label.SetFont(font)
+        sizer.Add(self._anim_label, 0, wx.ALL, 8)
+        self._anim_panel.SetSizer(sizer)
+        self._chat_sizer.Add(self._anim_panel, 0, wx.ALL | wx.EXPAND, 4)
+        self._chat_panel.Layout()
+        self._chat_panel.FitInside()
+
+        self._anim_timer = wx.Timer(self)
+        self.Bind(wx.EVT_TIMER, self._on_anim_tick, self._anim_timer)
+        self._anim_timer.Start(400)
+        self._on_anim_tick(None)
+
+    def _on_anim_tick(self, evt):
+        if not hasattr(self, '_anim_label') or not self._anim_label:
+            return
+        frame = self._CLIMB_FRAMES[self._anim_frame % len(self._CLIMB_FRAMES)]
+        text = f"{frame} {self._anim_message}"
+        self._anim_label.SetLabel(text)
+        self._anim_panel.Layout()
+        self._chat_panel.Layout()
+        self._chat_panel.FitInside()
+        self._anim_frame += 1
+
+    def _stop_loading_animation(self):
+        if hasattr(self, '_anim_timer') and self._anim_timer.IsRunning():
+            self._anim_timer.Stop()
+        self._remove_thinking()
 
     def set_undo_redo_handlers(self, on_undo, on_redo):
         self._undo_handler = on_undo
@@ -297,7 +370,13 @@ class AIGeneratorDialog(wx.Frame):
 
     def _on_send(self, evt):
         msg = self._input_text.GetValue().strip()
-        if not msg or self._generator is None:
+        if not msg:
+            return
+        if self._generator is None:
+            if hasattr(self, '_init_params'):
+                self._input_text.Clear()
+                p = self._init_params
+                self.init_generator_async(p[0], p[1], p[2], p[3])
             return
         self._generator.update_filter(self.get_selected_processors())
         self._input_history.append(msg)
@@ -481,7 +560,12 @@ class AIGeneratorDialog(wx.Frame):
         self._chat_panel.GetEventHandler().ProcessEvent(evt)
 
     def _on_done(self, evt):
+        self._cleanup_timers()
         self.Close()
+
+    def _cleanup_timers(self):
+        if hasattr(self, '_anim_timer') and self._anim_timer.IsRunning():
+            self._anim_timer.Stop()
 
     def _on_undo(self, evt):
         if self._undo_handler:

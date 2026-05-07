@@ -32,6 +32,13 @@ Generate and modify PETP task flows through natural language conversation with L
 - Connection caching — first-time validation, then instant reuse across sessions
 - 10 LLM providers — minimal config: just set `ai_provider` in petpconfig.yaml
 
+**AI-Powered MCP Tool Publishing:**
+- One-click generation of `mcp_desc` JSON for exposing Executions as MCP tools
+- Auto-extracts input parameters from INITIAL_PARAMS and output keys from result tasks
+- Generates AI-agent-friendly descriptions that help LLMs understand when to call the tool
+- Smart merge — new fields are added without overwriting existing configuration
+- Progress dialog with live status and preview before applying
+
 **Configuration** (only `ai_provider` required, rest auto-fills from provider defaults):
 
 ```yaml

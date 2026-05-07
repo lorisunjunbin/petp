@@ -181,9 +181,10 @@ class PETPInteractor():
     def on_handle_done(self, evt: PETPEvent):
         execution = evt.data[0]
         error = evt.data[2] if len(evt.data) > 2 else None
+        error_context = evt.data[3] if len(evt.data) > 3 else None
         logging.info(f"{execution} is DONE.")
         self.p.clear_running_task_highlight()
-        self.p.update_highlight_info_done(execution, error)
+        self.p.update_highlight_info_done(execution, error, error_context)
 
         data_chain = evt.data[1]
         from httpservice.handlers.HttpRequestHandler import HttpRequestHandler
