@@ -1243,7 +1243,7 @@ class PETPPresenter():
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
-        generator = ExecutionGenerator([], locale)
+        generator = ExecutionGenerator(dialog.get_selected_processors(), locale)
         generator.init_client(provider, api_key, base_url, model)
         dialog.set_generator(generator)
 
@@ -1345,7 +1345,7 @@ class PETPPresenter():
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
-        generator = ExecutionGenerator([], locale)
+        generator = ExecutionGenerator(dialog.get_selected_processors(), locale)
         generator.init_client(provider, api_key, base_url, model)
         dialog.set_generator(generator)
 

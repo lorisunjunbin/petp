@@ -488,6 +488,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_assist": {"en": "AI Assist", "zh": "AI 协助"},
     "ai_gen_undo": {"en": "Undo", "zh": "撤销"},
     "ai_gen_redo": {"en": "Redo", "zh": "重做"},
+    "ai_gen_search": {"en": "Search processor...", "zh": "搜索 Processor..."},
+    "ai_gen_select_all": {"en": "All", "zh": "全选"},
+    "ai_gen_select_none": {"en": "None", "zh": "全不选"},
 
     # === Processor descriptions — loaded from desc_translations.py ===
 }

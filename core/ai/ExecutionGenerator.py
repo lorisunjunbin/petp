@@ -80,8 +80,8 @@ def resolve_api_key(raw: str) -> str:
 
 class ExecutionGenerator:
 
-    def __init__(self, categories: List[str], locale: str):
-        self._categories = categories
+    def __init__(self, processors_or_categories: List[str], locale: str):
+        self._filter = set(processors_or_categories) if processors_or_categories else None
         self._locale = locale
         self._messages = []
         self._total_prompt_tokens = 0
@@ -224,16 +224,13 @@ Return ONLY the JSON, no markdown wrapping."""
 
     def _load_processor_context(self) -> str:
         from i18n.translations import get_localized_desc
-        if not self._categories:
-            target_categories = None
-        else:
-            target_categories = set(self._categories) | {'General'}
         context_parts = []
         for ptype in Processor.get_processors():
+            if self._filter is not None and ptype not in self._filter:
+                if Processor.get_processor_by_type(ptype).get_category() != 'General':
+                    continue
             try:
                 clazz = Processor.get_processor_by_type(ptype)
-                if target_categories is not None and clazz.get_category() not in target_categories:
-                    continue
                 desc = get_localized_desc(clazz, self._locale)
                 tpl = clazz.TPL if hasattr(clazz, 'TPL') else '{}'
                 context_parts.append(f"### {ptype}\nTPL: {tpl}\n{desc}")
