@@ -234,16 +234,18 @@ class AIGeneratorDialog(wx.Frame):
         th = self._theme
         msg_panel = wx.Panel(self._chat_panel)
         if is_user:
-            bg = wx.Colour(*th.accent, 60)
             bg = wx.Colour(
                 min(255, th.accent[0] + 120),
                 min(255, th.accent[1] + 120),
                 min(255, th.accent[2] + 120),
             )
+            fg = wx.Colour(20, 20, 20)
         elif is_thinking:
             bg = wx.Colour(255, 243, 205)
+            fg = wx.Colour(80, 60, 0)
         else:
             bg = wx.Colour(*th.log_search_bg)
+            fg = wx.Colour(*th.log_search_fg)
         msg_panel.SetBackgroundColour(bg)
         if is_thinking:
             msg_panel.SetName("thinking_panel")
@@ -254,7 +256,6 @@ class AIGeneratorDialog(wx.Frame):
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
         text_ctrl.SetBackgroundColour(bg)
-        fg = wx.Colour(*th.log_fg) if not is_thinking else wx.Colour(80, 60, 0)
         text_ctrl.SetForegroundColour(fg)
         line_count = text.count('\n') + 1
         char_width = text_ctrl.GetCharWidth()
