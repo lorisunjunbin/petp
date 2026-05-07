@@ -38,7 +38,7 @@ class AIGeneratorDialog(wx.Frame):
                 clazz = Processor.get_processor_by_type(ptype)
                 cat = clazz.get_category()
                 desc = get_localized_desc(clazz, self._locale)
-                first_line = desc.split('\n')[0].strip() if desc else ''
+                first_line = next((l.strip() for l in desc.split('\n') if l.strip()), '') if desc else ''
                 self._full_desc_map[ptype] = desc
                 self._category_map.setdefault(cat, []).append((ptype, first_line))
             except Exception:
