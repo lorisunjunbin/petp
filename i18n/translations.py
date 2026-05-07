@@ -486,6 +486,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_mcp_btn": {"en": "AI", "zh": "AI"},
     "ai_gen_mcp_tip": {"en": "AI generate MCP description", "zh": "AI 生成 MCP 描述"},
     "ai_gen_assist": {"en": "AI Assist", "zh": "AI 协助"},
+    "ai_gen_undo": {"en": "Undo", "zh": "撤销"},
+    "ai_gen_redo": {"en": "Redo", "zh": "重做"},
 
     # === Processor descriptions — loaded from desc_translations.py ===
 }

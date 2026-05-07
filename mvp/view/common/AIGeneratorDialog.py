@@ -4,6 +4,7 @@ import wx.lib.scrolledpanel as scrolled
 
 from core.processor import Processor
 from i18n.translations import t
+from mvp.view.PETPTheme import get_theme
 
 
 class AIGeneratorDialog(wx.Frame):
@@ -21,16 +22,19 @@ class AIGeneratorDialog(wx.Frame):
         self._redo_handler = None
         self._input_history = []
         self._history_cursor = -1
+        self._theme = get_theme()
         self._build_ui()
         self._bind_events()
 
     def _build_ui(self):
+        th = self._theme
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Category selector with splitter
+        # Category selector
         cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
-        main_sizer.Add(cat_label, 0, wx.LEFT | wx.TOP, 8)
+        cat_label.SetFont(cat_label.GetFont().Bold())
+        main_sizer.Add(cat_label, 0, wx.LEFT | wx.TOP, 10)
 
         categories = sorted(set(
             Processor.get_processor_by_type(p).get_category()
@@ -40,15 +44,16 @@ class AIGeneratorDialog(wx.Frame):
         for i, cat in enumerate(categories):
             if cat in ('Selenium', 'HTTP', 'General'):
                 self._category_list.Check(i, True)
-        main_sizer.Add(self._category_list, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+        main_sizer.Add(self._category_list, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         # Chat area
         self._chat_panel = scrolled.ScrolledPanel(panel)
-        self._chat_panel.SetBackgroundColour(wx.Colour(250, 250, 250))
+        chat_bg = wx.Colour(*th.log_bg)
+        self._chat_panel.SetBackgroundColour(chat_bg)
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False)
-        main_sizer.Add(self._chat_panel, 3, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
+        main_sizer.Add(self._chat_panel, 3, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
         # Input area
         input_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -57,24 +62,28 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._input_text.SetHint(t("ai_gen_input_hint"))
         input_sizer.Add(self._input_text, 1, wx.EXPAND)
+
         self._btn_send = wx.Button(panel, label=t("ai_gen_send"), size=(60, 50))
+        self._btn_send.SetBackgroundColour(wx.Colour(*th.accent))
+        self._btn_send.SetForegroundColour(wx.WHITE)
         input_sizer.Add(self._btn_send, 0, wx.LEFT, 4)
-        main_sizer.Add(input_sizer, 0, wx.EXPAND | wx.ALL, 8)
+        main_sizer.Add(input_sizer, 0, wx.EXPAND | wx.ALL, 10)
 
         # Token display
         self._token_label = wx.StaticText(panel, label="")
-        main_sizer.Add(self._token_label, 0, wx.LEFT | wx.BOTTOM, 8)
+        self._token_label.SetForegroundColour(wx.Colour(120, 120, 120))
+        main_sizer.Add(self._token_label, 0, wx.LEFT | wx.BOTTOM, 10)
 
         # Bottom buttons
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._btn_done = wx.Button(panel, label=t("ai_gen_done"))
         btn_sizer.Add(self._btn_done, 0)
         btn_sizer.AddStretchSpacer()
-        self._btn_undo = wx.Button(panel, label="Undo", size=(60, -1))
-        self._btn_redo = wx.Button(panel, label="Redo", size=(60, -1))
+        self._btn_undo = wx.Button(panel, label=t("ai_gen_undo"), size=(60, -1))
+        self._btn_redo = wx.Button(panel, label=t("ai_gen_redo"), size=(60, -1))
         btn_sizer.Add(self._btn_undo, 0, wx.RIGHT, 4)
         btn_sizer.Add(self._btn_redo, 0)
-        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
+        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         panel.SetSizer(main_sizer)
 
@@ -222,13 +231,20 @@ class AIGeneratorDialog(wx.Frame):
         return input_str
 
     def _add_message(self, text, is_user=False, is_thinking=False):
+        th = self._theme
         msg_panel = wx.Panel(self._chat_panel)
         if is_user:
-            msg_panel.SetBackgroundColour(wx.Colour(179, 210, 255))
+            bg = wx.Colour(*th.accent, 60)
+            bg = wx.Colour(
+                min(255, th.accent[0] + 120),
+                min(255, th.accent[1] + 120),
+                min(255, th.accent[2] + 120),
+            )
         elif is_thinking:
-            msg_panel.SetBackgroundColour(wx.Colour(255, 243, 205))
+            bg = wx.Colour(255, 243, 205)
         else:
-            msg_panel.SetBackgroundColour(wx.Colour(225, 225, 225))
+            bg = wx.Colour(*th.log_search_bg)
+        msg_panel.SetBackgroundColour(bg)
         if is_thinking:
             msg_panel.SetName("thinking_panel")
 
@@ -237,12 +253,12 @@ class AIGeneratorDialog(wx.Frame):
             msg_panel, value=text,
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.BORDER_NONE | wx.TE_NO_VSCROLL
         )
-        text_ctrl.SetBackgroundColour(msg_panel.GetBackgroundColour())
-        text_ctrl.SetForegroundColour(wx.Colour(30, 30, 30))
+        text_ctrl.SetBackgroundColour(bg)
+        fg = wx.Colour(*th.log_fg) if not is_thinking else wx.Colour(80, 60, 0)
+        text_ctrl.SetForegroundColour(fg)
         line_count = text.count('\n') + 1
         char_width = text_ctrl.GetCharWidth()
         panel_width = max(200, self._chat_panel.GetClientSize().width - 56)
-        max_line_len = max((len(line) for line in text.split('\n')), default=0)
         wrap_lines = sum((len(line) * char_width // panel_width + 1) for line in text.split('\n'))
         height = max(wrap_lines, line_count) * (text_ctrl.GetCharHeight() + 2) + 4
         text_ctrl.SetMinSize((panel_width, height))
