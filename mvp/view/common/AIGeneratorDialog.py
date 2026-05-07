@@ -153,7 +153,9 @@ class AIGeneratorDialog(wx.Frame):
                     for line in full_desc.strip().split('\n'):
                         stripped = line.strip()
                         if stripped:
-                            self._tree.AppendItem(p_item, stripped)
+                            desc_item = self._tree.AppendItem(p_item, '')
+                            self._tree.SetItemText(desc_item, 1, stripped)
+                            self._tree_item_map[desc_item] = ('desc', ptype)
             self._tree.Expand(cat_item)
 
     def _bind_events(self):
@@ -174,7 +176,7 @@ class AIGeneratorDialog(wx.Frame):
         root = self._tree.GetRootItem()
         cat_item = self._tree.GetFirstChild(root)
         while cat_item.IsOk():
-            self._tree.CheckItemRecursively(cat_item, state)
+            self._check_category_processors(cat_item, state)
             cat_item = self._tree.GetNextSibling(cat_item)
 
     def _on_toggle_expand(self, evt):
@@ -216,10 +218,24 @@ class AIGeneratorDialog(wx.Frame):
     def _on_tree_check(self, evt):
         item = evt.GetItem()
         info = self._tree_item_map.get(item)
+        if info and info[0] == 'desc':
+            self._tree.UncheckItem(item)
+            return
         if info and info[0] == 'category':
             state = self._tree.GetCheckedState(item)
             new_state = wx.CHK_CHECKED if state == wx.CHK_CHECKED else wx.CHK_UNCHECKED
-            self._tree.CheckItemRecursively(item, new_state)
+            self._check_category_processors(item, new_state)
+
+    def _check_category_processors(self, cat_item, state):
+        p_item = self._tree.GetFirstChild(cat_item)
+        while p_item.IsOk():
+            info = self._tree_item_map.get(p_item)
+            if info and info[0] == 'processor':
+                if state == wx.CHK_CHECKED:
+                    self._tree.CheckItem(p_item)
+                else:
+                    self._tree.UncheckItem(p_item)
+            p_item = self._tree.GetNextSibling(p_item)
 
     def set_generator(self, generator):
         self._generator = generator
