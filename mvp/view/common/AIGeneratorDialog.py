@@ -29,7 +29,6 @@ class AIGeneratorDialog(wx.Frame):
         self._all_items = []
         self._item_type_map = {}
         self._full_desc_map = {}
-        self._build_processor_map()
         self._build_ui()
         self._bind_events()
 
@@ -256,23 +255,32 @@ class AIGeneratorDialog(wx.Frame):
 
         def _init():
             try:
-                processors = self.get_selected_processors()
+                self._build_processor_map()
+                wx.CallAfter(self._populate_tree)
+                processors = list(self._full_desc_map.keys())
                 generator = ExecutionGenerator(processors, self._locale)
                 generator.init_client(provider, api_key, base_url, model)
-                wx.CallAfter(self._on_init_success, generator, provider, model)
+                # Validate connection by sending a brief test message
+                test_resp = generator.chat(t("ai_gen_hello_prompt"))
+                wx.CallAfter(self._on_init_success, generator, provider, model, test_resp)
             except Exception as e:
                 wx.CallAfter(self._on_init_failure, str(e))
 
         thread = threading.Thread(target=_init, daemon=True)
         thread.start()
 
-    def _on_init_success(self, generator, provider, model):
+    def _on_init_success(self, generator, provider, model, greeting_resp):
         self._generator = generator
         self._remove_thinking()
         self._input_text.Enable()
         self._btn_send.Enable()
         self._input_text.SetFocus()
-        self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
+        # Show LLM's greeting response or fallback welcome
+        action = greeting_resp.get('action', 'text')
+        if action == 'text' and greeting_resp.get('content'):
+            self._add_message(greeting_resp['content'], is_user=False)
+        else:
+            self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
 
     def _on_init_failure(self, error_msg):
         self._remove_thinking()

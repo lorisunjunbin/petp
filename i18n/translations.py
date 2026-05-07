@@ -482,6 +482,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_loading": {"en": "Connecting to {provider} ({model})...", "zh": "正在连接 {provider} ({model})..."},
     "ai_gen_welcome": {"en": "Connected to {provider} ({model}). I can help you:\n• Recommend Processors for your use case\n• Generate task flows from natural language\n• Modify existing tasks\n\nDescribe what you want to automate!", "zh": "已连接 {provider} ({model})，我可以帮助你：\n• 推荐适合你场景的 Processor\n• 根据自然语言生成任务流程\n• 修改现有任务\n\n描述你想自动化的流程吧！"},
     "ai_gen_init_fail": {"en": "Failed to connect: {error}\n\nPlease check:\n• ai_provider and ai_api_key in petpconfig.yaml\n• Network connectivity\n• API key validity", "zh": "连接失败：{error}\n\n请检查：\n• petpconfig.yaml 中的 ai_provider 和 ai_api_key 配置\n• 网络连接\n• API Key 是否有效"},
+    "ai_gen_hello_prompt": {"en": "Introduce yourself briefly. What can you help me with? Reply in plain text, not JSON.", "zh": "请简单介绍你自己，你能帮我做什么？用自然语言回复，不要用JSON格式。"},
     "ai_gen_no_config": {"en": "AI config not set. Please configure ai_provider and ai_api_key in settings.", "zh": "AI 配置未设置。请在设置中配置 ai_provider 和 ai_api_key。"},
     "ai_gen_tokens": {"en": "Tokens: {input} in / {output} out", "zh": "Token: {input} 输入 / {output} 输出"},
     "ai_gen_error": {"en": "Error: {msg}", "zh": "错误: {msg}"},
