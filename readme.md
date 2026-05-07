@@ -16,6 +16,36 @@ Task      1:1  Processor
 
 ---
 
+## AI Execution Generator
+
+Generate and modify PETP task flows through natural language conversation with LLM.
+
+**Entry Points:**
+- Create Execution → "AI Generate" template
+- Right-click taskGrid → "AI Assist" (modify existing)
+- MCP Editor → "AI" button (auto-generate tool description)
+
+**Highlights:**
+- Multi-turn chat — ask questions, generate flows, modify tasks incrementally
+- Processor browser — expandable TreeListCtrl with full documentation, search & filter
+- Selective context — only checked Processors are sent to LLM (saves tokens)
+- Connection caching — first-time validation, then instant reuse across sessions
+- 10 LLM providers — minimal config: just set `ai_provider` in petpconfig.yaml
+
+**Configuration** (only `ai_provider` required, rest auto-fills from provider defaults):
+
+```yaml
+application:
+  ai_provider: zhipu       # or: deepseek, anthropic, gemini, ollama, etc.
+  ai_model: ""             # empty = provider default (e.g. GLM-5)
+  ai_api_key: ""           # empty = read from default env var (e.g. ZHIPU_ACCESS_KEY)
+  ai_base_url: ""          # empty = provider default URL
+```
+
+See [Configuration Docs](./docs/configuration.md#ai-assistant-configuration) for full provider list and details.
+
+---
+
 ## Quick Start
 
 ### 1. Install Python 3.14
@@ -102,6 +132,7 @@ python PETP_backgroud.py   # Headless service (port 8866)
 | **Data & Spreadsheet** | CSV/Excel read & write, collect, filter, group-by, mapping, masking, merge. |
 | **Database** | MySQL, PostgreSQL, SAP HANA, SQLite — unified `DB_ACCESS` processor. |
 | **AI / LLM** (10 providers) | DeepSeek, Gemini, Ollama, Zhipu, Anthropic, Qianfan, MiniMax, Doubao, Moonshot, OpenAI-compatible. Setup + Q&A + MCP tool calling. |
+| **AI Execution Generator** | Natural language → task flow generation. Multi-turn chat, Processor browser, selective context, connection caching. |
 | **MCP** | Standard MCP Tool Server (Streamable-HTTP). MCP client for all LLM providers. |
 | **HTTP / Network** | Configurable requests, response extraction, OAuth2/PKCE, Basic Auth, XSRF. |
 | **Email** | SMTP send (CC/BCC, HTML, attachments). IMAP receive (filter, attachment download). |

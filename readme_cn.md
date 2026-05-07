@@ -16,6 +16,36 @@ Task      1:1  Processor
 
 ---
 
+## AI 执行生成器
+
+通过自然语言对话与 LLM 生成和修改 PETP 任务流程。
+
+**入口：**
+- 创建 Execution → 选择 "AI 生成" 模板
+- taskGrid 右键 → "AI 协助"（对话式修改现有 Execution）
+- MCP 编辑器 → "AI" 按钮（自动生成工具描述 JSON）
+
+**亮点：**
+- 多轮对话 — 咨询 Processor 用法、生成流程、增量修改任务
+- Processor 浏览器 — 可展开的 TreeListCtrl，内置完整文档、搜索和过滤
+- 选择性上下文 — 只有勾选的 Processor 发送给 LLM（节省 Token）
+- 连接缓存 — 首次验证后即时复用，对话历史保留
+- 10 家 LLM — 最简配置：只需设置 `ai_provider`
+
+**配置**（仅 `ai_provider` 必填，其余自动从 provider 默认值填充）：
+
+```yaml
+application:
+  ai_provider: zhipu       # 或: deepseek, anthropic, gemini, ollama 等
+  ai_model: ""             # 留空 = 使用 provider 默认模型（如 GLM-5）
+  ai_api_key: ""           # 留空 = 从默认环境变量读取（如 ZHIPU_ACCESS_KEY）
+  ai_base_url: ""          # 留空 = 使用 provider 默认地址
+```
+
+详见 [配置文档](./docs/configuration_cn.md#ai-助手配置)。
+
+---
+
 ## 快速开始
 
 ### 1. 安装 Python 3.14
@@ -102,6 +132,7 @@ python PETP_backgroud.py   # 无头服务（端口 8866）
 | **数据与表格** | CSV/Excel 读写、采集、过滤、分组、映射、脱敏、合并。 |
 | **数据库** | MySQL、PostgreSQL、SAP HANA、SQLite — 统一 `DB_ACCESS` 处理器。 |
 | **AI / LLM**（10 家供应商） | DeepSeek、Gemini、Ollama、智谱、Anthropic、千帆、MiniMax、豆包、月之暗面、OpenAI 兼容。初始化 + 问答 + MCP 工具调用。 |
+| **AI 执行生成器** | 自然语言 → 任务流程生成。多轮对话、Processor 浏览器、选择性上下文、连接缓存。 |
 | **MCP** | 标准 MCP 工具服务器（Streamable-HTTP）。支持所有 LLM 供应商的 MCP 客户端。 |
 | **HTTP / 网络** | 可配置请求、响应提取、OAuth2/PKCE、Basic Auth、XSRF。 |
 | **邮件** | SMTP 发送（抄送/密送、HTML、附件）。IMAP 接收（过滤、附件下载）。 |
