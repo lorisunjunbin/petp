@@ -15,8 +15,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # ── Index — hero ─────────────────────────────────────────────
     "index_overline":  {
-        "en": "MCP Tool Server · Task Orchestration · LLM-Native",
-        "zh": "MCP 工具服务器 · 任务编排 · LLM 原生",
+        "en": "MCP Tool Server · Task Orchestration · LLM-Native · AI-Powered Generation",
+        "zh": "MCP 工具服务器 · 任务编排 · LLM 原生 · AI 驱动生成",
     },
     "index_title": {
         "en": "Turn any workflow into an MCP tool — callable by any Agent.",
@@ -75,6 +75,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_pe_desc":          {"en": "Run a personal assistant on your laptop, or deploy enterprise tool-sets on Docker. Same engine, same YAML, different scale.", "zh": "在笔记本上运行个人助手，或将企业工具集部署到 Docker。同一引擎，同一 YAML，不同规模。"},
     "feat_editor_title":     {"en": "Visual Editor with Undo / Redo", "zh": "可视化编辑器（撤销 / 重做）"},
     "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. 5 color themes including System (auto-follows OS dark / light mode). Status bar shows execution events in real time — start, done with duration, errors, and manual stops. Search &amp; highlight logs (Ctrl+F). Right-click the task grid for processor usage and reference lookup.", "zh": "图形编辑器支持完整撤销 / 重做与快照历史。5 套配色主题，含 System（自动跟随系统深浅色模式）。状态栏实时展示执行事件——启动、完成耗时、错误和手动停止。日志搜索高亮（Ctrl+F）。任务网格右键可查看处理器用法与引用查找。"},
+    "feat_ai_gen_title":     {"en": "AI Execution Generator", "zh": "AI Execution生成器"},
+    "feat_ai_gen_desc":      {"en": "Generate and modify task flows through natural language. Multi-turn chat with LLM, expandable Processor browser with search, selective context to save tokens. One-click MCP tool description generation with smart merge. AI-powered error analysis with fix suggestions. Supports 10 LLM providers — only <code>ai_provider</code> config needed.", "zh": "通过自然语言生成和修改任务流程。多轮 LLM 对话、可展开的 Processor 浏览器（支持搜索）、选择性上下文节省 Token。一键生成 MCP 工具描述并智能合并。AI 驱动的错误分析与修复建议。支持 10 家 LLM 供应商——只需配置 <code>ai_provider</code>。"},
 
     # ── Index — scenarios ────────────────────────────────────────
     "scenario_divider":    {"en": "Scenario Examples",        "zh": "场景示例"},
