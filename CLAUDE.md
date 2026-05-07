@@ -278,7 +278,7 @@ Model-View-Presenter pattern using wxPython. `PETPPresenter` owns the interactio
 | Component | File | Role |
 |-----------|------|------|
 | `PETPView` | `mvp/view/PETPView.py` | Main wxPython frame with two notebook tabs: "Executions" and "Pipelines" |
-| `PETPPresenter` | `mvp/presenter/PETPPresenter.py` | Business logic, event handlers, grid operations |
+| `PETPPresenter` | `mvp/presenter/PETPPresenter.py` | Business logic, event handlers, grid operations. **Model is `self.m` not `self.model`** |
 | `PETPInteractor` | `mvp/presenter/PETPInteractor.py` | Event routing — binds wx events to presenter methods |
 | `PETPModel` | `mvp/model/PETPModel.py` | Persistence layer, bound to `config/petpconfig.yaml` |
 | `SearchableGridChoiceEditor` | `mvp/view/common/SearchableGridChoiceEditor.py` | Filterable dropdown for processor selection in taskGrid column 0 |
@@ -297,7 +297,7 @@ The "Executions" tab has a left-right split:
 
 #### taskGrid Right-Click Context Menu
 
-Right-clicking a row in `taskGrid` shows: Copy, Paste, Skip/Unskip, and (when column 0 has a valid processor name) View Processor Usage and Find Referencing Executions.
+Right-clicking a row in `taskGrid` shows: Copy, Paste, Skip/Unskip, AI Assist, and (when column 0 has a valid processor name) View Processor Usage and Find Referencing Executions. Right-clicking empty grid area shows AI Assist only (via `EVT_RIGHT_DOWN` on `GetGridWindow()`).
 
 #### Processor Discovery in GUI
 
@@ -314,6 +314,38 @@ Each processor defines `get_category()` returning one of: `AI_LLM`, `Default`, `
 #### Editing Snapshots
 
 The presenter supports undo/redo via `_push_snapshot()` / `_undo()` / `_redo()`, storing grid state snapshots. Accessible via Ctrl+Z/Y and the Snapshots dialog.
+
+#### Task Backward Compatibility
+
+Task objects deserialized from old YAML files may lack the `skipped` attribute. Always use `getattr(tk, 'skipped', False)` when accessing it from loaded executions.
+
+#### wxPython Gotchas
+
+- `wx.EXPAND` conflicts with `wx.ALIGN_RIGHT`/`wx.ALIGN_LEFT` in BoxSizers — never combine them
+- `wx.EVT_MENU` binding must use `id=menu_id` parameter, not `MenuItem` as source — the latter silently fails
+- Child `wx.TextCtrl` (read-only) captures mousewheel events — forward to parent `ScrolledPanel` via `EVT_MOUSEWHEEL` binding
+- `ScrolledPanel.Scroll()` takes scroll units not pixels — divide virtual size by `GetScrollPixelsPerUnit()[1]`
+- `Processor.get_processor_by_type()` returns an instance, not a class — use `cls.__class__.__name__` for instance objects
+- `EVT_GRID_CELL_RIGHT_CLICK` doesn't fire on empty grid areas — use `EVT_RIGHT_DOWN` on `GetGridWindow()` with `YToRow()` check
+- English `DESC` multiline docstrings have empty first line — use `next(l for l in lines if l.strip())` for first meaningful line
+
+#### AI Apply Pattern
+
+When AI generates/modifies tasks, update `self.execution.list` and refresh taskGrid directly — do NOT call `Execution.save()`. Let the user save manually (Ctrl+S). Always create clean `Task(type, input, getattr(tk, 'skipped', False))` copies to avoid YAML serialization errors from `data_chain` references.
+
+### AI Generator (`core/ai/`)
+
+| File | Role |
+|------|------|
+| `core/ai/ExecutionGenerator.py` | LLM prompt construction, chat, response parsing, task generation |
+| `mvp/view/common/AIGeneratorDialog.py` | Non-modal chat window with TreeListCtrl processor selector |
+
+- Entry points: "AI Generate" in Create Execution dialog; "AI Assist" in taskGrid right-click menu
+- LLM connection cached in presenter (`_ai_cached_generator`) across dialog sessions
+- System prompt built lazily on first chat with currently-selected processors
+- Config: `ai_provider`, `ai_model`, `ai_api_key`, `ai_base_url` in petpconfig.yaml
+- `ai_api_key` supports `${ENV_VAR}` pattern via `resolve_api_key()`
+- `validate_connection()` sends minimal "hi" to verify API reachability before enabling input
 
 ### Background Runtime (`core/runtime/BackgroundRuntime.py`)
 
