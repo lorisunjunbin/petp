@@ -115,11 +115,24 @@ class ExecutionGenerator:
             kwargs['base_url'] = base_url
         self._client = BaseLLMClient.get_client_by_provider(provider, **kwargs)
         self._model = model
-        self._messages = [{"role": "system", "content": self._build_system_prompt()}]
+        self._messages = []
+
+    def update_filter(self, processors: List[str]):
+        self._filter = set(processors) if processors else None
+
+    def validate_connection(self) -> bool:
+        if self._client is None:
+            return False
+        messages = [{"role": "user", "content": "hi"}]
+        response = self._client.chat(messages=messages, model=self._model, temperature=0)
+        return bool(response.content or response.reasoning_content)
 
     def chat(self, user_message: str, current_tasks: Optional[List[Task]] = None) -> dict:
         if self._client is None:
             return {"action": "text", "content": t("ai_gen_no_config")}
+
+        if not self._messages:
+            self._messages = [{"role": "system", "content": self._build_system_prompt()}]
 
         if current_tasks and len(current_tasks) > 0:
             context = self._build_context_message(current_tasks)

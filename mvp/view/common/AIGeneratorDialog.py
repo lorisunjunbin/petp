@@ -105,7 +105,7 @@ class AIGeneratorDialog(wx.Frame):
         self._chat_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
-        self._chat_panel.SetupScrolling(scroll_x=False)
+        self._chat_panel.SetupScrolling(scroll_x=False, rate_y=20)
 
         self._v_splitter.SplitHorizontally(self._h_splitter, self._chat_panel, 250)
 
@@ -257,30 +257,23 @@ class AIGeneratorDialog(wx.Frame):
             try:
                 self._build_processor_map()
                 wx.CallAfter(self._populate_tree)
-                processors = list(self._full_desc_map.keys())
-                generator = ExecutionGenerator(processors, self._locale)
+                generator = ExecutionGenerator([], self._locale)
                 generator.init_client(provider, api_key, base_url, model)
-                # Validate connection by sending a brief test message
-                test_resp = generator.chat(t("ai_gen_hello_prompt"))
-                wx.CallAfter(self._on_init_success, generator, provider, model, test_resp)
+                generator.validate_connection()
+                wx.CallAfter(self._on_init_success, generator, provider, model)
             except Exception as e:
                 wx.CallAfter(self._on_init_failure, str(e))
 
         thread = threading.Thread(target=_init, daemon=True)
         thread.start()
 
-    def _on_init_success(self, generator, provider, model, greeting_resp):
+    def _on_init_success(self, generator, provider, model):
         self._generator = generator
         self._remove_thinking()
         self._input_text.Enable()
         self._btn_send.Enable()
         self._input_text.SetFocus()
-        # Show LLM's greeting response or fallback welcome
-        action = greeting_resp.get('action', 'text')
-        if action == 'text' and greeting_resp.get('content'):
-            self._add_message(greeting_resp['content'], is_user=False)
-        else:
-            self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
+        self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
 
     def _on_init_failure(self, error_msg):
         self._remove_thinking()
@@ -312,6 +305,7 @@ class AIGeneratorDialog(wx.Frame):
         msg = self._input_text.GetValue().strip()
         if not msg or self._generator is None:
             return
+        self._generator.update_filter(self.get_selected_processors())
         self._input_history.append(msg)
         if len(self._input_history) > 20:
             self._input_history.pop(0)
@@ -473,7 +467,11 @@ class AIGeneratorDialog(wx.Frame):
         self._chat_sizer.Add(msg_panel, 0, wx.ALL | wx.EXPAND, 4)
         self._chat_panel.Layout()
         self._chat_panel.FitInside()
-        self._chat_panel.Scroll(-1, self._chat_panel.GetVirtualSize()[1])
+        self._chat_panel.SetupScrolling(scroll_x=False, rate_y=20, scrollToTop=False)
+        sx, sy = self._chat_panel.GetScrollPixelsPerUnit()
+        vs_y = self._chat_panel.GetVirtualSize()[1]
+        if sy > 0:
+            self._chat_panel.Scroll(-1, vs_y // sy)
 
     def _remove_thinking(self):
         for child in self._chat_panel.GetChildren():
