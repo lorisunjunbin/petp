@@ -65,29 +65,39 @@ class AIGeneratorDialog(wx.Frame):
         top_sizer.Add(self._btn_select_none, 0)
         main_sizer.Add(top_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
-        # --- Processor list (left) + DESC detail (right) ---
-        selector_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        # --- Vertical splitter: (processor selector area) / (chat area) ---
+        self._v_splitter = wx.SplitterWindow(
+            panel, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
+        )
+        self._v_splitter.SetMinimumPaneSize(100)
 
-        self._proc_list = wx.CheckListBox(panel)
+        # Top pane: horizontal splitter (proc list | desc panel)
+        self._h_splitter = wx.SplitterWindow(
+            self._v_splitter, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
+        )
+        self._h_splitter.SetMinimumPaneSize(150)
+
+        self._proc_list = wx.CheckListBox(self._h_splitter)
         self._populate_list()
-        selector_sizer.Add(self._proc_list, 3, wx.EXPAND | wx.RIGHT, 4)
 
         self._desc_panel = wx.TextCtrl(
-            panel, style=wx.TE_MULTILINE | wx.TE_READONLY
+            self._h_splitter, style=wx.TE_MULTILINE | wx.TE_READONLY
         )
         self._desc_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._desc_panel.SetForegroundColour(wx.Colour(*th.log_fg))
-        selector_sizer.Add(self._desc_panel, 2, wx.EXPAND)
 
-        main_sizer.Add(selector_sizer, 2, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+        self._h_splitter.SplitVertically(self._proc_list, self._desc_panel, 380)
 
-        # --- Chat area ---
-        self._chat_panel = scrolled.ScrolledPanel(panel)
+        # Bottom pane: chat area
+        self._chat_panel = scrolled.ScrolledPanel(self._v_splitter)
         self._chat_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False)
-        main_sizer.Add(self._chat_panel, 3, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+
+        self._v_splitter.SplitHorizontally(self._h_splitter, self._chat_panel, 250)
+
+        main_sizer.Add(self._v_splitter, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # --- Input area ---
         input_sizer = wx.BoxSizer(wx.HORIZONTAL)
