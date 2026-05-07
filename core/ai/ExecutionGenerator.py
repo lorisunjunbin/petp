@@ -109,7 +109,18 @@ class ExecutionGenerator:
         self._available_processors = set(Processor.get_processors())
 
     def init_client(self, provider: str, api_key: str, base_url: str, model: str):
+        from core.processors.AI_LLM_SETUPProcessor import AI_LLM_SETUPProcessor
+        defaults = AI_LLM_SETUPProcessor.PROVIDER_DEFAULTS.get(provider, {})
+
+        if not api_key and defaults.get('api_key_env'):
+            api_key = f"${{{defaults['api_key_env']}}}"
         resolved_key = resolve_api_key(api_key)
+
+        if not base_url:
+            base_url = defaults.get('base_url', '')
+        if not model:
+            model = defaults.get('model', '')
+
         kwargs = {'api_key': resolved_key}
         if base_url:
             kwargs['base_url'] = base_url
