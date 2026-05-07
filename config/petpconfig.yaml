@@ -4,8 +4,8 @@ application:
   author: sunjunbin@DalianChina
   email: 6099012@qq.com
   cell: +86-13478653323
-  language: zh
-  theme: Ocean
+  language: en
+  theme: Forest
   log_level: INFO
   enable_windows_hdpi: false
   http_port: 8866

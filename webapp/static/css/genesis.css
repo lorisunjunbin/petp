@@ -927,6 +927,25 @@ a {
     flex-shrink: 0;
 }
 
+/* ── AI flow (4-step variant) ──────────────────────────────── */
+.ai-flow-steps .howto-step {
+    max-width: 220px;
+    padding: 16px 14px;
+}
+.ai-flow-steps .howto-num {
+    background: linear-gradient(135deg, var(--primary), #818cf8);
+}
+.ai-flow-banner {
+    text-align: center;
+    margin-top: 0;
+}
+.ai-flow-banner p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
 /* ── YAML example section ───────────────────────────────── */
 .yaml-example-section {
     margin: 24px 0;

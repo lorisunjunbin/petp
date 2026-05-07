@@ -78,6 +78,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_ai_gen_title":     {"en": "AI Execution Generator", "zh": "AI Execution生成器"},
     "feat_ai_gen_desc":      {"en": "Generate and modify task flows through natural language. Multi-turn chat with LLM, expandable Processor browser with search, selective context to save tokens. One-click MCP tool description generation with smart merge. AI-powered error analysis with fix suggestions. Supports 10 LLM providers — only <code>ai_provider</code> config needed.", "zh": "通过自然语言生成和修改任务流程。多轮 LLM 对话、可展开的 Processor 浏览器（支持搜索）、选择性上下文节省 Token。一键生成 MCP 工具描述并智能合并。AI 驱动的错误分析与修复建议。支持 10 家 LLM 供应商——只需配置 <code>ai_provider</code>。"},
 
+    # ── Index — AI workflow ──────────────────────────────────────
+    "ai_flow_divider":       {"en": "AI-Powered Workflow",     "zh": "AI 驱动工作流"},
+    "ai_flow_step1_title":   {"en": "Describe",               "zh": "描述"},
+    "ai_flow_step1_desc":    {"en": "Tell AI what you want in natural language — create new or modify existing Execution flows through multi-turn chat.", "zh": "用自然语言告诉 AI 你想要什么——通过多轮对话创建新 Execution 或修改已有流程。"},
+    "ai_flow_step2_title":   {"en": "Generate",               "zh": "生成"},
+    "ai_flow_step2_desc":    {"en": "AI builds task flows from 80+ processor types. Browse, search, and selectively include processor context to save tokens.", "zh": "AI 从 80+ 处理器类型中构建任务流程。支持浏览、搜索并选择性包含处理器上下文以节省 Token。"},
+    "ai_flow_step3_title":   {"en": "Publish",                "zh": "发布"},
+    "ai_flow_step3_desc":    {"en": "One-click MCP tool description generation. Auto-extracts input/output schema and generates agent-friendly descriptions. Smart merge preserves existing config.", "zh": "一键生成 MCP 工具描述。自动提取输入/输出 Schema，生成 Agent 可理解的描述。智能合并不覆盖已有配置。"},
+    "ai_flow_step4_title":   {"en": "Auto-Fix",               "zh": "自动修复"},
+    "ai_flow_step4_desc":    {"en": "When execution fails, AI analyzes the error in context — pinpoints root cause, suggests fixes, and opens AI Assist pre-filled with the diagnosis.", "zh": "执行失败时，AI 自动分析上下文错误——定位根因、建议修复方案，并预填诊断结果打开 AI 助手。"},
+    "ai_flow_footer":        {"en": "All AI features activate with a single config: <code>ai_provider</code>. Supports 10 LLM providers including DeepSeek, Claude, Gemini, and OpenAI-compatible.", "zh": "所有 AI 功能只需一项配置：<code>ai_provider</code>。支持 10 家 LLM 供应商，包括 DeepSeek、Claude、Gemini 及 OpenAI 兼容接口。"},
+
     # ── Index — scenarios ────────────────────────────────────────
     "scenario_divider":    {"en": "Scenario Examples",        "zh": "场景示例"},
     "scenario_proc_name":  {"en": "Procurement Automation",   "zh": "采购自动化"},
@@ -178,6 +190,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_05_ai_workflow": {
+        "en": "<strong>AI-Powered Workflow</strong>: AI generates &amp; modifies Executions via multi-turn chat; one-click MCP tool publishing with auto-extracted input/output schemas and smart merge; AI error analysis — on failure, automatically diagnoses root cause, suggests fixes, and pre-fills AI Assist for one-click repair.",
+        "zh": "<strong>AI 驱动工作流</strong>：AI 通过多轮对话生成和修改 Execution；一键发布 MCP 工具，自动提取输入/输出 Schema 并智能合并；AI 错误分析——执行失败时自动诊断根因、建议修复方案，并预填 AI 助手实现一键修复。",
+    },
     "cl_2026_05_create_execution": {
         "en": "New <strong>Create Execution</strong> button (+): create blank execution or from template via dialog; chooser and all grids properly cleared on delete.",
         "zh": "新增<strong>新建 Execution</strong>按钮（+）：通过对话框空白新建或从模板创建；删除后正确清空选择器与所有编辑区域。",
