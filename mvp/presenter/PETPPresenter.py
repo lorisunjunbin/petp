@@ -1245,7 +1245,7 @@ class PETPPresenter():
         self._ai_dialog = dialog
         self._ai_execution_name = execution_name
         dialog.Show()
-        dialog.init_generator_async(provider, api_key, base_url, model)
+        self._init_or_reuse_generator(dialog, provider, api_key, base_url, model, locale)
 
     def _ai_apply_callback(self, action, tasks=None, loops=None):
         if action == 'get_tasks':
@@ -1343,7 +1343,32 @@ class PETPPresenter():
         self._ai_dialog = dialog
         self._ai_execution_name = execution_name
         dialog.Show()
-        dialog.init_generator_async(provider, api_key, base_url, model)
+        self._init_or_reuse_generator(dialog, provider, api_key, base_url, model, locale)
+
+    def _init_or_reuse_generator(self, dialog, provider, api_key, base_url, model, locale):
+        config_key = f"{provider}|{api_key}|{base_url}|{model}"
+        cached_key = getattr(self, '_ai_config_key', None)
+        cached_gen = getattr(self, '_ai_cached_generator', None)
+
+        if cached_gen and cached_key == config_key:
+            cached_gen._messages = []
+            dialog.set_generator(cached_gen)
+            dialog._build_processor_map()
+            dialog._populate_tree()
+            dialog._input_text.Enable()
+            dialog._btn_send.Enable()
+            dialog._add_message(t("ai_gen_reuse", provider=provider, model=model), is_user=False)
+        else:
+            def _on_success(generator, p, m):
+                self._ai_cached_generator = generator
+                self._ai_config_key = config_key
+            dialog._orig_on_init_success = dialog._on_init_success
+            def _wrapped_success(generator, p, m):
+                self._ai_cached_generator = generator
+                self._ai_config_key = config_key
+                dialog._orig_on_init_success(generator, p, m)
+            dialog._on_init_success = _wrapped_success
+            dialog.init_generator_async(provider, api_key, base_url, model)
 
     def on_stop_all(self):
         self.cron.stop_all()
