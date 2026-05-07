@@ -1,6 +1,7 @@
 import json
 import threading
 import wx
+import wx.dataview as dv
 import wx.lib.scrolledpanel as scrolled
 
 from core.processor import Processor
@@ -71,14 +72,17 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._v_splitter.SetMinimumPaneSize(100)
 
-        # Top pane: horizontal splitter (proc list | desc panel)
+        # Top pane: horizontal splitter (tree list | desc panel)
         self._h_splitter = wx.SplitterWindow(
             self._v_splitter, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
         )
         self._h_splitter.SetMinimumPaneSize(150)
 
-        self._proc_list = wx.CheckListBox(self._h_splitter)
-        self._populate_list()
+        self._tree = dv.TreeListCtrl(
+            self._h_splitter, style=dv.TL_CHECKBOX | dv.TL_3STATE
+        )
+        self._tree.AppendColumn(t("ai_gen_category"), width=320)
+        self._populate_tree()
 
         self._desc_panel = wx.TextCtrl(
             self._h_splitter, style=wx.TE_MULTILINE | wx.TE_READONLY
@@ -86,7 +90,7 @@ class AIGeneratorDialog(wx.Frame):
         self._desc_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._desc_panel.SetForegroundColour(wx.Colour(*th.log_fg))
 
-        self._h_splitter.SplitVertically(self._proc_list, self._desc_panel, 380)
+        self._h_splitter.SplitVertically(self._tree, self._desc_panel, 400)
 
         # Bottom pane: chat area
         self._chat_panel = scrolled.ScrolledPanel(self._v_splitter)
@@ -127,10 +131,10 @@ class AIGeneratorDialog(wx.Frame):
 
         panel.SetSizer(main_sizer)
 
-    def _populate_list(self, filter_text=''):
-        self._proc_list.Clear()
-        self._all_items = []
-        self._item_type_map = {}
+    def _populate_tree(self, filter_text=''):
+        self._tree.DeleteAllItems()
+        self._tree_item_map = {}
+        root = self._tree.GetRootItem()
         filter_lower = filter_text.lower()
 
         for cat in sorted(self._category_map.keys()):
@@ -139,17 +143,14 @@ class AIGeneratorDialog(wx.Frame):
                        if not filter_lower or filter_lower in p.lower() or filter_lower in d.lower()]
             if not matched:
                 continue
-            cat_label = f"▸ {cat} ({len(matched)})"
-            idx = self._proc_list.Append(cat_label)
-            self._all_items.append(('category', cat))
-            self._item_type_map[idx] = ('category', cat)
-
+            cat_item = self._tree.AppendItem(root, f"{cat} ({len(matched)})")
+            self._tree_item_map[cat_item] = ('category', cat)
             for ptype, desc in sorted(matched, key=lambda x: x[0]):
-                p_label = f"    {ptype} — {desc}" if desc else f"    {ptype}"
-                idx = self._proc_list.Append(p_label)
-                self._all_items.append(('processor', ptype))
-                self._item_type_map[idx] = ('processor', ptype)
-                self._proc_list.Check(idx, True)
+                label = f"{ptype} — {desc}" if desc else ptype
+                p_item = self._tree.AppendItem(cat_item, label)
+                self._tree_item_map[p_item] = ('processor', ptype)
+                self._tree.CheckItem(p_item)
+            self._tree.Expand(cat_item)
 
     def _bind_events(self):
         self._btn_send.Bind(wx.EVT_BUTTON, self._on_send)
@@ -161,50 +162,62 @@ class AIGeneratorDialog(wx.Frame):
         self._btn_select_all.Bind(wx.EVT_BUTTON, self._on_select_all)
         self._btn_select_none.Bind(wx.EVT_BUTTON, self._on_select_none)
         self._search_text.Bind(wx.EVT_TEXT, self._on_search)
-        self._proc_list.Bind(wx.EVT_CHECKLISTBOX, self._on_check_item)
-        self._proc_list.Bind(wx.EVT_LISTBOX, self._on_select_item)
+        self._tree.Bind(dv.EVT_TREELIST_SELECTION_CHANGED, self._on_tree_select)
+        self._tree.Bind(dv.EVT_TREELIST_ITEM_CHECKED, self._on_tree_check)
 
     def _on_select_all(self, evt):
-        for i in range(self._proc_list.GetCount()):
-            if self._item_type_map.get(i, ('',))[0] == 'processor':
-                self._proc_list.Check(i, True)
+        root = self._tree.GetRootItem()
+        cat_item = self._tree.GetFirstChild(root)
+        while cat_item.IsOk():
+            self._tree.CheckItemRecursively(cat_item)
+            cat_item = self._tree.GetNextSibling(cat_item)
 
     def _on_select_none(self, evt):
-        for i in range(self._proc_list.GetCount()):
-            self._proc_list.Check(i, False)
+        root = self._tree.GetRootItem()
+        cat_item = self._tree.GetFirstChild(root)
+        while cat_item.IsOk():
+            self._tree.CheckItemRecursively(cat_item, wx.CHK_UNCHECKED)
+            cat_item = self._tree.GetNextSibling(cat_item)
 
     def _on_search(self, evt):
         checked_before = set(self.get_selected_processors())
-        self._populate_list(self._search_text.GetValue().strip())
-        for i in range(self._proc_list.GetCount()):
-            item_info = self._item_type_map.get(i)
-            if item_info and item_info[0] == 'processor':
-                self._proc_list.Check(i, item_info[1] in checked_before)
+        self._populate_tree(self._search_text.GetValue().strip())
+        root = self._tree.GetRootItem()
+        cat_item = self._tree.GetFirstChild(root)
+        while cat_item.IsOk():
+            p_item = self._tree.GetFirstChild(cat_item)
+            while p_item.IsOk():
+                info = self._tree_item_map.get(p_item)
+                if info and info[0] == 'processor':
+                    if info[1] in checked_before:
+                        self._tree.CheckItem(p_item)
+                    else:
+                        self._tree.UncheckItem(p_item)
+                p_item = self._tree.GetNextSibling(p_item)
+            self._tree.UpdateItemParentStateRecursively(cat_item)
+            cat_item = self._tree.GetNextSibling(cat_item)
 
-    def _on_check_item(self, evt):
-        idx = evt.GetInt()
-        item_info = self._item_type_map.get(idx)
-        if not item_info:
+    def _on_tree_check(self, evt):
+        item = evt.GetItem()
+        info = self._tree_item_map.get(item)
+        if info and info[0] == 'category':
+            state = self._tree.GetCheckedState(item)
+            new_state = wx.CHK_CHECKED if state == wx.CHK_CHECKED else wx.CHK_UNCHECKED
+            self._tree.CheckItemRecursively(item, new_state)
+
+    def _on_tree_select(self, evt):
+        item = self._tree.GetSelection()
+        if not item.IsOk():
             return
-        if item_info[0] == 'category':
-            checked = self._proc_list.IsChecked(idx)
-            for i in range(idx + 1, self._proc_list.GetCount()):
-                info = self._item_type_map.get(i)
-                if not info or info[0] == 'category':
-                    break
-                self._proc_list.Check(i, checked)
-
-    def _on_select_item(self, evt):
-        idx = evt.GetInt()
-        item_info = self._item_type_map.get(idx)
-        if item_info and item_info[0] == 'processor':
-            ptype = item_info[1]
+        info = self._tree_item_map.get(item)
+        if info and info[0] == 'processor':
+            ptype = info[1]
             full_desc = self._full_desc_map.get(ptype, '')
-            self._desc_panel.SetValue(f"{ptype}\n{'─' * 30}\n{full_desc}")
-        elif item_info and item_info[0] == 'category':
-            cat = item_info[1]
+            self._desc_panel.SetValue(f"{ptype}\n{'─' * 40}\n{full_desc}")
+        elif info and info[0] == 'category':
+            cat = info[1]
             procs = self._category_map.get(cat, [])
-            lines = [f"{cat} ({len(procs)} processors)", '─' * 30]
+            lines = [f"{cat} ({len(procs)} processors)", '─' * 40]
             for ptype, desc in sorted(procs, key=lambda x: x[0]):
                 lines.append(f"• {ptype} — {desc}")
             self._desc_panel.SetValue('\n'.join(lines))
@@ -218,11 +231,17 @@ class AIGeneratorDialog(wx.Frame):
 
     def get_selected_processors(self) -> list:
         selected = []
-        for i in range(self._proc_list.GetCount()):
-            if self._proc_list.IsChecked(i):
-                item_info = self._item_type_map.get(i)
-                if item_info and item_info[0] == 'processor':
-                    selected.append(item_info[1])
+        root = self._tree.GetRootItem()
+        cat_item = self._tree.GetFirstChild(root)
+        while cat_item.IsOk():
+            p_item = self._tree.GetFirstChild(cat_item)
+            while p_item.IsOk():
+                if self._tree.GetCheckedState(p_item) == wx.CHK_CHECKED:
+                    info = self._tree_item_map.get(p_item)
+                    if info and info[0] == 'processor':
+                        selected.append(info[1])
+                p_item = self._tree.GetNextSibling(p_item)
+            cat_item = self._tree.GetNextSibling(cat_item)
         return selected
 
     def get_selected_categories(self) -> list:
