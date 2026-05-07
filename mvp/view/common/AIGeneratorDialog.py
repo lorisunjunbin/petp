@@ -13,7 +13,7 @@ class AIGeneratorDialog(wx.Frame):
     def __init__(self, parent, locale: str, on_apply=None):
         super().__init__(
             parent, title=t("ai_gen_title"),
-            size=(680, 700),
+            size=(800, 700),
             style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
         )
         self._locale = locale
@@ -49,13 +49,13 @@ class AIGeneratorDialog(wx.Frame):
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # --- Processor selector section ---
+        # --- Top row: label + search + buttons ---
         top_sizer = wx.BoxSizer(wx.HORIZONTAL)
         cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
         cat_label.SetFont(cat_label.GetFont().Bold())
         top_sizer.Add(cat_label, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 8)
 
-        self._search_text = wx.SearchCtrl(panel, size=(160, -1))
+        self._search_text = wx.SearchCtrl(panel, size=(180, -1))
         self._search_text.SetDescriptiveText(t("ai_gen_search"))
         top_sizer.Add(self._search_text, 1, wx.EXPAND | wx.RIGHT, 4)
 
@@ -65,18 +65,21 @@ class AIGeneratorDialog(wx.Frame):
         top_sizer.Add(self._btn_select_none, 0)
         main_sizer.Add(top_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
-        # CheckListBox with hierarchical items
+        # --- Processor list (left) + DESC detail (right) ---
+        selector_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
         self._proc_list = wx.CheckListBox(panel)
         self._populate_list()
-        main_sizer.Add(self._proc_list, 2, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+        selector_sizer.Add(self._proc_list, 3, wx.EXPAND | wx.RIGHT, 4)
 
-        # DESC detail panel
         self._desc_panel = wx.TextCtrl(
-            panel, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_NO_VSCROLL,
-            size=(-1, 60)
+            panel, style=wx.TE_MULTILINE | wx.TE_READONLY
         )
-        self._desc_panel.SetBackgroundColour(wx.Colour(245, 245, 245))
-        main_sizer.Add(self._desc_panel, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
+        self._desc_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
+        self._desc_panel.SetForegroundColour(wx.Colour(*th.log_fg))
+        selector_sizer.Add(self._desc_panel, 2, wx.EXPAND)
+
+        main_sizer.Add(selector_sizer, 2, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
         # --- Chat area ---
         self._chat_panel = scrolled.ScrolledPanel(panel)
@@ -161,7 +164,7 @@ class AIGeneratorDialog(wx.Frame):
             self._proc_list.Check(i, False)
 
     def _on_search(self, evt):
-        checked_before = self.get_selected_processors()
+        checked_before = set(self.get_selected_processors())
         self._populate_list(self._search_text.GetValue().strip())
         for i in range(self._proc_list.GetCount()):
             item_info = self._item_type_map.get(i)
@@ -175,7 +178,6 @@ class AIGeneratorDialog(wx.Frame):
             return
         if item_info[0] == 'category':
             checked = self._proc_list.IsChecked(idx)
-            cat = item_info[1]
             for i in range(idx + 1, self._proc_list.GetCount()):
                 info = self._item_type_map.get(i)
                 if not info or info[0] == 'category':
@@ -188,11 +190,14 @@ class AIGeneratorDialog(wx.Frame):
         if item_info and item_info[0] == 'processor':
             ptype = item_info[1]
             full_desc = self._full_desc_map.get(ptype, '')
-            self._desc_panel.SetValue(f"{ptype}\n{full_desc}")
+            self._desc_panel.SetValue(f"{ptype}\n{'─' * 30}\n{full_desc}")
         elif item_info and item_info[0] == 'category':
             cat = item_info[1]
-            count = len(self._category_map.get(cat, []))
-            self._desc_panel.SetValue(f"{cat} — {count} processors")
+            procs = self._category_map.get(cat, [])
+            lines = [f"{cat} ({len(procs)} processors)", '─' * 30]
+            for ptype, desc in sorted(procs, key=lambda x: x[0]):
+                lines.append(f"• {ptype} — {desc}")
+            self._desc_panel.SetValue('\n'.join(lines))
 
     def set_generator(self, generator):
         self._generator = generator
