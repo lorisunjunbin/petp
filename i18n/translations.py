@@ -478,7 +478,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_cancel": {"en": "Cancel", "zh": "取消"},
     "ai_gen_thinking": {"en": "Thinking...", "zh": "思考中..."},
     "ai_gen_category": {"en": "Category", "zh": "类别"},
-    "ai_gen_input_hint": {"en": "Describe what you want to automate...", "zh": "描述你想自动化的流程..."},
+    "ai_gen_input_hint": {"en": "Chat with AI: ask about Processors, generate task flows, or modify existing tasks...", "zh": "与 AI 对话：咨询 Processor 用法、生成任务流程、修改现有任务..."},
     "ai_gen_no_config": {"en": "AI config not set. Please configure ai_provider and ai_api_key in settings.", "zh": "AI 配置未设置。请在设置中配置 ai_provider 和 ai_api_key。"},
     "ai_gen_tokens": {"en": "Tokens: {input} in / {output} out", "zh": "Token: {input} 输入 / {output} 输出"},
     "ai_gen_error": {"en": "Error: {msg}", "zh": "错误: {msg}"},
