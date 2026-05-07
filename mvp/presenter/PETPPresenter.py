@@ -1357,6 +1357,11 @@ class PETPPresenter():
             dialog._input_text.Enable()
             dialog._btn_send.Enable()
             dialog._add_message(t("ai_gen_reuse", provider=provider, model=model), is_user=False)
+            for msg in cached_gen._messages:
+                if msg.get('role') == 'user':
+                    dialog._add_message(msg['content'], is_user=True)
+                elif msg.get('role') == 'assistant':
+                    dialog._add_message(msg['content'], is_user=False)
         else:
             def _on_success(generator, p, m):
                 self._ai_cached_generator = generator
