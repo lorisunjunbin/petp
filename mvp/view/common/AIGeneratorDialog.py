@@ -55,14 +55,8 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._v_splitter.SetMinimumPaneSize(100)
 
-        # Top pane: horizontal splitter (tree panel | desc panel)
-        self._h_splitter = wx.SplitterWindow(
-            self._v_splitter, style=wx.SP_LIVE_UPDATE | wx.SP_3DSASH
-        )
-        self._h_splitter.SetMinimumPaneSize(150)
-
-        # Left: search + category row + tree
-        tree_panel = wx.Panel(self._h_splitter)
+        # Top pane: tree with search
+        tree_panel = wx.Panel(self._v_splitter)
         tree_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # Search row: search + select all checkbox + expand/collapse toggle
@@ -92,15 +86,6 @@ class AIGeneratorDialog(wx.Frame):
         tree_sizer.Add(self._tree, 1, wx.EXPAND)
         tree_panel.SetSizer(tree_sizer)
 
-        # Right: desc panel
-        self._desc_panel = wx.TextCtrl(
-            self._h_splitter, style=wx.TE_MULTILINE | wx.TE_READONLY
-        )
-        self._desc_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
-        self._desc_panel.SetForegroundColour(wx.Colour(*th.log_fg))
-
-        self._h_splitter.SplitVertically(tree_panel, self._desc_panel, 400)
-
         # Bottom pane: chat area
         self._chat_panel = scrolled.ScrolledPanel(
             self._v_splitter, style=wx.VSCROLL | wx.ALWAYS_SHOW_SB
@@ -110,7 +95,7 @@ class AIGeneratorDialog(wx.Frame):
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False, rate_y=20)
 
-        self._v_splitter.SplitHorizontally(self._h_splitter, self._chat_panel, 250)
+        self._v_splitter.SplitHorizontally(tree_panel, self._chat_panel, 280)
 
         main_sizer.Add(self._v_splitter, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
@@ -163,6 +148,12 @@ class AIGeneratorDialog(wx.Frame):
                 self._tree.SetItemText(p_item, 1, desc)
                 self._tree_item_map[p_item] = ('processor', ptype)
                 self._tree.CheckItem(p_item)
+                full_desc = self._full_desc_map.get(ptype, '')
+                if full_desc:
+                    for line in full_desc.strip().split('\n'):
+                        stripped = line.strip()
+                        if stripped:
+                            self._tree.AppendItem(p_item, stripped)
             self._tree.Expand(cat_item)
 
     def _bind_events(self):
@@ -175,7 +166,6 @@ class AIGeneratorDialog(wx.Frame):
         self._cb_select_all.Bind(wx.EVT_CHECKBOX, self._on_toggle_select_all)
         self._btn_toggle_expand.Bind(wx.EVT_BUTTON, self._on_toggle_expand)
         self._search_text.Bind(wx.EVT_TEXT, self._on_search)
-        self._tree.Bind(dv.EVT_TREELIST_SELECTION_CHANGED, self._on_tree_select)
         self._tree.Bind(dv.EVT_TREELIST_ITEM_CHECKED, self._on_tree_check)
 
     def _on_toggle_select_all(self, evt):
@@ -230,23 +220,6 @@ class AIGeneratorDialog(wx.Frame):
             state = self._tree.GetCheckedState(item)
             new_state = wx.CHK_CHECKED if state == wx.CHK_CHECKED else wx.CHK_UNCHECKED
             self._tree.CheckItemRecursively(item, new_state)
-
-    def _on_tree_select(self, evt):
-        item = self._tree.GetSelection()
-        if not item.IsOk():
-            return
-        info = self._tree_item_map.get(item)
-        if info and info[0] == 'processor':
-            ptype = info[1]
-            full_desc = self._full_desc_map.get(ptype, '')
-            self._desc_panel.SetValue(f"{ptype}\n{'─' * 40}\n{full_desc}")
-        elif info and info[0] == 'category':
-            cat = info[1]
-            procs = self._category_map.get(cat, [])
-            lines = [f"{cat} ({len(procs)} processors)", '─' * 40]
-            for ptype, desc in sorted(procs, key=lambda x: x[0]):
-                lines.append(f"• {ptype} — {desc}")
-            self._desc_panel.SetValue('\n'.join(lines))
 
     def set_generator(self, generator):
         self._generator = generator
