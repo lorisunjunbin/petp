@@ -224,16 +224,19 @@ Return ONLY the JSON, no markdown wrapping."""
 
     def _load_processor_context(self) -> str:
         from i18n.translations import get_localized_desc
-        always_include = {'General'}
-        target_categories = set(self._categories) | always_include
+        if not self._categories:
+            target_categories = None
+        else:
+            target_categories = set(self._categories) | {'General'}
         context_parts = []
         for ptype in Processor.get_processors():
             try:
                 clazz = Processor.get_processor_by_type(ptype)
-                if clazz.get_category() in target_categories:
-                    desc = get_localized_desc(clazz, self._locale)
-                    tpl = clazz.TPL if hasattr(clazz, 'TPL') else '{}'
-                    context_parts.append(f"### {ptype}\nTPL: {tpl}\n{desc}")
+                if target_categories is not None and clazz.get_category() not in target_categories:
+                    continue
+                desc = get_localized_desc(clazz, self._locale)
+                tpl = clazz.TPL if hasattr(clazz, 'TPL') else '{}'
+                context_parts.append(f"### {ptype}\nTPL: {tpl}\n{desc}")
             except Exception:
                 continue
         return "\n\n".join(context_parts)

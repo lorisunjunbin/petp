@@ -1,9 +1,11 @@
+import json
 import threading
 import wx
+import wx.dataview as dv
 import wx.lib.scrolledpanel as scrolled
 
 from core.processor import Processor
-from i18n.translations import t
+from i18n.translations import t, get_localized_desc
 from mvp.view.PETPTheme import get_theme
 
 
@@ -12,7 +14,7 @@ class AIGeneratorDialog(wx.Frame):
     def __init__(self, parent, locale: str, on_apply=None):
         super().__init__(
             parent, title=t("ai_gen_title"),
-            size=(450, 620),
+            size=(560, 640),
             style=wx.DEFAULT_FRAME_STYLE | wx.FRAME_FLOAT_ON_PARENT
         )
         self._locale = locale
@@ -23,69 +25,86 @@ class AIGeneratorDialog(wx.Frame):
         self._input_history = []
         self._history_cursor = -1
         self._theme = get_theme()
+        self._category_map = {}
+        self._tree_items = {}
+        self._build_processor_map()
         self._build_ui()
         self._bind_events()
+
+    def _build_processor_map(self):
+        for ptype in Processor.get_processors():
+            try:
+                clazz = Processor.get_processor_by_type(ptype)
+                cat = clazz.get_category()
+                desc = get_localized_desc(clazz, self._locale)
+                first_line = desc.split('\n')[0].strip() if desc else ''
+                if len(first_line) > 50:
+                    first_line = first_line[:47] + '...'
+                self._category_map.setdefault(cat, []).append((ptype, first_line))
+            except Exception:
+                continue
 
     def _build_ui(self):
         th = self._theme
         panel = wx.Panel(self)
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # Category selector
+        # Processor tree selector
         cat_label = wx.StaticText(panel, label=t("ai_gen_category"))
         cat_label.SetFont(cat_label.GetFont().Bold())
-        main_sizer.Add(cat_label, 0, wx.LEFT | wx.TOP, 10)
+        main_sizer.Add(cat_label, 0, wx.LEFT | wx.TOP, 8)
 
-        categories = sorted(set(
-            Processor.get_processor_by_type(p).get_category()
-            for p in Processor.get_processors()
-        ))
-        self._category_list = wx.CheckListBox(panel, choices=categories)
-        for i, cat in enumerate(categories):
-            if cat in ('Selenium', 'HTTP', 'General'):
-                self._category_list.Check(i, True)
-        main_sizer.Add(self._category_list, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self._tree = dv.DataViewTreeCtrl(panel)
+        self._populate_tree()
+        main_sizer.Add(self._tree, 2, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         # Chat area
         self._chat_panel = scrolled.ScrolledPanel(panel)
-        chat_bg = wx.Colour(*th.log_bg)
-        self._chat_panel.SetBackgroundColour(chat_bg)
+        self._chat_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
         self._chat_panel.SetupScrolling(scroll_x=False)
-        main_sizer.Add(self._chat_panel, 3, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        main_sizer.Add(self._chat_panel, 3, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
 
         # Input area
         input_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._input_text = wx.TextCtrl(
-            panel, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER, size=(-1, 50)
+            panel, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER, size=(-1, 40)
         )
         self._input_text.SetHint(t("ai_gen_input_hint"))
         input_sizer.Add(self._input_text, 1, wx.EXPAND)
-
-        self._btn_send = wx.Button(panel, label=t("ai_gen_send"), size=(60, 50))
+        self._btn_send = wx.Button(panel, label=t("ai_gen_send"), size=(50, 40))
         self._btn_send.SetBackgroundColour(wx.Colour(*th.accent))
         self._btn_send.SetForegroundColour(wx.WHITE)
         input_sizer.Add(self._btn_send, 0, wx.LEFT, 4)
-        main_sizer.Add(input_sizer, 0, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(input_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 8)
 
-        # Token display
+        # Bottom row: token label + buttons
+        bottom_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._token_label = wx.StaticText(panel, label="")
         self._token_label.SetForegroundColour(wx.Colour(120, 120, 120))
-        main_sizer.Add(self._token_label, 0, wx.LEFT | wx.BOTTOM, 10)
-
-        # Bottom buttons
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self._btn_done = wx.Button(panel, label=t("ai_gen_done"))
-        btn_sizer.Add(self._btn_done, 0)
-        btn_sizer.AddStretchSpacer()
-        self._btn_undo = wx.Button(panel, label=t("ai_gen_undo"), size=(60, -1))
-        self._btn_redo = wx.Button(panel, label=t("ai_gen_redo"), size=(60, -1))
-        btn_sizer.Add(self._btn_undo, 0, wx.RIGHT, 4)
-        btn_sizer.Add(self._btn_redo, 0)
-        main_sizer.Add(btn_sizer, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        bottom_sizer.Add(self._token_label, 1, wx.ALIGN_CENTER_VERTICAL)
+        self._btn_done = wx.Button(panel, label=t("ai_gen_done"), size=(50, -1))
+        self._btn_undo = wx.Button(panel, label=t("ai_gen_undo"), size=(50, -1))
+        self._btn_redo = wx.Button(panel, label=t("ai_gen_redo"), size=(50, -1))
+        bottom_sizer.Add(self._btn_undo, 0, wx.RIGHT, 2)
+        bottom_sizer.Add(self._btn_redo, 0, wx.RIGHT, 2)
+        bottom_sizer.Add(self._btn_done, 0)
+        main_sizer.Add(bottom_sizer, 0, wx.EXPAND | wx.ALL, 8)
 
         panel.SetSizer(main_sizer)
+
+    def _populate_tree(self):
+        self._tree_items = {}
+        for cat in sorted(self._category_map.keys()):
+            processors = self._category_map[cat]
+            cat_label = f"{cat} ({len(processors)})"
+            cat_item = self._tree.AppendContainer(dv.NullDataViewItem, cat_label)
+            self._tree_items[cat] = {'item': cat_item, 'processors': {}}
+            for ptype, desc in sorted(processors, key=lambda x: x[0]):
+                label = f"{ptype} — {desc}" if desc else ptype
+                p_item = self._tree.AppendItem(cat_item, label)
+                self._tree_items[cat]['processors'][ptype] = p_item
 
     def _bind_events(self):
         self._btn_send.Bind(wx.EVT_BUTTON, self._on_send)
@@ -101,6 +120,17 @@ class AIGeneratorDialog(wx.Frame):
     def set_undo_redo_handlers(self, on_undo, on_redo):
         self._undo_handler = on_undo
         self._redo_handler = on_redo
+
+    def get_selected_processors(self) -> list:
+        """Return all processor types (tree is display-only, all are available)."""
+        all_processors = []
+        for cat_data in self._tree_items.values():
+            all_processors.extend(cat_data['processors'].keys())
+        return all_processors
+
+    def get_selected_categories(self) -> list:
+        """Backward compatible: return all category names."""
+        return list(self._category_map.keys())
 
     def _on_send(self, evt):
         msg = self._input_text.GetValue().strip()
@@ -188,7 +218,6 @@ class AIGeneratorDialog(wx.Frame):
         self._token_label.SetLabel(t("ai_gen_tokens", input=prompt_t, output=comp_t))
 
     def _format_task_summary(self, tasks, warnings):
-        import json
         lines = [f"✓ {len(tasks)} tasks:"]
         for i, tk in enumerate(tasks, 1):
             desc = self._brief_input(tk.input)
@@ -199,7 +228,6 @@ class AIGeneratorDialog(wx.Frame):
         return "\n".join(lines)
 
     def _format_modify_summary(self, operations, new_tasks, warnings):
-        import json
         lines = []
         for op_dict in operations:
             op = op_dict.get('op', '')
@@ -278,10 +306,6 @@ class AIGeneratorDialog(wx.Frame):
                 break
         self._chat_panel.Layout()
         self._chat_panel.FitInside()
-
-    def get_selected_categories(self) -> list:
-        checked = self._category_list.GetCheckedItems()
-        return [self._category_list.GetString(i) for i in checked]
 
     def _on_done(self, evt):
         self.Close()
