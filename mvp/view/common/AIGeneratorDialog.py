@@ -119,7 +119,7 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._input_text.SetBackgroundColour(wx.Colour(*th.log_search_bg))
         self._input_text.SetForegroundColour(wx.Colour(*th.log_search_fg))
-        self._input_text.SetHint(t("ai_gen_input_hint"))
+        self._input_text.Disable()
         input_sizer.Add(self._input_text, 1, wx.EXPAND)
         self._btn_send = wx.Button(panel, label=t("ai_gen_send"), size=(50, 36))
         self._btn_send.SetBackgroundColour(wx.Colour(*th.accent))
@@ -248,6 +248,35 @@ class AIGeneratorDialog(wx.Frame):
 
     def set_generator(self, generator):
         self._generator = generator
+
+    def init_generator_async(self, provider, api_key, base_url, model):
+        from core.ai.ExecutionGenerator import ExecutionGenerator
+        self._add_message(t("ai_gen_loading", provider=provider, model=model), is_user=False, is_thinking=True)
+        self._btn_send.Disable()
+
+        def _init():
+            try:
+                processors = self.get_selected_processors()
+                generator = ExecutionGenerator(processors, self._locale)
+                generator.init_client(provider, api_key, base_url, model)
+                wx.CallAfter(self._on_init_success, generator, provider, model)
+            except Exception as e:
+                wx.CallAfter(self._on_init_failure, str(e))
+
+        thread = threading.Thread(target=_init, daemon=True)
+        thread.start()
+
+    def _on_init_success(self, generator, provider, model):
+        self._generator = generator
+        self._remove_thinking()
+        self._input_text.Enable()
+        self._btn_send.Enable()
+        self._input_text.SetFocus()
+        self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
+
+    def _on_init_failure(self, error_msg):
+        self._remove_thinking()
+        self._add_message(t("ai_gen_init_fail", error=error_msg), is_user=False)
 
     def set_undo_redo_handlers(self, on_undo, on_redo):
         self._undo_handler = on_undo

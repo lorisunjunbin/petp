@@ -1220,7 +1220,6 @@ class PETPPresenter():
             self.on_task_execution_changed()
 
     def _start_ai_generator(self, execution_name):
-        from core.ai.ExecutionGenerator import ExecutionGenerator
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
         provider = getattr(self.m, 'ai_provider', '')
@@ -1243,13 +1242,10 @@ class PETPPresenter():
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
-        generator = ExecutionGenerator(dialog.get_selected_processors(), locale)
-        generator.init_client(provider, api_key, base_url, model)
-        dialog.set_generator(generator)
-
         self._ai_dialog = dialog
         self._ai_execution_name = execution_name
         dialog.Show()
+        dialog.init_generator_async(provider, api_key, base_url, model)
 
     def _ai_apply_callback(self, action, tasks=None, loops=None):
         if action == 'get_tasks':
@@ -1329,7 +1325,6 @@ class PETPPresenter():
                 return
 
         execution_name = self.execution.execution
-        from core.ai.ExecutionGenerator import ExecutionGenerator
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
         provider = getattr(self.m, 'ai_provider', '')
@@ -1345,13 +1340,10 @@ class PETPPresenter():
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
 
-        generator = ExecutionGenerator(dialog.get_selected_processors(), locale)
-        generator.init_client(provider, api_key, base_url, model)
-        dialog.set_generator(generator)
-
         self._ai_dialog = dialog
         self._ai_execution_name = execution_name
         dialog.Show()
+        dialog.init_generator_async(provider, api_key, base_url, model)
 
     def on_stop_all(self):
         self.cron.stop_all()
