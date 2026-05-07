@@ -101,7 +101,9 @@ class AIGeneratorDialog(wx.Frame):
         self._h_splitter.SplitVertically(tree_panel, self._desc_panel, 400)
 
         # Bottom pane: chat area
-        self._chat_panel = scrolled.ScrolledPanel(self._v_splitter)
+        self._chat_panel = scrolled.ScrolledPanel(
+            self._v_splitter, style=wx.VSCROLL | wx.ALWAYS_SHOW_SB
+        )
         self._chat_panel.SetBackgroundColour(wx.Colour(*th.log_bg))
         self._chat_sizer = wx.BoxSizer(wx.VERTICAL)
         self._chat_panel.SetSizer(self._chat_sizer)
