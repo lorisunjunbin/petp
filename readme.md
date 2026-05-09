@@ -39,6 +39,16 @@ Generate and modify PETP task flows through natural language conversation with L
 - Smart merge — new fields are added without overwriting existing configuration
 - Progress dialog with live status and preview before applying
 
+**AI Error Analysis & Auto-Fix:**
+- On execution failure, AI automatically analyzes the error with full context (failed task, surrounding tasks, traceback)
+- Pinpoints root cause and suggests specific fixes
+- One-click "Open AI Assist" pre-fills the diagnosis — continue fixing in multi-turn chat
+
+**Vision Model Support (Ollama):**
+- `AI_LLM_QANDA` now accepts `image_path` parameter for multimodal prompts
+- Works with Ollama vision models (gemma4, llava, moondream, etc.)
+- Image path supports expressions — dynamically reference files from previous tasks in `data_chain`
+
 **Configuration** (only `ai_provider` required, rest auto-fills from provider defaults):
 
 ```yaml

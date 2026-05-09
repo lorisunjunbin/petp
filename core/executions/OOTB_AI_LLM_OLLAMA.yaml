@@ -3,12 +3,21 @@ astool: false
 execution: OOTB_AI_LLM_OLLAMA
 list:
 - !!python/object:core.task.Task
-  input: '{"provider": "ollama", "model": "qwen3.5:9b", "llm_data_key": "llm_ollama"}'
+  input: '{"provider": "ollama", "model": "gemma4:e4b", "llm_data_key": "llm_ollama"}'
   skipped: false
   type: AI_LLM_SETUP
 - !!python/object:core.task.Task
-  input: '{"model": "qwen3.5:9b", "prompt": "\u8bf7\u4ecb\u7ecd\u4e00\u4e0b\u4f60\u81ea\u5df1",
-    "show_in_popup": "yes", "resp_content_key": "ollama_resp", "llm_data_key": "llm_ollama"}'
+  input: '{"model": "gemma4:e4b", "prompt": "\u53ea\u8f93\u51fa\u56fe\u7247\u4e0a\u7684\u5185\u5bb9\uff0c\u4e0d\u9700\u8981\u5176\u4ed6\u89e3\u91ca",
+    "show_in_popup": "yes", "resp_content_key": "ollama_resp", "llm_data_key": "llm_ollama",
+    "image_path": "{self.get_tdir()}/images/tmpj3nwpis7.PNG.png", "show_thinking":
+    "yes", "system_prompt": "as the Image processing expert"}'
+  skipped: false
+  type: AI_LLM_QANDA
+- !!python/object:core.task.Task
+  input: '{"model": "gemma4:e4b", "prompt": "\u8fd9\u4e2a\u56fe\u7247\u4e0a\u6709\u4ec0\u4e48\u4fe1\u606f\uff0c\u6982\u62ec\u4e00\u4e0b",
+    "show_in_popup": "yes", "resp_content_key": "ollama_resp", "llm_data_key": "llm_ollama",
+    "image_path": "{self.get_tdir()}/images/PETP_overview_windows.png", "show_thinking":
+    "yes", "system_prompt": "as the artist"}'
   skipped: false
   type: AI_LLM_QANDA
 loops: []

@@ -14,7 +14,24 @@ class OllamaClient(BaseLLMClient):
         return 'ollama'
 
     def chat(self, messages: list, model: str, temperature: float, **kwargs) -> LLMResponse:
-        response = self._ollama.chat(model=model, messages=messages, stream=False)
+        ollama_messages = []
+        for msg in messages:
+            m = dict(msg)
+            if isinstance(m.get('content'), list):
+                text_parts = []
+                images = []
+                for part in m['content']:
+                    if isinstance(part, dict):
+                        if part.get('type') == 'text':
+                            text_parts.append(part.get('text', ''))
+                        elif part.get('type') == 'image':
+                            images.append(part.get('path', ''))
+                m['content'] = '\n'.join(text_parts)
+                if images:
+                    m['images'] = images
+            ollama_messages.append(m)
+
+        response = self._ollama.chat(model=model, messages=ollama_messages, stream=False)
         content = response.message.content
         return LLMResponse(content=content)
 

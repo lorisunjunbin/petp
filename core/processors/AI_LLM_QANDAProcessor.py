@@ -1,4 +1,5 @@
 import logging
+import os
 
 from core.processor import Processor
 from core.processors.sub.llm.BaseLLMClient import BaseLLMClient, LLMResponse
@@ -10,7 +11,7 @@ from core.processors.sub.llm.llm_helpers import (
 
 
 class AI_LLM_QANDAProcessor(Processor):
-    TPL: str = '{"llm_data_key":"llm_client", "prompt":"", "model":"", "temperature":"1.0", "system_prompt":"", "resp_content_key":"", "convert_resp_2_json":"no", "show_in_popup":"yes", "show_thinking":"no"}'
+    TPL: str = '{"llm_data_key":"llm_client", "prompt":"", "model":"", "temperature":"1.0", "system_prompt":"", "image_path":"", "resp_content_key":"", "convert_resp_2_json":"no", "show_in_popup":"yes", "show_thinking":"no"}'
 
     DESC: str = '''
 Ask a unified LLM a question and get the response. Depends on AI_LLM_SETUP to initialize the client first.
@@ -22,6 +23,7 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, doubao, m
 - model: model name; if empty, uses the model configured during SETUP (supports expression, default: "")
 - temperature: sampling temperature (default: "1.0")
 - system_prompt: system message prepended to conversation; if empty, no system message is sent (supports expression, default: "")
+- image_path: path to an image file to include with the prompt; supported by ollama vision models (supports expression, default: "")
 - resp_content_key: key in data_chain to store the response content (supports expression, default: "")
 - convert_resp_2_json: "yes" to parse JSON from markdown code block in response (default: "no")
 - show_in_popup: "yes" to display Q&A in popup dialog (default: "yes")
@@ -44,6 +46,7 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, doubao, m
         model = self.explain_param_or_default('model', '')
         temperature = self.explain_param_as_float('temperature', 1.0)
         system_prompt = self.explain_param_or_default('system_prompt', '')
+        image_path = self.explain_param_or_default('image_path', '')
         resp_content_key = self.explain_param_or_default('resp_content_key', '')
         convert_resp_2_json = self.get_param_bool_if_equal('convert_resp_2_json', 'yes')
         show_in_popup = self.get_param_bool_if_equal('show_in_popup', 'yes')
@@ -52,7 +55,18 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, doubao, m
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
+
+        if image_path and os.path.isfile(image_path):
+            user_content = [
+                {"type": "text", "text": prompt},
+                {"type": "image", "path": image_path},
+            ]
+            messages.append({"role": "user", "content": user_content})
+            logging.info(f'Image attached: {image_path}')
+        else:
+            if image_path:
+                logging.warning(f'image_path specified but file not found: {image_path}')
+            messages.append({"role": "user", "content": prompt})
 
         logging.debug(f'LLM prompt: {prompt}')
 
