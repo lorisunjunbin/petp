@@ -97,7 +97,14 @@ Supported providers: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moons
 
         api_key = ''
         if self.has_param('api_key'):
-            api_key = self.expression2str(self.get_param('api_key'))
+            raw = self.expression2str(self.get_param('api_key'))
+            if raw and not raw.startswith('${'):
+                api_key = raw
+            elif raw:
+                import re as _re
+                m = _re.fullmatch(r'\$\{(.+)\}', raw.strip())
+                if m:
+                    api_key = os.environ.get(m.group(1), '')
 
         if not api_key and api_key_env:
             api_key = os.environ.get(api_key_env, '')

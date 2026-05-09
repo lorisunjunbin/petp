@@ -59,6 +59,30 @@ COPY_DIRS_COMMON = [
 ]
 
 
+def copy_folder_to_app_bundle(directories, dist_name):
+    """Copy runtime resource directories from dist/<name>/ into PETP.app/Contents/Resources/ (macOS only)."""
+    if sys.platform != 'darwin':
+        return
+    app_resources = os.path.join('dist', f'{dist_name}.app', 'Contents', 'Resources')
+    if not os.path.isdir(app_resources):
+        print(f'Warning: .app Resources dir not found at {app_resources}')
+        return
+    dist_dir = os.path.join('dist', dist_name)
+    for source in directories:
+        src_path = os.path.join(dist_dir, source)
+        destination = os.path.join(app_resources, source)
+        try:
+            if os.path.exists(destination):
+                shutil.rmtree(destination)
+            if os.path.exists(src_path):
+                shutil.copytree(src_path, destination)
+            else:
+                print(f'Warning: source directory {src_path!r} does not exist')
+        except Exception as e:
+            print(f'Error copying {src_path!r} -> {destination!r}: {e}')
+    print(f'Copied runtime resources into {app_resources}')
+
+
 def kill_chromedriver():
     for proc in psutil.process_iter():
         try:
@@ -232,6 +256,34 @@ def keep_released_execution_only(dist_name):
             os.remove(file_path)
 
 
+def expand_env_vars_in_config(dist_name):
+    """Replace ${ENV_VAR} placeholders in dist config with actual env values."""
+    import re
+    config_path = os.path.join('dist', dist_name, 'config', 'petpconfig.yaml')
+    if not os.path.exists(config_path):
+        print(f'Warning: config file not found at {config_path}')
+        return
+    try:
+        yaml_content = YamlRO.get_yaml_from_file(config_path)
+        app = yaml_content.get('application', {})
+        changed = False
+        for key, value in app.items():
+            if isinstance(value, str):
+                m = re.fullmatch(r'\$\{(.+)\}', value.strip())
+                if m:
+                    resolved = os.environ.get(m.group(1), '')
+                    if resolved:
+                        app[key] = resolved
+                        print(f'Expanded {key}: ${{{m.group(1)}}} -> (resolved)')
+                        changed = True
+                    else:
+                        print(f'Warning: env var {m.group(1)} not set, leaving {key} unchanged')
+        if changed:
+            YamlRO.write(config_path, yaml_content)
+    except Exception as e:
+        print(f'Error expanding env vars in config: {e}')
+
+
 def change_http_port(dist_name, port):
     config_path = os.path.join('dist', dist_name, 'config', 'petpconfig.yaml')
     if not os.path.exists(config_path):
@@ -250,10 +302,29 @@ def change_http_port(dist_name, port):
 
 
 def run_pyinstaller(spec_path):
+    if sys.platform == 'darwin':
+        try:
+            from PyInstaller.utils import osx as _osx
+            _original_sign = _osx.sign_binary
+
+            def _tolerant_sign(filename, identity=None, entitlements_file=None, deep=False):
+                try:
+                    _original_sign(filename, identity, entitlements_file, deep)
+                except SystemError as e:
+                    print(f'Warning: codesign failed (non-fatal): {e}')
+
+            _osx.sign_binary = _tolerant_sign
+        except Exception:
+            pass
     try:
-        subprocess.run(['pyinstaller', '-y', f'./{spec_path}'], check=True)
+        import PyInstaller.__main__
+        PyInstaller.__main__.run(['-y', f'./{spec_path}'])
         print('Build completed successfully')
-    except subprocess.CalledProcessError as e:
+    except SystemExit as e:
+        if e.code:
+            print(f'Build failed with exit code: {e.code}')
+            sys.exit(1)
+    except Exception as e:
         print(f'Build failed: {e}')
         sys.exit(1)
 

@@ -1,6 +1,78 @@
 import logging
 import os
 import platform
+import sys
+
+if getattr(sys, 'frozen', False) and sys.platform == 'darwin':
+    _bundle_resources = os.path.join(os.path.dirname(sys.executable), '..', 'Resources')
+    os.chdir(os.path.abspath(_bundle_resources))
+    import shutil
+    import filecmp
+    from datetime import datetime as _dt
+    from utils.AppPaths import get_user_data_dir as _get_data_dir
+    _data_dir = _get_data_dir()
+    if not os.path.exists(os.path.join(_data_dir, 'config', 'petpconfig.yaml')):
+        for _subdir in ['config', 'core/executions', 'core/pipelines', 'log', 'download']:
+            _src = os.path.join(os.path.realpath('.'), _subdir)
+            _dst = os.path.join(_data_dir, _subdir)
+            if os.path.isdir(_src):
+                shutil.copytree(_src, _dst, dirs_exist_ok=True)
+            else:
+                os.makedirs(_dst, exist_ok=True)
+    else:
+        _ts = _dt.now().strftime('%Y%m%d%H%M%S')
+        for _subdir in ['core/executions', 'core/pipelines']:
+            _src_dir = os.path.join(os.path.realpath('.'), _subdir)
+            _dst_dir = os.path.join(_data_dir, _subdir)
+            if not os.path.isdir(_src_dir):
+                continue
+            os.makedirs(_dst_dir, exist_ok=True)
+            for _f in os.listdir(_src_dir):
+                if not _f.endswith('.yaml'):
+                    continue
+                _src_file = os.path.join(_src_dir, _f)
+                _dst_file = os.path.join(_dst_dir, _f)
+                if not os.path.isfile(_src_file):
+                    continue
+                if not os.path.exists(_dst_file):
+                    shutil.copy2(_src_file, _dst_file)
+                elif not filecmp.cmp(_src_file, _dst_file, shallow=False):
+                    _name, _ext = os.path.splitext(_f)
+                    _prefix = _name + '_'
+                    _existing = [
+                        _ef for _ef in os.listdir(_dst_dir)
+                        if _ef.startswith(_prefix) and _ef.endswith(_ext)
+                    ]
+                    if _existing:
+                        _target = os.path.join(_dst_dir, _existing[0])
+                        if not filecmp.cmp(_src_file, _target, shallow=False):
+                            shutil.copy2(_src_file, _target)
+                    else:
+                        shutil.copy2(_src_file, os.path.join(_dst_dir, f'{_name}_{_ts}{_ext}'))
+
+        import yaml as _yaml
+        _bundle_cfg = os.path.join(os.path.realpath('.'), 'config', 'petpconfig.yaml')
+        _user_cfg = os.path.join(_data_dir, 'config', 'petpconfig.yaml')
+        if os.path.isfile(_bundle_cfg) and os.path.isfile(_user_cfg):
+            with open(_bundle_cfg, 'r', encoding='utf8') as _bf:
+                _bundle_doc = _yaml.safe_load(_bf) or {}
+            with open(_user_cfg, 'r', encoding='utf8') as _uf:
+                _user_doc = _yaml.safe_load(_uf) or {}
+            _merged = False
+            for _section, _bundle_vals in _bundle_doc.items():
+                if not isinstance(_bundle_vals, dict):
+                    continue
+                if _section not in _user_doc:
+                    _user_doc[_section] = _bundle_vals
+                    _merged = True
+                else:
+                    for _k, _v in _bundle_vals.items():
+                        if _k not in _user_doc[_section]:
+                            _user_doc[_section][_k] = _v
+                            _merged = True
+            if _merged:
+                with open(_user_cfg, 'w', encoding='utf8') as _uf:
+                    _yaml.dump(_user_doc, _uf, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
 import wx
 

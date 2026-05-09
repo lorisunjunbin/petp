@@ -6,6 +6,8 @@ from os import listdir
 from os.path import isfile, join
 from shutil import copy2, copyfile
 import platform
+
+from utils.AppPaths import get_log_dir, get_download_dir
 import ctypes
 
 class OSUtils:
@@ -90,7 +92,7 @@ class OSUtils:
 
     @staticmethod
     def get_download_folder():
-        return os.path.realpath('download')
+        return get_download_dir()
 
     @staticmethod
     def get_ewa_folder():
@@ -123,7 +125,7 @@ class OSUtils:
 
     @staticmethod
     def get_log_file_path(app) -> str:
-        log_folder = os.path.realpath('log')
+        log_folder = get_log_dir()
         OSUtils.create_folder_if_not_existed(log_folder)
         return f'{log_folder}/{app}.log'
 

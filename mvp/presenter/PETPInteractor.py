@@ -100,6 +100,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_add_execution, self.v.addExecution)
         self.v.executionChooser.Bind(wx.EVT_LEFT_DOWN, self.on_execution_chooser_click)
         self.v.executionChooser.Bind(wx.EVT_KEY_DOWN, self.on_execution_chooser_key)
+        self.v.executionChooser.Bind(wx.EVT_RIGHT_DOWN, self.on_execution_chooser_right_click)
 
         self.v.Bind(wx.EVT_BUTTON, self.on_save_execution, self.v.saveExection)
         self.v.Bind(wx.EVT_BUTTON, self.on_stop_execution, self.v.stopExection)
@@ -303,6 +304,9 @@ class PETPInteractor():
 
     def on_execution_chooser_click(self, evt):
         wx.CallAfter(self.p._show_execution_palette)
+
+    def on_execution_chooser_right_click(self, evt):
+        self.p.on_execution_chooser_right_click(evt)
 
     def on_execution_chooser_key(self, evt):
         code = evt.GetKeyCode()

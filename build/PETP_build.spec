@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+import sys
 from PyInstaller.utils.hooks import collect_all, collect_submodules
 
 block_cipher = None
@@ -62,12 +63,12 @@ exe = EXE(
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
-    icon='./image/petp.png',
+    icon='./image/petp.icns' if sys.platform == 'darwin' else './image/petp.png',
     codesign_identity=None,
     entitlements_file=None,
 )
 
-# Using COLLECT creates a folder with all files separate, 
+# Using COLLECT creates a folder with all files separate,
 # which helps avoid filename length issues on Windows
 coll = COLLECT(
     exe,
@@ -79,3 +80,18 @@ coll = COLLECT(
     upx_exclude=[],
     name='PETP',
 )
+
+# BUNDLE creates a proper macOS .app so it appears in Spotlight and Launchpad
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        coll,
+        name='PETP.app',
+        icon='./image/petp.icns',
+        bundle_identifier='com.petp.app',
+        info_plist={
+            'CFBundleDisplayName': 'PETP',
+            'CFBundleShortVersionString': '1.0.0',
+            'NSHighResolutionCapable': True,
+            'LSMinimumSystemVersion': '11.0',
+        },
+    )

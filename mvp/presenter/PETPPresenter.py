@@ -25,9 +25,6 @@ from mvp.view.common.InputDialog import InputDialog
 from mvp.view.common.SearchableGridChoiceEditor import SearchableGridChoiceEditor
 from mvp.view.common.ProcessorPalette import ProcessorPalette
 from mvp.view.common.TaskInfoRenderer import TaskInfoRenderer
-from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
-from mvp.view.sub.PETP_PIE_CHARTView import PETP_PIE_CHARTView
-from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
@@ -1856,6 +1853,36 @@ class PETPPresenter():
         logging.info(f'Processor {value} : {p.get_desc()}')
         self._load_input_taskproperty(row)
 
+    def on_execution_chooser_right_click(self, evt):
+        if not self.execution or not self.execution.execution:
+            return
+        name = self.execution.execution
+        from utils.AppPaths import get_executions_dir
+        exec_dir = get_executions_dir()
+        prefix = name + '_'
+        variants = sorted([
+            os.path.join(exec_dir, f) for f in os.listdir(exec_dir)
+            if f.startswith(prefix) and f.endswith('.yaml')
+        ])
+        if not variants:
+            return
+        menu = wx.Menu()
+        item = menu.Append(wx.ID_ANY, t("menu_compare_versions"))
+        self.v.Bind(wx.EVT_MENU, lambda e: self._open_execution_diff(name, variants), item)
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
+    def _open_execution_diff(self, name, variant_files):
+        from mvp.view.common.ExecutionDiffDialog import ExecutionDiffDialog
+        from utils.AppPaths import get_executions_dir
+        current_file = os.path.join(get_executions_dir(), f'{name}.yaml')
+        dlg = ExecutionDiffDialog(self.v, current_file, variant_files)
+        if dlg.ShowModal() == wx.ID_OK:
+            from core.execution import Execution
+            Execution.invalidate_execution_cache(name)
+            self._load_execution(name)
+        dlg.Destroy()
+
     def _show_execution_palette(self):
         combo = self.v.executionChooser
         current_value = combo.GetValue()
@@ -3212,10 +3239,13 @@ class PETPPresenter():
         data = evt.data
 
         if data['chart_type'] == 'PIE':
+            from mvp.view.sub.PETP_PIE_CHARTView import PETP_PIE_CHARTView
             PETP_PIE_CHARTView(self.v, wx.ID_ANY, data=data).Show()
         elif data['chart_type'] == 'BAR':
+            from mvp.view.sub.PETP_BAR_CHARTView import PETP_BAR_CHARTView
             PETP_BAR_CHARTView(self.v, wx.ID_ANY, data=data).Show()
         elif data['chart_type'] == 'LINE':
+            from mvp.view.sub.PETP_LINE_CHARTView import PETP_LINE_CHARTView
             PETP_LINE_CHARTView(self.v, wx.ID_ANY, data=data).Show()
         else:
             logging.warning(t("msg_unsupported_chart", chart_type=data["chart_type"]))

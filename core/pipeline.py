@@ -5,6 +5,7 @@ import os
 from core.cron.runnableascron import RunnableAsCron
 from core.definition.yamlro import YamlRO
 from core.execution import Execution
+from utils.AppPaths import get_pipelines_dir
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
@@ -110,11 +111,13 @@ class Pipeline(RunnableAsCron):
             return {}
 
     def _get_file_path(self):
-        return f'{os.path.realpath(".")}/core/pipelines/{self.pipeline}.yaml'
+        return os.path.join(get_pipelines_dir(), f'{self.pipeline}.yaml')
 
     def delete(self):
         fp = self._get_file_path()
-        OSUtils.copy2(fp, os.path.realpath('core') + '/pipelines/trash/')
+        trash_dir = os.path.join(get_pipelines_dir(), 'trash')
+        os.makedirs(trash_dir, exist_ok=True)
+        OSUtils.copy2(fp, trash_dir)
         OSUtils.delete_file_if_existed(fp)
 
     def save(self):
@@ -127,7 +130,7 @@ class Pipeline(RunnableAsCron):
 
     @staticmethod
     def get_pipeline(filename):
-        file_absolute_path = f'{os.path.realpath(".")}/core/pipelines/{filename}.yaml'
+        file_absolute_path = os.path.join(get_pipelines_dir(), f'{filename}.yaml')
         if OSUtils.is_file_existed(file_absolute_path):
             # logging.info(f'Load pipeline from {file_absolute_path}')
             return YamlRO.get_yaml_from_file(file_absolute_path)
@@ -137,7 +140,7 @@ class Pipeline(RunnableAsCron):
 
     @staticmethod
     def get_available_pipelines():
-        pipelines = OSUtils.get_file_list(os.path.realpath('core') + '/pipelines')
+        pipelines = OSUtils.get_file_list(get_pipelines_dir())
         result = list(map(lambda f: f.replace('.yaml', ''), pipelines))
         result.sort()
 

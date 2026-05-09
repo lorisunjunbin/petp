@@ -129,9 +129,12 @@ class ExecutionGenerator:
                       missing=', '.join(missing), supported=supported)
                 )
 
-        if not api_key and defaults.get('api_key_env'):
-            api_key = f"${{{defaults['api_key_env']}}}"
-        resolved_key = resolve_api_key(api_key)
+        if api_key and not api_key.startswith('${'):
+            resolved_key = api_key
+        else:
+            if not api_key and defaults.get('api_key_env'):
+                api_key = f"${{{defaults['api_key_env']}}}"
+            resolved_key = resolve_api_key(api_key)
 
         if not base_url:
             base_url = defaults.get('base_url', '')

@@ -23,6 +23,7 @@ from core.loop import Loop
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
+from utils.AppPaths import get_executions_dir
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 
@@ -325,11 +326,11 @@ class Execution:
         }
 
     def _get_file_path(self):
-        return f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{self.execution}.yaml'
+        return os.path.join(get_executions_dir(), f'{self.execution}.yaml')
 
     def delete(self):
         global _available_executions_cache
-        trash_dir = os.path.realpath('core') + f'{os.sep}executions{os.sep}trash{os.sep}'
+        trash_dir = os.path.join(get_executions_dir(), 'trash')
         os.makedirs(trash_dir, exist_ok=True)
         OSUtils.copy2(self._get_file_path(), trash_dir)
         OSUtils.delete_file_if_existed(self._get_file_path())
@@ -349,7 +350,7 @@ class Execution:
 
     @staticmethod
     def get_execution(filename):
-        file_absolute_path = f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{filename}.yaml'
+        file_absolute_path = os.path.join(get_executions_dir(), f'{filename}.yaml')
         if not OSUtils.is_file_existed(file_absolute_path):
             logging.warning('File not existed: %s', file_absolute_path)
             return None
@@ -369,7 +370,7 @@ class Execution:
         if filename is None:
             _execution_cache.clear()
         else:
-            file_absolute_path = f'{os.path.realpath(".")}{os.sep}core{os.sep}executions{os.sep}{filename}.yaml'
+            file_absolute_path = os.path.join(get_executions_dir(), f'{filename}.yaml')
             _execution_cache.pop(file_absolute_path, None)
 
     @staticmethod
@@ -380,7 +381,7 @@ class Execution:
             ts, result = _available_executions_cache
             if (now - ts) < _AVAILABLE_EXECUTIONS_TTL:
                 return result
-        executions = OSUtils.get_file_list(os.path.realpath('core') + os.sep + 'executions')
+        executions = OSUtils.get_file_list(get_executions_dir())
         result = sorted([f.replace('.yaml', '') for f in executions if '.yaml' in f])
         _available_executions_cache = (now, result)
         return result

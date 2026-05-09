@@ -248,6 +248,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "snap_first_snapshot": {"en": "(first snapshot — full content)", "zh": "（第一个快照 — 完整内容）"},
     "btn_close": {"en": "Close", "zh": "关闭"},
 
+    # === Execution version compare ===
+    "menu_compare_versions": {"en": "Compare Versions", "zh": "对比版本"},
+    "dlg_compare_title": {"en": "Execution Version Compare", "zh": "Execution 版本对比"},
+    "compare_no_changes": {"en": "(no differences)", "zh": "（无差异）"},
+    "btn_apply_version": {"en": "Replace Current", "zh": "替换当前版本"},
+
     # === Unsaved changes dialog ===
     "dlg_unsaved_title": {"en": "Unsaved Changes", "zh": "未保存的更改"},
     "dlg_unsaved_msg": {

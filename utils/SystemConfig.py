@@ -3,11 +3,13 @@ import os
 
 import yaml
 
+from utils.AppPaths import get_config_dir
+
 
 class SystemConfig():
 
     def __init__(self, file_name):
-        self.config_path = os.path.join(os.path.realpath('config'), file_name)
+        self.config_path = os.path.join(get_config_dir(), file_name)
         logging.info(f'load config file from: {self.config_path}')
 
         with open(self.config_path, 'r', encoding='utf8') as f:

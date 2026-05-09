@@ -155,7 +155,8 @@ class Processor:
         return DateUtil.get_now_in_str()
 
     def get_ddir(self):
-        return os.path.realpath(f'.{os.sep}download')
+        from utils.AppPaths import get_download_dir
+        return get_download_dir()
 
     def get_rdir(self):
         return os.path.realpath(f'.{os.sep}resources')
