@@ -171,6 +171,10 @@ class Execution:
                 else:
                     logging.warning('GO_TO_TASK: target %s out of range (1-%s), ignoring', goto_target, len(self.list))
 
+            if data_chain.pop('__end_execution', None):
+                logging.info('END_EXECUTION: early termination signaled')
+                break
+
             state.move_to_next()
 
         return data_chain

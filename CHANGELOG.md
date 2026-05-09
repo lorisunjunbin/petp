@@ -6,6 +6,9 @@ All notable changes to PETP are documented here.
 
 | Date | What's New |
 |------|------------|
+| 2026-05 | **Global Cache**: `CHECK_GLOBAL_CACHE` / `POPULATE_GLOBAL_CACHE` processors — in-memory cross-execution cache with TTL expiry; new `__end_execution` engine signal for early termination; `utils/GlobalCache.py` thread-safe storage with write-time eviction |
+| 2026-05 | **macOS .app data externalization**: user-mutable data (executions, pipelines, config) stored in `~/.petp/`; incremental sync on upgrade (new files copied, conflicts get single timestamped variant); config key merge for new settings; execution version diff dialog (right-click compare) |
+| 2026-05 | Build improvements: PyInstaller codesign tolerance (monkey-patch); build-time `${ENV_VAR}` expansion in config; lazy matplotlib import (~0.5s startup savings); API key priority fix (plain key over env var) |
 | 2026-05 | MCP output expression: `mapKey` evaluates `{expr}` via f-string against data_chain; `McpDescEditor` adds `⇡` output sync button; both sync buttons use selected task row (fallback first/last); dynamic MCP panel sash based on property count; fix add-property on empty input; `os.getenv()` HandyTool snippet; webapp Docker self-containment via `build_assets/` |
 | 2026-05 | MCP tool expansion: `T_SEND_EMAIL` (send email with CC, attachments) and `T_RECEIVE_EMAIL` (receive email with sender/subject filtering) exposed as MCP Tools; `McpDescEditor` adds `⇣` sync button to selectively sync parameters from first task input into MCP inputSchema |
 | 2026-05 | Email processors enhanced: `SEND_EMAIL` supports CC/BCC, HTML, multi-attachments, TLS/SSL, timeout and fail policy; `RECEIVE_EMAIL` supports IMAP sender + subject filtering, attachment download, and exported saved paths via `attachments_key` |

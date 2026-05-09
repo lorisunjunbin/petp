@@ -158,6 +158,10 @@ class BackgroundRuntime:
                     else:
                         logging.warning('GO_TO_TASK: target %s out of range (1-%s), ignoring', goto_target, len(execution.list))
 
+                if data_chain.pop('__end_execution', None):
+                    logging.info('END_EXECUTION: early termination signaled')
+                    break
+
                 state.move_to_next()
         except Exception as e:
             logging.exception("Execution failed: %s", execution_name)

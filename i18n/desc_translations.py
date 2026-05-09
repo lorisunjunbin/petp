@@ -997,4 +997,28 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
     },
 
+    "desc_CHECK_GLOBAL_CACHE": {
+        "zh": (
+            "检查全局缓存中是否存在指定 key 的值（进程内内存缓存，跨 execution 共享）。\n"
+            "缓存命中时，将缓存值绑定到 data_chain，并可选择控制执行流程。\n"
+            "缓存未命中时不做任何操作，继续执行下一个 task。\n"
+            "\n"
+            "- cache_key: 要查找的缓存键（支持表达式，必填）\n"
+            "- data_key: 命中时将缓存值绑定到 data_chain 的 key（必填）\n"
+            "- on_hit: 命中时的动作 — \"end_execution\" / \"goto_task\" / \"continue\"（默认: \"end_execution\"）\n"
+            "- target_task: on_hit=\"goto_task\" 时跳转的目标 task 序号，1-based（支持表达式）"
+        ),
+    },
+
+    "desc_POPULATE_GLOBAL_CACHE": {
+        "zh": (
+            "将 data_chain 中的值存入全局缓存（进程内内存缓存，跨 execution 共享）。\n"
+            "缓存值在进程生命周期内有效，或在 TTL 过期后失效。\n"
+            "\n"
+            "- cache_key: 存储的缓存键（支持表达式，必填）\n"
+            "- value_key: 要缓存的 data_chain key（支持表达式，必填）\n"
+            "- ttl: 过期时间（秒），留空则永不过期（支持表达式）"
+        ),
+    },
+
 }
