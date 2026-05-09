@@ -76,7 +76,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_editor_title":     {"en": "Visual Editor with Undo / Redo", "zh": "可视化编辑器（撤销 / 重做）"},
     "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. 5 color themes including System (auto-follows OS dark / light mode). Status bar shows execution events in real time — start, done with duration, errors, and manual stops. Search &amp; highlight logs (Ctrl+F). Right-click the task grid for processor usage and reference lookup.", "zh": "图形编辑器支持完整撤销 / 重做与快照历史。5 套配色主题，含 System（自动跟随系统深浅色模式）。状态栏实时展示执行事件——启动、完成耗时、错误和手动停止。日志搜索高亮（Ctrl+F）。任务网格右键可查看处理器用法与引用查找。"},
     "feat_ai_gen_title":     {"en": "AI Execution Generator", "zh": "AI Execution生成器"},
-    "feat_ai_gen_desc":      {"en": "Generate and modify task flows through natural language. Multi-turn chat with LLM, expandable Processor browser with search, selective context to save tokens. One-click MCP tool description generation with smart merge. AI-powered error analysis with fix suggestions. Supports 10 LLM providers — only <code>ai_provider</code> config needed.", "zh": "通过自然语言生成和修改任务流程。多轮 LLM 对话、可展开的 Processor 浏览器（支持搜索）、选择性上下文节省 Token。一键生成 MCP 工具描述并智能合并。AI 驱动的错误分析与修复建议。支持 10 家 LLM 供应商——只需配置 <code>ai_provider</code>。"},
+    "feat_ai_gen_desc":      {"en": "Generate and modify task flows through natural language. Multi-turn chat with LLM, expandable Processor browser with search, selective context to save tokens. One-click MCP tool description generation with smart merge. AI-powered error analysis with fix suggestions. Vision model support for image understanding via Ollama. Supports 10 LLM providers — only <code>ai_provider</code> config needed.", "zh": "通过自然语言生成和修改任务流程。多轮 LLM 对话、可展开的 Processor 浏览器（支持搜索）、选择性上下文节省 Token。一键生成 MCP 工具描述并智能合并。AI 驱动的错误分析与修复建议。通过 Ollama 支持视觉模型图像理解。支持 10 家 LLM 供应商——只需配置 <code>ai_provider</code>。"},
 
     # ── Index — AI workflow ──────────────────────────────────────
     "ai_flow_divider":       {"en": "AI-Powered Workflow",     "zh": "AI 驱动工作流"},
@@ -193,6 +193,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "cl_2026_05_ai_workflow": {
         "en": "<strong>AI-Powered Workflow</strong>: AI generates &amp; modifies Executions via multi-turn chat; one-click MCP tool publishing with auto-extracted input/output schemas and smart merge; AI error analysis — on failure, automatically diagnoses root cause, suggests fixes, and pre-fills AI Assist for one-click repair.",
         "zh": "<strong>AI 驱动工作流</strong>：AI 通过多轮对话生成和修改 Execution；一键发布 MCP 工具，自动提取输入/输出 Schema 并智能合并；AI 错误分析——执行失败时自动诊断根因、建议修复方案，并预填 AI 助手实现一键修复。",
+    },
+    "cl_2026_05_vision_model": {
+        "en": "<strong>Vision model support</strong>: <code>AI_LLM_QANDA</code> new <code>image_path</code> parameter for multimodal prompts. Works with Ollama vision models (gemma4, llava, moondream). Image path supports expressions — dynamically reference files from prior tasks in <code>data_chain</code>.",
+        "zh": "<strong>视觉模型支持</strong>：<code>AI_LLM_QANDA</code> 新增 <code>image_path</code> 参数，支持多模态提问。适配 Ollama 视觉模型（gemma4、llava、moondream）。图片路径支持表达式——可动态引用 <code>data_chain</code> 中前序任务产出的文件。",
     },
     "cl_2026_05_create_execution": {
         "en": "New <strong>Create Execution</strong> button (+): create blank execution or from template via dialog; chooser and all grids properly cleared on delete.",
