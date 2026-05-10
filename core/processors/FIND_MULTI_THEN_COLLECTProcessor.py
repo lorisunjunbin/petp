@@ -39,7 +39,7 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
             else None
         sort_lambda = (lambda item: eval(self.expression2str(self.get_param('sort_lambda')))) if self.has_param('sort_lambda') else None
         sort_reverse = self.get_param('sort_reverse').lower() == 'yes' if self.has_param('sort_reverse') else False
-        skip_fn = CodeExplainerUtil.create_and_execute_func('FIND_MULTI_THEN_COLLECTProcessor_skip_fn', '(ele)',
+        skip_fn = CodeExplainerUtil.create_and_execute_func('FIND_MULTI_THEN_COLLECTProcessor_skip_fn', '(ele, p)',
                                                             skip_fn_body) if skip_fn_body else None
         valueCollection = []
 
@@ -47,7 +47,7 @@ class FIND_MULTI_THEN_COLLECTProcessor(Processor):
         elements = SeleniumUtil.get_elements(chrome, collectby, identity, time_out)
 
         for ele in elements:
-            if skip_fn and skip_fn(ele):
+            if skip_fn and skip_fn(ele, self):
                 continue
 
             new_value = None

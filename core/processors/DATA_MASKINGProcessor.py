@@ -38,18 +38,18 @@ class DATA_MASKINGProcessor(Processor):
         masking_columnnum = int(self.get_param('masking_column'))
 
         masking_func = CodeExplainerUtil.create_and_execute_func('DATA_MASKINGProcessor_masking',
-                                                                 '(masking_dict, row, rownum, colnum)',
+                                                                 '(masking_dict, row, rownum, colnum, p)',
                                                                  masking_func_body)
 
         content_clean_func = CodeExplainerUtil.create_and_execute_func('DATA_MASKINGProcessor_clean',
-                                                                 '(content)',
+                                                                 '(content, p)',
                                                                  content_clean_func)
 
         for rownum, row in enumerate(given_collection):
-            masking_column_content = content_clean_func(row[masking_columnnum])
+            masking_column_content = content_clean_func(row[masking_columnnum], self)
 
             if masking_column_content not in masking_dict:
-                masking_dict[masking_column_content] = masking_func(masking_dict, row, rownum, masking_columnnum)
+                masking_dict[masking_column_content] = masking_func(masking_dict, row, rownum, masking_columnnum, self)
                 logging.info(f'"{masking_column_content}" -> {str(masking_dict[masking_column_content])}')
 
             row[masking_columnnum] = masking_dict[masking_column_content]

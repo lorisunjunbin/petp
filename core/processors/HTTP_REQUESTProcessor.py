@@ -130,8 +130,10 @@ class HTTP_REQUESTProcessor(Processor):
         else:
             resp_fun_body = self.explain_param_or_default('resp_fn', 'return response.text if response.status_code == 200 else response.status_code')
 
-            data_in_resp = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response)',
-                                                                     resp_fun_body, args=response)
+            process_fun = CodeExplainerUtil.create_and_execute_func('HTTP_REQUESTProcessor_process', '(response, p)',
+                                                                     resp_fun_body)
+            data_in_resp = process_fun(response, self)
+
             if logging.getLogger().isEnabledFor(logging.DEBUG):
                 logging.debug('resp.text - ' + response.text)
                 logging.debug('data_in_resp - ' + resp_fun_body)
@@ -293,15 +295,15 @@ class HTTP_REQUESTProcessor(Processor):
         :return: dict {filename: converted_content} for files that pass the filter
         """
         filter_func = CodeExplainerUtil.create_and_execute_func(
-            'HTTP_REQUESTProcessor_zip_filter', '(filename)', filter_func_body
+            'HTTP_REQUESTProcessor_zip_filter', '(filename, p)', filter_func_body
         )
         convert_func = CodeExplainerUtil.create_and_execute_func(
-            'HTTP_REQUESTProcessor_zip_convert', '(file_content)', convert_func_body
+            'HTTP_REQUESTProcessor_zip_convert', '(file_content, p)', convert_func_body
         )
 
         result = {}
         with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
             for name in zf.namelist():
-                if filter_func(name):
-                    result[name] = convert_func(zf.read(name))
+                if filter_func(name, self):
+                    result[name] = convert_func(zf.read(name), self)
         return result

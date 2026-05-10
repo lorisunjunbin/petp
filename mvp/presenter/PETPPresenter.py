@@ -2722,9 +2722,12 @@ class PETPPresenter():
             display_value = str(raw_value)
 
         task_number = (self._pgrid_bound_row or 0) + 1
+        is_fn = CodeExplainerUtil.is_dynamic_param_name(prop_name)
         dlg = InputDialog(self.v, title=f"Edit Complex Value - Task {task_number}",
                           message=f"Property: {prop_name}",
-                          default_value=display_value)
+                          default_value=display_value,
+                          show_handy_tool=True,
+                          is_fn_context=is_fn)
 
         if dlg.ShowModal() == wx.ID_OK:
             new_value = dlg.GetValue()

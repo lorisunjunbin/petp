@@ -81,7 +81,7 @@ class OCRProcessor(Processor):
         text_key = self.explain_param_or_default('text_key', 'ocr_text')
 
         filter_fn = CodeExplainerUtil.create_and_execute_func(
-            'OCRProcessor_filter', '(line)', filter_func_body
+            'OCRProcessor_filter', '(line, p)', filter_func_body
         )
 
         resolved = self._resolve_backend(backend)
@@ -98,7 +98,7 @@ class OCRProcessor(Processor):
         else:
             raise ValueError(f'Unknown OCR backend: {resolved}. Choose from: auto, paddleocr, rapidocr, easyocr')
 
-        result = [line for line in result if filter_fn(line)]
+        result = [line for line in result if filter_fn(line, self)]
 
         plain_text = '\n'.join(r['text'] for r in result)
 

@@ -1,7 +1,8 @@
 # ============================================================
 # PETP (Docker) - Docker容器部署
 # 无GUI、无浏览器自动化的纯服务端场景
-# 不含: gui-wxpython, gui-automation, chart, web-automation
+# 不含: gui-wxpython, gui-automation, chart, web-automation,
+#       webapp (Flask), http-service (FastAPI), system-build (PyInstaller)
 # ============================================================
 -r requirements/core.txt
 -r requirements/http-client.txt
@@ -16,6 +17,3 @@
 -r requirements/ai-ollama.txt
 -r requirements/ai-zhipu.txt
 -r requirements/mcp.txt
--r requirements/http-service.txt
--r requirements/webapp.txt
--r requirements/system-build.txt

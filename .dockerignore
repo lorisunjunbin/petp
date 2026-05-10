@@ -47,3 +47,25 @@ Thumbs.db
 docker_build.sh
 
 /backup/
+
+# ── GUI-only (not used in headless mode) ──────────────────────────────────────
+image/
+mvp/view/
+mvp/presenter/PETPPresenter.py
+mvp/presenter/PETPInteractor.py
+
+# ── Web app (separate service, not part of background runtime) ────────────────
+webapp/
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+docs/
+*.md
+
+# ── Misc runtime artifacts ────────────────────────────────────────────────────
+*.pid
+*.tar
+*.snagx
+.claude/
+.pytest_cache/
+scripts/
+tools/

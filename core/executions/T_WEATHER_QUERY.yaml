@@ -1,0 +1,43 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: T_WEATHER_QUERY
+list:
+- !!python/object:core.task.Task
+  input: '{"city": "\u5927\u8fde"}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"timeout": 60, "session_key": "__session_key", "resp_fn": "    data = response.json()
+    if response.status_code == 200 else {''status_code'':response.status_code}\\n    if
+    data[\"current_condition\"] and data[\"current_condition\"][0]:\\n        current
+    = data[\"current_condition\"][0]                \\n        weather_desc = current.get(\"lang_zh\",
+    [{}])[0].get(\"value\", current.get(\"weatherDesc\", [{}])[0].get(\"value\", \"\"))\\n        return
+    {\\n            \"city\": p.get_data(''city''),\\n            \"weather\": weather_desc,\\n            \"temp_c\":
+    current[\"temp_C\"],\\n            \"feels_like_c\": current[\"FeelsLikeC\"],\\n            \"humidity\":
+    current[\"humidity\"],\\n            \"wind_kmph\": current[\"windspeedKmph\"],\\n            \"wind_dir\":
+    current[\"winddir16Point\"],\\n            \"visibility_km\": current[\"visibility\"],\\n            \"uv_index\":
+    current[\"uvIndex\"],\\n        }\\n    return data", "request_url": "https://wttr.in/{city}",
+    "headers": "", "method": "get", "params": "format[>j1|>lang[>zh", "data_raw":
+    "", "data": "", "data_key": "", "value_key": "resp_of_weather", "verify": "yes",
+    "is_zip_response": "no", "filter_fn": "return True", "convert_fn": "return file_content.decode(''utf-8'')",
+    "basic_auth_user": "", "basic_auth_pwd": "", "oauth_token_url": "", "oauth_client_id":
+    "", "oauth_client_secret": "", "oauth_scope": "", "oauth_token": "", "xsrf_token_url":
+    "", "xsrf_token_header": "X-CSRF-Token"}'
+  skipped: false
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"title": "weather_result", "msg": "{resp_of_weather}"}'
+  skipped: false
+  type: SHOW_RESULT
+loops: []
+mcp_desc: "{\n  \"desc\": \"\u67E5\u8BE2\u6307\u5B9A\u57CE\u5E02\u7684\u5B9E\u65F6\u5929\u6C14\u4FE1\u606F\uFF0C\u5305\u62EC\u6E29\u5EA6\u3001\u4F53\u611F\u6E29\u5EA6\u3001\u6E7F\u5EA6\u3001\u98CE\u901F\u7B49\",\n
+  \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"OOTB_WEATHER_QUERYArguments\",\n
+  \   \"properties\": {\n      \"city\": {\n        \"title\": \"city\",\n        \"type\":
+  \"string\",\n        \"description\": \"\u57CE\u5E02\u540D\u79F0\uFF0C\u5982:\u4E0A\u6D77\u3001Beijing\u3001Tokyo\",\n
+  \       \"default\": \"\u5927\u8FDE\"\n      }\n    },\n    \"required\": [\n      \"city\"\n
+  \   ]\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"OOTB_WEATHER_QUERYOutput\",\n
+  \   \"properties\": {\n      \"weather_result\": {\n        \"title\": \"weather_result\",\n
+  \       \"type\": \"string\",\n        \"description\": \"JSON containing: city,
+  weather, temp_c, feels_like_c, humidity, wind_kmph, wind_dir, visibility_km, uv_index\",\n
+  \       \"mapKey\": \"resp_of_weather\"\n      }\n    },\n    \"required\": [\n
+  \     \"weather_result\"\n    ]\n  }\n}"

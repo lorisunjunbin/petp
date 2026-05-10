@@ -38,11 +38,11 @@ class DATA_MULTI_MASKINGProcessor(Processor):
         masking_columns = self.get_param('masking_columns').split(self.SEPARATOR)
 
         masking_func = CodeExplainerUtil.create_and_execute_func('DATA_MULTI_MASKINGProcessor_masking',
-                                                                 '(masking_dict, row, rownum, colnum)',
+                                                                 '(masking_dict, row, rownum, colnum, p)',
                                                                  masking_func_body)
 
         content_clean_func = CodeExplainerUtil.create_and_execute_func('DATA_MULTI_MASKINGProcessor_clean',
-                                                                       '(content)',
+                                                                       '(content, p)',
                                                                        content_clean_func)
 
         for rownum, row in enumerate(given_collection):
@@ -51,14 +51,14 @@ class DATA_MULTI_MASKINGProcessor(Processor):
 
                 masking_columnnum = int(masking_columnnum_str)
 
-                masking_column_content = content_clean_func(row[masking_columnnum])
+                masking_column_content = content_clean_func(row[masking_columnnum], self)
 
                 if (masking_columnnum_str not in masking_dict):
                     masking_dict[masking_columnnum_str] = {}
 
                 if masking_column_content not in masking_dict[masking_columnnum_str]:
                     masking_dict[masking_columnnum_str][masking_column_content] = masking_func(
-                        masking_dict[masking_columnnum_str], row, rownum, masking_columnnum)
+                        masking_dict[masking_columnnum_str], row, rownum, masking_columnnum, self)
 
                     logging.debug(
                         '"%s" -> %s', masking_column_content, str(masking_dict[masking_columnnum_str][masking_column_content]))

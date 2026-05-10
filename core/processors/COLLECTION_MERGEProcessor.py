@@ -30,18 +30,18 @@ class COLLECTION_MERGEProcessor(Processor):
         logging.debug(f'The size of "{c_two_name}": {len(c_two)}')
 
         lambda_finder = self.get_param('lambda_finder')
-        lambda_finder_func = CodeExplainerUtil.create_and_execute_func('COLLECTION_MERGEProcessor_finder', '(rowc1, rowc2)',
+        lambda_finder_func = CodeExplainerUtil.create_and_execute_func('COLLECTION_MERGEProcessor_finder', '(rowc1, rowc2, p)',
                                                             'return ' + lambda_finder)
 
         lambda_merge = self.get_param('lambda_merge_matched')
-        lambda_merge_func = CodeExplainerUtil.create_and_execute_func('COLLECTION_MERGEProcessor_merge', '(rowc1, rowc2)',
+        lambda_merge_func = CodeExplainerUtil.create_and_execute_func('COLLECTION_MERGEProcessor_merge', '(rowc1, rowc2, p)',
                                                            'return ' + lambda_merge)
         c_result = []
 
         for idxc1, rowc1 in enumerate(c_one):
             for idxc2, rowc2 in enumerate(c_two):
-                if lambda_finder_func(rowc1, rowc2):
-                    merged_row = lambda_merge_func(rowc1, rowc2)
+                if lambda_finder_func(rowc1, rowc2, self):
+                    merged_row = lambda_merge_func(rowc1, rowc2, self)
                     c_result.append(merged_row)
                     # logging.debug(f'Found matched row then merge [{idxc1}:{idxc2}] -> {str(merged_row)}')
 

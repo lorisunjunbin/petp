@@ -10,44 +10,47 @@ class CodeExplainerUtil:
             ('func_body', '(soup, p)', ''),
         ],
         'HTTP_REQUEST': [
-            ('resp_func_body', '(response)', ''),
-            ('filter_func_body', '(filename)', ''),
-            ('convert_func_body', '(file_content)', ''),
+            ('resp_func_body', '(response, p)', ''),
+            ('filter_func_body', '(filename, p)', ''),
+            ('convert_func_body', '(file_content, p)', ''),
         ],
         'DATA_CONVERT': [
             ('convertor_func', '(p, given)', ''),
         ],
         'DATA_MASKING': [
-            ('masking_func', '(masking_dict, row, rownum, colnum)', ''),
-            ('content_clean_func', '(content)', ''),
+            ('masking_func', '(masking_dict, row, rownum, colnum, p)', ''),
+            ('content_clean_func', '(content, p)', ''),
         ],
         'DATA_MULTI_MASKING': [
-            ('masking_func', '(masking_dict, row, rownum, colnum)', ''),
-            ('content_clean_func', '(content)', ''),
+            ('masking_func', '(masking_dict, row, rownum, colnum, p)', ''),
+            ('content_clean_func', '(content, p)', ''),
         ],
         'FIND_MULTI_THEN_COLLECT': [
-            ('skip_fn', '(ele)', ''),
+            ('skip_fn', '(ele, p)', ''),
         ],
         'FIND_MULTI_THEN_CLICK': [
-            ('skip_fn', '(ele)', ''),
+            ('skip_fn', '(ele, p)', ''),
         ],
         'DATA_GROUPBY': [
-            ('group_by_func', '(row)', ''),
-            ('mapping_func', '(row)', ''),
-            ('collect_func', '(key, rows)', ''),
+            ('group_by_func', '(row, p)', ''),
+            ('mapping_func', '(row, p)', ''),
+            ('collect_func', '(key, rows, p)', ''),
         ],
         'COLLECTION_MERGE': [
-            ('lambda_finder', '(rowc1, rowc2)', 'return '),
-            ('lambda_merge_matched', '(rowc1, rowc2)', 'return '),
+            ('lambda_finder', '(rowc1, rowc2, p)', 'return '),
+            ('lambda_merge_matched', '(rowc1, rowc2, p)', 'return '),
         ],
         'OCR': [
-            ('filter_func', '(line)', ''),
+            ('filter_func', '(line, p)', ''),
         ],
         'FIND_THEN_CLICK': [
-            ('by_condition', '(ele)', ''),
+            ('by_condition', '(p, ele)', ''),
         ],
         'GO_TO_TASK': [
-            ('condition_fn', '(data_chain)', ''),
+            ('condition_fn', '(data_chain, p)', ''),
+        ],
+        'IF_ELSE': [
+            ('condition_fn', '(data_chain, p)', ''),
         ],
     }
 

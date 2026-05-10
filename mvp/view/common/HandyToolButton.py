@@ -4,30 +4,31 @@ from core.processor import Processor
 from i18n.translations import t
 
 _HANDY_ITEMS = [
-    ("handy_rdir", '{self.get_rdir()}/', True),
-    ("handy_ddir", '{self.get_ddir()}/', True),
-    ("handy_tdir", '{self.get_tdir()}/', True),
-    ("handy_get_sdir", '{self.get_sdir()}/', True),
+    ("handy_rdir", '{p.get_rdir()}/', True),
+    ("handy_ddir", '{p.get_ddir()}/', True),
+    ("handy_tdir", '{p.get_tdir()}/', True),
+    ("handy_get_sdir", '{p.get_sdir()}/', True),
     ("handy_encrypt", None, False),
     None,
-    ("handy_get_data", '{self.get_data("")}', False),
-    ("handy_get_data_by_loop", '{self.get_data_by_loop("")}', False),
-    ("handy_get_deep_data", '{self.get_deep_data(["",""])}', False),
+    ("handy_get_data", '{p.get_data("")}', False),
+    ("handy_get_data_by_loop", '{p.get_data_by_loop("")}', False),
+    ("handy_get_deep_data", '{p.get_deep_data(["",""])}', False),
     None,
-    ("handy_str2dict", '{self.str2dict("")}', False),
-    ("handy_str2list", '{self.str2list("")}', False),
-    ("handy_json2dict", '{self.json2dict("")}', False),
+    ("handy_str2dict", '{p.str2dict("")}', False),
+    ("handy_str2list", '{p.str2list("")}', False),
+    ("handy_json2dict", '{p.json2dict("")}', False),
     ("handy_json_dumps", '{json.dumps()}', False),
     ("handy_json_loads", '{json.loads("")}', False),
-    ("handy_prop2dict", '{self.prop2dict("")}', False),
-    ("handy_feed_tpl", '{self.feed_tpl("", {})}', False),
+    ("handy_prop2dict", '{p.prop2dict("")}', False),
+    ("handy_feed_tpl", '{p.feed_tpl("", {})}', False),
     None,
-    ("handy_date_str", '{self.get_now_str()}', False),
+    ("handy_date_str", '{p.get_now_str()}', False),
+    ("handy_str_to_date", '{p.str_to_date("")}', False),
     ("handy_os_sep", '{os.sep}', False),
     ("handy_os_getenv", '{os.getenv("")}', False),
 ]
 
-_ENCRYPT_PREFIX = '{self.decrypt("'
+_ENCRYPT_PREFIX = '{p.decrypt("'
 _ENCRYPT_SUFFIX = '")}'
 
 

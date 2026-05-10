@@ -148,6 +148,38 @@ python build/PETP_build.py            # GUI app → dist/PETP.app or dist/PETP.e
 python build/PETP_background_build.py # Headless app
 ```
 
+### Docker Images
+
+```bash
+./build/script/docker_build_bg.sh          # BG service → build/petp-background-amd64.tar (port 8866)
+./build/script/docker_build_webapp.sh      # Web app → build/petp-webapp-amd64.tar (port 5555)
+```
+
+Both scripts support `--no-tar`, `--run`, `--push repo:tag`, `--dirty`. Default mode uses `git archive` (+ staged files) to exclude untracked files from build context. `--dirty` falls back to working dir + `.dockerignore`.
+
+### Deploy to NAS
+
+```bash
+./build/script/deploy_bg_to_nas.sh         # scp + docker load + start (port 8866)
+./build/script/deploy_webapp_to_nas.sh     # scp + docker load + start (port 8088)
+```
+
+Both support `--no-start`, `--keep-tar`. Connection via env vars: `NAS_HOST`, `NAS_USER`, `NAS_PORT`, `NAS_DOCKER_DIR`, `HOST_PORT`.
+
+### Tailscale Funnel (run on NAS with sudo)
+
+```bash
+sudo ./build/script/tailscale_funnel_refresh.sh   # reset + configure / → 8088, /mcp → 8866
+```
+
+### Deployment Topology
+
+NAS (192.168.0.103) runs Docker with two containers exposed via Tailscale Funnel:
+- `petp-webapp` container (internal 5555) → NAS host port 8088 → Tailscale Funnel `/`
+- `petp-bg` container (internal 8866) → NAS host port 8866 → Tailscale Funnel `/mcp`
+
+Build flow: local `docker_build_*.sh` → tar → `deploy_*_to_nas.sh` (scp + load + run) → `tailscale_funnel_refresh.sh` (one-time on NAS)
+
 ---
 
 ## Smoke Test
@@ -157,6 +189,10 @@ python testcoverage/nogui_smoke.py
 ```
 
 Runs the built-in `ENDECODER` execution via `BackgroundRuntime` with `ui_policy="skip"` and exits non-zero on failure.
+
+### Testing a New Processor
+
+Create a temp YAML in `core/executions/`, run via `python PETP_backgroud.py --run-execution NAME --no-http`, then delete the temp file. Direct `Processor()` instantiation skips `set_task()` setup and will fail on `get_param()`.
 
 ## HTTP / MCP Endpoint Testing
 
@@ -186,6 +222,12 @@ Each processor lives at `core/processors/<TYPE>Processor.py` and defines a class
 The `TPL` class attribute is the JSON template shown in the GUI for that processor type.
 
 `expression2str(expression)` evaluates any parameter value as a Python f-string with `data_chain` keys injected as local variables — enabling dynamic values like `{my_variable}` in task inputs.
+
+#### Expression & Dynamic Function Context
+
+`expression2str` local_vars: `{'self': self, 'os': os, 'json': json, 'p': self}` — use `p.xxx()` in both expression (`{p.get_data("")}`) and `_fn` function bodies. `self` still works for backward compatibility.
+
+All `CodeExplainerUtil.create_and_execute_func` calls MUST pass `self` as parameter `p` (always the last argument in the function signature). When adding a new `_fn` parameter to a Processor, update both the Processor call site AND `CodeExplainerUtil.DYNAMIC_FUNC_PARAMS`.
 
 Passwords can be stored encrypted with `Processor.encrypt_pwd(str)` / `Processor.decrypt_pwd(str)` (key: `petpisawesome`).
 
@@ -388,6 +430,19 @@ All Mouse processors (`MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL`) run norma
 ### Configuration (`config/petpconfig.yaml`)
 
 All settings are under the `application:` key, bound to `PETPModel` via `SystemConfig`. Key fields: `http_port`, `http_request_token`, `http_request_timeout`, `nogui_enabled`, `nogui_ui_processor_policy`, `log_level`, `execute_on_startup`, `last_run`.
+
+### macOS .app Data Externalization (`utils/AppPaths.py`)
+
+In frozen macOS mode (`sys.frozen + darwin`), all user-mutable data lives in `~/.petp/` instead of inside the `.app` bundle. `AppPaths.get_user_data_dir()` returns `~/.petp` (frozen+darwin) or `os.path.realpath('.')` (all other cases including Windows frozen, dev mode, Docker).
+
+On first launch: full seed from bundle Resources to `~/.petp/`. On subsequent launches:
+- New execution/pipeline YAML files: copied to user dir
+- Changed files: one timestamped variant kept (e.g., `NAME_20260509.yaml`), overwritten on next launch if bundle changes again
+- Config: missing keys merged from bundle defaults (never overwrite existing user values)
+
+**Windows frozen mode**: no externalization — exe runs from its own directory, user edits files in-place. This is intentional (Windows "unzip and run" model).
+
+**Key files**: `PETP.py` (top-level sync block), `utils/AppPaths.py` (path resolver), `build/build_common.py` (build steps)
 
 ### Execution YAML format
 

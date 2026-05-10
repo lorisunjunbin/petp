@@ -1,0 +1,60 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: T_DAILY_ALMANAC
+list:
+- !!python/object:core.task.Task
+  input: '{"cache_key": "GC_ALMANAC_{date_str}", "data_key": "final_resp", "on_hit":
+    "end_execution", "target_task": ""}'
+  skipped: false
+  type: CHECK_GLOBAL_CACHE
+- !!python/object:core.task.Task
+  input: '{"date": "{date_str}", "data_key": "resp_almanac"}'
+  skipped: false
+  type: CNLunar
+- !!python/object:core.task.Task
+  input: '{"title": "\u9ec4\u5386 - {date_str}", "msg": "{resp_almanac}", "skipped":
+    "yes"}'
+  skipped: true
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"timeout": 60, "session_key": "__session_key", "resp_fn": "    data = response.json()
+    if response.status_code == 200 else {''status_code'': response.status_code}\\n    d_str
+    = p.get_data(''date_str'')\\n    try:\\n        days = data.get(\"days\", [])\\n        match
+    = [d for d in days if d[\"date\"] == d_str]\\n        if match:\\n            return
+    match[0]\\n    except Exception:\\n        pass\\n    date = p.str_to_date(d_str)    \\n    is_weekend
+    = date.weekday() >= 5\\n    return {\"name\": \"\u5468\u672b\" if is_weekend else
+    \"\u5de5\u4f5c\u65e5\", \"date\": d_str, \"isOffDay\": is_weekend}", "request_url":
+    "https://raw.githubusercontent.com/NateScarlet/holiday-cn/master/{date_str[:4]}.json",
+    "method": "get", "value_key": "resp_holiday"}'
+  skipped: false
+  type: HTTP_REQUEST
+- !!python/object:core.task.Task
+  input: '{"title": "holiday_result", "msg": "{resp_holiday}", "skipped": "yes"}'
+  skipped: true
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"given_key": "", "convertor_func": "return {\"holiday\":p.get_data(''resp_holiday''),\"almanac\":p.get_data(''resp_almanac'')}",
+    "target_key": "final_resp"}'
+  skipped: false
+  type: DATA_CONVERT
+- !!python/object:core.task.Task
+  input: '{"title": "final_resp", "msg": "{final_resp}"}'
+  skipped: false
+  type: SHOW_RESULT
+- !!python/object:core.task.Task
+  input: '{"cache_key": "GC_ALMANAC_{date_str}", "value_key": "final_resp", "ttl":
+    3600, "target_key": "final"}'
+  skipped: false
+  type: POPULATE_GLOBAL_CACHE
+loops: []
+mcp_desc: "{\n  \"desc\": \"\u83B7\u53D6\u4ECA\u65E5\u9EC4\u5386\u4FE1\u606F\uFF0C\u5305\u62EC\u519C\u5386\u65E5\u671F\u3001\u5929\u5E72\u5730\u652F\u3001\u751F\u8096\u3001\u5B9C\u5FCC\u3001\u8282\u5047\u65E5\u4FE1\u606F\",\n
+  \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"T_DAILY_ALMANACArguments\",\n
+  \   \"properties\": {\n      \"date_str\": {\n        \"title\": \"date_str\",\n
+  \       \"type\": \"string\",\n        \"description\": \" date in string, format
+  yyyy-mm-dd\",\n        \"default\": \"{p.get_now_in_str(\\\"%Y-%m-%d\\\")}\"\n      }\n
+  \   },\n    \"required\": [\n      \"date_str\"\n    ]\n  },\n  \"outputSchema\":
+  {\n    \"type\": \"object\",\n    \"title\": \"T_DAILY_ALMANACOutput\",\n    \"properties\":
+  {\n      \"final_resp\": {\n        \"title\": \"final_resp\",\n        \"type\":
+  \"string\",\n        \"description\": \"JSON containing: date, lunar, ganzhi, zodiac,
+  solar_term, yi, ji, holiday\"\n      }\n    },\n    \"required\": [\n      \"final_resp\"\n
+  \   ]\n  }\n}"

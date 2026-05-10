@@ -62,6 +62,7 @@ RUN apt-get update \
 # ── Python dependencies ────────────────────────────────────────────────────────
 # Use requirements-docker.txt (strips X11-only packages: pyautogui, pyperclip)
 COPY requirements-docker.txt /app/requirements-docker.txt
+COPY requirements/ /app/requirements/
 RUN pip install --upgrade pip setuptools wheel \
  && pip install -r /app/requirements-docker.txt
 

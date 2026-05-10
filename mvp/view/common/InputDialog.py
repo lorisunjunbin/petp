@@ -6,18 +6,47 @@ import wx.stc as stc
 from i18n.translations import t
 from mvp.view.common.ThemedButton import ThemedButton
 
+_FN_HANDY_ITEMS = [
+    ("import json", 'import json'),
+    ("import os", 'import os'),
+    ("import re", 'import re'),
+    ("import datetime", 'import datetime'),
+    None,
+    ("p.get_data(key)", 'p.get_data("")'),
+    ("p.get_deep_data([keys])", 'p.get_deep_data(["",""])'),
+    ("p.get_data_chain()", 'p.get_data_chain()'),
+    ("p.populate_data(k, v)", 'p.populate_data("", )'),
+    None,
+    ("p.get_rdir()", 'p.get_rdir()'),
+    ("p.get_ddir()", 'p.get_ddir()'),
+    ("p.get_now_str()", 'p.get_now_str()'),
+    ("p.str_to_date(s)", 'p.str_to_date("")'),
+    ("p.str2dict(s)", 'p.str2dict("")'),
+    ("p.str2list(s)", 'p.str2list("")'),
+    ("p.json2dict(s)", 'p.json2dict("")'),
+    ("p.expression2str(s)", 'p.expression2str("")'),
+    None,
+    ("json.dumps(obj)", 'json.dumps(, ensure_ascii=False)'),
+    ("json.loads(s)", 'json.loads("")'),
+    ("os.path.join()", 'os.path.join("", "")'),
+    ("os.getenv(key)", 'os.getenv("")'),
+]
+
 
 class InputDialog(wx.Dialog):
     """Input dialog with scrollable multi-line text entry,
     header row with icon, and OK / Cancel buttons."""
 
-    def __init__(self, parent=None, title="", message="", default_value="", show_save_as_default=False):
+    def __init__(self, parent=None, title="", message="", default_value="", show_save_as_default=False,
+                 show_handy_tool=False, is_fn_context=False):
         style = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER
         super().__init__(parent, title=t("dlg_input_title"), style=style)
 
         self.value = default_value
         self.save_as_default = False
         self.saved_default_value = default_value
+        self._show_handy_tool = show_handy_tool
+        self._is_fn_context = is_fn_context
         self._build_ui(title, message, default_value, show_save_as_default)
         self._try_set_icon()
 
@@ -86,6 +115,12 @@ class InputDialog(wx.Dialog):
         # -- Button bar --
         btns = wx.BoxSizer(wx.HORIZONTAL)
 
+        if self._show_handy_tool:
+            handy_btn = wx.Button(self, wx.ID_ANY, t("btn_handy_tools"))
+            handy_btn.SetToolTip(t("tip_handy_tools"))
+            handy_btn.Bind(wx.EVT_BUTTON, self._on_handy_tool)
+            btns.Add(handy_btn, 0, wx.RIGHT, 8)
+
         cancel_btn = wx.Button(self, wx.ID_CANCEL, t("dlg_cancel"))
         ok_btn = ThemedButton(self, wx.ID_OK, t("dlg_ok"))
         ok_btn.SetDefault()
@@ -99,7 +134,7 @@ class InputDialog(wx.Dialog):
             btns.Add(save_default_btn, 0, wx.RIGHT, 8)
         btns.Add(ok_btn)
         sizer.AddSpacer(PAD)
-        sizer.Add(btns, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, PAD)
+        sizer.Add(btns, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM | wx.EXPAND, PAD)
 
         self.SetSizer(sizer)
         self.SetMinSize(wx.Size(560, 320))
@@ -152,6 +187,32 @@ class InputDialog(wx.Dialog):
     def _on_ok(self, _evt):
         self.value = self._text.GetText()
         self.EndModal(wx.ID_OK)
+
+    def _on_handy_tool(self, _evt):
+        if self._is_fn_context:
+            self._show_fn_handy_menu()
+        else:
+            from mvp.view.common.HandyToolButton import show_handy_menu
+            show_handy_menu(
+                self,
+                get_value=lambda: "",
+                set_value=lambda snippet: self._text.InsertText(self._text.GetCurrentPos(), snippet),
+            )
+
+    def _show_fn_handy_menu(self):
+        menu = wx.Menu()
+        for item in _FN_HANDY_ITEMS:
+            if item is None:
+                menu.AppendSeparator()
+                continue
+            label, snippet = item
+            menu_id = wx.NewId()
+            menu.Append(menu_id, label)
+            self.Bind(wx.EVT_MENU,
+                      lambda e, s=snippet: self._text.InsertText(self._text.GetCurrentPos(), s),
+                      id=menu_id)
+        self.PopupMenu(menu)
+        menu.Destroy()
 
     def _on_save_as_default(self, _evt):
         self.save_as_default = True

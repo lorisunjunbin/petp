@@ -36,9 +36,9 @@ class GO_TO_TASKProcessor(Processor):
         condition_body = self.explain_param_or_default('condition_fn', 'return True')
 
         cond_fn = CodeExplainerUtil.create_and_execute_func(
-            'GO_TO_TASK_condition_fn', '(data_chain)', condition_body)
+            'GO_TO_TASK_condition_fn', '(data_chain, p)', condition_body)
 
-        if cond_fn(self.get_data_chain()):
+        if cond_fn(self.get_data_chain(), self):
             logging.info('GO_TO_TASK: condition met, will jump to task %s', target)
             self.populate_data('__goto_task', target)
         else:

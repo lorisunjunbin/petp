@@ -43,9 +43,9 @@ class IF_ELSEProcessor(Processor):
         else_count = self.explain_param_as_int('else_tasks', 0)
 
         cond_fn = CodeExplainerUtil.create_and_execute_func(
-            'IF_ELSE_condition_fn', '(data_chain)', condition_body)
+            'IF_ELSE_condition_fn', '(data_chain, p)', condition_body)
 
-        result = cond_fn(self.get_data_chain())
+        result = cond_fn(self.get_data_chain(), self)
         current_seq = self.task.run_sequence
 
         if result:

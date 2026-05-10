@@ -102,6 +102,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "scenario_pa_desc":    {"en": "A lightweight personal MCP tool-set on your MacBook: web scraping, local file management, calendar data extraction, and LLM-powered daily brief generation.", "zh": "MacBook 上的轻量个人 MCP 工具集：网页抓取、本地文件管理、日历数据提取与 LLM 驱动的每日简报生成。"},
     "scenario_ocr_name":   {"en": "Web Form & Captcha Bot",   "zh": "表单填写与验证码自动化"},
     "scenario_ocr_desc":   {"en": "Use OCR to extract text from scanned documents or screen captures, and the CAPTCHA processor to handle login gates. Combine with Selenium and GO_TO_TASK to automate form workflows end-to-end — retrying on failure without writing a line of code.", "zh": "通过 OCR 从扫描件或截图中提取文字，CAPTCHA 处理器应对登录验证码。结合 Selenium 与 GO_TO_TASK 实现端到端表单自动化——失败自动重试，无需编写一行代码。"},
+    "scenario_mcp_name":   {"en": "On-Device AI + MCP Tools", "zh": "端侧 AI + MCP 工具"},
+    "scenario_mcp_desc":   {"en": "Deploy PETP as a Docker-based MCP Tool Server on your NAS. Connect from on-device AI apps (e.g. LSnote with Gemma 4 on-device model) to call tools on demand — web scraping, document processing, email sending — all without cloud round-trips.", "zh": "将 PETP 打包为 Docker 镜像部署到 NAS 作为标准 MCP Tool Server。端侧 AI 应用（如内嵌 Gemma 4 模型的 LSnote）按需调用工具——网页抓取、文档处理、邮件发送——无需云端中转。"},
 
     # ── Index — stats ────────────────────────────────────────────
     "stat_processors": {"en": "Built-in processor types", "zh": "内置处理器类型"},
@@ -190,6 +192,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_05_mcp_live_tools": {
+        "en": "<strong>Built-in MCP Tools</strong>: <code>T_WEATHER_QUERY</code> — real-time weather via wttr.in (city input); <code>T_DAILY_ALMANAC</code> — Chinese almanac + holiday info via cnlunar &amp; holiday-cn. Both exposed as MCP tools callable by any AI agent.",
+        "zh": "<strong>内置 MCP 工具</strong>：<code>T_WEATHER_QUERY</code>——实时天气查询（wttr.in，输入城市）；<code>T_DAILY_ALMANAC</code>——中国黄历 + 节假日信息（cnlunar &amp; holiday-cn）。均已作为 MCP 工具开放，可被任意 AI Agent 调用。",
+    },
+    "cl_2026_05_dynamic_fn_p": {
+        "en": "<strong>Dynamic function <code>p</code> parameter</strong>: all <code>_fn</code> function bodies and expressions now receive the Processor instance as <code>p</code> — unified access to <code>p.get_data()</code>, <code>p.populate_data()</code>, <code>p.get_now_str()</code>, <code>p.str_to_date()</code> and more. Edit Complex Value editor includes a Handy Tool button with context-aware snippets.",
+        "zh": "<strong>动态函数 <code>p</code> 参数</strong>：所有 <code>_fn</code> 函数体和表达式现统一通过 <code>p</code> 访问 Processor 实例——可调用 <code>p.get_data()</code>、<code>p.populate_data()</code>、<code>p.get_now_str()</code>、<code>p.str_to_date()</code> 等。复杂值编辑器新增 Handy Tool 按钮，提供上下文感知的代码片段。",
+    },
+    "cl_2026_05_cnlunar_processor": {
+        "en": "New <code>CNLunar</code> processor: local Chinese almanac computation (lunar date, Ganzhi, zodiac, solar term, Yi/Ji) via cnlunar — no network required.",
+        "zh": "新增 <code>CNLunar</code> 处理器：本地中国黄历计算（农历日期、干支、生肖、节气、宜忌），基于 cnlunar，无需网络。",
+    },
     "cl_2026_05_ai_workflow": {
         "en": "<strong>AI-Powered Workflow</strong>: AI generates &amp; modifies Executions via multi-turn chat; one-click MCP tool publishing with auto-extracted input/output schemas and smart merge; AI error analysis — on failure, automatically diagnoses root cause, suggests fixes, and pre-fills AI Assist for one-click repair.",
         "zh": "<strong>AI 驱动工作流</strong>：AI 通过多轮对话生成和修改 Execution；一键发布 MCP 工具，自动提取输入/输出 Schema 并智能合并；AI 错误分析——执行失败时自动诊断根因、建议修复方案，并预填 AI 助手实现一键修复。",

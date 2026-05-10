@@ -37,10 +37,10 @@ class FIND_MULTI_THEN_CLICKProcessor(Processor):
 
         elements = SeleniumUtil.get_elements(chrome, findby, identity, time_out)
 
-        skip_fn = CodeExplainerUtil.create_and_execute_func('FIND_MULTI_THEN_CLICKProcessor_skip_fn', '(ele)',
+        skip_fn = CodeExplainerUtil.create_and_execute_func('FIND_MULTI_THEN_CLICKProcessor_skip_fn', '(ele, p)',
                                                             skip_fn_body) if skip_fn_body else None
         for ele in elements:
-            if skip_fn and skip_fn(ele):
+            if skip_fn and skip_fn(ele, self):
                 continue
             try:
                 SeleniumUtil.move_to_ele_then_click(chrome, ele)

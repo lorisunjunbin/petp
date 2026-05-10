@@ -12,4 +12,6 @@ venv/
 *.log
 *.tar
 .claude/
+*.md
+Procfile
 

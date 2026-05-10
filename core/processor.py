@@ -147,12 +147,17 @@ class Processor:
         if entry and 'zh' in entry:
             return entry['zh']
         return cls.DESC
+    def str_to_date(self, date_str, format_str='%Y-%m-%d'):
+        return DateUtil.get_date(date_str, format_str)
 
     def get_now_with_delta_in_str(self, delta=0, df="%Y-%m-%d %H:%M:%S"):
         return DateUtil.get_now_with_delta_in_str(delta, df)
 
     def get_now_str(self):
         return DateUtil.get_now_in_str()
+
+    def get_now_in_str(self, df="%Y%m%d%H%M%S"):
+        return DateUtil.get_now_in_str(df)
 
     def get_ddir(self):
         from utils.AppPaths import get_download_dir
@@ -310,7 +315,7 @@ class Processor:
         if isinstance(expression, (int, float)):
             return str(expression)
 
-        local_vars = {'self': self, 'os': os, 'json': json}
+        local_vars = {'self': self, 'os': os, 'json': json, 'p':self}
         try:
             if self.task and self.task.data_chain:
                 local_vars.update(self.task.data_chain)

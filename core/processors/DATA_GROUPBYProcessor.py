@@ -28,13 +28,13 @@ class DATA_GROUPBYProcessor(Processor):
         collect_func = self.get_param('collect_func')
         target_dict_key = self.expression2str(self.get_param('data_key'))
 
-        group_by_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_group_by_func','(row)', group_by_func)
-        mapping_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_mapping_func', '(row)', mapping_func)
-        collect_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_collect_func', '(key, rows)', collect_func) if collect_func else None
+        group_by_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_group_by_func','(row, p)', group_by_func)
+        mapping_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_mapping_func', '(row, p)', mapping_func)
+        collect_func = CodeExplainerUtil.create_and_execute_func('DATA_GROUPBYProcessor_collect_func', '(key, rows, p)', collect_func) if collect_func else None
 
         for rownum, row in enumerate(given_collection):
-            group_by_key = group_by_func(row)
-            mapping_func_result = mapping_func(row)
+            group_by_key = group_by_func(row, self)
+            mapping_func_result = mapping_func(row, self)
 
             if group_by_key not in group_by_dict:
                 group_by_dict[group_by_key] = []
@@ -42,7 +42,7 @@ class DATA_GROUPBYProcessor(Processor):
             group_by_dict[group_by_key].append(mapping_func_result)
 
         if collect_func:
-            group_by_dict = {key : collect_func(key, rows) for key, rows in group_by_dict.items()}
+            group_by_dict = {key : collect_func(key, rows, self) for key, rows in group_by_dict.items()}
 
         logging.debug(f'"{target_dict_key}" size: {len(group_by_dict)} : {str(group_by_dict)}')
 

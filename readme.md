@@ -49,6 +49,40 @@ Generate and modify PETP task flows through natural language conversation with L
 - Works with Ollama vision models (gemma4, llava, moondream, etc.)
 - Image path supports expressions — dynamically reference files from previous tasks in `data_chain`
 
+---
+
+## Dynamic Function (`_fn`) & Expression Enhancements
+
+All dynamic function parameters (`_fn`, `_func`, `_func_body`, `lambda_*`) now receive the Processor instance as `p`, enabling full access to PETP utilities inside custom code:
+
+```python
+# In _fn function body — p is the Processor instance
+result = p.get_data("my_key")
+p.populate_data("output", processed_value)
+today = p.str_to_date("2026-05-11")
+```
+
+**Available `p` methods in both expression and _fn contexts:**
+
+| Method | Description |
+|--------|-------------|
+| `p.get_data(key)` | Read from data_chain |
+| `p.get_deep_data([keys])` | Nested data access |
+| `p.get_data_chain()` | Get entire data_chain dict |
+| `p.populate_data(k, v)` | Write to data_chain |
+| `p.get_now_str()` | Current timestamp (YYYYMMDDHHmmss) |
+| `p.get_now_in_str(fmt)` | Current time with custom format |
+| `p.str_to_date(s, fmt)` | Parse date string to date object |
+| `p.get_rdir()` / `p.get_ddir()` / `p.get_tdir()` | Resource/Download/Test directories |
+| `p.expression2str(s)` | Evaluate f-string expression |
+| `p.str2dict(s)` / `p.json2dict(s)` | String parsing utilities |
+
+**Edit Complex Value — Handy Tool button:**
+- Right-click any property → "Edit Complex Value" now includes a Handy Tool button
+- Automatically detects whether the parameter is an expression or `_fn` function body
+- Expression context: snippets wrapped in `{p.xxx()}` for f-string evaluation
+- Function body context: raw `p.xxx()` calls plus `import` statements
+
 **Configuration** (only `ai_provider` required, rest auto-fills from provider defaults):
 
 ```yaml
@@ -146,11 +180,11 @@ python PETP_backgroud.py   # Headless service (port 8866)
 | **Browser Automation** (Selenium) | Navigate, click, key-in, collect, batch find, iFrame, cookies, screenshot. Chrome DevTools Recorder import. |
 | **SSH / SFTP** (Paramiko) | SSH/SFTP sessions, remote commands, file upload/download. |
 | **File & Folder** | Open, write, delete, read, find, watch & auto-move, ZIP/UNZIP. |
-| **Data & Spreadsheet** | CSV/Excel read & write, collect, filter, group-by, mapping, masking, merge. |
+| **Data & Spreadsheet** | CSV/Excel read & write, collect, filter, group-by, mapping, masking, merge. Chinese almanac (CNLunar). |
 | **Database** | MySQL, PostgreSQL, SAP HANA, SQLite — unified `DB_ACCESS` processor. |
 | **AI / LLM** (10 providers) | DeepSeek, Gemini, Ollama, Zhipu, Anthropic, Qianfan, MiniMax, Doubao, Moonshot, OpenAI-compatible. Setup + Q&A + MCP tool calling. |
 | **AI Execution Generator** | Natural language → task flow generation. Multi-turn chat, Processor browser, selective context, connection caching. |
-| **MCP** | Standard MCP Tool Server (Streamable-HTTP). MCP client for all LLM providers. |
+| **MCP** | Standard MCP Tool Server (Streamable-HTTP). MCP client for all LLM providers. OOTB tools: weather query, daily almanac. |
 | **HTTP / Network** | Configurable requests, response extraction, OAuth2/PKCE, Basic Auth, XSRF. |
 | **Email** | SMTP send (CC/BCC, HTML, attachments). IMAP receive (filter, attachment download). |
 | **OCR & Captcha** | Image text extraction (paddleocr/rapidocr/easyocr). Captcha solving (ddddocr). |
@@ -205,6 +239,13 @@ Helper scripts for long-running sessions: see `scripts/macos/start_petp.sh` and 
 
 PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
+**Built-in MCP Tools:**
+
+| Tool | Description | Input |
+|------|-------------|-------|
+| `T_WEATHER_QUERY` | Query real-time weather (wttr.in) | `city` (e.g. "上海", "Tokyo") |
+| `T_DAILY_ALMANAC` | Chinese almanac + holiday info (cnlunar + holiday-cn) | none (uses today) |
+
 **Claude Code / Cursor / any MCP client:**
 
 ```json
@@ -246,10 +287,57 @@ curl -X POST http://localhost:8866/petp/exec \
 # Standalone executable
 python build/PETP_build.py   # → dist/PETP.app or dist/PETP.exe
 
-# Docker (supports Apple M1 → amd64 cross-build)
-./build/docker_build.sh
-docker run --rm -p 8866:8866 petp-background:amd64-local
+# Docker — Background service (headless, port 8866)
+./build/script/docker_build_bg.sh              # build + export tar
+./build/script/docker_build_bg.sh --run        # build + start container
+./build/script/docker_build_bg.sh --no-tar     # build only
+./build/script/docker_build_bg.sh --push repo:tag  # push to registry
+./build/script/docker_build_bg.sh --dirty      # use working dir (skip git archive)
+
+# Docker — Web App (port 5555)
+./build/script/docker_build_webapp.sh          # build + export tar
+./build/script/docker_build_webapp.sh --run    # build + start container
+./build/script/docker_build_webapp.sh --dirty  # use working dir (skip git archive)
 ```
+
+> **Note:** Build scripts default to `git archive` mode — only git-tracked and staged files are included in the Docker context. Use `--dirty` to include all working directory files (relies on `.dockerignore`).
+
+### Deploy to NAS
+
+```bash
+# Deploy BG image (scp + docker load + start container)
+./build/script/deploy_bg_to_nas.sh
+./build/script/deploy_bg_to_nas.sh --no-start   # only transfer + load
+./build/script/deploy_bg_to_nas.sh --keep-tar   # don't delete remote tar
+
+# Deploy Webapp image
+./build/script/deploy_webapp_to_nas.sh
+
+# Override NAS connection / port mapping
+NAS_HOST=10.0.0.5 NAS_USER=myuser HOST_PORT=9090 ./build/script/deploy_webapp_to_nas.sh
+```
+
+| Environment Variable | Default | Description |
+|---|---|---|
+| `NAS_HOST` | `192.168.1.100` | NAS IP or hostname |
+| `NAS_USER` | `admin` | SSH username |
+| `NAS_PORT` | `22` | SSH port |
+| `NAS_DOCKER_DIR` | `/tmp` | Remote temp dir for tar |
+| `HOST_PORT` | `8866` (BG) / `8088` (Webapp) | Host port mapping |
+
+### Tailscale Funnel (run on NAS)
+
+```bash
+# Refresh funnel routes (reset + reconfigure)
+sudo ./build/script/tailscale_funnel_refresh.sh
+
+# Check current status only
+./build/script/tailscale_funnel_refresh.sh --status
+```
+
+Routes configured:
+- `/` → `localhost:8088` (webapp)
+- `/mcp` → `localhost:8866` (petp background)
 
 ---
 
