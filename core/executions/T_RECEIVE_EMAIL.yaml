@@ -5,32 +5,32 @@ list:
 - !!python/object:core.task.Task
   input: '{"smtp_host": "smtp.qq.com", "smtp_port": 587, "imap_host": "imap.qq.com",
     "imap_port": 993, "usr_pwd": "{self.decrypt(\"As8KnqL4E0A7vhRK3GwJFw==*4zJdJUYPQ7c45iMKvi1bSw==*wd3Leu5PzEwR+o6o4GMXIw==*9dp/4zOjkRON4wN57LjVJg==\")}",
-    "usr_name": "{self.decrypt(\"T3bMrJJgOEuQzy0Z4gQ=*VAp55ievnHZBECGh7YYSFA==*xTnhTFt3nSzILcmI2buDoQ==*nohy5h0ZaDc1gJTxmSb85A==\")}",
-    "limit": "3", "sender": "junbin.sun@sap.com", "subject_contains": "petp"}'
+    "usr_name": "{self.decrypt(\"T3bMrJJgOEuQzy0Z4gQ=*VAp55ievnHZBECGh7YYSFA==*xTnhTFt3nSzILcmI2buDoQ==*nohy5h0ZaDc1gJTxmSb85A==\")}"}'
   skipped: false
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task
   input: '{"host": "{imap_host}", "port": "{imap_port}", "name": "{usr_name}", "pwd":
-    "{usr_pwd}", "mailbox": "INBOX", "criteria": "UNSEEN", "limit": 3, "use_ssl":
+    "{usr_pwd}", "mailbox": "INBOX", "criteria": "UNSEEN", "limit": "{limit}", "use_ssl":
     "yes", "mark_seen": "yes", "save_attachments": "yes", "attachments_dir": "{self.get_ddir()}/email_attachments",
     "data_key": "emails", "attachments_key": "attachments_key", "timeout": "30", "fail_on_error":
-    "yes", "sender": "junbin.sun@sap.com", "subject_contains": "petp"}'
+    "yes", "detail_level": "summary", "sender": "{sender}", "subject_contains": "{subject_contains}"}'
   skipped: false
   type: RECEIVE_EMAIL
 - !!python/object:core.task.Task
-  input: '{"title": "\u70b9\u51fb\u67e5\u770bdata_chain", "msg": "", "skipped": "no"}'
+  input: '{"title": "\u70b9\u51fb\u67e5\u770bdata_chain", "msg": "{emails}", "skipped":
+    "no"}'
   skipped: false
   type: SHOW_RESULT
 loops: []
 mcp_desc: "{\n  \"desc\": \"Receive email notification\",\n  \"inputSchema\": {\n
   \   \"type\": \"object\",\n    \"title\": \"T_RECEIVE_EMAILArguments\",\n    \"properties\":
   {\n      \"limit\": {\n        \"title\": \"limit\",\n        \"type\": \"string\",\n
-  \       \"description\": \"\",\n        \"default\": \"1\"\n      },\n      \"sender\":
+  \       \"description\": \"\",\n        \"default\": \"30\"\n      },\n      \"sender\":
   {\n        \"title\": \"sender\",\n        \"type\": \"string\",\n        \"description\":
-  \"\"\n      },\n      \"subject_contains\": {\n        \"title\": \"subject_contains\",\n
-  \       \"type\": \"string\",\n        \"description\": \"\"\n      }\n    },\n
-  \   \"required\": []\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\":
-  \"T_RECEIVE_EMAILOutput\",\n    \"properties\": {\n      \"found_emails\": {\n        \"title\":
-  \"found_emails\",\n        \"type\": \"array\",\n        \"description\": \"\",\n
-  \       \"mapKey\": \"emails\"\n      }\n    },\n    \"required\": [\n      \"found_emails\"\n
-  \   ]\n  }\n}"
+  \"\",\n        \"default\": \"junbin.sun@sap.com\"\n      },\n      \"subject_contains\":
+  {\n        \"title\": \"subject_contains\",\n        \"type\": \"string\",\n        \"description\":
+  \"\"\n      }\n    },\n    \"required\": []\n  },\n  \"outputSchema\": {\n    \"type\":
+  \"object\",\n    \"title\": \"T_RECEIVE_EMAILOutput\",\n    \"properties\": {\n
+  \     \"found_emails\": {\n        \"title\": \"found_emails\",\n        \"type\":
+  \"array\",\n        \"description\": \"\",\n        \"mapKey\": \"emails\"\n      }\n
+  \   },\n    \"required\": [\n      \"found_emails\"\n    ]\n  }\n}"

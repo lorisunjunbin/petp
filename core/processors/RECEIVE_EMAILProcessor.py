@@ -9,7 +9,7 @@ from core.processor import Processor
 
 
 class RECEIVE_EMAILProcessor(Processor):
-    TPL: str = '{"host":"","port":993,"name":"","pwd":"","mailbox":"INBOX","criteria":"UNSEEN","sender":"","subject_contains":"","limit":"10","use_ssl":"yes","mark_seen":"yes","save_attachments":"no","attachments_dir":"{self.get_ddir()}/email_attachments","data_key":"emails","attachments_key":"","timeout":"30","fail_on_error":"yes","result_key":""}'
+    TPL: str = '{"host":"","port":993,"name":"","pwd":"","mailbox":"INBOX","criteria":"UNSEEN","sender":"","subject_contains":"","limit":"10","use_ssl":"yes","mark_seen":"yes","save_attachments":"no","attachments_dir":"{p.get_ddir()}/email_attachments","detail_level":"detail","data_key":"emails","attachments_key":"","timeout":"30","fail_on_error":"yes","result_key":""}'
 
     DESC: str = '''
         Receive emails from an IMAP mailbox and store parsed results into data_chain.
@@ -20,13 +20,14 @@ class RECEIVE_EMAILProcessor(Processor):
         - pwd: IMAP login password or app password (supports expression, default: "")
         - mailbox: Mailbox folder to read, e.g. "INBOX" (supports expression, default: "INBOX")
         - criteria: IMAP search criteria, e.g. "UNSEEN", "ALL", "FROM \"x@x.com\"" (supports expression, default: "UNSEEN")
-        - sender: Optional sender email filter; only fetch emails from this address (supports expression, default: "")
+        - sender: Optional sender email filter; supports multiple addresses separated by ";" or "," (supports expression, default: "")
         - subject_contains: Optional subject keyword/phrase filter (supports expression, default: "")
         - limit: Max number of latest matched messages to fetch; <=0 means all (supports expression, default: "10")
         - use_ssl: "yes" to use IMAP SSL, otherwise plain IMAP (default: "yes")
         - mark_seen: "yes" to mark fetched messages as read (default: "yes")
         - save_attachments: "yes" to save email attachments to local folder (default: "no")
-        - attachments_dir: Folder path used when save_attachments="yes" (supports expression, default: "{self.get_ddir()}/email_attachments")
+        - attachments_dir: Folder path used when save_attachments="yes" (supports expression, default: "{p.get_ddir()}/email_attachments")
+        - detail_level: "detail" returns all fields; "summary" returns subject/from/to/date/attachments(filenames only)/text(first 50 chars) (default: "detail")
         - data_key: data_chain key to store result list (default: "emails")
         - attachments_key: Optional data_chain key to store all saved attachment file paths (default: "")
         - timeout: IMAP connection timeout seconds (supports expression, default: "30")
@@ -89,12 +90,40 @@ class RECEIVE_EMAILProcessor(Processor):
         args = self._parse_criteria(criteria)
         sender = (sender or '').strip()
         if sender:
-            # Add explicit sender filter while keeping existing criteria behavior.
-            args.extend(['FROM', f'"{sender}"'])
+            senders = [s.strip() for s in re.split(r'[;,]', sender) if s.strip()]
+            if len(senders) == 1:
+                args.extend(['FROM', f'"{senders[0]}"'])
+            else:
+                # Multiple senders handled via _search_multi_sender, skip FROM here
+                pass
         subject_contains = (subject_contains or '').strip()
         if subject_contains:
             args.extend(['SUBJECT', f'"{subject_contains}"'])
         return args
+
+    def _search_messages(self, client, criteria: str, sender: str, subject_contains: str) -> list[bytes]:
+        senders = [s.strip() for s in re.split(r'[;,]', sender) if s.strip()] if sender else []
+        if len(senders) <= 1:
+            search_args = self._build_search_args(criteria, sender, subject_contains)
+            status, found = client.search(None, *search_args)
+            if status != 'OK':
+                raise RuntimeError(f'Failed to search mailbox with criteria: {criteria}')
+            return found[0].split() if found and found[0] else []
+        else:
+            # Multiple senders: search each individually, merge and deduplicate preserving order
+            seen = set()
+            all_ids = []
+            for s in senders:
+                search_args = self._build_search_args(criteria, s, subject_contains)
+                status, found = client.search(None, *search_args)
+                if status != 'OK':
+                    continue
+                ids = found[0].split() if found and found[0] else []
+                for mid in ids:
+                    if mid not in seen:
+                        seen.add(mid)
+                        all_ids.append(mid)
+            return all_ids
 
     @staticmethod
     def _sanitize_filename(filename: str) -> str:
@@ -164,6 +193,7 @@ class RECEIVE_EMAILProcessor(Processor):
         data_key = self.explain_param_or_default('data_key', 'emails')
         attachments_key = self.explain_param_or_default('attachments_key', '').strip()
         result_key = self.explain_param_or_default('result_key', '').strip()
+        detail_level = self.explain_param_or_default('detail_level', 'detail').strip().lower()
 
         client = None
         try:
@@ -190,17 +220,16 @@ class RECEIVE_EMAILProcessor(Processor):
             imap_cls = imaplib.IMAP4_SSL if use_ssl else imaplib.IMAP4
             client = imap_cls(host=host, port=port, timeout=timeout)
             client.login(name, pwd)
+            try:
+                client._encoding = 'utf-8'
+            except Exception:
+                pass
 
             status, _ = client.select(mailbox)
             if status != 'OK':
                 raise RuntimeError(f'Failed to select mailbox: {mailbox}')
 
-            search_args = self._build_search_args(criteria, sender, subject_contains)
-            status, found = client.search(None, *search_args)
-            if status != 'OK':
-                raise RuntimeError(f'Failed to search mailbox with criteria: {criteria}')
-
-            msg_ids = found[0].split() if found and found[0] else []
+            msg_ids = self._search_messages(client, criteria, sender, subject_contains)
             if limit > 0:
                 msg_ids = msg_ids[-limit:]
 
@@ -228,17 +257,28 @@ class RECEIVE_EMAILProcessor(Processor):
                     saved_path = str(att.get('saved_path', '')).strip()
                     if saved_path:
                         all_saved_paths.append(saved_path)
-                result.append({
-                    'uid': uid,
-                    'subject': str(msg.get('Subject', '')),
-                    'from': str(msg.get('From', '')),
-                    'to': str(msg.get('To', '')),
-                    'date': str(msg.get('Date', '')),
-                    'message_id': str(msg.get('Message-ID', '')),
-                    'text': text_body,
-                    'html': html_body,
-                    'attachments': attachments,
-                })
+
+                if detail_level == 'summary':
+                    result.append({
+                        'subject': str(msg.get('Subject', '')),
+                        'from': str(msg.get('From', '')),
+                        'to': str(msg.get('To', '')),
+                        'date': str(msg.get('Date', '')),
+                        'attachments': [a['filename'] for a in attachments],
+                        'text_first_50': text_body[:50] + '...',
+                    })
+                else:
+                    result.append({
+                        'uid': uid,
+                        'subject': str(msg.get('Subject', '')),
+                        'from': str(msg.get('From', '')),
+                        'to': str(msg.get('To', '')),
+                        'date': str(msg.get('Date', '')),
+                        'message_id': str(msg.get('Message-ID', '')),
+                        'text': text_body,
+                        'html': html_body,
+                        'attachments': attachments,
+                    })
 
                 if mark_seen:
                     client.store(uid, '+FLAGS', '\\Seen')

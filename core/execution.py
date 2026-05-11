@@ -282,10 +282,9 @@ class Execution:
         return None
 
     def get_mcp_input_defaults(self) -> dict:
-        """Return raw default values from mcp_desc.inputSchema for executions marked as astool.
-
-        Only applies when the first non-empty task is NOT INITIAL_PARAMS (i.e. defaults
-        are not already covered by an explicit task). Returns an empty dict otherwise.
+        """Return raw default values from mcp_desc.inputSchema for parameters not already
+        defined in INITIAL_PARAMS. This ensures mcp_desc defaults act as fallback even
+        when INITIAL_PARAMS exists but doesn't cover all inputSchema fields.
         """
         cached = getattr(self, '_mcp_input_defaults_cache', None)
         if cached is not None:
@@ -295,21 +294,29 @@ class Execution:
         mcp_desc = getattr(self, 'mcp_desc', None)
         if not mcp_desc:
             return {}
-        tasks = getattr(self, 'list', [])
-        for task in tasks:
-            if hasattr(task, 'type') and task.type.strip():
-                if task.type.strip() == "INITIAL_PARAMS":
-                    return {}
-                break
         try:
             parsed = json.loads(mcp_desc)
         except (json.JSONDecodeError, TypeError):
             self._mcp_input_defaults_cache = {}
             return {}
         props = parsed.get("inputSchema", {}).get("properties", {})
-        result = {name: spec["default"] for name, spec in props.items() if "default" in spec}
-        self._mcp_input_defaults_cache = result
-        return result
+        all_defaults = {name: spec["default"] for name, spec in props.items() if "default" in spec}
+        if not all_defaults:
+            self._mcp_input_defaults_cache = {}
+            return {}
+        # Exclude keys already defined in INITIAL_PARAMS (those are set at runtime)
+        tasks = getattr(self, 'list', [])
+        for task in tasks:
+            if hasattr(task, 'type') and task.type.strip():
+                if task.type.strip() == "INITIAL_PARAMS":
+                    try:
+                        init_keys = set(json.loads(task.input or "{}").keys())
+                    except (json.JSONDecodeError, TypeError):
+                        init_keys = set()
+                    all_defaults = {k: v for k, v in all_defaults.items() if k not in init_keys}
+                break
+        self._mcp_input_defaults_cache = all_defaults
+        return all_defaults
 
     def expand_mcp_defaults(self, data_chain: dict) -> dict:
         """Return MCP input defaults with expressions expanded using a Processor context.

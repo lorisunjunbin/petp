@@ -568,7 +568,15 @@ The `_extract_param_hint()` method parses lines starting with `- <param_name>:` 
 2. Set `TPL` (JSON parameter template), `DESC` (documentation following the format above), and override `process()`.
 3. Call `self.populate_data(key, value)` to store output for subsequent tasks.
 4. No registration needed — `Processor.get_processor_by_type(prefix)` loads it dynamically from the file system.
-5. Add Chinese translation: in `i18n/translations.py`, add a `"desc_<TYPE>": {"zh": "..."}` entry with the Chinese translation of `DESC` content (do NOT include `"en"` — it comes from `DESC` at runtime).
+5. Add Chinese translation: in `i18n/desc_translations.py`, add a `"desc_<TYPE>": {"zh": "..."}` entry with the Chinese translation of `DESC` content (do NOT include `"en"` — it comes from `DESC` at runtime).
+
+#### Adding a New Parameter to an Existing Processor
+
+1. **`TPL`** — add the new key with default value in the JSON template string (position logically near related params).
+2. **`DESC`** — add a `- param_name: description (default: "value")` line in the English docstring, following existing format.
+3. **`i18n/desc_translations.py`** — update the `"desc_<TYPE>"` Chinese translation to include the new parameter line in the same position.
+4. **`process()`** — read the param via `self.explain_param_or_default('param_name', 'default')` and implement logic.
+5. If the param is a `_fn` type (dynamic function body): update `CodeExplainerUtil.DYNAMIC_FUNC_PARAMS` with the new function signature, and pass `self` as `p` in the `create_and_execute_func` call.
 
 #### Parameter naming conventions
 
