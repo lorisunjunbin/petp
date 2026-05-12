@@ -203,6 +203,7 @@ class BackgroundHttpServer(McpMixin):
             tool_exec_name: str = cast(str, tool_name)
             arguments_json = json.dumps(arguments, ensure_ascii=False)
             info = f"call tool: {tool_exec_name} with params: {arguments_json}"
+            logging.info("MCP tools/call: %s", info)
 
             if not self._wants_sse(handler):
                 raw_result = self._run_with_timeout(
@@ -210,7 +211,7 @@ class BackgroundHttpServer(McpMixin):
                     self._timeout,
                 )
                 return self._mcp_tools_call_json_response(
-                    request_id, session_id, raw_result, tool_exec_name, info,
+                    request_id, session_id, raw_result, tool_exec_name,
                     self.runtime.get_tools, handler,
                 )
 
@@ -235,7 +236,12 @@ class BackgroundHttpServer(McpMixin):
                     tool_exec_name, result, self.runtime.get_tools
                 )
 
-                content_text = self._to_mcp_text(client_result)
+                is_error = self._is_mcp_error_result(result)
+                if is_error:
+                    error_msg = structured_content.get("error", "unknown error") if isinstance(structured_content, dict) else "unknown error"
+                    content_text = f"[{tool_exec_name}] error: {error_msg}"
+                else:
+                    content_text = f"[{tool_exec_name}] ok"
                 if isinstance(result, dict) and result.get("meta") is not None:
                     logging.info("MCP tools/call meta for %s: %s", tool_name,
                                  json.dumps(result.get("meta"), ensure_ascii=False, default=str))
@@ -243,9 +249,9 @@ class BackgroundHttpServer(McpMixin):
                     "jsonrpc": "2.0",
                     "id": request_id,
                     "result": {
-                        "content": [{"type": "text", "text": f" {info} -> {content_text}"}],
+                        "content": [{"type": "text", "text": content_text}],
                         "structuredContent": structured_content,
-                        "isError": self._is_mcp_error_result(result),
+                        "isError": is_error,
                     },
                 })
 

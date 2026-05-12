@@ -86,14 +86,23 @@ class McpMixin:
             return {}
 
     @staticmethod
-    def _strip_map_keys(schema: dict) -> dict:
+    def _compact_schema(schema: dict) -> dict:
+        """Remove internal/redundant fields from a schema before sending to MCP client."""
         if not schema or "properties" not in schema:
             return schema
-        cleaned = dict(schema)
-        cleaned["properties"] = {
-            name: {k: v for k, v in prop.items() if k != "mapKey"}
-            for name, prop in schema.get("properties", {}).items()
-        }
+        cleaned = {k: v for k, v in schema.items() if k != "title"}
+        cleaned["properties"] = {}
+        for name, prop in schema.get("properties", {}).items():
+            compact_prop = {}
+            for k, v in prop.items():
+                if k == "mapKey":
+                    continue
+                if k == "title" and v == name:
+                    continue
+                if k == "description" and (not v or not str(v).strip()):
+                    continue
+                compact_prop[k] = v
+            cleaned["properties"][name] = compact_prop
         return cleaned
 
     @staticmethod
@@ -140,14 +149,14 @@ class McpMixin:
                 "name": key,
                 "description": parsed.get("desc") or key,
             }
-            tool["inputSchema"] = self._build_input_schema(key, parsed) or {
+            input_schema = self._build_input_schema(key, parsed) or {
                 "type": "object",
-                "title": f"{key}Arguments",
                 "properties": {},
             }
+            tool["inputSchema"] = self._compact_schema(input_schema)
             output_schema = self._build_output_schema(key, parsed)
             if output_schema:
-                tool["outputSchema"] = self._strip_map_keys(output_schema)
+                tool["outputSchema"] = self._compact_schema(output_schema)
             result.append(tool)
         self._normalized_tools_cache_key = cache_key
         self._normalized_tools_cache_val = result
@@ -224,6 +233,13 @@ class McpMixin:
 
         *tools_getter* is a zero-arg callable that returns the tools dict.
         """
+        if self._is_mcp_error_result(raw_result):
+            error_msg = ""
+            if isinstance(raw_result, dict):
+                error_msg = raw_result.get("error") or ""
+            structured_content = {"error": error_msg} if error_msg else {"error": "execution failed"}
+            return structured_content, structured_content
+
         raw = tools_getter().get(tool_name)
         output_schema = None
         if raw:
@@ -243,12 +259,17 @@ class McpMixin:
         return client_result, structured_content
 
     def _mcp_tools_call_json_response(self, request_id: Any, session_id: Optional[str],
-                                       raw_result: Any, tool_name: str, info: str,
+                                       raw_result: Any, tool_name: str,
                                        tools_getter: Callable, handler: 'HttpRequestHandler') -> StreamingResponseData:
         client_result, structured_content = self._build_tools_call_result(
             tool_name, raw_result, tools_getter
         )
-        content_text = self._to_mcp_text(client_result)
+        is_error = self._is_mcp_error_result(raw_result)
+        if is_error:
+            error_msg = structured_content.get("error", "unknown error") if isinstance(structured_content, dict) else "unknown error"
+            content_text = f"[{tool_name}] error: {error_msg}"
+        else:
+            content_text = f"[{tool_name}] ok"
         if isinstance(raw_result, dict) and raw_result.get("meta") is not None:
             logging.info("MCP tools/call meta for %s: %s", tool_name,
                          json.dumps(raw_result.get("meta"), ensure_ascii=False, default=str))
@@ -256,9 +277,9 @@ class McpMixin:
             "jsonrpc": "2.0",
             "id": request_id,
             "result": {
-                "content": [{"type": "text", "text": f" {info} -> {content_text}"}],
+                "content": [{"type": "text", "text": content_text}],
                 "structuredContent": structured_content,
-                "isError": self._is_mcp_error_result(raw_result),
+                "isError": is_error,
             },
         }
         return self._mcp_response(resp, handler, session_id)

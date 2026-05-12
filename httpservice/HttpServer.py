@@ -323,6 +323,7 @@ class HttpServer(McpMixin):
         question_info = f"call tool: {action} with params: {arguments_json}"
         if message:
             question_info += f", message: {message}"
+        logging.info("MCP tools/call: %s", question_info)
 
         if not self._wants_sse(handler):
             petp_param: dict = {"execution": action}
@@ -331,35 +332,19 @@ class HttpServer(McpMixin):
                 lambda: self._handle_petp_event(handler, {"action": "execution", "params": petp_param}),
                 self._timeout,
             )
-            output_schema = self._get_output_schema(action)
-            if output_schema and isinstance(raw_result, dict) and not self._is_mcp_error_result(raw_result):
-                client_result = raw_result
-                structured_content = client_result
-            else:
-                client_result = self._strip_meta_for_client(raw_result)
-                structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
-            content_text = self._to_mcp_text(client_result)
-            resp = {
-                "jsonrpc": "2.0",
-                "id": request_id,
-                "result": {
-                    "content": [{"type": "text", "text": f" {question_info} -> {content_text}"}],
-                    "structuredContent": structured_content,
-                    "isError": self._is_mcp_error_result(raw_result),
-                },
-            }
-            return self._mcp_response(resp, handler, session_id)
+            return self._mcp_tools_call_json_response(
+                request_id, session_id, raw_result, action,
+                self.p.get_tools, handler,
+            )
 
         def _stream_call_result() -> Generator[str, None, None]:
             """Yield SSE frames: first a progress notification, then the tool result."""
-            # Emit a progress / log notification
             yield self._sse_event({
                 "jsonrpc": "2.0",
                 "method": "notifications/message",
                 "params": {"level": "info", "data": question_info},
             })
 
-            # Execute the PETP event with progress notifications
             petp_param: dict = {"execution": action}
             petp_param.update(arguments)
             result = None
@@ -372,21 +357,25 @@ class HttpServer(McpMixin):
                 else:
                     result = item
 
-            output_schema = self._get_output_schema(action)
-            if output_schema and isinstance(result, dict) and not self._is_mcp_error_result(result):
-                client_result = result
-                structured_content = client_result
+            client_result, structured_content = self._build_tools_call_result(
+                action, result, self.p.get_tools
+            )
+            is_error = self._is_mcp_error_result(result)
+            if is_error:
+                error_msg = structured_content.get("error", "unknown error") if isinstance(structured_content, dict) else "unknown error"
+                content_text = f"[{action}] error: {error_msg}"
             else:
-                client_result = self._strip_meta_for_client(result)
-                structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
-            content_text = self._to_mcp_text(client_result)
+                content_text = f"[{action}] ok"
+            if isinstance(result, dict) and result.get("meta") is not None:
+                logging.info("MCP tools/call meta for %s: %s", action,
+                             json.dumps(result.get("meta"), ensure_ascii=False, default=str))
             yield self._sse_event({
                 "jsonrpc": "2.0",
                 "id": request_id,
                 "result": {
-                    "content": [{"type": "text", "text": f" {question_info} -> {content_text}"}],
+                    "content": [{"type": "text", "text": content_text}],
                     "structuredContent": structured_content,
-                    "isError": self._is_mcp_error_result(result),
+                    "isError": is_error,
                 },
             })
 

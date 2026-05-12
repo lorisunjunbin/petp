@@ -231,6 +231,14 @@ All `CodeExplainerUtil.create_and_execute_func` calls MUST pass `self` as parame
 
 Passwords can be stored encrypted with `Processor.encrypt_pwd(str)` / `Processor.decrypt_pwd(str)` (key: `petpisawesome`).
 
+#### expression2str Unresolved Variable Gotcha
+
+When a `data_chain` key is missing, `expression2str("{key}")` returns the literal string `"{key}"` (not empty). For optional filter params (sender, subject_contains), Processors must guard: if value looks like `{xxx}`, treat as empty. Do NOT change `expression2str` to return empty — it would break path concatenation and debugging.
+
+#### IMAP Non-ASCII Search
+
+`imaplib` defaults to ASCII encoding. Set `client._encoding = 'utf-8'` after login to support Chinese/Unicode in SEARCH criteria (sender, subject_contains).
+
 ### HTTP Service & MCP (`httpservice/`)
 
 `HttpServer` (GUI mode) and `BackgroundHttpServer` (headless mode) expose these endpoints on port **8866**:
@@ -279,6 +287,18 @@ Two response mechanisms serve different callers:
 | Expression | Supports dynamic key names via f-string | Static property names |
 
 Both are kept intentionally. `HTTP_RESPONSE_KEY` is still required for executions called via the HTTP API without MCP. `outputSchema` with `mapKey` handles MCP clients and provides richer field-level mapping. If an execution is only used via MCP, `HTTP_RESPONSE_KEY` can be omitted.
+
+#### MCP Tool Response Format
+
+`content.text` uses concise format: `[tool_name] ok` (success) or `[tool_name] error: msg` (failure). `structuredContent` carries the actual data (success) or `{"error": "msg"}` (failure). Call info (`tool name + params`) is logged server-side only, never in the response payload.
+
+#### MCP Default Value Fallback
+
+`get_mcp_input_defaults()` returns defaults from `mcp_desc.inputSchema` for keys NOT already defined in `INITIAL_PARAMS`. Even when `INITIAL_PARAMS` exists, schema defaults fill gaps — e.g. `sender` has a default in schema but no corresponding `INITIAL_PARAMS` key. The defaults are injected into `data_chain` before execution starts (in both `Execution.run()` and `BackgroundRuntime.run_execution()`).
+
+#### tools/list Schema Compaction
+
+`_compact_schema()` removes from tool schemas before sending to client: `mapKey` (internal), redundant `title` (same as property key), empty `description`, and top-level schema `title`.
 
 ### AI LLM Subsystem (`core/processors/sub/llm/`)
 

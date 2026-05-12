@@ -27,10 +27,10 @@ mcp_desc: "{\n  \"desc\": \"Receive email notification\",\n  \"inputSchema\": {\
   {\n      \"limit\": {\n        \"title\": \"limit\",\n        \"type\": \"string\",\n
   \       \"description\": \"\",\n        \"default\": \"30\"\n      },\n      \"sender\":
   {\n        \"title\": \"sender\",\n        \"type\": \"string\",\n        \"description\":
-  \"\",\n        \"default\": \"junbin.sun@sap.com\"\n      },\n      \"subject_contains\":
-  {\n        \"title\": \"subject_contains\",\n        \"type\": \"string\",\n        \"description\":
-  \"\"\n      }\n    },\n    \"required\": []\n  },\n  \"outputSchema\": {\n    \"type\":
-  \"object\",\n    \"title\": \"T_RECEIVE_EMAILOutput\",\n    \"properties\": {\n
-  \     \"found_emails\": {\n        \"title\": \"found_emails\",\n        \"type\":
-  \"array\",\n        \"description\": \"\",\n        \"mapKey\": \"emails\"\n      }\n
-  \   },\n    \"required\": [\n      \"found_emails\"\n    ]\n  }\n}"
+  \"\"\n      },\n      \"subject_contains\": {\n        \"title\": \"subject_contains\",\n
+  \       \"type\": \"string\",\n        \"description\": \"\"\n      }\n    },\n
+  \   \"required\": []\n  },\n  \"outputSchema\": {\n    \"type\": \"object\",\n    \"title\":
+  \"T_RECEIVE_EMAILOutput\",\n    \"properties\": {\n      \"found_emails\": {\n        \"title\":
+  \"found_emails\",\n        \"type\": \"array\",\n        \"description\": \"\",\n
+  \       \"mapKey\": \"emails\"\n      }\n    },\n    \"required\": [\n      \"found_emails\"\n
+  \   ]\n  }\n}"
