@@ -255,7 +255,7 @@ An Execution is exposed as an MCP tool when its YAML has `astool: true` and a `m
 
 #### MCP Transport Design Decision
 
-PETP uses **Streamable HTTP** as the sole MCP transport (protocol version 2025-03-26). SSE transport is intentionally not implemented — it was deprecated by the MCP specification in favor of Streamable HTTP, which offers better security (per-request auth headers), infrastructure compatibility (stateless, load-balancer friendly), and simpler single-endpoint design.
+PETP uses **Streamable HTTP** as the sole MCP transport (protocol version 2025-11-25). SSE transport is intentionally not implemented — it was deprecated by the MCP specification in favor of Streamable HTTP, which offers better security (per-request auth headers), infrastructure compatibility (stateless, load-balancer friendly), and simpler single-endpoint design.
 
 #### MCP Server Compliance
 
@@ -290,7 +290,7 @@ Both are kept intentionally. `HTTP_RESPONSE_KEY` is still required for execution
 
 #### MCP Tool Response Format
 
-`content.text` uses concise format: `[tool_name] ok` (success) or `[tool_name] error: msg` (failure). `structuredContent` carries the actual data (success) or `{"error": "msg"}` (failure). Call info (`tool name + params`) is logged server-side only, never in the response payload.
+`content.text` contains the serialized JSON of `structuredContent` on success (per MCP spec SHOULD), or `[tool_name] error: msg` on failure. `structuredContent` carries the same data as a parsed JSON object (success) or `{"error": "msg"}` (failure). This ensures clients that only read `content.text` still get full data. Call info (`tool name + params`) is logged server-side only, never in the response payload.
 
 #### MCP Default Value Fallback
 

@@ -269,7 +269,7 @@ class McpMixin:
             error_msg = structured_content.get("error", "unknown error") if isinstance(structured_content, dict) else "unknown error"
             content_text = f"[{tool_name}] error: {error_msg}"
         else:
-            content_text = f"[{tool_name}] ok"
+            content_text = self._to_mcp_text(structured_content)
         if isinstance(raw_result, dict) and raw_result.get("meta") is not None:
             logging.info("MCP tools/call meta for %s: %s", tool_name,
                          json.dumps(raw_result.get("meta"), ensure_ascii=False, default=str))

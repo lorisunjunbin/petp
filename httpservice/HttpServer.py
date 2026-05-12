@@ -286,7 +286,7 @@ class HttpServer(McpMixin):
         self, handler: HttpRequestHandler, params: dict
     ) -> StreamingResponseData:
         session_id: str = uuid.uuid4().hex + uuid.uuid4().hex
-        protocol_version: str = params.get("params", {}).get("protocolVersion") or "2025-03-26"
+        protocol_version: str = params.get("params", {}).get("protocolVersion") or "2025-11-25"
         return self._mcp_initialize_response(params.get("id"), protocol_version, session_id, "PETP MCP server", handler)
 
     def _mcp_initialized(
@@ -365,7 +365,7 @@ class HttpServer(McpMixin):
                 error_msg = structured_content.get("error", "unknown error") if isinstance(structured_content, dict) else "unknown error"
                 content_text = f"[{action}] error: {error_msg}"
             else:
-                content_text = f"[{action}] ok"
+                content_text = self._to_mcp_text(structured_content)
             if isinstance(result, dict) and result.get("meta") is not None:
                 logging.info("MCP tools/call meta for %s: %s", action,
                              json.dumps(result.get("meta"), ensure_ascii=False, default=str))
