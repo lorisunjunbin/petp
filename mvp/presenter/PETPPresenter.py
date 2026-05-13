@@ -1017,6 +1017,7 @@ class PETPPresenter():
 
             if hasattr(self.execution, 'mcp_desc') and self.execution.mcp_desc is not None:
                 execution_desc.set_execution_name(combo.GetValue())
+                execution_desc.set_mapkey_choices(self._collect_data_chain_keys())
                 execution_desc.SetValue(self.execution.mcp_desc)
             logging.debug(f'[PERF] mcp_desc: {(_t.time()-_t0)*1000:.0f}ms')
 
@@ -2198,6 +2199,24 @@ class PETPPresenter():
         self._push_snapshot()
         self.v.execution_desc.sync_output_params(selected)
         self._update_save_button()
+
+    def _collect_data_chain_keys(self) -> list[str]:
+        keys = set()
+        grid = self.v.taskGrid
+        for row in range(grid.GetNumberRows()):
+            task_input = grid.GetCellValue(row, 1).strip()
+            if not task_input:
+                continue
+            try:
+                params = json.loads(task_input)
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(params, dict):
+                continue
+            for param_name, param_value in params.items():
+                if param_name.endswith('_key') and isinstance(param_value, str) and param_value.strip():
+                    keys.add(param_value.strip())
+        return sorted(keys)
 
     def _show_sync_param_dialog(self, title: str, params: dict, existing: set):
         """Show a checkbox dialog for selecting params to sync.

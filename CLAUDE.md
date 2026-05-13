@@ -290,7 +290,7 @@ Both are kept intentionally. `HTTP_RESPONSE_KEY` is still required for execution
 
 #### MCP Tool Response Format
 
-`content.text` contains the serialized JSON of `structuredContent` on success (per MCP spec SHOULD), or `[tool_name] error: msg` on failure. `structuredContent` carries the same data as a parsed JSON object (success) or `{"error": "msg"}` (failure). This ensures clients that only read `content.text` still get full data. Call info (`tool name + params`) is logged server-side only, never in the response payload.
+`content.text` contains `[tool_name]` prefix followed by the serialized JSON of `structuredContent` on success (per MCP spec SHOULD), or `[tool_name] error: msg` on failure. `structuredContent` carries the same data as a parsed JSON object (success) or `{"error": "msg"}` (failure). This ensures clients that only read `content.text` still get full data. Call info (`tool name + params`) is logged server-side only, never in the response payload.
 
 #### MCP Default Value Fallback
 

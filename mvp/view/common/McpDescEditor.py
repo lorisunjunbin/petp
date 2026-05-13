@@ -32,6 +32,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._on_sync_output_callback = None
         self._on_ai_generate_callback = None
         self._suppress_change = False
+        self._mapkey_choices: list[str] = []
         self._text_snapshot_timer = wx.Timer(self)
         self.Bind(wx.EVT_TIMER, self._on_text_snapshot_timer, self._text_snapshot_timer)
         self._build_ui()
@@ -194,6 +195,12 @@ class McpDescEditor(wx.ScrolledWindow):
 
     def set_on_ai_generate(self, callback):
         self._on_ai_generate_callback = callback
+
+    def set_mapkey_choices(self, choices: list[str]):
+        self._mapkey_choices = choices
+        for row in range(self._output_grid.GetNumberRows()):
+            if choices:
+                self._output_grid.SetCellEditor(row, 2, wx.grid.GridCellChoiceEditor(choices, allowOthers=True))
 
     def sync_input_params(self, params: dict):
         existing = {self._input_grid.GetCellValue(r, 0).strip()
@@ -391,6 +398,8 @@ class McpDescEditor(wx.ScrolledWindow):
         grid.SetCellValue(row, 0, name)
         grid.SetCellEditor(row, 1, wx.grid.GridCellChoiceEditor(_TYPE_CHOICES))
         grid.SetCellValue(row, 1, ptype)
+        if self._mapkey_choices:
+            grid.SetCellEditor(row, 2, wx.grid.GridCellChoiceEditor(self._mapkey_choices, allowOthers=True))
         grid.SetCellValue(row, 2, map_key)
         grid.SetCellValue(row, 3, desc)
         self._fit_grid_height(grid)
