@@ -27,6 +27,7 @@ testcoverage/
 
 # ── Resources that are not needed at runtime ──────────────────────────────────
 resources/
+!resources/sqlite/
 webdriver/
 
 # ── IDE / editor ──────────────────────────────────────────────────────────────

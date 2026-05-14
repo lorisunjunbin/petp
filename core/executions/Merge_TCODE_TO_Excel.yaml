@@ -25,7 +25,7 @@ list:
   skipped: false
   type: COLLECTION_MERGE
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_rdir()}/merged.xlsx", "value_key": "merged_collection",
+  input: '{"file_path": "{self.get_tdir()}/merged.xlsx", "value_key": "merged_collection",
     "data_key": "final_file_path"}'
   skipped: false
   type: WRITE_TO_EXCEL

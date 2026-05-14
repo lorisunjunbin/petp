@@ -5,9 +5,7 @@ list:
 - !!python/object:core.task.Task
   input: '{"smtp_host": "smtp.qq.com", "smtp_port": 587, "imap_host": "imap.qq.com",
     "imap_port": 993, "usr_pwd": "{self.decrypt(\"As8KnqL4E0A7vhRK3GwJFw==*4zJdJUYPQ7c45iMKvi1bSw==*wd3Leu5PzEwR+o6o4GMXIw==*9dp/4zOjkRON4wN57LjVJg==\")}",
-    "usr_name": "{self.decrypt(\"T3bMrJJgOEuQzy0Z4gQ=*VAp55ievnHZBECGh7YYSFA==*xTnhTFt3nSzILcmI2buDoQ==*nohy5h0ZaDc1gJTxmSb85A==\")}",
-    "to": "junbin.sun@sap.com", "cc": "", "subject": "Email notification", "content":
-    "test email content", "attachments": "{self.get_tdir()}{os.sep}excel{os.sep}test.xlsx"}'
+    "usr_name": "{self.decrypt(\"T3bMrJJgOEuQzy0Z4gQ=*VAp55ievnHZBECGh7YYSFA==*xTnhTFt3nSzILcmI2buDoQ==*nohy5h0ZaDc1gJTxmSb85A==\")}"}'
   skipped: false
   type: INITIAL_PARAMS
 - !!python/object:core.task.Task

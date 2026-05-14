@@ -1,7 +1,7 @@
 import logging
 
 from core.processor import Processor
-from httpservice.HttpServer import HttpRequestHandler
+from httpservice.constants import HTTP_RESPONSE_KEY
 
 
 class HTTP_RESPONSE_KEYProcessor(Processor):
@@ -23,4 +23,4 @@ class HTTP_RESPONSE_KEYProcessor(Processor):
     def process(self):
         key = self.expression2str(self.get_param('http_response_key'))
         logging.debug('HTTP response key set to: %s', key)
-        self.populate_data(HttpRequestHandler.get_response_key(), key)
+        self.populate_data(HTTP_RESPONSE_KEY, key)

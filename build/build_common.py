@@ -40,7 +40,8 @@ EXECUTIONS_RELEASED = [
     'T_SEND_EMAIL.yaml',
     'T_RECEIVE_EMAIL.yaml',
     'T_DAILY_ALMANAC.yaml',
-    'T_WEATHER_QUERY.yaml'
+    'T_WEATHER_QUERY.yaml',
+    'T_SEACH_TCODE.yaml'
 ]
 
 KNOWN_PROBLEMATIC_MODULES = [

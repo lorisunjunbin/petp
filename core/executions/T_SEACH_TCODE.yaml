@@ -17,9 +17,9 @@ list:
   skipped: false
   type: CHECK_PARAM
 - !!python/object:core.task.Task
-  input: '{"database": "/Users/i335607/MyProject/PycharmProjects/tcodesearch/datastore/TcodeLiteStore.db",
-    "sql": "select TCODE,TCODE_DESC from tcode where TCODE like ?", "data_key": "dataset_of_sqlite",
-    "param": "%{self.get_data(\"tcode\")}%", "type": "Sqlite"}'
+  input: '{"database": "{p.get_rdir()}/sqlite/TcodeLiteStore.db", "sql": "select TCODE,TCODE_DESC
+    from tcode where TCODE like ?", "data_key": "dataset_of_sqlite", "param": "%{self.get_data(\"tcode\")}%",
+    "type": "Sqlite"}'
   skipped: false
   type: DB_ACCESS
 - !!python/object:core.task.Task

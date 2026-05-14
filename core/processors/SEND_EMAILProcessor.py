@@ -94,8 +94,8 @@ class SEND_EMAILProcessor(Processor):
             use_ssl = self._as_yes(self.explain_param_or_default('use_ssl', 'no'))
             timeout = float(self.explain_param_or_default('timeout', '30'))
 
-            legacy_attachment = self.explain_param_or_default('attachment', '')
-            attachments = self.explain_param_or_default('attachments', '')
+            legacy_attachment = self.explain_optional('attachment', '')
+            attachments = self.explain_optional('attachments', '')
             attachment_paths = self._resolve_attachments(legacy_attachment, attachments)
 
             if not smtp:

@@ -203,13 +203,8 @@ class RECEIVE_EMAILProcessor(Processor):
             pwd = self.explain_param_or_default('pwd', '').strip()
             mailbox = self.explain_param_or_default('mailbox', 'INBOX').strip() or 'INBOX'
             criteria = self.explain_param_or_default('criteria', 'UNSEEN')
-            sender = self.explain_param_or_default('sender', '').strip()
-            subject_contains = self.explain_param_or_default('subject_contains', '').strip()
-            # Treat unresolved expressions as empty (e.g. "{sender}" when key not in data_chain)
-            if sender.startswith('{') and sender.endswith('}'):
-                sender = ''
-            if subject_contains.startswith('{') and subject_contains.endswith('}'):
-                subject_contains = ''
+            sender = self.explain_optional('sender', '').strip()
+            subject_contains = self.explain_optional('subject_contains', '').strip()
             limit = self.explain_param_as_int('limit', 10)
             use_ssl = self._as_yes(self.explain_param_or_default('use_ssl', 'yes'))
             mark_seen = self._as_yes(self.explain_param_or_default('mark_seen', 'yes'))

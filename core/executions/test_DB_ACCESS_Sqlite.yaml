@@ -9,8 +9,8 @@ list:
   type: DB_ACCESS
 - !!python/object:core.task.Task
   input: '{"title": "\u4ece sqlite DB \u627e\u5230\u6570\u636e", "msg": "{self.get_data(\"dataset_sqlite\")}",
-    "skipped": "yes"}'
-  skipped: true
+    "skipped": "no"}'
+  skipped: false
   type: SHOW_RESULT
 loops: []
 mcp_desc: "{\n  \"desc\": \"Execute sql to insert or find data from database\",\n

@@ -182,7 +182,22 @@ class Processor:
             else False
 
     def explain_param_or_default(self, name, default=''):
+        # Use when the param may legitimately contain a dynamic expression like "{var}" that
+        # should be evaluated against data_chain. If the key is missing from data_chain,
+        # expression2str returns the literal string "{var}" — callers that need to distinguish
+        # "unresolved" from "intentional value" should use explain_optional instead.
         return self.expression2str(self.get_param(name)) if self.has_param(name) else default
+
+    def explain_optional(self, name, default=''):
+        # Use for truly optional params where "{var}" appearing in the result always means
+        # the caller forgot to pass the value (i.e. it was never resolved from data_chain).
+        # Examples: attachment path, email filter fields, CC/BCC addresses.
+        # Do NOT use when the param value itself is expected to be a dynamic expression —
+        # e.g. a template string or a computed path that the user deliberately wrote as "{x}".
+        value = self.explain_param_or_default(name, default)
+        if isinstance(value, str) and value.startswith('{') and value.endswith('}'):
+            return default
+        return value
 
     def explain_param_as_int(self, name, default=0):
         return int(self.expression2str(self.get_param(name))) if self.has_param(name) else default

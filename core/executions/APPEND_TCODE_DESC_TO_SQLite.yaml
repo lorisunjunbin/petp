@@ -3,7 +3,7 @@ astool: false
 execution: APPEND_TCODE_DESC_TO_SQLite
 list:
 - !!python/object:core.task.Task
-  input: '{"file_path": "{self.get_rdir()}/merged.xlsx", "fields": "", "sheet_index":
+  input: '{"file_path": "{self.get_tdir()}/merged.xlsx", "fields": "", "sheet_index":
     0, "end_at": "5", "skip_first": "no", "data_key": "TCode_DESC_In_Chinese"}'
   skipped: false
   type: READ_EXCEL
