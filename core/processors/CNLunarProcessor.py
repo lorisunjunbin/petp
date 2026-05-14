@@ -23,10 +23,10 @@ class CNLunarProcessor(Processor):
         return super().CATE_DATA_PROCESSING
 
     def process(self):
-        date_str = self.expression2str(self.get_param('date'))
+        date_str = self.explain_optional('date', '')
         data_key = self.expression2str(self.get_param('data_key'))
 
-        if date_str and not date_str.startswith('{'):
+        if date_str:
             date = datetime.datetime.strptime(date_str, '%Y-%m-%d')
         else:
             date = datetime.datetime.now()
