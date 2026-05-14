@@ -32,10 +32,11 @@ class CNLunarProcessor(Processor):
             date = datetime.datetime.now()
 
         a = cnlunar.Lunar(date)
+        month_cn = a.lunarMonthCn.replace('大', '').replace('小', '')
         result = {
             "date": date.strftime("%Y-%m-%d"),
-            "lunar": a.lunarYearCn + a.lunarMonthCn + a.lunarDayCn,
-            "ganzhi": a.year8Char + a.month8Char + a.day8Char,
+            "lunar": a.lunarYearCn + month_cn + a.lunarDayCn,
+            "ganzhi": a.year8Char + '年 ' + a.month8Char + '月 ' + a.day8Char + '日',
             "zodiac": a.chineseYearZodiac,
             "solar_term": a.todaySolarTerms if a.todaySolarTerms != "无" else "",
             "yi": "、".join(a.goodThing) if a.goodThing else "",
