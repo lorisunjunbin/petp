@@ -18,41 +18,41 @@ Full reference for Desktop, Background, and Docker modes including helper script
 
 ```bash
 # Start as persistent HTTP / MCP service (port 8866)
-python PETP_backgroud.py
+python PETP_background.py
 
 # Run one execution then exit (no HTTP server)
-python PETP_backgroud.py --run-execution ENDECODER --no-http
+python PETP_background.py --run-execution ENDECODER --no-http
 
 # Run one pipeline then exit
-python PETP_backgroud.py --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
+python PETP_background.py --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 
 # Pass initial data (JSON) into the execution
-python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 
 # Run Selenium tasks in headless mode (no visible browser window)
-python PETP_backgroud.py --run-execution MY_SELENIUM_EXEC --headless --no-http
+python PETP_background.py --run-execution MY_SELENIUM_EXEC --headless --no-http
 
 # Override UI policy and log level
-python PETP_backgroud.py --ui-policy abort --log-level DEBUG
+python PETP_background.py --ui-policy abort --log-level DEBUG
 
 # Custom HTTP port and auth token
-python PETP_backgroud.py --http-port 9090 --http-token my_secret_token
+python PETP_background.py --http-port 9090 --http-token my_secret_token
 
 # Combine: headless + custom port + execution on startup
-python PETP_backgroud.py --headless --http-port 9090 --run-execution STARTUP_TASK
+python PETP_background.py --headless --http-port 9090 --run-execution STARTUP_TASK
 ```
 
 ### Process Management
 
 ```bash
 # Start detached from terminal (survives terminal close)
-nohup python PETP_backgroud.py > petp_bg.log 2>&1 &
+nohup python PETP_background.py > petp_bg.log 2>&1 &
 
 # Start detached with headless Selenium
-nohup python PETP_backgroud.py --headless > petp_bg.log 2>&1 &
+nohup python PETP_background.py --headless > petp_bg.log 2>&1 &
 
 # Stop the running background instance (reads PID file, sends SIGTERM)
-python PETP_backgroud.py --stop
+python PETP_background.py --stop
 ```
 
 ---
@@ -182,11 +182,11 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 ./build/docker_build.sh --push yourrepo/petp-background:1.0
 
 # Docker with execution on startup
-docker run --rm petp-background:amd64-local python PETP_backgroud.py --run-execution MY_EXEC --no-http
+docker run --rm petp-background:amd64-local python PETP_background.py --run-execution MY_EXEC --no-http
 
 # Docker with custom port and initial data
 docker run --rm -p 9090:9090 petp-background:amd64-local \
-  python PETP_backgroud.py --http-port 9090 --run-execution MY_EXEC --init-data '{"env":"prod"}'
+  python PETP_background.py --http-port 9090 --run-execution MY_EXEC --init-data '{"env":"prod"}'
 ```
 
 Docker auto-enables headless mode (`PETP_HEADLESS=true` in Dockerfile).

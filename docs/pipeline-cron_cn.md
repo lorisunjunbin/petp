@@ -54,13 +54,13 @@ list:
 # GUI — 通过复选框 + cron 表达式输入管理，持久化到 YAML
 
 # 后台 — 运行一次 Pipeline
-python PETP_backgroud.py --run-pipeline DAILY_REPORT --no-http
+python PETP_background.py --run-pipeline DAILY_REPORT --no-http
 
 # 后台 — 带初始数据运行
-python PETP_backgroud.py --run-pipeline DAILY_REPORT --init-data '{"to":"ops@example.com"}' --no-http
+python PETP_background.py --run-pipeline DAILY_REPORT --init-data '{"to":"ops@example.com"}' --no-http
 
 # 后台 — 持久 HTTP 服务（通过 POST /petp/exec 触发 Pipeline）
-python PETP_backgroud.py
+python PETP_background.py
 
 # Docker
 docker run --rm -p 8866:8866 petp-background:amd64-local

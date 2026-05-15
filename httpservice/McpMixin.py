@@ -1,7 +1,7 @@
 import json
 import logging
 import uuid
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError, as_completed
 from queue import SimpleQueue
 from typing import Any, Callable, Generator, Optional
 
@@ -375,30 +375,62 @@ class McpMixin:
     def _handle_mcp_batch(self, handler: 'HttpRequestHandler', batch: list,
                            single_handler: Callable) -> StreamingResponseData:
         session_id = self._extract_session_id(handler)
-        responses: list[dict] = []
-        for item in batch:
+        responses: list[dict] = [None] * len(batch)
+        tool_call_indices: list[int] = []
+
+        for i, item in enumerate(batch):
             if not isinstance(item, dict):
-                responses.append({
+                responses[i] = {
                     "jsonrpc": "2.0", "id": None,
                     "error": {"code": -32600, "message": "Invalid Request"},
-                })
+                }
                 continue
-            result = single_handler(handler, item)
-            if isinstance(result, StreamingResponseData):
-                for chunk in result.iterator:
-                    if chunk.startswith("event: message\ndata: "):
-                        data_str = chunk.split("data: ", 1)[1].rstrip("\n")
-                        try:
-                            parsed = json.loads(data_str)
-                            if "id" in parsed:
-                                responses.append(parsed)
-                        except json.JSONDecodeError:
-                            pass
-            elif isinstance(result, dict):
-                responses.append(result)
+            if item.get("method") == "tools/call":
+                tool_call_indices.append(i)
+            else:
+                result = single_handler(handler, item)
+                responses[i] = self._extract_response_from_result(result)
 
-        resp_payload = responses if len(responses) > 1 else (responses[0] if responses else {})
+        if tool_call_indices:
+            futures = {}
+            for i in tool_call_indices:
+                future = self._get_executor().submit(self._execute_batch_tool_call, handler, batch[i], single_handler)
+                futures[future] = i
+            for future in as_completed(futures):
+                i = futures[future]
+                try:
+                    responses[i] = future.result()
+                except Exception as e:
+                    responses[i] = {
+                        "jsonrpc": "2.0", "id": batch[i].get("id"),
+                        "error": {"code": -32603, "message": str(e)},
+                    }
+
+        final = [r for r in responses if r is not None]
+        resp_payload = final if len(final) > 1 else (final[0] if final else {})
         return self._single_sse_response(resp_payload, session_id)
+
+    def _execute_batch_tool_call(self, handler: 'HttpRequestHandler', item: dict,
+                                  single_handler: Callable) -> dict:
+        result = single_handler(handler, item)
+        return self._extract_response_from_result(result)
+
+    @staticmethod
+    def _extract_response_from_result(result) -> dict:
+        if isinstance(result, StreamingResponseData):
+            for chunk in result.iterator:
+                if chunk.startswith("event: message\ndata: "):
+                    data_str = chunk.split("data: ", 1)[1].rstrip("\n")
+                    try:
+                        parsed = json.loads(data_str)
+                        if "id" in parsed:
+                            return parsed
+                    except json.JSONDecodeError:
+                        pass
+            return {}
+        elif isinstance(result, dict):
+            return result
+        return {}
 
     # ------------------------------------------------------------------
     # MCP protocol frames

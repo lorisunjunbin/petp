@@ -17,9 +17,9 @@ list:
   skipped: false
   type: HTTP_REQUEST
 - !!python/object:core.task.Task
-  input: '{"skipped": "yes", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f\uff01\uff01",
+  input: '{"skipped": "no", "title": "\u6765\u81ea\u4e2d\u56fd\u5730\u9707\u7f51\u7684\u8fd1\u671f\u5730\u9707\u4fe1\u606f\uff01\uff01",
     "msg": "{earth_quake_info}"}'
-  skipped: true
+  skipped: false
   type: SHOW_RESULT
 loops: []
 mcp_desc: "{\n  \"desc\": \"inquire about the information of recent earthquakes that

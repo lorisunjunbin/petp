@@ -86,7 +86,7 @@ uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-win_amd64.whl
 
 或通过 PETP 自动下载（无需预装 wxPython）：
 ```bash
-python PETP_backgroud.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
+python PETP_background.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
 ```
 
 </details>
@@ -117,7 +117,7 @@ uv pip install -r requirements/core.txt -r requirements/ssh-sftp.txt -r requirem
 
 ```bash
 python PETP.py          # GUI 模式
-python PETP_backgroud.py   # 无头服务（端口 8866）
+python PETP_background.py   # 无头服务（端口 8866）
 ```
 
 ---
@@ -170,13 +170,13 @@ python PETP_backgroud.py   # 无头服务（端口 8866）
 
 ```bash
 # 运行单个 Execution 后退出
-python PETP_backgroud.py --run-execution ENDECODER --no-http
+python PETP_background.py --run-execution ENDECODER --no-http
 
 # 运行 Pipeline
-python PETP_backgroud.py --run-pipeline DAILY_REPORT --no-http
+python PETP_background.py --run-pipeline DAILY_REPORT --no-http
 
 # 传入数据
-python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 ```
 
 <details>

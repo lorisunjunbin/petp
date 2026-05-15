@@ -54,13 +54,13 @@ list:
 # GUI — cron managed via checkbox + expression input, persisted in YAML
 
 # Background — run a pipeline once
-python PETP_backgroud.py --run-pipeline DAILY_REPORT --no-http
+python PETP_background.py --run-pipeline DAILY_REPORT --no-http
 
 # Background — run with initial data
-python PETP_backgroud.py --run-pipeline DAILY_REPORT --init-data '{"to":"ops@example.com"}' --no-http
+python PETP_background.py --run-pipeline DAILY_REPORT --init-data '{"to":"ops@example.com"}' --no-http
 
 # Background — persistent HTTP service (pipelines triggered via POST /petp/exec)
-python PETP_backgroud.py
+python PETP_background.py
 
 # Docker
 docker run --rm -p 8866:8866 petp-background:amd64-local

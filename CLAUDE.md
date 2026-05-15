@@ -92,16 +92,16 @@ python PETP.py
 
 ### Background / Headless
 ```bash
-python PETP_backgroud.py
+python PETP_background.py
 
 # Run one execution and exit (no HTTP server)
-python PETP_backgroud.py --run-execution ENDECODER --no-http
+python PETP_background.py --run-execution ENDECODER --no-http
 
 # Run one pipeline and exit
-python PETP_backgroud.py --run-pipeline MY_PIPELINE --no-http
+python PETP_background.py --run-pipeline MY_PIPELINE --no-http
 
 # Pass initial data as JSON
-python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 ```
 
 ### Docker (headless)

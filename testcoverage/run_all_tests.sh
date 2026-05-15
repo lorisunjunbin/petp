@@ -55,7 +55,8 @@ run_pytest "pytest suites" \
     testcoverage/test_if_else.py \
     testcoverage/test_loop_state.py \
     testcoverage/test_processors.py \
-    testcoverage/test_progress_and_warmup.py
+    testcoverage/test_progress_and_warmup.py \
+    testcoverage/test_mcp_batch.py
 
 echo ""
 echo "=============================="

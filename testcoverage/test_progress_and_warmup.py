@@ -523,3 +523,191 @@ class TestOutputSchemaCache:
 
         schema = mixin._get_output_schema("MISSING_TOOL", getter)
         assert schema is None
+
+
+class TestExpressionFastPath:
+    """Tests for expression2str static string fast path."""
+
+    def test_static_string_returns_immediately(self):
+        """Strings without '{' should return unchanged without eval."""
+        from core.processor import Processor
+        proc = Processor.get_processor_by_type("ENCODE_DECODE_STR")
+        from core.task import Task
+        task = Task("ENCODE_DECODE_STR", '{"source":"hello","action":"base64_encode","data_key":"result"}')
+        task.data_chain = {"some_key": "some_value"}
+        proc.set_task(task)
+
+        assert proc.expression2str("xpath") == "xpath"
+        assert proc.expression2str("https://example.com/api") == "https://example.com/api"
+        assert proc.expression2str("yes") == "yes"
+        assert proc.expression2str("") == ""
+
+    def test_dynamic_expression_still_works(self):
+        """Strings with '{' should still be evaluated."""
+        from core.processor import Processor
+        proc = Processor.get_processor_by_type("ENCODE_DECODE_STR")
+        from core.task import Task
+        task = Task("ENCODE_DECODE_STR", '{"source":"test","action":"base64_encode","data_key":"result"}')
+        task.data_chain = {"name": "world", "count": 42}
+        proc.set_task(task)
+
+        assert proc.expression2str("{name}") == "world"
+        assert proc.expression2str("hello {name}") == "hello world"
+        assert proc.expression2str("{count}") == "42"
+
+    def test_none_returns_none(self):
+        """None input should return None."""
+        from core.processor import Processor
+        proc = Processor.get_processor_by_type("ENCODE_DECODE_STR")
+        from core.task import Task
+        task = Task("ENCODE_DECODE_STR", '{"source":"x","action":"base64_encode","data_key":"r"}')
+        task.data_chain = {}
+        proc.set_task(task)
+
+        assert proc.expression2str(None) is None
+
+    def test_numeric_returns_string(self):
+        """Numeric input should return string representation."""
+        from core.processor import Processor
+        proc = Processor.get_processor_by_type("ENCODE_DECODE_STR")
+        from core.task import Task
+        task = Task("ENCODE_DECODE_STR", '{"source":"x","action":"base64_encode","data_key":"r"}')
+        task.data_chain = {}
+        proc.set_task(task)
+
+        assert proc.expression2str(42) == "42"
+        assert proc.expression2str(3.14) == "3.14"
+
+
+class TestBatchParallelExecution:
+    """Tests for MCP batch parallel tools/call execution."""
+
+    def test_non_tool_calls_processed_sequentially(self):
+        """Non-tools/call requests in batch should process normally."""
+        from httpservice.McpMixin import McpMixin
+        from httpservice.handlers.HttpRequestHandler import StreamingResponseData
+        from unittest.mock import MagicMock
+
+        mixin = McpMixin()
+        handler = MagicMock()
+        handler.headers = {}
+
+        results = {}
+
+        def mock_handler(h, item):
+            method = item.get("method")
+            req_id = item.get("id")
+            if method == "tools/list":
+                results[req_id] = True
+                return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": []}}
+            return {"jsonrpc": "2.0", "id": req_id, "result": {}}
+
+        batch = [
+            {"jsonrpc": "2.0", "id": "1", "method": "tools/list"},
+            {"jsonrpc": "2.0", "id": "2", "method": "tools/list"},
+        ]
+
+        resp = mixin._handle_mcp_batch(handler, batch, mock_handler)
+        assert isinstance(resp, StreamingResponseData)
+        # Both should have been handled
+        assert results.get("1") is True
+        assert results.get("2") is True
+        mixin._shutdown_executor()
+
+    def test_tool_calls_run_in_parallel(self):
+        """Multiple tools/call in batch should run concurrently."""
+        from httpservice.McpMixin import McpMixin
+        from httpservice.handlers.HttpRequestHandler import StreamingResponseData
+        from unittest.mock import MagicMock
+        import time as _time
+
+        mixin = McpMixin()
+        handler = MagicMock()
+        handler.headers = {}
+
+        start_times = {}
+        end_times = {}
+
+        def mock_handler(h, item):
+            req_id = item.get("id")
+            start_times[req_id] = _time.time()
+            _time.sleep(0.3)
+            end_times[req_id] = _time.time()
+
+            def gen():
+                yield f'event: message\ndata: {{"jsonrpc":"2.0","id":"{req_id}","result":{{"content":[]}}}}\n\n'
+            return StreamingResponseData(gen(), {}, "text/event-stream", 200)
+
+        batch = [
+            {"jsonrpc": "2.0", "id": "a", "method": "tools/call", "params": {"name": "T1", "arguments": {}}},
+            {"jsonrpc": "2.0", "id": "b", "method": "tools/call", "params": {"name": "T2", "arguments": {}}},
+            {"jsonrpc": "2.0", "id": "c", "method": "tools/call", "params": {"name": "T3", "arguments": {}}},
+        ]
+
+        t0 = _time.time()
+        resp = mixin._handle_mcp_batch(handler, batch, mock_handler)
+        total_time = _time.time() - t0
+
+        # If sequential: ~0.9s. If parallel: ~0.3s. Allow margin.
+        assert total_time < 0.7, f"Batch took {total_time:.2f}s — should be parallel (~0.3s)"
+        mixin._shutdown_executor()
+
+    def test_invalid_items_in_batch(self):
+        """Invalid items should return error without breaking batch."""
+        from httpservice.McpMixin import McpMixin
+        from unittest.mock import MagicMock
+
+        mixin = McpMixin()
+        handler = MagicMock()
+        handler.headers = {}
+
+        def mock_handler(h, item):
+            return {"jsonrpc": "2.0", "id": item.get("id"), "result": {"ok": True}}
+
+        batch = [
+            "not a dict",
+            {"jsonrpc": "2.0", "id": "valid", "method": "tools/list"},
+        ]
+
+        resp = mixin._handle_mcp_batch(handler, batch, mock_handler)
+        # Should handle both: error for invalid, result for valid
+        chunks = list(resp.iterator)
+        assert len(chunks) > 0
+        mixin._shutdown_executor()
+
+    def test_mixed_batch_tool_and_non_tool(self):
+        """Batch with mix of tools/call and other methods."""
+        from httpservice.McpMixin import McpMixin
+        from httpservice.handlers.HttpRequestHandler import StreamingResponseData
+        from unittest.mock import MagicMock
+        import time as _time
+
+        mixin = McpMixin()
+        handler = MagicMock()
+        handler.headers = {}
+
+        call_order = []
+
+        def mock_handler(h, item):
+            req_id = item.get("id")
+            method = item.get("method")
+            if method == "tools/call":
+                _time.sleep(0.2)
+                call_order.append(req_id)
+                def gen():
+                    yield f'event: message\ndata: {{"jsonrpc":"2.0","id":"{req_id}","result":{{"content":[]}}}}\n\n'
+                return StreamingResponseData(gen(), {}, "text/event-stream", 200)
+            else:
+                call_order.append(req_id)
+                return {"jsonrpc": "2.0", "id": req_id, "result": {"tools": []}}
+
+        batch = [
+            {"jsonrpc": "2.0", "id": "init", "method": "tools/list"},
+            {"jsonrpc": "2.0", "id": "t1", "method": "tools/call", "params": {"name": "A", "arguments": {}}},
+            {"jsonrpc": "2.0", "id": "t2", "method": "tools/call", "params": {"name": "B", "arguments": {}}},
+        ]
+
+        resp = mixin._handle_mcp_batch(handler, batch, mock_handler)
+        # Non-tool call (init) should be processed first (sequentially before parallel tools)
+        assert "init" in call_order
+        mixin._shutdown_executor()

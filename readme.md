@@ -120,7 +120,7 @@ uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-win_amd64.whl
 
 Or auto-download via PETP (no wxPython needed):
 ```bash
-python PETP_backgroud.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
+python PETP_background.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
 ```
 
 </details>
@@ -151,7 +151,7 @@ See `requirements/` directory for all available groups: `ai-deepseek.txt`, `ai-g
 
 ```bash
 python PETP.py          # GUI
-python PETP_backgroud.py   # Headless service (port 8866)
+python PETP_background.py   # Headless service (port 8866)
 ```
 
 ---
@@ -204,13 +204,13 @@ python PETP_backgroud.py   # Headless service (port 8866)
 
 ```bash
 # Run one execution and exit
-python PETP_backgroud.py --run-execution ENDECODER --no-http
+python PETP_background.py --run-execution ENDECODER --no-http
 
 # Run pipeline on schedule (cron managed in GUI or YAML)
-python PETP_backgroud.py --run-pipeline DAILY_REPORT --no-http
+python PETP_background.py --run-pipeline DAILY_REPORT --no-http
 
 # Pass data into execution
-python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 ```
 
 <details>

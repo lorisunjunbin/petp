@@ -330,6 +330,9 @@ class Processor:
         if isinstance(expression, (int, float)):
             return str(expression)
 
+        if isinstance(expression, str) and '{' not in expression:
+            return expression
+
         local_vars = {'self': self, 'os': os, 'json': json, 'p':self}
         try:
             if self.task and self.task.data_chain:

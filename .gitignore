@@ -57,6 +57,16 @@ htmlcov/
 
 # mypy
 .mypy_cache/
+
+# Editor backups
+*.bak
+*~
+*.swp
+
+# Snagit source files
+*.snagx
+
+# Project-specific
 /CLAUDE.md
 /webapp/CLAUDE.md
 /AGENT.md

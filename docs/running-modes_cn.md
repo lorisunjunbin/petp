@@ -18,41 +18,41 @@
 
 ```bash
 # 启动为持久 HTTP/MCP 服务（端口 8866）
-python PETP_backgroud.py
+python PETP_background.py
 
 # 运行单个 Execution 后退出（不启动 HTTP 服务）
-python PETP_backgroud.py --run-execution ENDECODER --no-http
+python PETP_background.py --run-execution ENDECODER --no-http
 
 # 运行单个 Pipeline 后退出
-python PETP_backgroud.py --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
+python PETP_background.py --run-pipeline OOTB_TEST_PIPLINE_BG --no-http
 
 # 传入初始数据（JSON）
-python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
 
 # Selenium 无头模式运行（不显示浏览器窗口）
-python PETP_backgroud.py --run-execution MY_SELENIUM_EXEC --headless --no-http
+python PETP_background.py --run-execution MY_SELENIUM_EXEC --headless --no-http
 
 # 覆盖 UI 策略和日志级别
-python PETP_backgroud.py --ui-policy abort --log-level DEBUG
+python PETP_background.py --ui-policy abort --log-level DEBUG
 
 # 自定义 HTTP 端口和认证令牌
-python PETP_backgroud.py --http-port 9090 --http-token my_secret_token
+python PETP_background.py --http-port 9090 --http-token my_secret_token
 
 # 组合：无头 + 自定义端口 + 启动时运行
-python PETP_backgroud.py --headless --http-port 9090 --run-execution STARTUP_TASK
+python PETP_background.py --headless --http-port 9090 --run-execution STARTUP_TASK
 ```
 
 ### 进程管理
 
 ```bash
 # 后台运行（终端关闭后继续）
-nohup python PETP_backgroud.py > petp_bg.log 2>&1 &
+nohup python PETP_background.py > petp_bg.log 2>&1 &
 
 # 后台运行 + 无头 Selenium
-nohup python PETP_backgroud.py --headless > petp_bg.log 2>&1 &
+nohup python PETP_background.py --headless > petp_bg.log 2>&1 &
 
 # 停止运行中的后台实例（读取 PID 文件，发送 SIGTERM）
-python PETP_backgroud.py --stop
+python PETP_background.py --stop
 ```
 
 ---
@@ -182,11 +182,11 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 ./build/docker_build.sh --push yourrepo/petp-background:1.0
 
 # 启动时运行 Execution
-docker run --rm petp-background:amd64-local python PETP_backgroud.py --run-execution MY_EXEC --no-http
+docker run --rm petp-background:amd64-local python PETP_background.py --run-execution MY_EXEC --no-http
 
 # 自定义端口和初始数据
 docker run --rm -p 9090:9090 petp-background:amd64-local \
-  python PETP_backgroud.py --http-port 9090 --run-execution MY_EXEC --init-data '{"env":"prod"}'
+  python PETP_background.py --http-port 9090 --run-execution MY_EXEC --init-data '{"env":"prod"}'
 ```
 
 Docker 自动启用无头模式（Dockerfile 中 `PETP_HEADLESS=true`）。

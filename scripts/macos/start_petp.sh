@@ -31,7 +31,7 @@ case "$mode" in
     ;;
   stop)
     cd "$ROOT_DIR"
-    exec "$PYTHON_BIN" PETP_backgroud.py --stop
+    exec "$PYTHON_BIN" PETP_background.py --stop
     ;;
   -h|--help|help)
     cat <<'EOF'

@@ -349,8 +349,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": "模块化依赖管理（<code>requirements/</code> 分组）；<code>uv</code> 支持。",
     },
     "cl_2026_04_nogui": {
-        "en": "NO_GUI mode, <code>PETP_backgroud.py</code>, Docker support.",
-        "zh": "无 GUI 模式、<code>PETP_backgroud.py</code>、Docker 支持。",
+        "en": "NO_GUI mode, <code>PETP_background.py</code>, Docker support.",
+        "zh": "无 GUI 模式、<code>PETP_background.py</code>、Docker 支持。",
     },
     "cl_2026_04_toolbar": {
         "en": "Toolbar: append <code>date_str</code>, <code>os.sep</code>; Skip Task checkbox.",
