@@ -192,6 +192,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_05_mcp_perf": {
+        "en": "<strong>MCP Server Performance</strong>: shared ThreadPoolExecutor (eliminates per-request pool creation); static-mode execution cache (BG/Docker skips filesystem stat/scan entirely); outputSchema parse cache; <code>_public_data</code> lazy serialization via <code>json.dumps</code> replacing recursive checks; Processor class warm-up on server start; real-time task-level SSE progress notifications during <code>tools/call</code>.",
+        "zh": "<strong>MCP 服务端性能优化</strong>：共享 ThreadPoolExecutor（消除每次请求创建线程池）；静态模式 Execution 缓存（BG/Docker 完全跳过文件系统 stat/扫描）；outputSchema 解析缓存；<code>_public_data</code> 惰性序列化（<code>json.dumps</code> 替代递归检查）；服务启动时 Processor 类预热；<code>tools/call</code> 执行期间实时任务级 SSE 进度通知。",
+    },
+    "cl_2026_05_global_cache": {
+        "en": "<strong>Global Cache</strong>: <code>CHECK_GLOBAL_CACHE</code> / <code>POPULATE_GLOBAL_CACHE</code> processors — in-memory cross-execution cache with TTL expiry; new <code>__end_execution</code> engine signal for early termination; thread-safe storage with write-time eviction.",
+        "zh": "<strong>全局缓存</strong>：<code>CHECK_GLOBAL_CACHE</code> / <code>POPULATE_GLOBAL_CACHE</code> 处理器——内存级跨 Execution 缓存，支持 TTL 过期；新增 <code>__end_execution</code> 引擎信号用于提前终止；线程安全存储，写入时自动淘汰。",
+    },
+    "cl_2026_05_macos_externalize": {
+        "en": "<strong>macOS .app data externalization</strong>: user-mutable data (executions, pipelines, config) stored in <code>~/.petp/</code>; incremental sync on upgrade (new files copied, conflicts get timestamped variant); config key merge for new settings; execution version diff dialog.",
+        "zh": "<strong>macOS .app 数据外置</strong>：用户可变数据（执行、流水线、配置）存储于 <code>~/.petp/</code>；升级时增量同步（新文件复制，冲突保留时间戳副本）；配置项合并新设置；Execution 版本对比对话框。",
+    },
     "cl_2026_05_mcp_live_tools": {
         "en": "<strong>Built-in MCP Tools</strong>: <code>T_WEATHER_QUERY</code> — real-time weather via wttr.in (city input); <code>T_DAILY_ALMANAC</code> — Chinese almanac + holiday info via cnlunar &amp; holiday-cn. Both exposed as MCP tools callable by any AI agent.",
         "zh": "<strong>内置 MCP 工具</strong>：<code>T_WEATHER_QUERY</code>——实时天气查询（wttr.in，输入城市）；<code>T_DAILY_ALMANAC</code>——中国黄历 + 节假日信息（cnlunar &amp; holiday-cn）。均已作为 MCP 工具开放，可被任意 AI Agent 调用。",

@@ -6,6 +6,7 @@ import uuid
 import weakref
 from collections import OrderedDict
 from http.server import ThreadingHTTPServer
+from queue import SimpleQueue
 from typing import Any, Callable, Generator, Optional, Union, cast
 
 from core.runtime.BackgroundRuntime import BackgroundRuntime
@@ -222,10 +223,11 @@ class BackgroundHttpServer(McpMixin):
                     "params": {"level": "info", "data": info},
                 })
 
+                progress_queue = SimpleQueue()
                 result = None
                 for item in self._run_with_progress(
-                    lambda: self.runtime.run_execution(tool_exec_name, arguments),
-                    self._timeout, tool_exec_name,
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments, progress_queue=progress_queue),
+                    self._timeout, tool_exec_name, progress_queue=progress_queue,
                 ):
                     if isinstance(item, str):
                         yield item
@@ -305,9 +307,11 @@ class BackgroundHttpServer(McpMixin):
         threading.Thread(target=self._httpd.serve_forever, daemon=True).start()
         self._running = True
         logging.info("PETP Background HTTP Server is serving at http://%s:%d", self._host or "localhost", self._port)
+        threading.Thread(target=self.runtime.warm_processor_cache, daemon=True).start()
 
     def stop(self) -> None:
         if self._httpd and self._running:
             self._httpd.shutdown()
+            self._shutdown_executor()
             self._running = False
             logging.info("PETP Background HTTP Server has been stopped")

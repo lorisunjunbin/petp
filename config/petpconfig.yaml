@@ -14,7 +14,7 @@ application:
   nogui_enabled: true
   nogui_ui_processor_policy: skip
   execute_on_startup: false
-  last_run: T_SEACH_TCODE
+  last_run: T_CENC_EARTHQUAKE_SEARCH
   snapshot_max: 20
   cron_history_max_records: 500
   ai_provider: zhipu

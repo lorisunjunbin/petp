@@ -239,6 +239,13 @@ Helper scripts for long-running sessions: see `scripts/macos/start_petp.sh` and 
 
 PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
+**Performance (headless/Docker):**
+- Shared thread pool for concurrent tool calls (no per-request executor overhead)
+- Static execution cache — zero filesystem I/O after startup (no stat/mtime checks)
+- Processor class pre-loading on server start (eliminates cold-start latency)
+- Real-time task-level SSE progress notifications during long-running `tools/call`
+- Cached outputSchema parsing (same tool re-called without re-parsing mcp_desc JSON)
+
 **Built-in MCP Tools:**
 
 | Tool | Description | Input |

@@ -447,6 +447,16 @@ All Selenium processors (`GO_TO_PAGE`, `FIND_THEN_CLICK`, etc.) run normally in 
 
 All Mouse processors (`MOUSE_CLICK`, `MOUSE_POSITION`, `MOUSE_SCROLL`) run normally in BG mode via pyautogui.
 
+#### BG/Docker File Immutability Assumption
+
+In BG mode and Docker, Execution/Pipeline YAML files are **never modified at runtime**. Only the GUI mode edits and saves these files. This means:
+- `get_execution()` mtime-based cache invalidation is unnecessary in BG/Docker — files are static after startup
+- `get_available_executions()` filesystem scan (5s TTL) is unnecessary — the set of execution files never changes
+- Any logic that checks for Execution/Pipeline changes (mtime, file scan) can be aggressively cached or skipped entirely in BG mode
+- `invalidate_execution_cache()` is only meaningful in GUI mode (called after user saves in the editor)
+
+When optimizing BG/Docker performance, you can safely assume all YAML-based definitions are immutable for the lifetime of the process.
+
 ### Configuration (`config/petpconfig.yaml`)
 
 All settings are under the `application:` key, bound to `PETPModel` via `SystemConfig`. Key fields: `http_port`, `http_request_token`, `http_request_timeout`, `nogui_enabled`, `nogui_ui_processor_policy`, `log_level`, `execute_on_startup`, `last_run`.

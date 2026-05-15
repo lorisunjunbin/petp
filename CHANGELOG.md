@@ -6,6 +6,7 @@ All notable changes to PETP are documented here.
 
 | Date | What's New |
 |------|------------|
+| 2026-05 | **MCP Server Performance**: shared ThreadPoolExecutor (eliminates per-request pool creation); static-mode execution cache (BG/Docker skips filesystem stat/scan entirely); outputSchema parse cache; `_public_data` lazy serialization via `json.dumps` replacing recursive checks; Processor class warm-up on server start; real-time task-level SSE progress notifications during `tools/call` |
 | 2026-05 | **Global Cache**: `CHECK_GLOBAL_CACHE` / `POPULATE_GLOBAL_CACHE` processors — in-memory cross-execution cache with TTL expiry; new `__end_execution` engine signal for early termination; `utils/GlobalCache.py` thread-safe storage with write-time eviction |
 | 2026-05 | **macOS .app data externalization**: user-mutable data (executions, pipelines, config) stored in `~/.petp/`; incremental sync on upgrade (new files copied, conflicts get single timestamped variant); config key merge for new settings; execution version diff dialog (right-click compare) |
 | 2026-05 | Build improvements: PyInstaller codesign tolerance (monkey-patch); build-time `${ENV_VAR}` expansion in config; lazy matplotlib import (~0.5s startup savings); API key priority fix (plain key over env var) |

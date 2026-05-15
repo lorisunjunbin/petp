@@ -569,5 +569,6 @@ class HttpServer(McpMixin):
 
         if self._httpd and self._running:
             self._httpd.shutdown()
+            self._shutdown_executor()
             self._running = False
             logging.info("HTTP Server has been stopped.")

@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from queue import SimpleQueue
 from threading import Condition
 from typing import Any, Optional
 
@@ -27,8 +28,11 @@ class BackgroundRuntime:
         self._cron: Cron | None = None
         max_records = getattr(model, 'cron_history_max_records', 500) if model else 500
         self._cron_history = CronHistory(max_records=max_records)
+        from core.execution import set_static_mode
+        set_static_mode(True)
 
-    def run_execution(self, execution_name: str, init_data: Optional[dict] = None) -> dict:
+    def run_execution(self, execution_name: str, init_data: Optional[dict] = None,
+                       progress_queue: Optional[SimpleQueue] = None) -> dict:
         started = time.time()
         execution = Execution.get_execution(execution_name)
         if execution is None:
@@ -44,6 +48,7 @@ class BackgroundRuntime:
         skipped_tasks = []
 
         state = ExecutionState(execution.list)
+        total = len(execution.list)
         execution.set_should_be_stop(False)
         execution.init_run_at()
         if hasattr(execution, "loops"):
@@ -93,6 +98,9 @@ class BackgroundRuntime:
                     data_chain.pop('__skip_range', None)
 
                 self._log_start_process(seq, proc_name, loop_cursor, task)
+                _task_start_ts = time.time()
+                if progress_queue is not None:
+                    progress_queue.put(f"[{seq}/{total}] {task.type} started")
 
                 skip_reason = self._skip_reason(task)
                 if skip_reason is not None:
@@ -131,6 +139,9 @@ class BackgroundRuntime:
 
                 task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
                 self._log_end_process(seq, proc_name, loop_cursor, task)
+                if progress_queue is not None:
+                    duration_ms = int((time.time() - _task_start_ts) * 1000)
+                    progress_queue.put(f"[{seq}/{total}] {task.type} done ({duration_ms}ms)")
 
                 # loop_condition: evaluate after every task inside a loop
                 if state.is_loop_execution and current_loop:
@@ -319,15 +330,16 @@ class BackgroundRuntime:
 
         result = {}
         for key, value in data_chain.items():
-            if key in {"__m", "__p"} or BackgroundRuntime._should_skip_public_value(value):
+            if key.startswith('__'):
                 continue
-            result[key] = value
-
+            if BackgroundRuntime._is_chrome_driver_instance(value):
+                continue
+            try:
+                json.dumps(value)
+                result[key] = value
+            except (TypeError, ValueError, OverflowError):
+                continue
         return result
-
-    @staticmethod
-    def _should_skip_public_value(value: Any) -> bool:
-        return BackgroundRuntime._is_chrome_driver_instance(value) or not BackgroundRuntime._is_json_serializable(value)
 
     @staticmethod
     def _is_chrome_driver_instance(value: Any) -> bool:
@@ -338,26 +350,6 @@ class BackgroundRuntime:
         module_name = str(getattr(cls, "__module__", "")).lower()
         class_name = str(getattr(cls, "__name__", "")).lower()
         return "selenium" in module_name and "webdriver" in module_name and "chrome" in (module_name + class_name)
-
-    _JSON_SAFE_SCALARS = (str, int, float, bool, type(None))
-
-    @staticmethod
-    def _is_json_serializable(value: Any, _depth: int = 0) -> bool:
-        if _depth > 20:
-            return False
-        if isinstance(value, BackgroundRuntime._JSON_SAFE_SCALARS):
-            return True
-        if isinstance(value, dict):
-            return all(
-                isinstance(k, str) and BackgroundRuntime._is_json_serializable(v, _depth + 1)
-                for k, v in value.items()
-            )
-        if isinstance(value, (list, tuple)):
-            return all(
-                BackgroundRuntime._is_json_serializable(item, _depth + 1)
-                for item in value
-            )
-        return False
 
     @staticmethod
     def _collect_loop_cursor(current_loop: Any, state: ExecutionState) -> str:
@@ -401,3 +393,18 @@ class BackgroundRuntime:
         if not isinstance(execution_name, str) or not execution_name:
             raise ValueError("execution name is required in init_param['execution']")
         return self.run_execution(execution_name, init_param)
+
+    def warm_processor_cache(self) -> None:
+        types_seen: set[str] = set()
+        for name in Execution.get_available_executions():
+            execution = Execution.get_execution(name)
+            if not execution or not getattr(execution, 'astool', False):
+                continue
+            for task in execution.list:
+                if task.type not in types_seen:
+                    types_seen.add(task.type)
+                    try:
+                        Processor.get_processor_by_type(task.type)
+                    except Exception:
+                        pass
+        logging.info('Processor cache warmed: %d types pre-loaded', len(types_seen))

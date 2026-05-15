@@ -2,6 +2,7 @@ import json
 import logging
 import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from queue import SimpleQueue
 from typing import Any, Callable, Generator, Optional
 
 from httpservice.constants import HTTP_RESPONSE_KEY
@@ -13,6 +14,9 @@ class McpMixin:
 
     _normalized_tools_cache_key: tuple | None = None
     _normalized_tools_cache_val: list[dict] = []
+    _output_schema_cache: dict[str, Optional[dict]] = {}
+    _executor: Optional[ThreadPoolExecutor] = None
+    _EXECUTOR_MAX_WORKERS: int = 4
 
     # ------------------------------------------------------------------
     # SSE helpers
@@ -160,6 +164,7 @@ class McpMixin:
             result.append(tool)
         self._normalized_tools_cache_key = cache_key
         self._normalized_tools_cache_val = result
+        self._output_schema_cache = {}
         return result
 
     # ------------------------------------------------------------------
@@ -228,6 +233,19 @@ class McpMixin:
             return data.get("http_response")
         return data
 
+    def _get_output_schema(self, tool_name: str, tools_getter: Callable) -> Optional[dict]:
+        if tool_name in self._output_schema_cache:
+            return self._output_schema_cache[tool_name]
+        raw = tools_getter().get(tool_name)
+        schema = None
+        if raw:
+            parsed = self._parse_tool_value(raw)
+            s = parsed.get("outputSchema")
+            if isinstance(s, dict) and s.get("properties"):
+                schema = s
+        self._output_schema_cache[tool_name] = schema
+        return schema
+
     def _build_tools_call_result(self, tool_name: str, raw_result: Any, tools_getter) -> tuple[Any, Any]:
         """Return (client_result, structured_content) for a tools/call response.
 
@@ -240,13 +258,7 @@ class McpMixin:
             structured_content = {"error": error_msg} if error_msg else {"error": "execution failed"}
             return structured_content, structured_content
 
-        raw = tools_getter().get(tool_name)
-        output_schema = None
-        if raw:
-            parsed = self._parse_tool_value(raw)
-            schema = parsed.get("outputSchema")
-            if isinstance(schema, dict) and schema.get("properties"):
-                output_schema = schema
+        output_schema = self._get_output_schema(tool_name, tools_getter)
 
         if output_schema and isinstance(raw_result, dict) and raw_result.get("ok"):
             data = raw_result.get("data", {}) if isinstance(raw_result.get("data"), dict) else {}
@@ -289,44 +301,72 @@ class McpMixin:
         accept = handler.headers.get("Accept", "") if handler else ""
         return "text/event-stream" in accept
 
+    def _get_executor(self) -> ThreadPoolExecutor:
+        if self._executor is None or self._executor._shutdown:
+            self._executor = ThreadPoolExecutor(max_workers=self._EXECUTOR_MAX_WORKERS)
+        return self._executor
+
+    def _shutdown_executor(self) -> None:
+        if self._executor is not None:
+            self._executor.shutdown(wait=False)
+            self._executor = None
+
     def _run_with_timeout(self, fn: Callable[[], Any], timeout: int) -> Any:
-        with ThreadPoolExecutor(1) as pool:
-            future = pool.submit(fn)
-            try:
-                return future.result(timeout=timeout)
-            except FuturesTimeoutError:
-                return {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
+        future = self._get_executor().submit(fn)
+        try:
+            return future.result(timeout=timeout)
+        except FuturesTimeoutError:
+            return {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
 
     _PROGRESS_INTERVAL: int = 1
     _FAST_CHECK_TIMEOUT: float = 0.05
 
     def _run_with_progress(self, fn: Callable[[], Any], timeout: int,
-                            tool_name: str) -> Generator[Any, None, None]:
-        with ThreadPoolExecutor(1) as pool:
-            future = pool.submit(fn)
+                            tool_name: str, progress_queue: Optional[SimpleQueue] = None) -> Generator[Any, None, None]:
+        future = self._get_executor().submit(fn)
+        try:
+            result = future.result(timeout=self._FAST_CHECK_TIMEOUT)
+            self._drain_progress(progress_queue, tool_name)
+            yield result
+            return
+        except FuturesTimeoutError:
+            pass
+        elapsed = 0
+        while not future.done():
             try:
-                result = future.result(timeout=self._FAST_CHECK_TIMEOUT)
+                result = future.result(timeout=self._PROGRESS_INTERVAL)
+                self._drain_progress(progress_queue, tool_name)
                 yield result
                 return
             except FuturesTimeoutError:
-                pass
-            elapsed = 0
-            while not future.done():
-                try:
-                    result = future.result(timeout=self._PROGRESS_INTERVAL)
-                    yield result
+                elapsed += self._PROGRESS_INTERVAL
+                if elapsed >= timeout:
+                    yield {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
                     return
-                except FuturesTimeoutError:
-                    elapsed += self._PROGRESS_INTERVAL
-                    if elapsed >= timeout:
-                        yield {"ok": False, "error": f"Tool execution timed out after {timeout}s"}
-                        return
+                drained = self._drain_progress(progress_queue, tool_name)
+                if drained:
+                    yield from drained
+                else:
                     yield self._sse_event({
                         "jsonrpc": "2.0",
                         "method": "notifications/message",
                         "params": {"level": "info", "data": f"[{tool_name}] still running... ({elapsed}s)"},
                     })
-            yield future.result()
+        self._drain_progress(progress_queue, tool_name)
+        yield future.result()
+
+    def _drain_progress(self, queue: Optional[SimpleQueue], tool_name: str) -> list[str]:
+        if queue is None:
+            return []
+        events = []
+        while not queue.empty():
+            msg = queue.get_nowait()
+            events.append(self._sse_event({
+                "jsonrpc": "2.0",
+                "method": "notifications/message",
+                "params": {"level": "info", "data": f"[{tool_name}] {msg}"},
+            }))
+        return events
 
     # ------------------------------------------------------------------
     # Batch request support

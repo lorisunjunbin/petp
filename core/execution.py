@@ -40,6 +40,12 @@ _EXECUTION_CACHE_MAX = 64
 _execution_cache: OrderedDict[str, tuple[float, Any]] = OrderedDict()
 _available_executions_cache: tuple[float, list] | None = None
 _AVAILABLE_EXECUTIONS_TTL = 5.0
+_static_mode: bool = False
+
+
+def set_static_mode(enabled: bool = True) -> None:
+    global _static_mode
+    _static_mode = enabled
 
 
 class Execution:
@@ -362,14 +368,17 @@ class Execution:
     @staticmethod
     def get_execution(filename):
         file_absolute_path = os.path.join(get_executions_dir(), f'{filename}.yaml')
+        cached = _execution_cache.get(file_absolute_path)
+        if cached is not None:
+            if _static_mode:
+                return cached[1]
+            if cached[0] == os.path.getmtime(file_absolute_path):
+                _execution_cache.move_to_end(file_absolute_path)
+                return cached[1]
         if not OSUtils.is_file_existed(file_absolute_path):
             logging.warning('File not existed: %s', file_absolute_path)
             return None
         mtime = os.path.getmtime(file_absolute_path)
-        cached = _execution_cache.get(file_absolute_path)
-        if cached is not None and cached[0] == mtime:
-            _execution_cache.move_to_end(file_absolute_path)
-            return cached[1]
         result = YamlRO.get_yaml_from_file(file_absolute_path)
         _execution_cache[file_absolute_path] = (mtime, result)
         if len(_execution_cache) > _EXECUTION_CACHE_MAX:
@@ -387,6 +396,8 @@ class Execution:
     @staticmethod
     def get_available_executions():
         global _available_executions_cache
+        if _static_mode and _available_executions_cache is not None:
+            return _available_executions_cache[1]
         now = time.monotonic()
         if _available_executions_cache is not None:
             ts, result = _available_executions_cache

@@ -221,16 +221,27 @@ def test_execution_cache_hit():
     assert e1 is e2, "expected cached object identity on repeated get_execution"
 
 
-@case("_is_json_serializable: nested structures pass, non-serializable fails")
-def test_json_serializable_check():
+@case("_public_data: filters internal keys and non-serializable values correctly")
+def test_public_data():
     from core.runtime.BackgroundRuntime import BackgroundRuntime
-    assert BackgroundRuntime._is_json_serializable("hello")
-    assert BackgroundRuntime._is_json_serializable(42)
-    assert BackgroundRuntime._is_json_serializable(None)
-    assert BackgroundRuntime._is_json_serializable([1, "a", {"k": True}])
-    assert BackgroundRuntime._is_json_serializable({"nested": {"list": [1, 2]}})
-    assert not BackgroundRuntime._is_json_serializable(object())
-    assert not BackgroundRuntime._is_json_serializable({"bad": object()})
+    # Normal values are included
+    data = {"name": "hello", "count": 42, "nested": {"list": [1, 2]}}
+    result = BackgroundRuntime._public_data(data)
+    assert result == data, f"expected all values included: {result}"
+
+    # __ prefixed keys are excluded
+    data_with_internal = {"__m": object(), "__p": object(), "__skip_range": (1, 3), "visible": "yes"}
+    result = BackgroundRuntime._public_data(data_with_internal)
+    assert result == {"visible": "yes"}, f"expected only 'visible': {result}"
+
+    # Non-serializable objects are excluded
+    data_with_obj = {"good": "value", "bad": object()}
+    result = BackgroundRuntime._public_data(data_with_obj)
+    assert result == {"good": "value"}, f"expected 'bad' excluded: {result}"
+
+    # None input returns empty dict
+    assert BackgroundRuntime._public_data(None) == {}
+    assert BackgroundRuntime._public_data("not a dict") == {}
 
 
 # ---------------------------------------------------------------------------
@@ -254,7 +265,7 @@ ALL_CASES = [
     test_invalidate_tools_cache,
     test_result_structure,
     test_execution_cache_hit,
-    test_json_serializable_check,
+    test_public_data,
 ]
 
 

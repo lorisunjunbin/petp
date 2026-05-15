@@ -205,6 +205,13 @@ python PETP_backgroud.py --run-execution MY_EXEC --init-data '{"key":"value"}' -
 
 PETP 通过 Streamable-HTTP（端口 8866）将 Execution 暴露为 MCP 工具。
 
+**性能优化（无头/Docker 模式）：**
+- 共享线程池处理并发工具调用（消除每次请求创建 Executor 的开销）
+- 静态模式 Execution 缓存——BG/Docker 完全跳过文件系统 stat/扫描
+- Processor 类启动时预加载（消除冷启动延迟）
+- 实时任务级 SSE 进度通知（长时间运行的 `tools/call`）
+- outputSchema 解析缓存（同一工具重复调用无需重新解析 mcp_desc JSON）
+
 **Claude Code / Cursor / 任何 MCP 客户端：**
 
 ```json
