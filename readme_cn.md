@@ -235,6 +235,16 @@ curl http://localhost:8866/petp/tools
 curl -X POST http://localhost:8866/petp/exec \
   -H "Content-Type: application/json" \
   -d '{"action":"execution","params":{"execution":"MY_EXEC"},"wait_for_result":"true"}'
+
+# 触发 Pipeline（同步等待结果）
+curl -X POST http://localhost:8866/petp/exec \
+  -H "Content-Type: application/json" \
+  -d '{"action":"pipeline","params":{"pipeline":"MY_PIPELINE"},"wait_for_result":"true"}'
+
+# 触发 Pipeline（异步，用 /petp/result 轮询）
+curl -X POST http://localhost:8866/petp/exec \
+  -H "Content-Type: application/json" \
+  -d '{"action":"pipeline","params":{"pipeline":"MY_PIPELINE"},"wait_for_result":"false"}'
 ```
 
 | 端点 | 说明 |

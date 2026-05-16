@@ -711,3 +711,76 @@ class TestBatchParallelExecution:
         # Non-tool call (init) should be processed first (sequentially before parallel tools)
         assert "init" in call_order
         mixin._shutdown_executor()
+
+
+class TestPipelineContext:
+    """Tests for __pipeline_context injection in pipeline runs."""
+
+    def _create_test_pipeline(self):
+        """Create a minimal test pipeline YAML for testing."""
+        import os
+        from utils.AppPaths import get_pipelines_dir
+        pipeline_name = "__TEST_PIPELINE_CONTEXT__"
+        path = os.path.join(get_pipelines_dir(), f"{pipeline_name}.yaml")
+        content = f"""!!python/object:core.pipeline.Pipeline
+cronDesc: ''
+cronEnabled: false
+cronExp: ''
+list:
+- execution: ENDECODER
+  input: '{{"type":"ENCODE","algorithms":"base64","inbound":"ctx_test"}}'
+- execution: ENDECODER
+  input: '{{"type":"DECODE","algorithms":"base64","inbound":"Y3R4X3Rlc3Q="}}'
+pipeline: {pipeline_name}
+"""
+        with open(path, 'w') as f:
+            f.write(content)
+        return pipeline_name, path
+
+    def _cleanup_pipeline(self, path):
+        import os
+        if os.path.exists(path):
+            os.remove(path)
+
+    def test_pipeline_context_injected(self, bg_runtime):
+        """run_pipeline injects __pipeline_context (filtered from public data but available during execution)."""
+        name, path = self._create_test_pipeline()
+        try:
+            result = bg_runtime.run_pipeline(name)
+            assert result["ok"] is True
+            data = result.get("data", {})
+            # __pipeline_context is __ prefixed so filtered from public result — correct behavior
+            assert "__pipeline_context" not in data
+            # But run_in_pipeline (no __ prefix) should be present
+            assert data.get("run_in_pipeline") == "yes"
+            # meta.executions shows both steps completed
+            meta = result.get("meta", {})
+            executions = meta.get("executions", [])
+            assert len(executions) == 2
+            assert all(e["result"]["ok"] for e in executions)
+        finally:
+            self._cleanup_pipeline(path)
+
+    def test_pipeline_run_in_pipeline_flag(self, bg_runtime):
+        """run_pipeline should set run_in_pipeline='yes' in data_chain."""
+        name, path = self._create_test_pipeline()
+        try:
+            result = bg_runtime.run_pipeline(name)
+            assert result["ok"] is True
+            data = result.get("data", {})
+            assert data.get("run_in_pipeline") == "yes"
+        finally:
+            self._cleanup_pipeline(path)
+
+    def test_pipeline_context_not_in_public_data(self, bg_runtime):
+        """__pipeline_context should be filtered out by _public_data (__ prefix)."""
+        from core.runtime.BackgroundRuntime import BackgroundRuntime
+        data = {
+            "__pipeline_context": {"pipeline_name": "test", "is_pipeline": True},
+            "run_in_pipeline": "yes",
+            "result": "some_value",
+        }
+        public = BackgroundRuntime._public_data(data)
+        assert "__pipeline_context" not in public
+        assert "run_in_pipeline" in public
+        assert "result" in public

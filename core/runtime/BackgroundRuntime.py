@@ -245,6 +245,8 @@ class BackgroundRuntime:
         logging.info('<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline: %s  [ %s ] %s - >>>>>>>>>>>>>>>>>>>>>', pipeline_name, cron_exp, cron_desc)
 
         data_chain = dict(init_data or {})
+        data_chain['run_in_pipeline'] = 'yes'
+        total_steps = len(pipeline.list)
         execution_results = []
 
         try:
@@ -253,6 +255,12 @@ class BackgroundRuntime:
                 execution_input = pipeline.load_proper_input(execution_def)
                 merged_input = dict(data_chain)
                 merged_input.update(execution_input)
+                merged_input['__pipeline_context'] = {
+                    'pipeline_name': pipeline_name,
+                    'step_index': idx - 1,
+                    'step_total': total_steps,
+                    'is_pipeline': True,
+                }
 
                 logging.info('[ %s ]>> Execution %s: %s', pipeline_name, idx, execution_name)
 

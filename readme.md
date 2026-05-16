@@ -276,6 +276,16 @@ curl http://localhost:8866/petp/tools
 curl -X POST http://localhost:8866/petp/exec \
   -H "Content-Type: application/json" \
   -d '{"action":"execution","params":{"execution":"MY_EXEC"},"wait_for_result":"true"}'
+
+# Trigger pipeline (sync)
+curl -X POST http://localhost:8866/petp/exec \
+  -H "Content-Type: application/json" \
+  -d '{"action":"pipeline","params":{"pipeline":"MY_PIPELINE"},"wait_for_result":"true"}'
+
+# Trigger pipeline (async — poll with /petp/result)
+curl -X POST http://localhost:8866/petp/exec \
+  -H "Content-Type: application/json" \
+  -d '{"action":"pipeline","params":{"pipeline":"MY_PIPELINE"},"wait_for_result":"false"}'
 ```
 
 | Endpoint | Description |

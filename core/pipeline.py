@@ -52,6 +52,13 @@ class Pipeline(RunnableAsCron):
     def _run(self, initdata, cond, view):
 
         data_chain = initdata | {'run_in_pipeline': 'yes'}
+        total_steps = len(self.list)
+        data_chain['__pipeline_context'] = {
+            'pipeline_name': self.pipeline,
+            'step_index': 0,
+            'step_total': total_steps,
+            'is_pipeline': True,
+        }
 
         if 'running_as_cron' in initdata:
             logging.info(f'<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline (CRON): {self.pipeline}  [ {self.cronExp} ] {self.cronDesc} - >>>>>>>>>>>>>>>>>>>>>')
@@ -71,13 +78,24 @@ class Pipeline(RunnableAsCron):
                     executionInitData[k] = v
 
             data_chain = data_chain | executionInitData
+            data_chain['__pipeline_context'] = {
+                'pipeline_name': self.pipeline,
+                'step_index': idx - 1,
+                'step_total': total_steps,
+                'is_pipeline': True,
+            }
 
             logging.info(
                 f'[ {self.pipeline} ]>>{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} >============> Execution {idx}: {execution.execution}')
 
             self._post_pipeline_event(view, 'step', self.pipeline, execution.execution, idx - 1)
 
-            data_chain = execution.run(data_chain, cond, view)
+            try:
+                data_chain = execution.run(data_chain, cond, view)
+            except Exception as e:
+                logging.error(f'[ {self.pipeline} ] Execution {idx}: {execution.execution} FAILED: {e}')
+                self._post_pipeline_event(view, 'error', self.pipeline, execution.execution, idx - 1)
+                raise
 
             logging.info(
                 f'[ {self.pipeline} ]<<{DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")} <============< Execution {idx}: {execution.execution} < DONE \n')

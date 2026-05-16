@@ -84,6 +84,32 @@ Authorization: Bearer {{token}}
 }
 
 ###
+# Pipeline: sync call
+POST {{baseURL}}/petp/exec
+Content-Type: application/json
+
+{
+  "action": "pipeline",
+  "wait_for_result": true,
+  "params": {
+    "pipeline": "OOTB_TEST_PIPLINE_BG"
+  }
+}
+
+###
+# Pipeline: async call
+POST {{baseURL}}/petp/exec
+Content-Type: application/json
+
+{
+  "action": "pipeline",
+  "wait_for_result": false,
+  "params": {
+    "pipeline": "OOTB_TEST_PIPLINE_BG"
+  }
+}
+
+###
 POST {{baseURL}}/petp/exec
 Content-Type: application/json
 Content-Length: 157

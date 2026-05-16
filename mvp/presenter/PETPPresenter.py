@@ -556,8 +556,9 @@ class PETPPresenter():
     def _init_executiongrid_choice_editor(self):
         self.available_executions = Execution.get_available_executions()
         execution_grid = self.v.executionGrid
-        for row in range(execution_grid.GetNumberRows()):
-            self._bind_grid_cell_choice_editor(row, execution_grid, self.available_executions)
+        col0_attr = wx.grid.GridCellAttr()
+        col0_attr.SetReadOnly(True)
+        execution_grid.SetColAttr(0, col0_attr)
 
     def _init_taskgrid_choice_editor(self):
         self.available_processors = Processor.get_processors()
@@ -958,8 +959,7 @@ class PETPPresenter():
             self._update_cron_setting(self.pipeline.cronEnabled)
 
             if execution_number > current_number_rows:
-                for _ in range(execution_number - current_number_rows):
-                    self._insert_row(grid, self.available_executions)
+                grid.InsertRows(current_number_rows, execution_number - current_number_rows, True)
 
             for idx, itm in enumerate(self.pipeline.list):
                 grid.SetCellValue(idx, 0, itm['execution'])
@@ -1279,10 +1279,24 @@ class PETPPresenter():
         combo = self.v.pipelineChooser
         name = combo.GetValue()
 
-        if name in self.available_pipelines:
-            self.pipeline.delete()
-            self.available_pipelines.remove(name)
-            combo.SetValue("")
+        if name not in self.available_pipelines:
+            return
+
+        dlg = wx.MessageDialog(
+            self.v,
+            t("dlg_delete_pipeline_msg", name=name),
+            t("dlg_delete_pipeline_title"),
+            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING,
+        )
+        result = dlg.ShowModal()
+        dlg.Destroy()
+
+        if result != wx.ID_YES:
+            return
+
+        self.pipeline.delete()
+        self.available_pipelines.remove(name)
+        combo.SetValue("")
 
     def on_delete_execution(self):
         combo = self.v.executionChooser
@@ -2921,9 +2935,348 @@ class PETPPresenter():
 
     def on_grid_cell_change4p(self, evt):
         grid = self.v.executionGrid
-        current_row = evt.GetRow()
-        current_column = evt.GetCol()
+        row = evt.GetRow()
+        col = evt.GetCol()
+        if col == 1:
+            value = grid.GetCellValue(row, 1).strip()
+            if value and not self._is_valid_json_dict(value):
+                grid.SetCellBackgroundColour(row, 1, wx.Colour(255, 235, 235))
+            else:
+                grid.SetCellBackgroundColour(row, 1, grid.GetDefaultCellBackgroundColour())
+            grid.ForceRefresh()
         evt.Skip()
+
+    # ------------------------------------------------------------------
+    # Pipeline grid: right-click menu + row reorder + undo/redo
+    # ------------------------------------------------------------------
+
+    _PIPELINE_SNAPSHOT_MAX = 20
+
+    def on_pipeline_grid_dclick(self, evt):
+        if evt.GetCol() == 0:
+            self._show_execution_palette_for_pipeline(evt.GetRow())
+        elif evt.GetCol() == 1:
+            self._edit_pipeline_input(evt.GetRow())
+        else:
+            evt.Skip()
+
+    def _show_execution_palette_for_pipeline(self, row):
+        grid = self.v.executionGrid
+        current_value = grid.GetCellValue(row, 0)
+        rect = grid.CellToRect(row, 0)
+        pos = grid.GetGridWindow().ClientToScreen(rect.GetBottomLeft())
+        tag_map = {n: "🦾" for n in self._tool_names}
+        palette = ProcessorPalette(
+            self.v, self.available_executions, current_value,
+            on_select=lambda val: self._on_pipeline_execution_palette_selected(row, val),
+            tag_map=tag_map,
+        )
+        palette.SetSize((max(grid.GetColSize(0), 380), 440))
+        palette.ShowAt(pos)
+
+    def _on_pipeline_execution_palette_selected(self, row, value):
+        if value not in self.available_executions:
+            return
+        self._push_pipeline_snapshot()
+        grid = self.v.executionGrid
+        grid.SetCellValue(row, 0, value)
+        current_input = grid.GetCellValue(row, 1).strip()
+        if not current_input:
+            skeleton = self._get_execution_input_skeleton(value)
+            if skeleton:
+                grid.SetCellValue(row, 1, skeleton)
+
+    def _edit_pipeline_input(self, row):
+        grid = self.v.executionGrid
+        exec_name = grid.GetCellValue(row, 0).strip()
+        current = grid.GetCellValue(row, 1)
+        title = f"Input: {exec_name}" if exec_name else "Input"
+        dlg = InputDialog(self.v, title=title, message="JSON", default_value=current)
+        if dlg.ShowModal() == wx.ID_OK:
+            new_val = dlg.value.strip()
+            if new_val != current:
+                self._push_pipeline_snapshot()
+                grid.SetCellValue(row, 1, new_val)
+            if new_val and not self._is_valid_json_dict(new_val):
+                grid.SetCellBackgroundColour(row, 1, wx.Colour(255, 235, 235))
+                grid.ForceRefresh()
+            else:
+                grid.SetCellBackgroundColour(row, 1, grid.GetDefaultCellBackgroundColour())
+                grid.ForceRefresh()
+        dlg.Destroy()
+
+    def _get_execution_input_skeleton(self, exec_name: str) -> str:
+        execution = Execution.get_execution(exec_name)
+        if not execution:
+            return ""
+        keys = {}
+        tasks = getattr(execution, 'list', [])
+        for task in tasks:
+            if hasattr(task, 'type') and task.type.strip() == "INITIAL_PARAMS":
+                try:
+                    keys = json.loads(task.input or "{}")
+                except (json.JSONDecodeError, TypeError):
+                    pass
+                break
+        if not keys:
+            mcp_desc = getattr(execution, 'mcp_desc', None)
+            if mcp_desc:
+                try:
+                    parsed = json.loads(mcp_desc)
+                    props = parsed.get("inputSchema", {}).get("properties", {})
+                    for name, spec in props.items():
+                        keys[name] = spec.get("default", "")
+                except (json.JSONDecodeError, TypeError):
+                    pass
+        if not keys:
+            return ""
+        return json.dumps(keys, ensure_ascii=False)
+
+    @staticmethod
+    def _is_valid_json_dict(text: str) -> bool:
+        try:
+            obj = json.loads(text)
+            return isinstance(obj, dict)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return False
+
+    def on_pipeline_grid_right_click(self, evt):
+        row = evt.GetRow()
+        if not hasattr(self, "_p_popup_copy"):
+            self._p_popup_copy = wx.NewId()
+            self._p_popup_paste = wx.NewId()
+            self._p_popup_duplicate = wx.NewId()
+            self._p_popup_delete = wx.NewId()
+            self._p_popup_move_up = wx.NewId()
+            self._p_popup_move_down = wx.NewId()
+            self._p_popup_clear_input = wx.NewId()
+            self._p_popup_fill_skeleton = wx.NewId()
+            self._p_popup_edit_input = wx.NewId()
+
+        self._p_right_click_row = row
+        menu = wx.Menu()
+
+        menu.Append(self._p_popup_copy, t("menu_copy"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_row_copy, id=self._p_popup_copy)
+
+        menu.Append(self._p_popup_paste, t("menu_paste"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_row_paste, id=self._p_popup_paste)
+
+        menu.Append(self._p_popup_duplicate, t("menu_duplicate_row"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_row_duplicate, id=self._p_popup_duplicate)
+
+        menu.AppendSeparator()
+
+        menu.Append(self._p_popup_edit_input, t("menu_edit_input"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_edit_input, id=self._p_popup_edit_input)
+
+        menu.Append(self._p_popup_fill_skeleton, t("menu_fill_skeleton"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_fill_skeleton, id=self._p_popup_fill_skeleton)
+
+        menu.Append(self._p_popup_clear_input, t("menu_clear_input"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_clear_input, id=self._p_popup_clear_input)
+
+        menu.AppendSeparator()
+
+        menu.Append(self._p_popup_move_up, t("menu_move_up"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_row_move_up, id=self._p_popup_move_up)
+
+        menu.Append(self._p_popup_move_down, t("menu_move_down"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_row_move_down, id=self._p_popup_move_down)
+
+        menu.AppendSeparator()
+
+        menu.Append(self._p_popup_delete, t("menu_delete_row"))
+        self.v.Bind(wx.EVT_MENU, self._on_pipeline_row_delete, id=self._p_popup_delete)
+
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
+    def on_pipeline_grid_key_down(self, evt):
+        if evt.GetKeyCode() in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            grid = self.v.executionGrid
+            row = grid.GetGridCursorRow()
+            col = grid.GetGridCursorCol()
+            if col == 0 and row >= 0:
+                self._show_execution_palette_for_pipeline(row)
+                return
+        if evt.ShiftDown():
+            if evt.GetKeyCode() == wx.WXK_UP:
+                self._move_pipeline_row(-1)
+                return
+            elif evt.GetKeyCode() == wx.WXK_DOWN:
+                self._move_pipeline_row(1)
+                return
+        if evt.ControlDown() or evt.RawControlDown():
+            if evt.GetKeyCode() == ord('Z'):
+                if evt.ShiftDown():
+                    self._redo_pipeline()
+                else:
+                    self._undo_pipeline()
+                return
+            elif evt.GetKeyCode() == ord('Y'):
+                self._redo_pipeline()
+                return
+        evt.Skip()
+
+    def _on_pipeline_row_copy(self, evt):
+        grid = self.v.executionGrid
+        row = self._p_right_click_row
+        self._pipeline_copied_row = (
+            grid.GetCellValue(row, 0),
+            grid.GetCellValue(row, 1),
+        )
+
+    def _on_pipeline_row_paste(self, evt):
+        if not hasattr(self, '_pipeline_copied_row') or not self._pipeline_copied_row:
+            return
+        self._push_pipeline_snapshot()
+        grid = self.v.executionGrid
+        row = self._p_right_click_row
+        grid.SetCellValue(row, 0, self._pipeline_copied_row[0])
+        grid.SetCellValue(row, 1, self._pipeline_copied_row[1])
+
+    def _on_pipeline_row_duplicate(self, evt):
+        self._push_pipeline_snapshot()
+        grid = self.v.executionGrid
+        row = self._p_right_click_row
+        exec_val = grid.GetCellValue(row, 0)
+        input_val = grid.GetCellValue(row, 1)
+        grid.InsertRows(row + 1, 1, True)
+        grid.SetCellValue(row + 1, 0, exec_val)
+        grid.SetCellValue(row + 1, 1, input_val)
+
+    def _on_pipeline_row_move_up(self, evt):
+        self._move_pipeline_row(-1)
+
+    def _on_pipeline_row_move_down(self, evt):
+        self._move_pipeline_row(1)
+
+    def _move_pipeline_row(self, direction: int):
+        grid = self.v.executionGrid
+        rows = grid.GetSelectedRows()
+        row = rows[0] if rows else getattr(self, '_p_right_click_row', -1)
+        target = row + direction
+        if row < 0 or target < 0 or target >= grid.GetNumberRows():
+            return
+        self._push_pipeline_snapshot()
+        for col in range(grid.GetNumberCols()):
+            v1 = grid.GetCellValue(row, col)
+            v2 = grid.GetCellValue(target, col)
+            grid.SetCellValue(row, col, v2)
+            grid.SetCellValue(target, col, v1)
+        grid.SelectRow(target)
+        grid.MakeCellVisible(target, 0)
+
+    def _on_pipeline_row_delete(self, evt):
+        self._push_pipeline_snapshot()
+        grid = self.v.executionGrid
+        row = self._p_right_click_row
+        if row < grid.GetNumberRows():
+            grid.DeleteRows(row, 1)
+
+    def _on_pipeline_edit_input(self, evt):
+        self._edit_pipeline_input(self._p_right_click_row)
+
+    def _on_pipeline_fill_skeleton(self, evt):
+        grid = self.v.executionGrid
+        row = self._p_right_click_row
+        exec_name = grid.GetCellValue(row, 0).strip()
+        if not exec_name:
+            return
+        skeleton = self._get_execution_input_skeleton(exec_name)
+        if skeleton:
+            self._push_pipeline_snapshot()
+            grid.SetCellValue(row, 1, skeleton)
+
+    def _on_pipeline_clear_input(self, evt):
+        grid = self.v.executionGrid
+        row = self._p_right_click_row
+        if grid.GetCellValue(row, 1).strip():
+            self._push_pipeline_snapshot()
+            grid.SetCellValue(row, 1, "")
+            grid.SetCellBackgroundColour(row, 1, grid.GetDefaultCellBackgroundColour())
+            grid.ForceRefresh()
+
+    # Pipeline snapshot (undo/redo)
+
+    def _push_pipeline_snapshot(self):
+        if not hasattr(self, '_pipeline_snapshots'):
+            self._pipeline_snapshots = []
+            self._pipeline_snapshot_cursor = -1
+        snap = self._capture_pipeline_snapshot()
+        self._pipeline_snapshots = self._pipeline_snapshots[:self._pipeline_snapshot_cursor + 1]
+        self._pipeline_snapshots.append(snap)
+        if len(self._pipeline_snapshots) > self._PIPELINE_SNAPSHOT_MAX:
+            self._pipeline_snapshots.pop(0)
+        self._pipeline_snapshot_cursor = len(self._pipeline_snapshots) - 1
+
+    def _capture_pipeline_snapshot(self) -> dict:
+        grid = self.v.executionGrid
+        rows = []
+        for r in range(grid.GetNumberRows()):
+            rows.append((grid.GetCellValue(r, 0), grid.GetCellValue(r, 1)))
+        return {"rows": rows, "timestamp": time.time()}
+
+    def _undo_pipeline(self):
+        if not hasattr(self, '_pipeline_snapshots') or self._pipeline_snapshot_cursor < 0:
+            return
+        current = self._capture_pipeline_snapshot()
+        snap = self._pipeline_snapshots[self._pipeline_snapshot_cursor]
+        self._pipeline_snapshots[self._pipeline_snapshot_cursor] = current
+        self._restore_pipeline_snapshot(snap)
+        self._pipeline_snapshot_cursor -= 1
+
+    def _redo_pipeline(self):
+        if not hasattr(self, '_pipeline_snapshots'):
+            return
+        if self._pipeline_snapshot_cursor >= len(self._pipeline_snapshots) - 1:
+            return
+        self._pipeline_snapshot_cursor += 1
+        snap = self._pipeline_snapshots[self._pipeline_snapshot_cursor]
+        current = self._capture_pipeline_snapshot()
+        self._pipeline_snapshots[self._pipeline_snapshot_cursor] = current
+        self._restore_pipeline_snapshot(snap)
+
+    def _restore_pipeline_snapshot(self, snap: dict):
+        grid = self.v.executionGrid
+        grid.ClearGrid()
+        while grid.GetNumberRows() < len(snap["rows"]):
+            grid.InsertRows(grid.GetNumberRows(), 1, True)
+        while grid.GetNumberRows() > len(snap["rows"]) and grid.GetNumberRows() > 1:
+            grid.DeleteRows(grid.GetNumberRows() - 1, 1)
+        for r, (exec_val, input_val) in enumerate(snap["rows"]):
+            grid.SetCellValue(r, 0, exec_val)
+            grid.SetCellValue(r, 1, input_val)
+
+    # Pipeline row highlight (running status)
+
+    def _highlight_pipeline_row(self, row_idx: int, status: str):
+        grid = self.v.executionGrid
+        self._clear_pipeline_row_highlights()
+        if row_idx >= grid.GetNumberRows():
+            return
+        grid.SelectRow(row_idx)
+        grid.MakeCellVisible(row_idx, 0)
+        if status == "running":
+            color = wx.Colour(220, 240, 255)
+        elif status == "done":
+            color = wx.Colour(220, 255, 220)
+        elif status == "error":
+            color = wx.Colour(255, 220, 220)
+        else:
+            return
+        for col in range(grid.GetNumberCols()):
+            grid.SetCellBackgroundColour(row_idx, col, color)
+        grid.ForceRefresh()
+
+    def _clear_pipeline_row_highlights(self):
+        grid = self.v.executionGrid
+        default = grid.GetDefaultCellBackgroundColour()
+        for row in range(grid.GetNumberRows()):
+            for col in range(grid.GetNumberCols()):
+                grid.SetCellBackgroundColour(row, col, default)
+        grid.ForceRefresh()
 
     def _insert_row(self, grid, choices):
         selected_rows = grid.GetSelectedRows()
@@ -2944,8 +3297,14 @@ class PETPPresenter():
         self._update_save_button()
 
     def on_add_row4p(self):
-        execution_grid = self.v.executionGrid
-        self._insert_row(execution_grid, self.available_executions)
+        self._push_pipeline_snapshot()
+        grid = self.v.executionGrid
+        selected_rows = grid.GetSelectedRows()
+        total_rows = grid.GetNumberRows()
+        insert_at = selected_rows[0] if selected_rows else 0
+        if insert_at + 1 == total_rows:
+            insert_at = total_rows
+        grid.InsertRows(insert_at, 1, True)
 
     def on_delete_rows4e(self):
         self._push_snapshot()
@@ -2953,6 +3312,7 @@ class PETPPresenter():
         self._update_save_button()
 
     def on_delete_rows4p(self):
+        self._push_pipeline_snapshot()
         self._on_delete_rows(self.v.executionGrid)
 
     def _on_delete_rows(self, grid):

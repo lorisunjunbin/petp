@@ -92,6 +92,9 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_add_row4p, self.v.addRow4P)
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_rows4p, self.v.delRow4P)
         self.v.executionGrid.Bind(wx.grid.EVT_GRID_CELL_CHANGED, self.on_grid_cell_change4p)
+        self.v.executionGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_pipeline_grid_right_click)
+        self.v.executionGrid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_pipeline_grid_dclick)
+        self.v.executionGrid.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.on_pipeline_grid_key_down)
 
     def bind_view_event_4e_execution_action_panel(self):
         # Execution action panel
@@ -171,9 +174,13 @@ class PETPInteractor():
             _, pipeline_name, execution_name, row_idx = evt.data
             self.p._welcome_paused = True
             self.p._set_highlight_info(f"[PIPELINE] {pipeline_name} → {execution_name}")
-            self.p.select_pipeline_execution_row(row_idx)
+            self.p._highlight_pipeline_row(row_idx, "running")
+        elif action == 'error':
+            _, pipeline_name, execution_name, row_idx = evt.data
+            self.p._highlight_pipeline_row(row_idx, "error")
         elif action == 'done':
             pipeline_name = evt.data[1]
+            self.p._clear_pipeline_row_highlights()
             self.p.update_highlight_info_pipeline_done(pipeline_name)
 
     def on_sync_task_input(self, evt: PETPEvent):
@@ -458,6 +465,15 @@ class PETPInteractor():
     def on_cron_changed(self, evt):
         evt.Skip()
         self.p.on_cron_changed()
+
+    def on_pipeline_grid_right_click(self, evt):
+        self.p.on_pipeline_grid_right_click(evt)
+
+    def on_pipeline_grid_dclick(self, evt):
+        self.p.on_pipeline_grid_dclick(evt)
+
+    def on_pipeline_grid_key_down(self, evt):
+        self.p.on_pipeline_grid_key_down(evt)
 
     def on_undo(self, evt):
         self.p._undo()
