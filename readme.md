@@ -199,7 +199,7 @@ python PETP_background.py   # Headless service (port 8866)
 | Mode | Command | GUI | Use Case |
 |------|---------|-----|----------|
 | Desktop | `python PETP.py` | Yes | Interactive development |
-| Background | `python PETP_backgroud.py` | No | CLI, HTTP/MCP service |
+| Background | `python PETP_background.py` | No | CLI, HTTP/MCP service |
 | Docker | `docker run -p 8866:8866 petp` | No | Server deployment |
 
 ```bash

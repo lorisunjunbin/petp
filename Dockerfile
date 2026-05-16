@@ -75,5 +75,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
     CMD curl -sf http://localhost:8866/health || exit 1
 
 # ── Entry point ────────────────────────────────────────────────────────────────
-CMD ["python", "-u", "PETP_backgroud.py"]
+CMD ["python", "-u", "PETP_background.py"]
 

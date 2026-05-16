@@ -9,8 +9,8 @@ Full reference for Desktop, Background, and Docker modes including helper script
 | Mode | Entry Point | GUI | Selenium | Use Case |
 |------|------------|-----|----------|----------|
 | Desktop | `python PETP.py` | Yes | Yes | Local development, interactive RPA |
-| Background | `python PETP_backgroud.py` | No | Yes (`--headless` optional) | CLI, scheduled tasks |
-| Docker | `PETP_backgroud.py` in container | No | Headless (auto) | Server deployment, CI/CD |
+| Background | `python PETP_background.py` | No | Yes (`--headless` optional) | CLI, scheduled tasks |
+| Docker | `PETP_background.py` in container | No | Headless (auto) | Server deployment, CI/CD |
 
 ---
 

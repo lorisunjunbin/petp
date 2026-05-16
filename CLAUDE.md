@@ -192,7 +192,7 @@ Runs the built-in `ENDECODER` execution via `BackgroundRuntime` with `ui_policy=
 
 ### Testing a New Processor
 
-Create a temp YAML in `core/executions/`, run via `python PETP_backgroud.py --run-execution NAME --no-http`, then delete the temp file. Direct `Processor()` instantiation skips `set_task()` setup and will fail on `get_param()`.
+Create a temp YAML in `core/executions/`, run via `python PETP_background.py --run-execution NAME --no-http`, then delete the temp file. Direct `Processor()` instantiation skips `set_task()` setup and will fail on `get_param()`.
 
 ## HTTP / MCP Endpoint Testing
 

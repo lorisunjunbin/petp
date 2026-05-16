@@ -22,11 +22,11 @@ case "$mode" in
     mode_label="gui"
     ;;
   bg|background)
-    entry="PETP_backgroud.py"
+    entry="PETP_background.py"
     mode_label="background"
     ;;
   bgd|bg-detach|detach)
-    entry="PETP_backgroud.py"
+    entry="PETP_background.py"
     mode_label="background-detached"
     ;;
   stop)

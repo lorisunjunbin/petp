@@ -34,7 +34,7 @@ All notable changes to PETP are documented here.
 | 2026-04 | Loop Editor: key-value dialog, snapshot support |
 | 2026-04 | i18n: Chinese & English |
 | 2026-04 | Modular dependency management; `uv` support |
-| 2026-04 | NO_GUI mode, `PETP_backgroud.py`, Docker support |
+| 2026-04 | NO_GUI mode, `PETP_background.py`, Docker support |
 | 2026-03 | OOTB: `OOTB_DOWNLOAD_LATEST_WXPYTHON` for macOS & Windows |
 | 2026-03 | `FIND_MULTI_XXX` skip function; page load timeout in Selenium |
 | 2026-02 | **MCP Tool Server** (Streamable-HTTP) |

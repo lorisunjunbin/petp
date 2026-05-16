@@ -165,7 +165,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 | 模式 | 命令 | GUI | 用途 |
 |------|------|-----|------|
 | 桌面 | `python PETP.py` | 是 | 交互式开发 |
-| 后台 | `python PETP_backgroud.py` | 否 | CLI、HTTP/MCP 服务 |
+| 后台 | `python PETP_background.py` | 否 | CLI、HTTP/MCP 服务 |
 | Docker | `docker run -p 8866:8866 petp` | 否 | 服务器部署 |
 
 ```bash

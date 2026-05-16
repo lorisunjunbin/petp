@@ -9,8 +9,8 @@
 | 模式 | 入口 | GUI | Selenium | 适用场景 |
 |------|------|-----|----------|----------|
 | 桌面 | `python PETP.py` | 是 | 是 | 本地开发、交互式 RPA |
-| 后台 | `python PETP_backgroud.py` | 否 | 是（可 `--headless`） | CLI、定时任务 |
-| Docker | 容器内 `PETP_backgroud.py` | 否 | 无头（自动） | 服务器部署、CI/CD |
+| 后台 | `python PETP_background.py` | 否 | 是（可 `--headless`） | CLI、定时任务 |
+| Docker | 容器内 `PETP_background.py` | 否 | 无头（自动） | 服务器部署、CI/CD |
 
 ---
 

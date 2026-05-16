@@ -56,16 +56,16 @@ switch ($Mode.ToLower()) {
         $mode_label = 'gui'
     }
     { $_ -in 'bg','background' } {
-        $entry      = 'PETP_backgroud.py'
+        $entry      = 'PETP_background.py'
         $mode_label = 'background'
     }
     { $_ -in 'bgd','bg-detach','detach' } {
-        $entry      = 'PETP_backgroud.py'
+        $entry      = 'PETP_background.py'
         $mode_label = 'background-detached'
     }
     'stop' {
         Set-Location $RootDir
-        & $PythonBin PETP_backgroud.py --stop
+        & $PythonBin PETP_background.py --stop
         exit $LASTEXITCODE
     }
     { $_ -in '-h','--help','help' } {
