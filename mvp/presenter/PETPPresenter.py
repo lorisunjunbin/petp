@@ -96,6 +96,7 @@ class PETPPresenter():
 
         self._init_taskgrid_choice_editor()
         self._init_executiongrid_choice_editor()
+        self._inject_pipeline_add_button()
         self._init_cron()
         self._init_property_grid()
         self._init_handy_tools()
@@ -315,6 +316,15 @@ class PETPPresenter():
             logging.info("loading last run: " + self.m.last_run)
             self.v.executionChooser.SetValue(self.m.last_run)
             self.on_task_execution_changed()
+
+        # load_last_pipeline
+        last_pipeline = getattr(self.m, 'last_pipeline', None)
+        if last_pipeline and last_pipeline in self.available_pipelines:
+            self.v.pipelineChooser.SetValue(last_pipeline)
+            self.on_execution_pipeline_changed()
+        elif self.available_pipelines:
+            self.v.pipelineChooser.SetValue(self.available_pipelines[0])
+            self.on_execution_pipeline_changed()
 
     def _init_property_grid(self):
         self.v.taskProperty.AddPage(self.single_page)
@@ -559,6 +569,24 @@ class PETPPresenter():
         col0_attr = wx.grid.GridCellAttr()
         col0_attr.SetReadOnly(True)
         execution_grid.SetColAttr(0, col0_attr)
+
+    def _inject_pipeline_add_button(self):
+        sizer = self.v.delPipeline.GetContainingSizer()
+        if sizer is None:
+            return
+        parent = self.v.delPipeline.GetParent()
+        btn = wx.Button(parent, wx.ID_ANY, t("btn_add"))
+        btn.SetMinSize((80, 28))
+        btn.SetToolTip(t("tip_new_pipeline"))
+        idx = 0
+        for i, item in enumerate(sizer.GetChildren()):
+            if item.IsWindow() and item.GetWindow() is self.v.delPipeline:
+                idx = i + 1
+                break
+        sizer.Insert(idx, (5, 30), 0, 0, 0)
+        sizer.Insert(idx + 1, btn, 0, 0, 0)
+        sizer.Layout()
+        self.v.Bind(wx.EVT_BUTTON, lambda evt: self._on_new_pipeline(evt), btn)
 
     def _init_taskgrid_choice_editor(self):
         self.available_processors = Processor.get_processors()
@@ -1731,7 +1759,11 @@ class PETPPresenter():
 
     def on_run_pipeline(self):
         combo = self.v.pipelineChooser
-        self.pipeline = Pipeline.get_pipeline(combo.GetValue())
+        name = combo.GetValue()
+        self.pipeline = Pipeline.get_pipeline(name)
+        if name and getattr(self.m, 'last_pipeline', None) != name:
+            self.m.last_pipeline = name
+            self.m.set_config('last_pipeline', name)
         if self.v.asCronChecbox.IsChecked() and not t(self.CRON_INVALID) == self.v.cronInput.GetValue():
             self.cron.add_one(self.pipeline)
         else:
@@ -1942,6 +1974,101 @@ class PETPPresenter():
     def _on_pipeline_palette_selected(self, value):
         self.v.pipelineChooser.SetValue(value)
         self.on_execution_pipeline_changed()
+
+    def _copy_pipeline_chooser_value(self):
+        value = self.v.pipelineChooser.GetValue()
+        if value and wx.TheClipboard.Open():
+            wx.TheClipboard.SetData(wx.TextDataObject(value))
+            wx.TheClipboard.Close()
+
+    def _cut_pipeline_chooser_value(self):
+        self._copy_pipeline_chooser_value()
+        self.v.pipelineChooser.SetValue("")
+        self.pipeline = None
+
+    def _paste_pipeline_chooser_value(self):
+        if not wx.TheClipboard.Open():
+            return
+        data = wx.TextDataObject()
+        if wx.TheClipboard.GetData(data):
+            value = data.GetText().strip()
+            wx.TheClipboard.Close()
+            if value in self.available_pipelines:
+                self.v.pipelineChooser.SetValue(value)
+                self.on_execution_pipeline_changed()
+        else:
+            wx.TheClipboard.Close()
+
+    def on_pipeline_chooser_right_click(self, evt):
+        if not hasattr(self, "_pc_popup_new"):
+            self._pc_popup_new = wx.NewId()
+            self._pc_popup_copy = wx.NewId()
+
+        menu = wx.Menu()
+
+        menu.Append(self._pc_popup_new, t("menu_new_pipeline"))
+        self.v.Bind(wx.EVT_MENU, self._on_new_pipeline, id=self._pc_popup_new)
+
+        current_name = self.v.pipelineChooser.GetValue()
+        if current_name:
+            menu.Append(self._pc_popup_copy, t("menu_copy_pipeline"))
+            self.v.Bind(wx.EVT_MENU, self._on_copy_pipeline, id=self._pc_popup_copy)
+
+        self.v.PopupMenu(menu)
+        menu.Destroy()
+
+    def _on_new_pipeline(self, evt):
+        existing = set(Pipeline.get_available_pipelines())
+        dlg = wx.TextEntryDialog(self.v, t("dlg_new_pipeline_name"),
+                                 t("dlg_new_pipeline_title"), "NEW_PIPELINE")
+        while True:
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
+            new_name = dlg.GetValue().strip()
+            if not new_name or new_name in existing:
+                wx.MessageBox(t("dlg_new_pipeline_dup"), t("dlg_new_pipeline_title"),
+                              wx.OK | wx.ICON_WARNING, self.v)
+                continue
+            break
+        dlg.Destroy()
+
+        grid = self.v.executionGrid
+        grid.ClearGrid()
+        while grid.GetNumberRows() > 1:
+            grid.DeleteRows(grid.GetNumberRows() - 1, 1)
+        grid.SetCellValue(0, 0, "")
+        grid.SetCellValue(0, 1, "")
+        self.v.pipelineChooser.SetValue(new_name)
+        self.v.asCronChecbox.SetValue(False)
+        self.v.cronInput.SetValue("")
+        self.pipeline = None
+        self._pipeline_snapshots = []
+        self._pipeline_snapshot_cursor = -1
+
+    def _on_copy_pipeline(self, evt):
+        current_name = self.v.pipelineChooser.GetValue()
+        if not current_name:
+            return
+        existing = set(Pipeline.get_available_pipelines())
+        default_name = f"{current_name}_copy"
+        dlg = wx.TextEntryDialog(self.v, t("dlg_copy_pipeline_name"),
+                                 t("dlg_copy_pipeline_title"), default_name)
+        while True:
+            if dlg.ShowModal() != wx.ID_OK:
+                dlg.Destroy()
+                return
+            new_name = dlg.GetValue().strip()
+            if not new_name or new_name in existing:
+                wx.MessageBox(t("dlg_new_pipeline_dup"), t("dlg_copy_pipeline_title"),
+                              wx.OK | wx.ICON_WARNING, self.v)
+                continue
+            break
+        dlg.Destroy()
+
+        self.v.pipelineChooser.SetValue(new_name)
+        self._save_pipeline(new_name)
+        self.available_pipelines.insert(0, new_name)
 
     def on_grid_cell_change4e(self, evt):
         grid = self.v.taskGrid
@@ -3100,6 +3227,18 @@ class PETPPresenter():
             if col == 0 and row >= 0:
                 self._show_execution_palette_for_pipeline(row)
                 return
+        if evt.GetKeyCode() == wx.WXK_DOWN and not evt.ShiftDown():
+            grid = self.v.executionGrid
+            row = grid.GetGridCursorRow()
+            if row >= 0 and row == grid.GetNumberRows() - 1:
+                last_exec = grid.GetCellValue(row, 0).strip()
+                last_input = grid.GetCellValue(row, 1).strip()
+                if last_exec or last_input:
+                    self._push_pipeline_snapshot()
+                    grid.AppendRows(1)
+                    grid.SetGridCursor(row + 1, grid.GetGridCursorCol())
+                    grid.MakeCellVisible(row + 1, 0)
+                    return
         if evt.ShiftDown():
             if evt.GetKeyCode() == wx.WXK_UP:
                 self._move_pipeline_row(-1)
@@ -3118,6 +3257,25 @@ class PETPPresenter():
                 self._redo_pipeline()
                 return
         evt.Skip()
+
+    def on_pipeline_grid_motion(self, evt):
+        grid = self.v.executionGrid
+        x, y = grid.CalcUnscrolledPosition(evt.GetX(), evt.GetY())
+        row = grid.YToRow(y)
+        col = grid.XToCol(x)
+        if row >= 0 and col == 1:
+            value = grid.GetCellValue(row, 1).strip()
+            if value:
+                try:
+                    parsed = json.loads(value)
+                    tip = json.dumps(parsed, indent=2, ensure_ascii=False)
+                except (json.JSONDecodeError, TypeError):
+                    tip = value
+                grid.GetGridWindow().SetToolTip(tip)
+            else:
+                grid.GetGridWindow().SetToolTip("")
+        else:
+            grid.GetGridWindow().SetToolTip("")
 
     def _on_pipeline_row_copy(self, evt):
         grid = self.v.executionGrid

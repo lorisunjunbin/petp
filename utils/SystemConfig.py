@@ -1,5 +1,6 @@
 import logging
 import os
+import threading
 
 import yaml
 
@@ -7,6 +8,8 @@ from utils.AppPaths import get_config_dir
 
 
 class SystemConfig():
+
+    _write_lock = threading.Lock()
 
     def __init__(self, file_name):
         self.config_path = os.path.join(get_config_dir(), file_name)
@@ -27,12 +30,13 @@ class SystemConfig():
             return None
 
     def set_config(self, value, *keys):
-        temp = self.yamldoc
-        for key in keys[:-1]:
-            temp = temp[key]
-        temp[keys[-1]] = value
-        with open(self.config_path, 'w', encoding='utf8') as f:
-            yaml.dump(self.yamldoc, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        with self._write_lock:
+            temp = self.yamldoc
+            for key in keys[:-1]:
+                temp = temp[key]
+            temp[keys[-1]] = value
+            with open(self.config_path, 'w', encoding='utf8') as f:
+                yaml.dump(self.yamldoc, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
         logging.debug('set_config -' + str(keys) + '= ' + str(value))
 
     def bind_model(self, model, keys=None, exclude_keys=None):

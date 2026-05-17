@@ -172,11 +172,33 @@ python PETP_background.py   # 无头服务（端口 8866）
 # 运行单个 Execution 后退出
 python PETP_background.py --run-execution ENDECODER --no-http
 
-# 运行 Pipeline
+# 带初始数据运行 Execution
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+
+# 运行 Pipeline 后退出
 python PETP_background.py --run-pipeline DAILY_REPORT --no-http
 
-# 传入数据
-python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+# 带初始数据运行 Pipeline
+python PETP_background.py --run-pipeline MY_PIPELINE --init-data '{"param":"value"}' --no-http
+
+# 启动 HTTP/MCP 服务（默认端口 8866）
+python PETP_background.py
+
+# 自定义端口和认证令牌
+python PETP_background.py --http-port 9090 --http-token my-secret-token
+
+# 无头 Selenium 浏览器（Chrome 不显示窗口）
+python PETP_background.py --run-execution BROWSER_TASK --headless --no-http
+
+# 覆盖日志级别
+python PETP_background.py --log-level DEBUG
+
+# GUI 处理器策略：skip（跳过）或 abort（遇到 GUI 任务时失败）
+python PETP_background.py --run-execution HAS_GUI_TASK --ui-policy skip --no-http
+python PETP_background.py --run-execution HAS_GUI_TASK --ui-policy abort --no-http
+
+# 停止运行中的后台实例
+python PETP_background.py --stop
 ```
 
 <details>
@@ -184,18 +206,24 @@ python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' 
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
-| `--run-execution NAME` | — | 启动时运行指定 Execution |
-| `--run-pipeline NAME` | — | 启动时运行指定 Pipeline |
-| `--init-data JSON` | `{}` | 注入数据到 `data_chain` |
-| `--no-http` | 关 | 任务完成后退出（不启动 HTTP 服务） |
-| `--headless` | 关 | Selenium 无头模式（Docker 自动启用） |
-| `--stop` | — | 停止运行中的后台实例 |
-| `--http-port PORT` | `8866` | HTTP 服务端口 |
-| `--http-token TOKEN` | 配置文件 | Bearer 认证令牌 |
-| `--ui-policy {skip,abort}` | `skip` | GUI 处理器处理方式 |
-| `--log-level LEVEL` | 配置文件 | 覆盖日志级别 |
+| `--run-execution NAME` | — | 启动时运行指定 Execution，然后继续 HTTP 或退出 |
+| `--run-pipeline NAME` | — | 启动时运行指定 Pipeline（同名重复调用会被拒绝） |
+| `--init-data JSON` | `{}` | 运行前注入 JSON 对象到 `data_chain` |
+| `--no-http` | 关 | 立即任务完成后退出（不启动 HTTP 服务） |
+| `--headless` | 关 | Selenium 无头浏览器（Docker 中自动启用） |
+| `--stop` | — | 通过 PID 停止运行中的后台实例 |
+| `--http-port PORT` | `8866` | HTTP/MCP 服务端口 |
+| `--http-token TOKEN` | 配置文件 | HTTP API 的 Bearer 认证令牌 |
+| `--ui-policy {skip,abort}` | `skip` | `skip`：静默跳过 GUI 任务；`abort`：遇到 GUI 任务则失败 |
+| `--log-level LEVEL` | 配置文件 | `DEBUG`、`INFO`、`WARNING`、`ERROR` |
+| `--nogui-enabled {true,false}` | `true` | 设为 `false` 则后台模式立即退出 |
 
 </details>
+
+**说明：**
+- `--run-execution` 和 `--run-pipeline` 可组合使用——两者按顺序执行
+- Pipeline 防重入保护：同名 Pipeline 正在运行时，第二次调用返回 `{"ok": false, "error": "Pipeline already running"}`
+- cron 模式 Pipeline（YAML 中 `cronEnabled: true`）会注册为定时任务而非立即运行
 
 长时间运行可用辅助脚本：`scripts/macos/start_petp.sh` 和 `scripts/windows/start_petp.ps1`。
 

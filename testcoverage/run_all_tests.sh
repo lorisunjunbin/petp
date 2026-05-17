@@ -12,9 +12,9 @@ ERRORS=()
 
 run_standalone() {
     local label="$1"
-    local script="$2"
+    shift
     echo "▶ $label"
-    if python "$script"; then
+    if "$@"; then
         echo "  ✓ PASS"
         PASS=$((PASS + 1))
     else
@@ -43,8 +43,9 @@ echo " PETP Test Suite"
 echo "=============================="
 
 # Standalone scripts (have their own __main__ entry point)
-run_standalone "nogui_smoke"         testcoverage/nogui_smoke.py
-run_standalone "test_bg_runtime"     testcoverage/test_bg_runtime.py
+run_standalone "nogui_smoke"         python testcoverage/nogui_smoke.py
+run_standalone "test_bg_runtime"     python testcoverage/test_bg_runtime.py
+run_standalone "test_cli_commands"   bash testcoverage/test_cli_commands.sh
 
 # Pytest suites (collected and run together in one invocation)
 run_pytest "pytest suites" \

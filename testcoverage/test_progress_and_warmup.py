@@ -784,3 +784,48 @@ pipeline: {pipeline_name}
         assert "__pipeline_context" not in public
         assert "run_in_pipeline" in public
         assert "result" in public
+
+    def test_pipeline_reentrant_protection(self, bg_runtime):
+        """Same pipeline cannot run concurrently — second call returns error."""
+        import threading
+        name, path = self._create_test_pipeline()
+        try:
+            barrier = threading.Barrier(2, timeout=5)
+            results = [None, None]
+
+            original_run = bg_runtime.run_execution
+
+            call_count = [0]
+            def slow_run(exec_name, init_data=None, progress_queue=None):
+                call_count[0] += 1
+                if call_count[0] == 1:
+                    barrier.wait()
+                    import time as _t
+                    _t.sleep(0.3)
+                return original_run(exec_name, init_data, progress_queue)
+
+            bg_runtime.run_execution = slow_run
+
+            def run_first():
+                results[0] = bg_runtime.run_pipeline(name)
+
+            def run_second():
+                barrier.wait()
+                results[1] = bg_runtime.run_pipeline(name)
+
+            t1 = threading.Thread(target=run_first)
+            t2 = threading.Thread(target=run_second)
+            t1.start()
+            t2.start()
+            t1.join(timeout=10)
+            t2.join(timeout=10)
+
+            bg_runtime.run_execution = original_run
+
+            assert results[0] is not None
+            assert results[1] is not None
+            assert results[0]["ok"] is True
+            assert results[1]["ok"] is False
+            assert "already running" in results[1].get("error", "")
+        finally:
+            self._cleanup_pipeline(path)

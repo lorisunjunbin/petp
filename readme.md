@@ -206,11 +206,33 @@ python PETP_background.py   # Headless service (port 8866)
 # Run one execution and exit
 python PETP_background.py --run-execution ENDECODER --no-http
 
-# Run pipeline on schedule (cron managed in GUI or YAML)
+# Run execution with initial data
+python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+
+# Run pipeline and exit
 python PETP_background.py --run-pipeline DAILY_REPORT --no-http
 
-# Pass data into execution
-python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' --no-http
+# Run pipeline with initial data
+python PETP_background.py --run-pipeline MY_PIPELINE --init-data '{"param":"value"}' --no-http
+
+# Start HTTP/MCP service (default port 8866)
+python PETP_background.py
+
+# Custom port and auth token
+python PETP_background.py --http-port 9090 --http-token my-secret-token
+
+# Headless Selenium (Chrome without visible window)
+python PETP_background.py --run-execution BROWSER_TASK --headless --no-http
+
+# Override log level
+python PETP_background.py --log-level DEBUG
+
+# GUI-processor policy: skip (ignore) or abort (fail on GUI tasks)
+python PETP_background.py --run-execution HAS_GUI_TASK --ui-policy skip --no-http
+python PETP_background.py --run-execution HAS_GUI_TASK --ui-policy abort --no-http
+
+# Stop a running background instance
+python PETP_background.py --stop
 ```
 
 <details>
@@ -218,18 +240,24 @@ python PETP_background.py --run-execution MY_EXEC --init-data '{"key":"value"}' 
 
 | Argument | Default | Description |
 |----------|---------|-------------|
-| `--run-execution NAME` | — | Run execution on startup |
-| `--run-pipeline NAME` | — | Run pipeline on startup |
-| `--init-data JSON` | `{}` | Inject data into `data_chain` |
-| `--no-http` | off | Exit after job finishes (no HTTP server) |
-| `--headless` | off | Headless Selenium (auto in Docker) |
-| `--stop` | — | Stop running background instance |
-| `--http-port PORT` | `8866` | HTTP service port |
-| `--http-token TOKEN` | from config | Bearer token for auth |
-| `--ui-policy {skip,abort}` | `skip` | Handle GUI-only processors |
-| `--log-level LEVEL` | from config | Override log level |
+| `--run-execution NAME` | — | Run execution on startup, then continue to HTTP or exit |
+| `--run-pipeline NAME` | — | Run pipeline on startup (rejects if already running) |
+| `--init-data JSON` | `{}` | Inject JSON object into `data_chain` before run |
+| `--no-http` | off | Exit after immediate job finishes (no HTTP server) |
+| `--headless` | off | Headless Selenium browser (auto-enabled in Docker) |
+| `--stop` | — | Stop running background instance (by PID) |
+| `--http-port PORT` | `8866` | HTTP/MCP service port |
+| `--http-token TOKEN` | from config | Bearer token for HTTP API auth |
+| `--ui-policy {skip,abort}` | `skip` | `skip`: silently skip GUI-only tasks; `abort`: fail execution |
+| `--log-level LEVEL` | from config | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `--nogui-enabled {true,false}` | `true` | Set to `false` to disable background mode (exits immediately) |
 
 </details>
+
+**Notes:**
+- `--run-execution` and `--run-pipeline` can be combined — both will run in sequence
+- Pipeline reentrant protection: if the same pipeline is already running, a second call returns `{"ok": false, "error": "Pipeline already running"}`
+- Cron-enabled pipelines (`cronEnabled: true` in YAML) auto-register as scheduled jobs instead of running immediately
 
 Helper scripts for long-running sessions: see `scripts/macos/start_petp.sh` and `scripts/windows/start_petp.ps1`.
 

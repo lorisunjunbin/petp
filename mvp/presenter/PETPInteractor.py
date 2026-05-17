@@ -80,6 +80,7 @@ class PETPInteractor():
         self.v.Bind(wx.EVT_BUTTON, self.on_delete_pipeline, self.v.delPipeline)
         self.v.pipelineChooser.Bind(wx.EVT_LEFT_DOWN, self.on_pipeline_chooser_click)
         self.v.pipelineChooser.Bind(wx.EVT_KEY_DOWN, self.on_pipeline_chooser_key)
+        self.v.pipelineChooser.Bind(wx.EVT_RIGHT_DOWN, self.on_pipeline_chooser_right_click)
         self.v.Bind(wx.EVT_BUTTON, self.on_save_pipeline, self.v.savePipeline)
         self.v.Bind(wx.EVT_BUTTON, self.on_run_pipeline, self.v.runPipeline)
         self.v.Bind(wx.EVT_CHECKBOX, self.on_cron_actived, self.v.asCronChecbox)
@@ -95,6 +96,7 @@ class PETPInteractor():
         self.v.executionGrid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_pipeline_grid_right_click)
         self.v.executionGrid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_pipeline_grid_dclick)
         self.v.executionGrid.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.on_pipeline_grid_key_down)
+        self.v.executionGrid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_pipeline_grid_motion)
 
     def bind_view_event_4e_execution_action_panel(self):
         # Execution action panel
@@ -333,8 +335,20 @@ class PETPInteractor():
         code = evt.GetKeyCode()
         if code in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER, wx.WXK_F2, wx.WXK_SPACE):
             wx.CallAfter(self.p._show_pipeline_palette)
+        elif (evt.ControlDown() or evt.RawControlDown()):
+            if code == ord('C'):
+                self.p._copy_pipeline_chooser_value()
+            elif code == ord('X'):
+                self.p._cut_pipeline_chooser_value()
+            elif code == ord('V'):
+                self.p._paste_pipeline_chooser_value()
+            else:
+                evt.Skip()
         else:
             evt.Skip()
+
+    def on_pipeline_chooser_right_click(self, evt):
+        self.p.on_pipeline_chooser_right_click(evt)
 
     def on_lang_changed(self, evt):
         evt.Skip()
@@ -453,6 +467,17 @@ class PETPInteractor():
             if grid.GetGridCursorCol() == 0:
                 self.p._show_processor_palette(grid.GetGridCursorRow())
                 return
+        if code == wx.WXK_DOWN and not evt.ShiftDown():
+            grid = self.v.taskGrid
+            row = grid.GetGridCursorRow()
+            if row >= 0 and row == grid.GetNumberRows() - 1:
+                if grid.GetCellValue(row, 0).strip() or grid.GetCellValue(row, 1).strip():
+                    self.p._push_snapshot()
+                    self.p._insert_row(grid, self.p.available_processors)
+                    grid.SetGridCursor(row + 1, grid.GetGridCursorCol())
+                    grid.MakeCellVisible(row + 1, 0)
+                    self.p._update_save_button()
+                    return
         evt.Skip()
 
     def on_task_grid_size(self, evt):
@@ -474,6 +499,10 @@ class PETPInteractor():
 
     def on_pipeline_grid_key_down(self, evt):
         self.p.on_pipeline_grid_key_down(evt)
+
+    def on_pipeline_grid_motion(self, evt):
+        self.p.on_pipeline_grid_motion(evt)
+        evt.Skip()
 
     def on_undo(self, evt):
         self.p._undo()

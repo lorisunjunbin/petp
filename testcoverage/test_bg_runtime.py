@@ -169,6 +169,44 @@ def test_pipeline_not_found():
     assert not r["ok"], "expected ok=False for missing pipeline"
 
 
+@case("Pipeline: run OOTB_TEST_PIPLINE_BG (multi-step)")
+def test_pipeline_run_success():
+    r = _get_runtime().run_pipeline("OOTB_TEST_PIPLINE_BG")
+    # This pipeline has steps that may skip in BG mode, but should complete
+    assert "ok" in r, f"expected result dict, got: {r}"
+    assert "meta" in r
+
+
+@case("Pipeline: run_in_pipeline flag present in result data")
+def test_pipeline_run_in_pipeline_flag():
+    r = _get_runtime().run_pipeline("OOTB_TEST_PIPLINE_BG")
+    if r["ok"]:
+        assert r["data"].get("run_in_pipeline") == "yes"
+
+
+@case("Pipeline: reentrant protection rejects second call")
+def test_pipeline_reentrant():
+    import threading
+    name = "OOTB_TEST_PIPLINE_BG"
+    rt = _get_runtime()
+    # Manually mark as running
+    with rt._running_pipelines_lock:
+        rt._running_pipelines.add(name)
+    try:
+        r = rt.run_pipeline(name)
+        assert not r["ok"], "expected rejection when already running"
+        assert "already running" in r.get("error", "")
+    finally:
+        with rt._running_pipelines_lock:
+            rt._running_pipelines.discard(name)
+
+
+@case("Pipeline: with init-data passed through")
+def test_pipeline_with_init_data():
+    r = _get_runtime().run_pipeline("OOTB_TEST_PIPLINE_BG", {"custom_key": "custom_value"})
+    assert "ok" in r
+
+
 # ---------------------------------------------------------------------------
 # Meta / tools cache
 # ---------------------------------------------------------------------------
@@ -260,6 +298,10 @@ ALL_CASES = [
     test_db_empty_result,
     test_db_invalid_sql,
     test_pipeline_not_found,
+    test_pipeline_run_success,
+    test_pipeline_run_in_pipeline_flag,
+    test_pipeline_reentrant,
+    test_pipeline_with_init_data,
     test_get_tools,
     test_get_tools_cache,
     test_invalidate_tools_cache,

@@ -1,0 +1,16 @@
+!!python/object:core.pipeline.Pipeline
+cronDesc: ''
+cronEnabled: false
+cronExp: ''
+list:
+- execution: ENDECODER
+  input: '{"type": "encode", "algorithms": "base64", "inbound": "yabangdoufuer"}'
+- execution: OOTB_RUN_JS
+  input: ''
+- execution: T_RECEIVE_EMAIL
+  input: ''
+- execution: loop_time
+  input: ''
+- execution: TEST_FIB_WITH_CACHE
+  input: '{"seed": "66"}'
+pipeline: NEW_PIPELINE_FOR_TEST

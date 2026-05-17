@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+import threading
 from queue import SimpleQueue
 from threading import Condition
 from typing import Any, Optional
@@ -26,6 +27,8 @@ class BackgroundRuntime:
         self._tools_cache: dict | None = None
         self._tools_cache_ts: float = 0.0
         self._cron: Cron | None = None
+        self._running_pipelines: set[str] = set()
+        self._running_pipelines_lock = threading.Lock()
         max_records = getattr(model, 'cron_history_max_records', 500) if model else 500
         self._cron_history = CronHistory(max_records=max_records)
         from core.execution import set_static_mode
@@ -195,7 +198,16 @@ class BackgroundRuntime:
         if getattr(pipeline, 'cronEnabled', False):
             return self._run_pipeline_as_cron(pipeline, started)
 
-        return self._run_pipeline_once(pipeline, pipeline_name, init_data, started)
+        with self._running_pipelines_lock:
+            if pipeline_name in self._running_pipelines:
+                return self._result(False, {}, f"Pipeline already running: {pipeline_name}", started)
+            self._running_pipelines.add(pipeline_name)
+
+        try:
+            return self._run_pipeline_once(pipeline, pipeline_name, init_data, started)
+        finally:
+            with self._running_pipelines_lock:
+                self._running_pipelines.discard(pipeline_name)
 
     def _run_pipeline_as_cron(self, pipeline: Pipeline, started: float) -> dict:
         cron_exp = getattr(pipeline, 'cronExp', '')
