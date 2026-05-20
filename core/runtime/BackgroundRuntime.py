@@ -213,7 +213,13 @@ class BackgroundRuntime:
         cron_exp = getattr(pipeline, 'cronExp', '')
         cron_desc = getattr(pipeline, 'cronDesc', '')
         if self._cron is None:
-            self._cron = Cron(None, on_run=self._cron_run_pipeline)
+            max_failures = getattr(self.model, 'cron_max_consecutive_failures', 5) if self.model else 5
+            self._cron = Cron(
+                None,
+                on_run=self._cron_run_pipeline,
+                on_record=self._cron_history.record,
+                max_consecutive_failures=max_failures,
+            )
         self._cron.add_one(pipeline)
         logging.info('Pipeline %s registered as cron [ %s ] %s', pipeline.pipeline, cron_exp, cron_desc)
         return self._result(True, {}, None, started, [], {
@@ -244,12 +250,13 @@ class BackgroundRuntime:
     def get_cron_record(self, record_id: str) -> Optional[dict]:
         return self._cron_history.get_record(record_id)
 
-    def _cron_run_pipeline(self, cron_obj, init_data: dict) -> None:
+    def _cron_run_pipeline(self, cron_obj, init_data: dict) -> dict:
         pipeline_name = cron_obj.get_name()
         started = time.time()
         result = self._run_pipeline_once(cron_obj, pipeline_name, init_data, started)
         logging.info("Cron pipeline result: %s", json.dumps(result, ensure_ascii=False, default=str))
-        self._cron_history.record(pipeline_name, getattr(cron_obj, 'cronExp', ''), result)
+        # History persistence is handled by Cron via on_record (covers both success and failure).
+        return result
 
     def _run_pipeline_once(self, pipeline: Pipeline, pipeline_name: str, init_data: Optional[dict], started: float) -> dict:
         cron_desc = getattr(pipeline, 'cronDesc', '')

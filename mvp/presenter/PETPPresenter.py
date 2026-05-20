@@ -549,7 +549,12 @@ class PETPPresenter():
             self.v.cb_skipped.SetValue(skipped)
 
     def _init_cron(self):
-        self.cron = Cron(self.v)
+        max_failures = getattr(self.m, 'cron_max_consecutive_failures', 5)
+        self.cron = Cron(
+            self.v,
+            on_record=self._cron_history.record,
+            max_consecutive_failures=max_failures,
+        )
 
     def _load_available_executions(self):
         self.available_executions = Execution.get_available_executions()
