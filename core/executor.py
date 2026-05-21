@@ -31,6 +31,7 @@ class Executor(Thread):
             import traceback as tb
             logging.exception('Executor caught unhandled exception in %s', self.execution.execution)
             data_chain = self.init_data
+            self._cleanup_chrome_drivers(data_chain)
             error = str(e)
             task_index = -1
             task_type = ''
@@ -51,3 +52,25 @@ class Executor(Thread):
             }
         if wx is not None and self.wx_comp is not None:
             wx.PostEvent(self.wx_comp, PETPEvent(PETPEvent.DONE, [self.execution.execution, data_chain, error, error_context]))
+
+    @staticmethod
+    def _cleanup_chrome_drivers(data_chain) -> None:
+        """Best-effort quit of any selenium driver leaked into data_chain on the
+        exception path — without it, a Chrome process survives the failed run and
+        accumulates over time in long-running BG/Docker deployments."""
+        if not isinstance(data_chain, dict):
+            return
+        import logging
+        for k, v in list(data_chain.items()):
+            cls = getattr(v, '__class__', None)
+            if cls is None:
+                continue
+            module_name = str(getattr(cls, '__module__', '')).lower()
+            class_name = str(getattr(cls, '__name__', '')).lower()
+            if not ('selenium' in module_name and 'webdriver' in module_name and 'chrome' in (module_name + class_name)):
+                continue
+            try:
+                v.quit()
+                logging.info('cleaned up leaked chrome driver at data_chain[%r]', k)
+            except Exception as e:
+                logging.warning('chrome driver cleanup failed for %r: %s', k, e)

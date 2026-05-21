@@ -7,6 +7,8 @@ import time
 from threading import Condition
 from typing import TYPE_CHECKING, Any
 
+from cachetools import LRUCache
+
 from core.loop import Loop
 from core.task import Task
 from utils.DateUtil import DateUtil
@@ -67,8 +69,9 @@ class Processor:
     global _cached_category_map
     _cached_category_map = {}
 
+    # Bounded so long-running loops with unique f-strings cannot grow this without limit.
     global _expr_code_cache
-    _expr_code_cache = {}
+    _expr_code_cache = LRUCache(maxsize=2048)
 
     PARAM_PATTERN = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
 

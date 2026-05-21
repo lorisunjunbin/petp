@@ -19,13 +19,11 @@ from utils.DateUtil import DateUtil
 
 
 class BackgroundRuntime:
-    _TOOLS_CACHE_TTL = 60
 
     def __init__(self, model: Any, ui_policy: str = "skip"):
         self.model = model
         self.ui_policy = ui_policy
         self._tools_cache: dict | None = None
-        self._tools_cache_ts: float = 0.0
         self._cron: Cron | None = None
         self._running_pipelines: set[str] = set()
         self._running_pipelines_lock = threading.Lock()
@@ -179,6 +177,7 @@ class BackgroundRuntime:
                 state.move_to_next()
         except Exception as e:
             logging.exception("Execution failed: %s", execution_name)
+            self._cleanup_data_chain_drivers(data_chain)
             return self._result(
                 False,
                 data_chain,
@@ -307,8 +306,10 @@ class BackgroundRuntime:
         return self._result(True, data_chain, None, started, [], {"executions": execution_results})
 
     def get_tools(self) -> dict:
-        now = time.time()
-        if self._tools_cache is not None and (now - self._tools_cache_ts) < self._TOOLS_CACHE_TTL:
+        # BG/Docker: yaml definitions are immutable post-startup, so once built the
+        # tools manifest does not need a TTL refresh. invalidate_tools_cache() can
+        # still be called explicitly (e.g. by GUI editor on save) to rebuild.
+        if self._tools_cache is not None:
             return self._tools_cache
         tools = {}
         for execution_name in Execution.get_available_executions():
@@ -321,11 +322,27 @@ class BackgroundRuntime:
             ):
                 tools[execution_name] = execution.mcp_desc
         self._tools_cache = tools
-        self._tools_cache_ts = now
         return tools
 
     def invalidate_tools_cache(self):
         self._tools_cache = None
+
+    def _cleanup_data_chain_drivers(self, data_chain: dict) -> None:
+        """Best-effort quit of any selenium driver still parked in data_chain.
+
+        Called only on the exception path: on a clean run the user may have left a
+        driver alive intentionally for the next execution in a pipeline.
+        """
+        if not isinstance(data_chain, dict):
+            return
+        for k, v in list(data_chain.items()):
+            if not self._is_chrome_driver_instance(v):
+                continue
+            try:
+                v.quit()
+                logging.info('cleaned up leaked chrome driver at data_chain[%r]', k)
+            except Exception as e:
+                logging.warning('chrome driver cleanup failed for %r: %s', k, e)
 
     @staticmethod
     def _result(
