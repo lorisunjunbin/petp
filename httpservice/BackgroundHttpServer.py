@@ -1,3 +1,4 @@
+import hmac
 import json
 import logging
 import threading
@@ -46,8 +47,21 @@ class BackgroundHttpServer(McpMixin):
             "GET:/mcp": self._handle_mcp_get,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
-            "GET:/mcp/.well-known/openid-configuration": self._handle_mcp_auth,
         }
+
+    def _require_token(self, handler: HttpRequestHandler) -> Optional[tuple]:
+        """Validate the bearer token. Returns None on success, or an
+        (error_dict, status_code) tuple on rejection. Fail-closed when
+        ``http_request_token`` is unset (501)."""
+        if not self._token:
+            return ({"error": "Server requires http_request_token to be configured"}, 501)
+        given = handler.headers.get("Authorization", "")
+        prefix = "Bearer "
+        if given.startswith(prefix):
+            given = given[len(prefix):]
+        if not hmac.compare_digest(given, self._token):
+            return ({"error": "Unauthorized"}, 401)
+        return None
 
     def _handle_index(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
         return {
@@ -59,10 +73,16 @@ class BackgroundHttpServer(McpMixin):
     def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
         return {"status": "ok", "timestamp": time.time()}
 
-    def _handle_petp_tools(self, handler: HttpRequestHandler, payload: Optional[dict] = None) -> dict:
+    def _handle_petp_tools(self, handler: HttpRequestHandler, payload: Optional[dict] = None) -> Union[dict, tuple]:
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         return self.runtime.get_tools()
 
     def _handle_petp_exec(self, handler: HttpRequestHandler, payload: Optional[dict]) -> Union[dict, tuple]:
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         if not payload or "action" not in payload or "params" not in payload:
             return {"error": "Missing required 'action' or 'params' parameter"}, 400
 
@@ -116,6 +136,9 @@ class BackgroundHttpServer(McpMixin):
         return {"error": f"Unsupported action: {action}"}, 400
 
     def _handle_result_check(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         if not params or "request_id" not in params:
             return {"error": "Missing request_id parameter"}, 400
 
@@ -132,10 +155,16 @@ class BackgroundHttpServer(McpMixin):
             return {"error": "Request not found or expired"}, 404
         return result, self._status_code_for_result(result)
 
-    def _handle_cron_list(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
+    def _handle_cron_list(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         return {"crons": self.runtime.get_active_crons()}
 
     def _handle_cron_history(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         params = params or {}
         pipeline_name = params.get("pipeline")
         limit = int(params.get("limit", 50))
@@ -149,15 +178,12 @@ class BackgroundHttpServer(McpMixin):
 
         return {"history": self.runtime.get_cron_history(pipeline_name, limit)}
 
-    def _handle_mcp_auth(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> tuple:
-        return {"token": self._token}, 200
-
     def _handle_mcp_get(self, handler: HttpRequestHandler, params: Optional[dict] = None):
         """Handle GET /mcp — SSE stream for server-initiated notifications.
         PETP does not push notifications, so return 204 No Content per MCP spec."""
-        token = handler.headers.get("Authorization")
-        if self._token and token != f"Bearer {self._token}":
-            return {"error": "Invalid token"}, 403
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         return {}, 204
 
     def _handle_mcp(
@@ -166,9 +192,9 @@ class BackgroundHttpServer(McpMixin):
             params: Optional[dict] = None,
     ) -> Union[StreamingResponseData, tuple]:
         params = params or {}
-        token = handler.headers.get("Authorization")
-        if self._token and token != f"Bearer {self._token}":
-            return {"error": "Invalid token"}, 403
+        err = self._require_token(handler)
+        if err is not None:
+            return err
 
         # Batch request support
         if '_batch' in params:

@@ -21,4 +21,4 @@ application:
   ai_model: null
   ai_api_key: ${ZHIPU_ACCESS_KEY}
   ai_base_url: null
-  last_pipeline: NEW_PIPELINE_FOR_TEST
+  last_pipeline: OOTB_TEST_PIPLINE_BG

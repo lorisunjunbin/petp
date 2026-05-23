@@ -1,5 +1,5 @@
 !!python/object:core.execution.Execution
-astool: false
+astool: true
 execution: test_read_from_excel
 list:
 - !!python/object:core.task.Task

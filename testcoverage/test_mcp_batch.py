@@ -32,11 +32,12 @@ class TestMcpBatchIntegration:
 
         model = MagicMock()
         model.http_request_timeout = 30
-        model.http_request_token = ""
+        # Phase 1A made auth fail-closed — tests must use a configured token.
+        model.http_request_token = "test-token"
         runtime = BackgroundRuntime(model)
         server = BackgroundHttpServer.__new__(BackgroundHttpServer)
         server.runtime = runtime
-        server._token = ""
+        server._token = "test-token"
         server._timeout = 30
         server._executor = None
         server._normalized_tools_cache_key = None
@@ -46,7 +47,11 @@ class TestMcpBatchIntegration:
 
     def _make_handler(self, accept="application/json"):
         handler = MagicMock()
-        handler.headers = {"Accept": accept, "Content-Type": "application/json"}
+        handler.headers = {
+            "Accept": accept,
+            "Content-Type": "application/json",
+            "Authorization": "Bearer test-token",
+        }
         return handler
 
     def test_batch_single_tool_call(self):

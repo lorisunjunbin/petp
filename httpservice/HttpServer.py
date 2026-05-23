@@ -1,3 +1,4 @@
+import hmac
 import json
 import logging
 import threading
@@ -86,8 +87,38 @@ class HttpServer(McpMixin):
             "GET:/mcp": self._handle_mcp_get,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
-            "GET:/mcp/.well-known/openid-configuration": self._handle_mcp_auth,
         }
+
+    # Endpoints that require a valid bearer token. /health and / are
+    # public (used by load balancers and humans). The previous
+    # /mcp/.well-known/openid-configuration route was removed in this
+    # release: it returned the bearer token in plaintext to any
+    # unauthenticated caller — a CRITICAL token-disclosure flaw.
+    _AUTHED_PATHS: frozenset[str] = frozenset({
+        "/petp/tools",
+        "/petp/exec",
+        "/petp/result",
+        "/mcp",
+    })
+
+    def _require_token(self, handler: HttpRequestHandler) -> Optional[tuple]:
+        """Validate the bearer token. Returns None on success, or an
+        (error_dict, status_code) tuple on rejection.
+
+        Fail-closed semantics: when ``http_request_token`` is not
+        configured the server refuses every authenticated request with
+        501. This prevents the previous fail-open behaviour where empty
+        token == public RCE on /petp/exec.
+        """
+        if not self._token:
+            return ({"error": "Server requires http_request_token to be configured"}, 501)
+        given = handler.headers.get("Authorization", "")
+        prefix = "Bearer "
+        if given.startswith(prefix):
+            given = given[len(prefix):]
+        if not hmac.compare_digest(given, self._token):
+            return ({"error": "Unauthorized"}, 401)
+        return None
 
     # ------------------------------------------------------------------
     # Index & health endpoints
@@ -149,6 +180,9 @@ class HttpServer(McpMixin):
 
     def _handle_petp_tools(self, handler: HttpRequestHandler, payload: dict) -> dict:
         """Return the full list of PETP execution tools."""
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         logging.debug("_handle_petp_tools payload: %s", payload)
         return self.p.get_tools()
 
@@ -161,6 +195,9 @@ class HttpServer(McpMixin):
         execution finishes or the timeout expires.  Otherwise a ``request_id``
         is returned immediately and the client can poll ``/petp/result``.
         """
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         logging.debug("_handle_petp_event payload: %s", payload)
 
         if not payload or "action" not in payload or "params" not in payload:
@@ -199,6 +236,9 @@ class HttpServer(McpMixin):
         self, handler: HttpRequestHandler, params: Optional[dict] = None
     ) -> Union[dict, tuple]:
         """Poll the result of a previously submitted asynchronous request."""
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         logging.debug("_handle_result_check params: %s", params)
 
         if not params or "request_id" not in params:
@@ -224,18 +264,12 @@ class HttpServer(McpMixin):
     # MCP (Model Context Protocol) endpoints
     # ------------------------------------------------------------------
 
-    def _handle_mcp_auth(
-        self, handler: HttpRequestHandler, params: Optional[dict] = None
-    ) -> tuple:
-        """Return the bearer token for MCP authentication discovery."""
-        return {"token": self._token}, 200
-
     def _handle_mcp_get(self, handler: HttpRequestHandler, params: Optional[dict] = None):
         """Handle GET /mcp — SSE stream for server-initiated notifications.
         PETP does not push notifications, so return 204 No Content per MCP spec."""
-        token: Optional[str] = handler.headers.get("Authorization")
-        if self._token is not None and token != f"Bearer {self._token}":
-            return {"warning": "PETP Invalid token"}, 403
+        err = self._require_token(handler)
+        if err is not None:
+            return err
         return {}, 204
 
     def _handle_mcp(
@@ -248,11 +282,9 @@ class HttpServer(McpMixin):
         """
         params = params or {}
 
-        token: Optional[str] = handler.headers.get("Authorization")
-
-        # Token-based access control (skip when _token is None)
-        if self._token is not None and token != f"Bearer {self._token}":
-            return {"warning": "PETP Invalid token"}, 403
+        err = self._require_token(handler)
+        if err is not None:
+            return err
 
         # Batch request support
         if '_batch' in params:

@@ -75,6 +75,25 @@ class Processor:
 
     PARAM_PATTERN = re.compile(r"\{\{\s*([^{}]+?)\s*\}\}")
 
+    # Block dunder access in expression2str f-string substitution to prevent sandbox escape
+    # via object graph (e.g. {self.__init__.__globals__["os"]}).
+    # NOTE: only the *inside* of {...} is scanned — string literals like "__session_key" or
+    # CSS classes "i8-text-input__input" routinely appear in yaml and must remain valid.
+    # Combined with restricted __builtins__ below, this closes the f-string RCE path.
+    _FSTRING_FIELD_PATTERN = re.compile(r'\{([^{}]*)\}')
+    _DUNDER_PATTERN = re.compile(r'__[a-zA-Z]')
+
+    # Whitelist of builtins exposed to expression2str eval. Anything not listed is unavailable.
+    # Excludes __import__, open, eval, exec, compile, globals, locals, vars, etc.
+    _SAFE_BUILTINS = {
+        'len': len, 'str': str, 'int': int, 'float': float, 'bool': bool,
+        'list': list, 'dict': dict, 'set': set, 'tuple': tuple,
+        'min': min, 'max': max, 'sum': sum, 'abs': abs, 'round': round,
+        'range': range, 'sorted': sorted, 'enumerate': enumerate, 'zip': zip,
+        'isinstance': isinstance, 'getattr': getattr, 'hasattr': hasattr, 'repr': repr,
+        'True': True, 'False': False, 'None': None,
+    }
+
     def process(self) -> None:
         # must be implemented in subclass
         pass
@@ -336,6 +355,21 @@ class Processor:
         if isinstance(expression, str) and '{' not in expression:
             return expression
 
+        # Dunder pre-scan: any '__<letter>' token (e.g. __import__, __class__, __globals__)
+        # inside an f-string field {...} is rejected before eval to prevent object-graph
+        # sandbox escape. CPython auto-injects __builtins__ even when globals dict is empty,
+        # so eval-time defense alone is insufficient.
+        # Plain string literals like "__session_key" or CSS "items__abc" are NOT scanned —
+        # they pass through f-string formatting as text.
+        if isinstance(expression, str):
+            for field in self._FSTRING_FIELD_PATTERN.findall(expression):
+                if self._DUNDER_PATTERN.search(field):
+                    logging.warning("expression2str rejected dunder access in field=%r expression=%r",
+                                    field, expression)
+                    if none_if_not_matched:
+                        return None
+                    return expression
+
         local_vars = {'self': self, 'os': os, 'json': json, 'p':self}
         try:
             if self.task and self.task.data_chain:
@@ -343,11 +377,15 @@ class Processor:
         except Exception:
             pass
 
+        # Restricted globals: only whitelisted builtins. Combined with dunder pre-scan,
+        # this blocks __import__, open, eval, exec, compile, and object-graph traversal.
+        eval_globals = {'__builtins__': self._SAFE_BUILTINS}
+
         cached = _expr_code_cache.get(expression)
         if cached is not None:
             strategy_idx, code_obj = cached
             try:
-                return eval(code_obj, {}, local_vars)
+                return eval(code_obj, eval_globals, local_vars)
             except Exception as e:
                 logging.error(f"expression2str cached strategy-{strategy_idx + 1} failed for expression={expression!r}: {e}")
                 if none_if_not_matched:
@@ -361,7 +399,7 @@ class Processor:
             except SyntaxError:
                 continue
             try:
-                result = eval(code_obj, {}, local_vars)
+                result = eval(code_obj, eval_globals, local_vars)
                 _expr_code_cache[expression] = (idx, code_obj)
                 return result
             except Exception as e:

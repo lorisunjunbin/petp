@@ -267,6 +267,8 @@ Helper scripts for long-running sessions: see `scripts/macos/start_petp.sh` and 
 
 PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
+> **🔒 Auth is fail-closed.** When `http_request_token` is unset in `petpconfig.yaml`, every protected endpoint (`/petp/*`, `/mcp`) returns `501 Not Configured`. Set a token before exposing the server (e.g. via Tailscale Funnel). Send it as `Authorization: Bearer <token>` on every request.
+
 **Performance (headless/Docker):**
 - Shared thread pool for concurrent tool calls (no per-request executor overhead)
 - Static execution cache — zero filesystem I/O after startup (no stat/mtime checks)
@@ -298,20 +300,23 @@ PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
 ```bash
 # List tools
-curl http://localhost:8866/petp/tools
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8866/petp/tools
 
 # Trigger execution
 curl -X POST http://localhost:8866/petp/exec \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"action":"execution","params":{"execution":"MY_EXEC"},"wait_for_result":"true"}'
 
 # Trigger pipeline (sync)
 curl -X POST http://localhost:8866/petp/exec \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"action":"pipeline","params":{"pipeline":"MY_PIPELINE"},"wait_for_result":"true"}'
 
 # Trigger pipeline (async — poll with /petp/result)
 curl -X POST http://localhost:8866/petp/exec \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"action":"pipeline","params":{"pipeline":"MY_PIPELINE"},"wait_for_result":"false"}'
 ```
