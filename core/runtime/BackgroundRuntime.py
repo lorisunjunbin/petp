@@ -16,6 +16,7 @@ from core.runtime.UiProcessorPolicy import decide
 from core.task import Task
 from httpservice.constants import HTTP_RESPONSE_KEY
 from utils.DateUtil import DateUtil
+from utils.LogRedactor import redact_sensitive
 
 
 class BackgroundRuntime:
@@ -406,10 +407,10 @@ class BackgroundRuntime:
             ">-%s >- %s >---------------> Task: %s %s -- begin >",
             task.start, proc_name, seq, loop_cursor,
         )
-        logging.info("process start: %s", task.input)
+        logging.info("process start: %s", redact_sensitive(task.input))
 
     def _log_skipped_process(self, task: Task) -> None:
-        logging.info("*** skipped *** : %s", task.input)
+        logging.info("*** skipped *** : %s", redact_sensitive(task.input))
 
     def _log_end_process(self, seq: int, proc_name: str, loop_cursor: str, task: Task) -> None:
         logging.info(

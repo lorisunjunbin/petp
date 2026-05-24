@@ -230,7 +230,7 @@ def collect_hidden_imports(template_spec, work_spec, extra_hidden_imports=None):
     replace_words_in_file(work_spec, '$hidden_imports$', str(hidden_imports))
 
     collect_submodules = []
-    for module in ['selenium', 'PIL', 'requests']:
+    for module in ['selenium', 'PIL', 'requests', 'pythonmonkey', 'pminit']:
         try:
             importlib.import_module(module)
             collect_submodules.append(module)

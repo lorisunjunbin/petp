@@ -2,6 +2,7 @@ import logging
 
 from core.processor import Processor
 from utils.ExcelUtil import ExcelUtil
+from utils.SafePaths import validate_path
 
 
 class WRITE_TO_EXCELProcessor(Processor):
@@ -20,7 +21,7 @@ class WRITE_TO_EXCELProcessor(Processor):
         return super().CATE_EXCEL
 
     def process(self):
-        file_path = self.expression2str(self.get_param('file_path'))
+        file_path = validate_path(self.expression2str(self.get_param('file_path')))
         data_key = self.expression2str(self.get_param('data_key'))
         value_key = self.expression2str(self.get_param('value_key'))
         value_data = self.get_data(value_key)

@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 import re
 
 from urllib.parse import parse_qs, urlparse
@@ -8,6 +9,24 @@ from collections.abc import Iterator
 import types
 
 from httpservice.constants import HTTP_REQUEST_ID_KEY, HTTP_RESPONSE_KEY
+
+
+def _int_env(name: str, default: int) -> int:
+    raw = os.environ.get(name, '').strip()
+    if not raw:
+        return default
+    try:
+        v = int(raw)
+        return v if v > 0 else default
+    except ValueError:
+        return default
+
+
+# Phase 2 P1-3: cap request body and batch array sizes to avoid trivial DoS.
+# Both are env-tunable for ops; defaults err toward safe-by-default for the
+# Tailscale Funnel deployment scenario where /mcp is publicly reachable.
+MAX_BODY_BYTES = _int_env('PETP_MAX_BODY_BYTES', 4 * 1024 * 1024)   # 4 MiB
+MAX_BATCH_ITEMS = _int_env('PETP_MAX_BATCH_ITEMS', 64)
 
 
 class StreamingResponseData:
@@ -132,6 +151,13 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         # Handle form data and JSON for POST, PUT
         if self.command in ['POST', 'PUT']:
             content_length = int(self.headers.get('Content-Length', 0))
+            if content_length > MAX_BODY_BYTES:
+                logging.warning(
+                    "Rejecting %s %s: Content-Length %d exceeds MAX_BODY_BYTES %d",
+                    self.command, self.path, content_length, MAX_BODY_BYTES
+                )
+                self.send_error(413, message=f"Request body too large (limit: {MAX_BODY_BYTES} bytes)")
+                return None
             if content_length > 0:
                 post_data = self.rfile.read(content_length)
                 content_type = self.headers.get('Content-Type', '')
@@ -140,6 +166,16 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
                     try:
                         json_params = json.loads(post_data.decode('utf-8'))
                         if isinstance(json_params, list):
+                            if len(json_params) > MAX_BATCH_ITEMS:
+                                logging.warning(
+                                    "Rejecting batch with %d items > MAX_BATCH_ITEMS %d",
+                                    len(json_params), MAX_BATCH_ITEMS
+                                )
+                                self.send_error(
+                                    400,
+                                    message=f"Batch array too large (limit: {MAX_BATCH_ITEMS} items)"
+                                )
+                                return None
                             params['_batch'] = json_params
                         else:
                             params.update(json_params)

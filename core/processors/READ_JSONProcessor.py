@@ -4,6 +4,7 @@ import logging
 from jsonpath import JSONPath
 
 from core.processor import Processor
+from utils.SafePaths import validate_path
 
 
 class READ_JSONProcessor(Processor):
@@ -23,6 +24,7 @@ class READ_JSONProcessor(Processor):
     def process(self):
         file_path = self.get_data(self.get_param('file_path_key')) if self.has_param('file_path_key') \
             else self.expression2str(self.get_param('file_path'))
+        file_path = validate_path(file_path)
 
         json_path = self.get_param('json_path')
 

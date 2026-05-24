@@ -3,6 +3,7 @@ import os
 import zipfile
 
 from core.processor import Processor
+from utils.SafePaths import validate_path
 
 
 class UNZIPProcessor(Processor):
@@ -24,9 +25,9 @@ class UNZIPProcessor(Processor):
         return super().CATE_ZIP
 
     def process(self):
-        path_to_zip_file = self.expression2str(self.get_param('path_to_zip_file'))
+        path_to_zip_file = validate_path(self.expression2str(self.get_param('path_to_zip_file')))
 
-        directory_to_extract = self.expression2str(self.get_param('directory_to_extract'))
+        directory_to_extract = validate_path(self.expression2str(self.get_param('directory_to_extract')))
         path_after_extract_key = self.expression2str(self.get_param('path_after_extract_key'))
 
         name_appended = self.explain_param_or_default('name_appended', '')

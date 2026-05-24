@@ -1,6 +1,7 @@
 import logging
 
 from core.processor import Processor
+from utils.SafePaths import validate_path
 
 
 class READ_TEXT_FROM_FILEProcessor(Processor):
@@ -16,7 +17,7 @@ class READ_TEXT_FROM_FILEProcessor(Processor):
         return super().CATE_FILE
 
     def process(self):
-        file_path = self.expression2str(self.get_param('file_path'))
+        file_path = validate_path(self.expression2str(self.get_param('file_path')))
         data_key = self.expression2str(self.get_param('data_key'))
 
         with open(file_path, "r+", encoding='utf8') as text_file:

@@ -4,6 +4,7 @@ import subprocess
 
 from core.processor import Processor
 from utils.OSUtils import OSUtils
+from utils.SafePaths import validate_path
 
 
 class OPEN_FILEProcessor(Processor):
@@ -31,6 +32,7 @@ class OPEN_FILEProcessor(Processor):
             logging.warning('OPEN_FILE: no file path provided or resolved from data_chain, skipping.')
             return
 
+        file_path = validate_path(file_path)
         timeout = int(self.expression2str(self.get_param('timeout'))) if self.has_param('timeout') else 10
         found = OSUtils.wait_for_file_within_seconds(file_path, timeout)
         if found:

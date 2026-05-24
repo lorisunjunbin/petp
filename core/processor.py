@@ -12,6 +12,7 @@ from cachetools import LRUCache
 from core.loop import Loop
 from core.task import Task
 from utils.DateUtil import DateUtil
+from utils.LogRedactor import redact_sensitive
 from utils.OSUtils import OSUtils
 
 if TYPE_CHECKING:
@@ -89,14 +90,19 @@ class Processor:
     _DUNDER_PATTERN = re.compile(r'__[a-zA-Z]')
 
     # Whitelist of builtins exposed to expression2str eval. Anything not listed is unavailable.
-    # Excludes __import__, open, eval, exec, compile, globals, locals, vars, etc.
+    # Excludes __import__, open, eval, exec, compile, globals, locals, vars, getattr, hasattr.
+    # getattr/hasattr removed: they enabled info disclosure via {getattr(p,'task').data_chain}
+    # which exposes the entire data_chain (passwords, tokens) — direct attribute access
+    # like {p.task} is also blocked because dunder pre-scan rejects __getattribute__ chains,
+    # but that defense relies on p.task being a normal attribute. Removing getattr/hasattr
+    # eliminates dynamic attribute name lookup as a sandbox-bypass primitive.
     _SAFE_BUILTINS = {
         'len': len, 'str': str, 'int': int, 'float': float, 'bool': bool,
         'list': list, 'dict': dict, 'set': set, 'tuple': tuple,
         'min': min, 'max': max, 'sum': sum, 'abs': abs, 'round': round,
         'range': range, 'sorted': sorted, 'enumerate': enumerate, 'zip': zip,
         'filter': filter, 'map': map, 'any': any, 'all': all, 'reversed': reversed,
-        'isinstance': isinstance, 'getattr': getattr, 'hasattr': hasattr, 'repr': repr,
+        'isinstance': isinstance, 'repr': repr,
         'print': print,
         'True': True, 'False': False, 'None': None,
     }
@@ -113,7 +119,7 @@ class Processor:
         return self.category
 
     def do_process(self):
-        logging.info('[%s] input: %s', self.task.type, self.input_param)
+        logging.info('[%s] input: %s', self.task.type, redact_sensitive(self.input_param))
         self.process()
 
     def handle_ui_thread_callback(self, given):

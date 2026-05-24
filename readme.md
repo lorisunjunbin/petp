@@ -269,10 +269,13 @@ PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
 > **🔒 Auth is fail-closed.** When `http_request_token` is unset in `petpconfig.yaml`, every protected endpoint (`/petp/*`, `/mcp`) returns `501 Not Configured`. Set a token before exposing the server (e.g. via Tailscale Funnel). Send it as `Authorization: Bearer <token>` on every request.
 
-> **🔒 Security hardening (Phase 2 P0).**
+> **🔒 Security hardening (Phase 2).**
 > - **`CMD` processor**: defaults to `shlex.split` (no shell). Set `shell="yes"` only for trusted commands needing pipes/redirects.
-> - **Dynamic `_fn` / `lambda_*` parameters**: run in a sandbox with `__import__`, `open`, `eval`, `exec`, `compile` removed. Whitelisted modules: `re`, `json`, `datetime`, `math`.
+> - **Dynamic `_fn` / `lambda_*` parameters**: run in a sandbox with `__import__`, `open`, `eval`, `exec`, `compile`, `getattr`, `hasattr` removed. Whitelisted modules: `re`, `json`, `datetime`, `math`.
 > - **Encrypted password salt**: override the public default by setting env `PETP_SALT` or writing `~/.petp/secret` (POSIX mode `0600`). The default salt is logged with a WARNING — `cryptocode` ciphertext is not actually secret unless you set a custom salt.
+> - **Path traversal guard** (opt-in): set `PETP_PATH_ALLOW_ROOTS=/path1:/path2` to confine all file IO processors (`READ_*`, `WRITE_*`, `OPEN_FILE`, `FILE_DELETE`, `UNZIP`) to a whitelist of root directories. Default off — preserves existing yaml using absolute paths.
+> - **Request size limits**: HTTP body capped at 4 MiB (`PETP_MAX_BODY_BYTES`); JSON-RPC batch arrays capped at 64 items (`PETP_MAX_BATCH_ITEMS`). Both return `413` / `400` with no body parsing.
+> - **Log redaction** (default on): values of sensitive keys (`api_key`, `password`, `token`, `authorization`, `secret`, ...) are masked as `***REDACTED***` in `process start` / `[Type] input` log lines. Disable with `PETP_LOG_REDACT=off` for ad-hoc debugging.
 
 **Performance (headless/Docker):**
 - Shared thread pool for concurrent tool calls (no per-request executor overhead)

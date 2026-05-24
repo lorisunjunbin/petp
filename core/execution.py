@@ -25,6 +25,7 @@ from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
 from utils.AppPaths import get_executions_dir
 from utils.DateUtil import DateUtil
+from utils.LogRedactor import redact_sensitive
 from utils.OSUtils import OSUtils
 
 if TYPE_CHECKING:
@@ -251,11 +252,11 @@ class Execution:
         logging.info(
             '>-%s >- %s >---------------> Task: %s %s -- begin >',
             task.start, proc_name, state.get_sequence(), loop_cursor)
-        logging.info('process start: %s', task.input)
+        logging.info('process start: %s', redact_sensitive(task.input))
         self.post_log_reload(state, view, proc_name)
 
     def log_skipped_process(self, current_loop, state, processor, task, view):
-        logging.info('*** skipped *** : %s', task.input)
+        logging.info('*** skipped *** : %s', redact_sensitive(task.input))
         proc_name = type(processor).__name__
         self.post_log_reload(state, view, proc_name)
 

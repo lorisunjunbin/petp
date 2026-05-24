@@ -2,6 +2,7 @@ import logging
 
 from core.processor import Processor
 from utils.ExcelUtil import ExcelUtil
+from utils.SafePaths import validate_path
 
 
 class READ_CSVProcessor(Processor):
@@ -24,6 +25,7 @@ class READ_CSVProcessor(Processor):
 
         fp = self.get_data(self.get_param('file_path_key')) if self.has_param('file_path_key') \
             else self.expression2str(self.get_param('file_path'))
+        fp = validate_path(fp)
 
         delimiter = self.get_param('delimiter') if self.has_param('delimiter') \
             else None
