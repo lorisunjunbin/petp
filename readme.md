@@ -269,6 +269,11 @@ PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
 > **🔒 Auth is fail-closed.** When `http_request_token` is unset in `petpconfig.yaml`, every protected endpoint (`/petp/*`, `/mcp`) returns `501 Not Configured`. Set a token before exposing the server (e.g. via Tailscale Funnel). Send it as `Authorization: Bearer <token>` on every request.
 
+> **🔒 Security hardening (Phase 2 P0).**
+> - **`CMD` processor**: defaults to `shlex.split` (no shell). Set `shell="yes"` only for trusted commands needing pipes/redirects.
+> - **Dynamic `_fn` / `lambda_*` parameters**: run in a sandbox with `__import__`, `open`, `eval`, `exec`, `compile` removed. Whitelisted modules: `re`, `json`, `datetime`, `math`.
+> - **Encrypted password salt**: override the public default by setting env `PETP_SALT` or writing `~/.petp/secret` (POSIX mode `0600`). The default salt is logged with a WARNING — `cryptocode` ciphertext is not actually secret unless you set a custom salt.
+
 **Performance (headless/Docker):**
 - Shared thread pool for concurrent tool calls (no per-request executor overhead)
 - Static execution cache — zero filesystem I/O after startup (no stat/mtime checks)

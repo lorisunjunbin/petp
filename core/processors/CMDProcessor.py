@@ -1,4 +1,5 @@
 import logging
+import shlex
 import subprocess
 import sys
 
@@ -6,15 +7,18 @@ from core.processor import Processor
 
 
 class CMDProcessor(Processor):
-    TPL: str = '{"cmdstr":"","cmddir":"","data_key":"", "timeout":30}'
+    TPL: str = '{"cmdstr":"","cmddir":"","data_key":"", "timeout":30, "shell":"no", "encoding":"utf-8"}'
     DESC: str = '''
         Run system command via subprocess.check_output, then save the output to data_chain associated with data_key.
+
+        Default behavior splits cmdstr with shlex (no shell, no metacharacter interpretation) — safe against ;|& injection.
+        Set shell="yes" only when shell features (pipes, redirects, glob) are required and the command is fully trusted.
 
         - cmdstr: command string to execute (supports expression)
         - cmddir: working directory for the command (supports expression, optional)
         - data_key: key of data_chain to store the command output (supports expression, optional)
         - timeout: command execution timeout in seconds (default: 30, set empty to disable)
-        - shell: set to "yes" to enable shell mode (default: disabled)
+        - shell: "yes" to run via shell — DANGEROUS, disables injection protection (default: "no")
         - encoding: output encoding for decoding byte results (default: "utf-8")
     '''
 
@@ -27,15 +31,22 @@ class CMDProcessor(Processor):
 
         _cwd = self.expression2str(self.get_param("cmddir")) if self.has_param("cmddir") else None
 
-        _shell = 'yes' == self.get_param('shell') if self.has_param("shell") else False
+        _shell = 'yes' == self.get_param('shell').lower() if self.has_param("shell") else False
 
         _encoding = self.explain_param_or_default("encoding", 'utf-8')
 
         _timeout = int(self.expression2str(self.get_param("timeout"))) if self.has_param("timeout") else None
 
-        logging.info('CMD: %s (cwd=%s)', cmdstr, _cwd)
+        logging.info('CMD: %s (cwd=%s, shell=%s)', cmdstr, _cwd, _shell)
 
-        stdout = subprocess.check_output(cmdstr, stderr=subprocess.STDOUT, shell=True, timeout=_timeout, cwd=_cwd)
+        if _shell:
+            # Caller explicitly opted into shell. Metacharacters interpreted; cmdstr must be trusted.
+            cmd_arg = cmdstr
+        else:
+            # Tokenize via shlex — ;, |, & become literal arguments, not shell directives.
+            cmd_arg = shlex.split(cmdstr, posix=(sys.platform != 'win32'))
+
+        stdout = subprocess.check_output(cmd_arg, stderr=subprocess.STDOUT, shell=_shell, timeout=_timeout, cwd=_cwd)
 
         if type(stdout) is str:
             output_str = stdout.strip('\n')

@@ -109,15 +109,18 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
 
     "desc_CMD": {
         "zh": (
-            
-             "\u901a\u8fc7 subprocess.check_output \u8fd0\u884c\u7cfb\u7edf\u547d\u4ee4\uff0c\u5c06\u8f93\u51fa\u4fdd\u5b58\u5230 data_chain \u7684 data_key \u4e2d\u3002\n"
+
+             "通过 subprocess.check_output 运行系统命令，将输出保存到 data_chain 的 data_key 中。\n"
              "\n"
-             "- cmdstr: \u8981\u6267\u884c\u7684\u547d\u4ee4\u5b57\u7b26\u4e32\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
-             "- cmddir: \u547d\u4ee4\u5de5\u4f5c\u76ee\u5f55\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff0c\u53ef\u9009\uff09\n"
-             "- data_key: data_chain \u4e2d\u5b58\u50a8\u547d\u4ee4\u8f93\u51fa\u7684\u952e\n"
-             "- timeout: \u547d\u4ee4\u8d85\u65f6\u79d2\u6570\uff08\u9ed8\u8ba4: 60\uff09\n"
-             "- shell: 设为 \"yes\" 以启用 shell 模式（默认: disabled）\n"
-             "- encoding: \u8f93\u51fa\u7f16\u7801\uff08\u9ed8\u8ba4: \"utf-8\"\uff09\n"
+             "默认行为通过 shlex 拆分 cmdstr（不走 shell，不解释元字符）—— 可防御 ;|& 等注入。\n"
+             "仅在确实需要 shell 特性（管道、重定向、通配符）且命令完全可信时,才设 shell=\"yes\"。\n"
+             "\n"
+             "- cmdstr: 要执行的命令字符串（支持表达式）\n"
+             "- cmddir: 命令工作目录（支持表达式，可选）\n"
+             "- data_key: data_chain 中存储命令输出的键\n"
+             "- timeout: 命令超时秒数（默认: 30）\n"
+             "- shell: \"yes\" 通过 shell 执行 —— 危险,关闭注入防护（默认: \"no\"）\n"
+             "- encoding: 输出编码（默认: \"utf-8\"）\n"
         ),
     },
 

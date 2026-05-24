@@ -1,6 +1,27 @@
 import logging
 
 
+# Whitelisted modules available inside dynamic _fn / _func / lambda_* function bodies.
+# Mirrors the security policy of Processor.expression2str: deny __import__ and OS
+# escape hatches (os, sys, subprocess); permit only the modules user code has
+# legitimately needed for data manipulation.
+_SAFE_MODULES = {}
+
+
+def _build_safe_modules():
+    if _SAFE_MODULES:
+        return _SAFE_MODULES
+    import re as _re
+    import json as _json
+    import datetime as _datetime
+    import math as _math
+    _SAFE_MODULES['re'] = _re
+    _SAFE_MODULES['json'] = _json
+    _SAFE_MODULES['datetime'] = _datetime
+    _SAFE_MODULES['math'] = _math
+    return _SAFE_MODULES
+
+
 class CodeExplainerUtil:
     # Mapping: processor_type -> [(param_name, func_args, body_prefix)]
     # body_prefix is prepended to the raw param value before compilation
@@ -154,8 +175,20 @@ class CodeExplainerUtil:
             except SyntaxError as e:
                 logging.error("Syntax error in dynamic function:\n%s\nError: %s", func, e)
                 raise SyntaxError(f"Syntax error in dynamic function '{func_name}': {e}") from e
-            exec(func, globals())
-            dynamic_func = globals()[func_name]
+            # Sandboxed exec namespace. Mirrors Processor.expression2str policy:
+            # - __builtins__ restricted to Processor._SAFE_BUILTINS (no __import__, open,
+            #   eval, exec, compile, getattr*, vars, globals, locals).
+            # - Whitelisted modules (re/json/datetime/math) for legitimate data work.
+            # - Local namespace isolated from CodeExplainerUtil module globals — old
+            #   `exec(func, globals())` leaked module state and gave full builtins.
+            from core.processor import Processor as _Processor
+            sandbox_globals = {
+                '__builtins__': _Processor._SAFE_BUILTINS,
+                **_build_safe_modules(),
+            }
+            local_ns = {}
+            exec(func, sandbox_globals, local_ns)
+            dynamic_func = local_ns[func_name]
             CodeExplainerUtil._func_cache[cache_key] = dynamic_func
 
         if args is not None or extra_args:

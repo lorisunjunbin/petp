@@ -23,7 +23,12 @@ else:
 class Processor:
     SEPARATOR: str = '|>'
     ITEM_SEPARATOR: str = '[>'
-    SALT: str = 'petpisawesome'
+    # Default cryptocode salt — kept for backward compatibility with pre-2026-05
+    # ciphertext. Override via env var PETP_SALT or ~/.petp/secret to make
+    # encrypted passwords actually secret (the default value is public).
+    _DEFAULT_SALT: str = 'petpisawesome'
+    SALT: str = _DEFAULT_SALT
+    _salt_resolved: bool = False
 
     TPL: str
     DESC: str = f''' 
@@ -90,7 +95,9 @@ class Processor:
         'list': list, 'dict': dict, 'set': set, 'tuple': tuple,
         'min': min, 'max': max, 'sum': sum, 'abs': abs, 'round': round,
         'range': range, 'sorted': sorted, 'enumerate': enumerate, 'zip': zip,
+        'filter': filter, 'map': map, 'any': any, 'all': all, 'reversed': reversed,
         'isinstance': isinstance, 'getattr': getattr, 'hasattr': hasattr, 'repr': repr,
+        'print': print,
         'True': True, 'False': False, 'None': None,
     }
 
@@ -489,12 +496,71 @@ class Processor:
     @staticmethod
     def encrypt_pwd(str) -> str:
         import cryptocode
-        return cryptocode.encrypt(str, Processor.SALT)
+        return cryptocode.encrypt(str, Processor._resolve_salt())
 
     @staticmethod
     def decrypt_pwd(str):
         import cryptocode
-        return cryptocode.decrypt(str, Processor.SALT)
+        return cryptocode.decrypt(str, Processor._resolve_salt())
+
+    @staticmethod
+    def _resolve_salt() -> str:
+        """Return the cryptocode salt, resolving once and caching.
+
+        Lookup order (first hit wins):
+          1. Env var PETP_SALT
+          2. ~/.petp/secret  (file mode must be 0600 on POSIX or it is ignored
+             with a warning — guard against leaking via group/world-readable copy)
+          3. Default 'petpisawesome' (PUBLIC — pre-2026-05 ciphertext compat)
+
+        When the default falls through, a one-time WARNING is logged so
+        operators know their encrypted passwords are not actually secret.
+        """
+        if Processor._salt_resolved:
+            return Processor.SALT
+
+        env_salt = os.environ.get('PETP_SALT')
+        if env_salt:
+            Processor.SALT = env_salt
+            Processor._salt_resolved = True
+            logging.info("PETP salt loaded from env PETP_SALT")
+            return Processor.SALT
+
+        try:
+            secret_path = os.path.expanduser('~/.petp/secret')
+            if os.path.isfile(secret_path):
+                if os.name == 'posix':
+                    mode = os.stat(secret_path).st_mode & 0o777
+                    if mode & 0o077:
+                        logging.warning(
+                            "PETP salt file %s mode is %o — must be 0600 to be trusted; ignoring",
+                            secret_path, mode,
+                        )
+                    else:
+                        with open(secret_path, 'r', encoding='utf-8') as f:
+                            value = f.read().strip()
+                        if value:
+                            Processor.SALT = value
+                            Processor._salt_resolved = True
+                            logging.info("PETP salt loaded from %s", secret_path)
+                            return Processor.SALT
+                else:
+                    with open(secret_path, 'r', encoding='utf-8') as f:
+                        value = f.read().strip()
+                    if value:
+                        Processor.SALT = value
+                        Processor._salt_resolved = True
+                        logging.info("PETP salt loaded from %s", secret_path)
+                        return Processor.SALT
+        except Exception as e:
+            logging.warning("Reading PETP salt file failed: %s", e)
+
+        Processor._salt_resolved = True
+        logging.warning(
+            "PETP using DEFAULT public salt — encrypted passwords are NOT secret. "
+            "Set env PETP_SALT or write ~/.petp/secret (mode 0600) to enable real encryption."
+        )
+        return Processor.SALT
 
     @staticmethod
     def get_processors():
