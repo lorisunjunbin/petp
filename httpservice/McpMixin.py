@@ -1,12 +1,26 @@
 import json
 import logging
+import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError, as_completed
 from queue import SimpleQueue
 from typing import Any, Callable, Generator, Optional
 
+from cachetools import LRUCache
+
 from httpservice.constants import HTTP_RESPONSE_KEY
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, RawJsonResponse, StreamingResponseData
+
+
+def _int_env(name: str, default: int) -> int:
+    raw = os.environ.get(name, '').strip()
+    if not raw:
+        return default
+    try:
+        v = int(raw)
+        return v if v > 0 else default
+    except ValueError:
+        return default
 
 
 class McpMixin:
@@ -14,9 +28,11 @@ class McpMixin:
 
     _normalized_tools_cache_key: tuple | None = None
     _normalized_tools_cache_val: list[dict] = []
-    _output_schema_cache: dict[str, Optional[dict]] = {}
+    _output_schema_cache: LRUCache = LRUCache(maxsize=256)
     _executor: Optional[ThreadPoolExecutor] = None
-    _EXECUTOR_MAX_WORKERS: int = 4
+    _EXECUTOR_MAX_WORKERS: int = _int_env(
+        'PETP_MCP_MAX_WORKERS', min(32, (os.cpu_count() or 4) * 4)
+    )
 
     # ------------------------------------------------------------------
     # SSE helpers
@@ -164,7 +180,7 @@ class McpMixin:
             result.append(tool)
         self._normalized_tools_cache_key = cache_key
         self._normalized_tools_cache_val = result
-        self._output_schema_cache = {}
+        self._output_schema_cache.clear()
         return result
 
     # ------------------------------------------------------------------
