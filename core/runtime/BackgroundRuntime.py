@@ -204,7 +204,8 @@ class BackgroundRuntime:
 
         return self._result(True, data_chain, None, started, skipped_tasks)
 
-    def run_pipeline(self, pipeline_name: str, init_data: Optional[dict] = None) -> dict:
+    def run_pipeline(self, pipeline_name: str, init_data: Optional[dict] = None,
+                     progress_queue: Optional[SimpleQueue] = None) -> dict:
         started = time.time()
         pipeline = Pipeline.get_pipeline(pipeline_name)
         if pipeline is None:
@@ -219,7 +220,7 @@ class BackgroundRuntime:
             self._running_pipelines.add(pipeline_name)
 
         try:
-            return self._run_pipeline_once(pipeline, pipeline_name, init_data, started)
+            return self._run_pipeline_once(pipeline, pipeline_name, init_data, started, progress_queue)
         finally:
             with self._running_pipelines_lock:
                 self._running_pipelines.discard(pipeline_name)
@@ -273,7 +274,8 @@ class BackgroundRuntime:
         # History persistence is handled by Cron via on_record (covers both success and failure).
         return result
 
-    def _run_pipeline_once(self, pipeline: Pipeline, pipeline_name: str, init_data: Optional[dict], started: float) -> dict:
+    def _run_pipeline_once(self, pipeline: Pipeline, pipeline_name: str, init_data: Optional[dict], started: float,
+                            progress_queue: Optional[SimpleQueue] = None) -> dict:
         cron_desc = getattr(pipeline, 'cronDesc', '')
         cron_exp = getattr(pipeline, 'cronExp', '')
         logging.info('<<<<<<<<<<<<<<<<<<<<<-  Start RUN Pipeline: %s  [ %s ] %s - >>>>>>>>>>>>>>>>>>>>>', pipeline_name, cron_exp, cron_desc)
@@ -298,7 +300,21 @@ class BackgroundRuntime:
 
                 logging.info('[ %s ]>> Execution %s: %s', pipeline_name, idx, execution_name)
 
-                result = self.run_execution(execution_name, merged_input)
+                if progress_queue is not None:
+                    progress_queue.put({
+                        "type": "execution",
+                        "pipeline": pipeline_name,
+                        "exec": execution_name,
+                        "phase": "started",
+                    })
+                result = self.run_execution(execution_name, merged_input, progress_queue=progress_queue)
+                if progress_queue is not None:
+                    progress_queue.put({
+                        "type": "execution",
+                        "pipeline": pipeline_name,
+                        "exec": execution_name,
+                        "phase": "done" if result["ok"] else "failed",
+                    })
                 execution_results.append({"execution": execution_name, "result": result})
 
                 logging.info('[ %s ]<< Execution %s: %s < %s', pipeline_name, idx, execution_name, 'DONE' if result["ok"] else 'FAILED')

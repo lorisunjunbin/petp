@@ -396,6 +396,8 @@ class McpMixin:
             if phase == "done" and duration is not None:
                 return f"[{idx}/{total}] {task_type} done ({duration}ms)"
             return f"[{idx}/{total}] {task_type} {phase}"
+        if isinstance(msg, dict) and msg.get("type") == "execution":
+            return f"execution {msg.get('exec', '')} {msg.get('phase', '')}"
         return str(msg)
 
     # ------------------------------------------------------------------
