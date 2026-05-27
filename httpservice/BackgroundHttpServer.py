@@ -138,9 +138,94 @@ class BackgroundHttpServer(McpMixin):
 
         return {"error": f"Unsupported action: {action}"}, 400
 
-    def _stream_exec_result(self, action: str, params: dict):
-        # Stub. Replaced by Task 4.
-        return {"error": "SSE streaming not yet implemented"}, 501
+    _SSE_HEARTBEAT_INTERVAL: float = 1.0
+
+    def _stream_exec_result(self, action: str, params: dict) -> StreamingResponseData:
+        progress_queue: SimpleQueue = SimpleQueue()
+        result_holder: dict = {}
+
+        if action == "execution":
+            execution_name = params.get("execution")
+            if not isinstance(execution_name, str) or not execution_name:
+                return self._sse_immediate_error("params.execution is required")
+            exec_name: str = cast(str, execution_name)
+
+            def runner():
+                try:
+                    result_holder["r"] = self.runtime.run_execution(
+                        exec_name, params, progress_queue=progress_queue
+                    )
+                except Exception as e:
+                    result_holder["r"] = {"ok": False, "error": str(e),
+                                          "data": {}, "meta": {}}
+        elif action == "pipeline":
+            pipeline_name = params.get("pipeline")
+            if not isinstance(pipeline_name, str) or not pipeline_name:
+                return self._sse_immediate_error("params.pipeline is required")
+            pipe_name: str = cast(str, pipeline_name)
+
+            def runner():
+                try:
+                    result_holder["r"] = self.runtime.run_pipeline(
+                        pipe_name, params, progress_queue=progress_queue
+                    )
+                except Exception as e:
+                    result_holder["r"] = {"ok": False, "error": str(e),
+                                          "data": {}, "meta": {}}
+        else:
+            return self._sse_immediate_error(f"Unsupported action: {action}")
+
+        def generator() -> Generator[str, None, None]:
+            future = self._get_executor().submit(runner)
+            while not future.done():
+                drained = self._drain_progress_for_petp(progress_queue)
+                if drained:
+                    for evt in drained:
+                        yield evt
+                else:
+                    yield self._sse_progress_event({"type": "heartbeat", "ts": int(time.time())})
+                try:
+                    future.result(timeout=self._SSE_HEARTBEAT_INTERVAL)
+                except Exception:
+                    pass
+            for evt in self._drain_progress_for_petp(progress_queue):
+                yield evt
+            result = result_holder.get("r", {"ok": False, "error": "no result", "data": {}, "meta": {}})
+            client_result = self._extract_business_response(result)
+            yield self._sse_result_event(client_result)
+
+        return StreamingResponseData(
+            generator(),
+            {"Cache-Control": "no-cache"},
+            "text/event-stream",
+            200,
+        )
+
+    def _drain_progress_for_petp(self, queue: SimpleQueue) -> list[str]:
+        events: list[str] = []
+        while not queue.empty():
+            try:
+                msg = queue.get_nowait()
+            except Exception:
+                break
+            if isinstance(msg, dict):
+                events.append(self._sse_progress_event(msg))
+            else:
+                events.append(self._sse_progress_event({"type": "info", "message": str(msg)}))
+        return events
+
+    @staticmethod
+    def _sse_progress_event(payload: dict) -> str:
+        return f"event: progress\ndata: {json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
+
+    @staticmethod
+    def _sse_result_event(payload: Any) -> str:
+        return f"event: result\ndata: {json.dumps(payload, ensure_ascii=False, default=str)}\n\n"
+
+    def _sse_immediate_error(self, msg: str) -> StreamingResponseData:
+        def gen():
+            yield self._sse_result_event({"ok": False, "error": msg, "data": {}, "meta": {}})
+        return StreamingResponseData(gen(), {"Cache-Control": "no-cache"}, "text/event-stream", 200)
 
     def _handle_result_check(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
         err = self._require_token(handler)
