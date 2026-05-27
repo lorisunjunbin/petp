@@ -63,7 +63,7 @@ class TestProgressQueue:
     """Tests for progress_queue parameter in run_execution."""
 
     def test_progress_queue_receives_messages(self, bg_runtime):
-        """run_execution should put start/done messages into progress_queue."""
+        """run_execution should put start/done dict events into progress_queue."""
         queue = SimpleQueue()
         result = bg_runtime.run_execution("ENDECODER", {
             "type": "encode", "algorithms": "base64", "inbound": "test"
@@ -78,14 +78,14 @@ class TestProgressQueue:
         # Should have at least one start and one done message
         assert len(messages) >= 2, f"expected at least 2 progress messages, got: {messages}"
 
-        # Check format: [seq/total] TYPE started / done
-        started_msgs = [m for m in messages if "started" in m]
-        done_msgs = [m for m in messages if "done" in m]
-        assert len(started_msgs) >= 1, f"no 'started' messages found in: {messages}"
-        assert len(done_msgs) >= 1, f"no 'done' messages found in: {messages}"
+        # Each event is a structured dict with phase
+        started_msgs = [m for m in messages if isinstance(m, dict) and m.get("phase") == "started"]
+        done_msgs = [m for m in messages if isinstance(m, dict) and m.get("phase") == "done"]
+        assert len(started_msgs) >= 1, f"no 'started' events found in: {messages}"
+        assert len(done_msgs) >= 1, f"no 'done' events found in: {messages}"
 
     def test_progress_queue_contains_task_type(self, bg_runtime):
-        """Progress messages should include the processor type name."""
+        """Progress events should include the processor type name."""
         queue = SimpleQueue()
         bg_runtime.run_execution("ENDECODER", {
             "type": "encode", "algorithms": "base64", "inbound": "x"
@@ -95,12 +95,12 @@ class TestProgressQueue:
         while not queue.empty():
             messages.append(queue.get_nowait())
 
-        # ENDECODER uses ENCODE_DECODE_STR processor
-        has_type_ref = any("ENCODE_DECODE_STR" in m for m in messages)
-        assert has_type_ref, f"expected processor type in messages: {messages}"
+        # ENDECODER uses ENCODE_DECODE_STR processor — exposed in dict task_type field
+        has_type_ref = any(isinstance(m, dict) and m.get("task_type") == "ENCODE_DECODE_STR" for m in messages)
+        assert has_type_ref, f"expected processor type in events: {messages}"
 
     def test_progress_queue_format_seq_total(self, bg_runtime):
-        """Messages should follow [seq/total] format."""
+        """Events should carry index/total fields."""
         queue = SimpleQueue()
         bg_runtime.run_execution("ENDECODER", {
             "type": "encode", "algorithms": "base64", "inbound": "y"
@@ -110,14 +110,15 @@ class TestProgressQueue:
         while not queue.empty():
             messages.append(queue.get_nowait())
 
-        # Check [N/M] format
-        import re
-        pattern = re.compile(r'\[\d+/\d+\]')
-        matched = [m for m in messages if pattern.search(m)]
-        assert len(matched) == len(messages), f"not all messages match [seq/total] format: {messages}"
+        # Every task event should have integer index and total
+        for m in messages:
+            assert isinstance(m, dict), f"expected dict event, got: {m!r}"
+            assert m.get("type") == "task"
+            assert isinstance(m.get("index"), int)
+            assert isinstance(m.get("total"), int)
 
     def test_progress_queue_done_has_duration(self, bg_runtime):
-        """Done messages should include duration in ms."""
+        """Done events should include duration_ms."""
         queue = SimpleQueue()
         bg_runtime.run_execution("ENDECODER", {
             "type": "encode", "algorithms": "base64", "inbound": "z"
@@ -127,12 +128,10 @@ class TestProgressQueue:
         while not queue.empty():
             messages.append(queue.get_nowait())
 
-        done_msgs = [m for m in messages if "done" in m]
+        done_msgs = [m for m in messages if isinstance(m, dict) and m.get("phase") == "done"]
         assert len(done_msgs) >= 1
-        # Check (Nms) format
-        import re
         for msg in done_msgs:
-            assert re.search(r'\(\d+ms\)', msg), f"done message missing duration: {msg}"
+            assert isinstance(msg.get("duration_ms"), int), f"done event missing duration_ms: {msg}"
 
     def test_no_progress_queue_still_works(self, bg_runtime):
         """Passing no progress_queue (default None) should not break execution."""
@@ -154,8 +153,8 @@ class TestProgressQueue:
             messages.append(queue.get_nowait())
 
         # For ENDECODER, no tasks should be skipped, so started == done count
-        started_count = sum(1 for m in messages if "started" in m)
-        done_count = sum(1 for m in messages if "done" in m)
+        started_count = sum(1 for m in messages if isinstance(m, dict) and m.get("phase") == "started")
+        done_count = sum(1 for m in messages if isinstance(m, dict) and m.get("phase") == "done")
         assert started_count == done_count, \
             f"for non-skipped execution, started ({started_count}) should equal done ({done_count})"
 

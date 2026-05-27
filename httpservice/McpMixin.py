@@ -377,12 +377,26 @@ class McpMixin:
         events = []
         while not queue.empty():
             msg = queue.get_nowait()
+            text = self._format_progress_for_mcp(msg)
             events.append(self._sse_event({
                 "jsonrpc": "2.0",
                 "method": "notifications/message",
-                "params": {"level": "info", "data": f"[{tool_name}] {msg}"},
+                "params": {"level": "info", "data": f"[{tool_name}] {text}"},
             }))
         return events
+
+    @staticmethod
+    def _format_progress_for_mcp(msg: Any) -> str:
+        if isinstance(msg, dict) and msg.get("type") == "task":
+            phase = msg.get("phase", "")
+            idx = msg["index"]
+            total = msg["total"]
+            task_type = msg.get("task_type", "")
+            duration = msg.get("duration_ms")
+            if phase == "done" and duration is not None:
+                return f"[{idx}/{total}] {task_type} done ({duration}ms)"
+            return f"[{idx}/{total}] {task_type} {phase}"
+        return str(msg)
 
     # ------------------------------------------------------------------
     # Batch request support

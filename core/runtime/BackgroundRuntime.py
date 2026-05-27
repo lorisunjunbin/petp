@@ -102,7 +102,14 @@ class BackgroundRuntime:
                 self._log_start_process(seq, proc_name, loop_cursor, task)
                 _task_start_ts = time.time()
                 if progress_queue is not None:
-                    progress_queue.put(f"[{seq}/{total}] {task.type} started")
+                    progress_queue.put({
+                        "type": "task",
+                        "execution": execution_name,
+                        "index": seq,
+                        "total": total,
+                        "task_type": task.type,
+                        "phase": "started",
+                    })
 
                 skip_reason = self._skip_reason(task)
                 if skip_reason is not None:
@@ -143,7 +150,15 @@ class BackgroundRuntime:
                 self._log_end_process(seq, proc_name, loop_cursor, task)
                 if progress_queue is not None:
                     duration_ms = int((time.time() - _task_start_ts) * 1000)
-                    progress_queue.put(f"[{seq}/{total}] {task.type} done ({duration_ms}ms)")
+                    progress_queue.put({
+                        "type": "task",
+                        "execution": execution_name,
+                        "index": seq,
+                        "total": total,
+                        "task_type": task.type,
+                        "phase": "done",
+                        "duration_ms": duration_ms,
+                    })
 
                 # loop_condition: evaluate after every task inside a loop
                 if state.is_loop_execution and current_loop:
