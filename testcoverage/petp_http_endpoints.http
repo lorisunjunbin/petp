@@ -37,6 +37,33 @@ Content-Type: application/json
   }
 }
 
+### Stream execution via SSE
+POST {{baseURL}}/petp/exec
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "action": "execution",
+  "params": {
+    "execution": "ENDECODER",
+    "type": "ENCODE",
+    "algorithms": "base64",
+    "inbound": "sse"
+  }
+}
+
+### Stream pipeline via SSE
+POST {{baseURL}}/petp/exec
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "action": "pipeline",
+  "params": {
+    "pipeline": "OOTB_TEST_PIPLINE_BG"
+  }
+}
+
 ###
 GET {{baseURL}}/petp/result?request_id={{request_id}}
 
