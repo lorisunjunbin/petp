@@ -79,7 +79,7 @@ class BackgroundHttpServer(McpMixin):
             return err
         return self.runtime.get_tools()
 
-    def _handle_petp_exec(self, handler: HttpRequestHandler, payload: Optional[dict]) -> Union[dict, tuple]:
+    def _handle_petp_exec(self, handler: HttpRequestHandler, payload: Optional[dict]) -> Union[dict, tuple, StreamingResponseData]:
         err = self._require_token(handler)
         if err is not None:
             return err
@@ -87,13 +87,16 @@ class BackgroundHttpServer(McpMixin):
             return {"error": "Missing required 'action' or 'params' parameter"}, 400
 
         action = payload.get("action", "execution")
-        wait_for_result = payload.get("wait_for_result", True)
-        if not isinstance(wait_for_result, bool):
-            wait_for_result = str(wait_for_result).lower() == "true"
-
         params = payload.get("params", {})
         if not isinstance(params, dict):
             return {"error": "params must be a JSON object"}, 400
+
+        if self._wants_sse(handler):
+            return self._stream_exec_result(action, params)
+
+        wait_for_result = payload.get("wait_for_result", True)
+        if not isinstance(wait_for_result, bool):
+            wait_for_result = str(wait_for_result).lower() == "true"
 
         request_id = self._generate_request_id()
 
@@ -134,6 +137,10 @@ class BackgroundHttpServer(McpMixin):
             }, 202
 
         return {"error": f"Unsupported action: {action}"}, 400
+
+    def _stream_exec_result(self, action: str, params: dict):
+        # Stub. Replaced by Task 4.
+        return {"error": "SSE streaming not yet implemented"}, 501
 
     def _handle_result_check(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
         err = self._require_token(handler)
