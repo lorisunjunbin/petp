@@ -30,13 +30,19 @@ MAX_BATCH_ITEMS = _int_env('PETP_MAX_BATCH_ITEMS', 64)
 
 
 class StreamingResponseData:
-    """Wrapper to carry streaming iterator plus headers/content type."""
+    """Wrapper to carry streaming iterator plus headers/content type.
 
-    def __init__(self, iterator, headers=None, content_type=None, status_code=200):
+    Optional ``cancel_event`` is a ``threading.Event`` that the handler will
+    ``set()`` when the peer disconnects mid-stream, allowing the producing
+    generator to short-circuit instead of running to completion.
+    """
+
+    def __init__(self, iterator, headers=None, content_type=None, status_code=200, cancel_event=None):
         self.iterator = iterator
         self.headers = headers or {}
         self.content_type = content_type
         self.status_code = status_code
+        self.cancel_event = cancel_event
 
 
 class RawJsonResponse:
@@ -311,7 +317,8 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
             # Streamed responses (generators/iterators) -> chunked transfer
             elif isinstance(result, StreamingResponseData):
                 self.send_streaming_response(result.iterator, extra_headers=result.headers,
-                                             content_type=result.content_type, status_code=result.status_code)
+                                             content_type=result.content_type, status_code=result.status_code,
+                                             cancel_event=result.cancel_event)
             elif self._is_streaming_result(result):
                 self.send_streaming_response(result)
             # Handle tuple returns for custom status codes
@@ -332,7 +339,7 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         # GeneratorType covers plain generators; Iterator covers yield-based objects
         return isinstance(result, (types.GeneratorType, Iterator))
 
-    def send_streaming_response(self, stream_iter, *, extra_headers=None, content_type=None, status_code):
+    def send_streaming_response(self, stream_iter, *, extra_headers=None, content_type=None, status_code, cancel_event=None):
         """Send a chunked streaming response (text/plain by default)."""
         self.send_response(status_code)
         self.send_header('Content-Type', content_type or 'text/plain; charset=utf-8')
@@ -367,6 +374,8 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         except self._PEER_DISCONNECT_ERRORS as e:
             # Client closed the connection mid-stream — not a server error.
             logging.debug("Client %s disconnected during streaming: %s", self.client_address, e)
+            if cancel_event is not None:
+                cancel_event.set()
         except Exception as e:
             logging.error(f"Error during streaming response: {e}")
 
