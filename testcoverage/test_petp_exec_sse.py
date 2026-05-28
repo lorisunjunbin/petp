@@ -1,4 +1,5 @@
 import json
+import threading
 import time
 import unittest
 from queue import SimpleQueue
@@ -127,6 +128,68 @@ class TestSseHeartbeat(unittest.TestCase):
         sd = srv._stream_exec_result("execution", {"execution": "MY"})
         joined = "".join(_collect(sd))
         assert '"type": "heartbeat"' in joined
+
+
+class _SlowProgressRuntime:
+    """Runtime that emits progress events with sleeps between them, allowing
+    external cancel to take effect before the result is produced."""
+
+    def __init__(self):
+        self._result = {"ok": True, "data": {"final": "value"}, "error": None, "meta": {}}
+
+    def run_execution(self, name, params, progress_queue=None):
+        # Total runtime ~3s — long enough that cancel (fired at 0.1s)
+        # is observed within a heartbeat tick (1s) BEFORE the runner finishes,
+        # avoiding races against the post-loop drain/result path.
+        for i in range(20):
+            if progress_queue is not None:
+                progress_queue.put({
+                    "type": "task", "execution": name, "index": i + 1, "total": 20,
+                    "task_type": "X", "phase": "started",
+                })
+            time.sleep(0.15)
+        return self._result
+
+    def run_pipeline(self, name, params, progress_queue=None):
+        return self._result
+
+    def get_tools(self):
+        return {}
+
+
+class TestSseCancel(unittest.TestCase):
+    def test_external_cancel_event_short_circuits_generator(self):
+        runtime = _SlowProgressRuntime()
+        srv = _make_server(runtime)
+        sd = srv._stream_exec_result("execution", {"execution": "ENDECODER"})
+
+        def _cancel_soon():
+            time.sleep(0.1)
+            sd.cancel_event.set()
+
+        t = threading.Thread(target=_cancel_soon, daemon=True)
+        t.start()
+
+        events = list(sd.iterator)
+        t.join(timeout=2)
+
+        joined = "".join(events)
+        # After cancel, the final result event must NOT be emitted.
+        assert "event: result" not in joined, \
+            f"expected no result event after cancel, got: {joined!r}"
+        srv._shutdown_executor()
+
+    def test_pre_set_cancel_event_skips_result(self):
+        runtime = _SlowProgressRuntime()
+        srv = _make_server(runtime)
+        sd = srv._stream_exec_result("execution", {"execution": "ENDECODER"})
+
+        # Set cancel before iterating — generator should exit promptly.
+        sd.cancel_event.set()
+        events = list(sd.iterator)
+        joined = "".join(events)
+        assert "event: result" not in joined
+        srv._shutdown_executor()
 
 
 if __name__ == "__main__":

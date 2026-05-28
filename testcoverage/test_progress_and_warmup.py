@@ -1,6 +1,7 @@
 """Tests for Processor cache warm-up and MCP task-level progress notifications."""
 
 import json
+import threading
 import time
 from queue import SimpleQueue
 from unittest.mock import MagicMock, patch
@@ -271,6 +272,43 @@ class TestRunWithProgress:
         assert isinstance(last_result, dict)
         assert last_result.get("ok") is False
         assert "timed out" in last_result.get("error", "").lower()
+
+    def test_cancel_event_short_circuits_generator(self):
+        """When cancel_event is set, _run_with_progress should exit without
+        yielding the final future.result() and without yielding further
+        progress notifications."""
+        from httpservice.McpMixin import McpMixin
+        mixin = McpMixin()
+
+        cancel_event = threading.Event()
+        queue = SimpleQueue()
+
+        def slow_fn():
+            # Long enough to exceed the fast-path timeout (0.05s) and the
+            # PROGRESS_INTERVAL (1s) so the cancel branch is reached.
+            time.sleep(2.0)
+            return {"ok": True, "data": {}}
+
+        # Pre-set the cancel event — the generator should bail out on the
+        # very first cancel check inside the polling loop.
+        cancel_event.set()
+
+        items = list(mixin._run_with_progress(
+            slow_fn, timeout=10, tool_name="cancelled",
+            progress_queue=queue, cancel_event=cancel_event,
+        ))
+
+        # No result dict should have been yielded (the future was cancelled
+        # before completion).
+        results = [i for i in items if not isinstance(i, str)]
+        assert results == [], f"expected no results after cancel, got: {results}"
+
+        # And no "still running" / progress SSE events should leak either —
+        # the loop returns immediately upon seeing cancel_event.
+        sse_events = [i for i in items if isinstance(i, str)]
+        assert sse_events == [], f"expected no SSE events after cancel, got: {sse_events}"
+
+        mixin._shutdown_executor()
 
 
 class TestSharedExecutor:
