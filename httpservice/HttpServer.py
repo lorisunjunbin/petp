@@ -383,11 +383,15 @@ class HttpServer(McpMixin):
             for item in self._run_with_progress(
                 lambda: self._handle_petp_event(handler, {"action": "execution", "params": petp_param}),
                 self._timeout, action,
+                cancel_event=cancel_event,
             ):
                 if isinstance(item, str):
                     yield item
                 else:
                     result = item
+
+            if cancel_event.is_set():
+                return
 
             client_result, structured_content = self._build_tools_call_result(
                 action, result, self.p.get_tools
@@ -411,10 +415,12 @@ class HttpServer(McpMixin):
                 },
             })
 
+        cancel_event = threading.Event()
         return StreamingResponseData(
             _stream_call_result(),
             self._build_sse_headers(session_id),
             "text/event-stream",
+            cancel_event=cancel_event,
         )
 
     def _get_output_schema(self, tool_name: str) -> Optional[dict]:

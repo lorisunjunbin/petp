@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError, as_completed
 from queue import SimpleQueue
@@ -338,7 +339,8 @@ class McpMixin:
     _FAST_CHECK_TIMEOUT: float = 0.05
 
     def _run_with_progress(self, fn: Callable[[], Any], timeout: int,
-                            tool_name: str, progress_queue: Optional[SimpleQueue] = None) -> Generator[Any, None, None]:
+                            tool_name: str, progress_queue: Optional[SimpleQueue] = None,
+                            cancel_event: Optional[threading.Event] = None) -> Generator[Any, None, None]:
         future = self._get_executor().submit(fn)
         try:
             result = future.result(timeout=self._FAST_CHECK_TIMEOUT)
@@ -349,6 +351,8 @@ class McpMixin:
             pass
         elapsed = 0
         while not future.done():
+            if cancel_event is not None and cancel_event.is_set():
+                return
             try:
                 result = future.result(timeout=self._PROGRESS_INTERVAL)
                 self._drain_progress(progress_queue, tool_name)
@@ -361,13 +365,18 @@ class McpMixin:
                     return
                 drained = self._drain_progress(progress_queue, tool_name)
                 if drained:
-                    yield from drained
+                    for evt in drained:
+                        if cancel_event is not None and cancel_event.is_set():
+                            return
+                        yield evt
                 else:
                     yield self._sse_event({
                         "jsonrpc": "2.0",
                         "method": "notifications/message",
                         "params": {"level": "info", "data": f"[{tool_name}] still running... ({elapsed}s)"},
                     })
+        if cancel_event is not None and cancel_event.is_set():
+            return
         self._drain_progress(progress_queue, tool_name)
         yield future.result()
 

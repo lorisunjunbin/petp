@@ -356,11 +356,15 @@ class BackgroundHttpServer(McpMixin):
                 for item in self._run_with_progress(
                     lambda: self.runtime.run_execution(tool_exec_name, arguments, progress_queue=progress_queue),
                     self._timeout, tool_exec_name, progress_queue=progress_queue,
+                    cancel_event=cancel_event,
                 ):
                     if isinstance(item, str):
                         yield item
                     else:
                         result = item
+
+                if cancel_event.is_set():
+                    return
 
                 client_result, structured_content = self._build_tools_call_result(
                     tool_exec_name, result, self.runtime.get_tools
@@ -385,8 +389,9 @@ class BackgroundHttpServer(McpMixin):
                     },
                 })
 
+            cancel_event = threading.Event()
             return StreamingResponseData(_stream_call_result(), self._build_sse_headers(session_id),
-                                         "text/event-stream", 200)
+                                         "text/event-stream", 200, cancel_event=cancel_event)
 
         return self._mcp_method_not_found(params.get("id"), method, session_id, handler)
 
