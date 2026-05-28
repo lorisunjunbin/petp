@@ -4,7 +4,7 @@ cronEnabled: false
 cronExp: 0 * * * *
 list:
 - execution: OOTB_RUN_JS
-  input: '{"Pipline","YES"}'
+  input: '{"Pipline":"YES"}'
 - execution: test_zip
   input: ''
 - execution: test_wait_for_seconds

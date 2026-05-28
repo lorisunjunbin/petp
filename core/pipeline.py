@@ -116,6 +116,8 @@ class Pipeline(RunnableAsCron):
             pass
 
     def load_proper_input(self, executionDic):
+        if not (executionDic.get('input') or '').strip():
+            return {}
         try:
             result = json.loads(executionDic['input'])
             if type(result) is dict:

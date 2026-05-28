@@ -4,7 +4,7 @@ cronEnabled: true
 cronExp: 0/1 * * * *
 list:
 - execution: test_zip
-  input: '{"Pipline","YES"}'
+  input: '{"Pipline":"YES"}'
 - execution: test_wait_for_seconds
   input: ''
 - execution: test_read_from_excel
