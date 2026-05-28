@@ -142,6 +142,7 @@ class BackgroundHttpServer(McpMixin):
 
     def _stream_exec_result(self, action: str, params: dict) -> StreamingResponseData:
         progress_queue: SimpleQueue = SimpleQueue()
+        cancel_event = threading.Event()
         result_holder: dict = {}
 
         if action == "execution":
@@ -178,9 +179,13 @@ class BackgroundHttpServer(McpMixin):
         def generator() -> Generator[str, None, None]:
             future = self._get_executor().submit(runner)
             while not future.done():
+                if cancel_event.is_set():
+                    return
                 drained = self._drain_progress_for_petp(progress_queue)
                 if drained:
                     for evt in drained:
+                        if cancel_event.is_set():
+                            return
                         yield evt
                 else:
                     yield self._sse_progress_event({"type": "heartbeat", "ts": int(time.time())})
@@ -189,7 +194,11 @@ class BackgroundHttpServer(McpMixin):
                 except Exception:
                     pass
             for evt in self._drain_progress_for_petp(progress_queue):
+                if cancel_event.is_set():
+                    return
                 yield evt
+            if cancel_event.is_set():
+                return
             result = result_holder.get("r", {"ok": False, "error": "no result", "data": {}, "meta": {}})
             client_result = self._extract_business_response(result)
             yield self._sse_result_event(client_result)
@@ -199,6 +208,7 @@ class BackgroundHttpServer(McpMixin):
             {"Cache-Control": "no-cache"},
             "text/event-stream",
             200,
+            cancel_event=cancel_event,
         )
 
     def _drain_progress_for_petp(self, queue: SimpleQueue) -> list[str]:
