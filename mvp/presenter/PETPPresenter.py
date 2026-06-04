@@ -21,6 +21,7 @@ from core.task import Task
 from mvp.model.PETPModel import PETPModel
 from mvp.presenter.PETPInteractor import PETPInteractor
 from mvp.presenter.event.PETPEvent import PETPEvent
+from mvp.presenter.sub.SnapshotManager import SnapshotManager
 from mvp.view.common.InputDialog import InputDialog
 from mvp.view.common.SearchableGridChoiceEditor import SearchableGridChoiceEditor
 from mvp.view.common.ProcessorPalette import ProcessorPalette
@@ -63,10 +64,7 @@ class PETPPresenter():
         self._log_fd = None
         self._log_ino = None
 
-        self._snapshots = []
-        self._snapshot_cursor = -1
-        self._SNAPSHOT_MAX = int(getattr(model, 'snapshot_max', 20))
-        self._saved_snapshot = None
+        self._snapshot_manager = SnapshotManager(self)
         self._param_hint_dlg = None
         self._log_search_keyword = ''
         self._log_match_positions = []
@@ -1016,8 +1014,7 @@ class PETPPresenter():
 
         self.execution = Execution.get_execution(combo.GetValue())
         if self.execution is None:
-            self._snapshots.clear()
-            self._snapshot_cursor = -1
+            self._snapshot_manager.reset_execution()
             self._mark_clean()
             return
         else:
@@ -1059,8 +1056,7 @@ class PETPPresenter():
             else:
                 cb_astool.SetValue(False)
 
-            self._snapshots.clear()
-            self._snapshot_cursor = -1
+            self._snapshot_manager.reset_execution()
             self._mark_clean()
 
             if self.v.taskGrid.GetNumberRows() > 0:
@@ -2048,8 +2044,7 @@ class PETPPresenter():
         self.v.asCronChecbox.SetValue(False)
         self.v.cronInput.SetValue("")
         self.pipeline = None
-        self._pipeline_snapshots = []
-        self._pipeline_snapshot_cursor = -1
+        self._snapshot_manager.reset_pipeline()
 
     def _on_copy_pipeline(self, evt):
         current_name = self.v.pipelineChooser.GetValue()
@@ -2670,8 +2665,8 @@ class PETPPresenter():
         menu.Append(id_move_up, t("menu_move_up"))
         menu.Append(id_move_down, t("menu_move_down"))
 
-        can_undo = self._snapshot_cursor >= 0
-        can_redo = self._snapshot_cursor < len(self._snapshots) - 1
+        can_undo = self._snapshot_manager.can_undo()
+        can_redo = self._snapshot_manager.can_redo()
         if can_undo or can_redo:
             menu.AppendSeparator()
             if can_undo:
@@ -2767,12 +2762,13 @@ class PETPPresenter():
 
     def _on_open_snapshots(self, evt):
         from mvp.view.common.SnapshotDialog import SnapshotDialog
-        dlg = SnapshotDialog(self.v, self._snapshots, self._snapshot_cursor)
+        sm = self._snapshot_manager
+        dlg = SnapshotDialog(self.v, sm.snapshots, sm.snapshot_cursor)
         if dlg.ShowModal() == wx.ID_OK:
             idx = dlg.get_selected_index()
-            if idx is not None and 0 <= idx < len(self._snapshots):
+            if idx is not None and 0 <= idx < len(sm.snapshots):
                 self._push_snapshot()
-                self._restore_snapshot(self._snapshots[idx])
+                self._restore_snapshot(sm.snapshots[idx])
         dlg.Destroy()
 
     def _on_copy_property_name(self, evt):
@@ -2951,119 +2947,31 @@ class PETPPresenter():
         self._update_save_button()
 
     def _is_dirty(self):
-        if self._saved_snapshot is None:
-            return False
-        current = self._capture_snapshot()
-        return (
-                current["tasks"] != self._saved_snapshot["tasks"]
-                or current["loops"] != self._saved_snapshot["loops"]
-                or current["mcp_desc"] != self._saved_snapshot["mcp_desc"]
-                or current["astool"] != self._saved_snapshot["astool"]
-        )
+        return self._snapshot_manager.is_dirty()
 
     def _update_save_button(self):
         dirty = self._is_dirty()
-        has_snapshots = len(self._snapshots) > 0
+        has_snapshots = self._snapshot_manager.has_snapshots()
         self.v.saveExection.Enable(dirty or has_snapshots)
         self.v.snapshots.Enable(has_snapshots)
 
     def _mark_clean(self):
-        self._saved_snapshot = self._capture_snapshot()
-        self._update_save_button()
+        self._snapshot_manager.mark_clean()
 
     def _capture_snapshot(self):
-        grid = self.v.taskGrid
-        tasks = []
-        for r in range(grid.GetNumberRows()):
-            t_type = grid.GetCellValue(r, 0)
-            t_input = grid.GetCellValue(r, 1)
-            if not t_type and not t_input:
-                break
-            tasks.append({"type": t_type, "input": t_input})
-
-        loops = []
-        page = self.v.loopProperty.GetPage(self.single_page)
-        for prop in page.GetPyIterator(wx.propgrid.PG_ITERATE_ALL):
-            if isinstance(prop, wx.propgrid.PropertyCategory):
-                continue
-            loops.append({"loop_code": prop.GetName(), "loop_attributes": prop.GetValue()})
-
-        return {
-            "timestamp": DateUtil.get_now_in_str("%H:%M:%S"),
-            "tasks": tasks,
-            "loops": loops,
-            "mcp_desc": self.v.execution_desc.GetValue(),
-            "astool": self.v.cb_astool.IsChecked(),
-        }
+        return self._snapshot_manager.capture_snapshot()
 
     def _restore_snapshot(self, snap):
-        prev_row = self.current_selected_row
-        grid = self.v.taskGrid
-        grid.BeginBatch()
-        grid.ClearGrid()
-
-        tasks = snap["tasks"]
-        while grid.GetNumberRows() < len(tasks):
-            self._insert_row(grid, self.available_processors)
-
-        for idx, task in enumerate(tasks):
-            grid.SetCellValue(idx, 0, task["type"])
-            grid.SetCellValue(idx, 1, task["input"])
-
-        self._apply_all_row_skip_styles()
-        grid.EndBatch()
-
-        self._reset_loop_pgrid()
-        loop_page = self.v.loopProperty.GetPage(self.single_page)
-        for loop in snap["loops"]:
-            self._append_or_update_property_to_page(loop["loop_code"], loop["loop_attributes"], loop_page)
-
-        self.v.execution_desc.SetValue(snap["mcp_desc"])
-        self.v.cb_astool.SetValue(snap["astool"])
-
-        name = self.v.executionChooser.GetValue()
-        if snap["astool"]:
-            self._tool_names.add(name)
-        else:
-            self._tool_names.discard(name)
-
-        self._pgrid_bound_row = -1
-        self._reset_task_pgrid()
-
-        if prev_row >= 0 and prev_row < grid.GetNumberRows():
-            grid.SelectRow(prev_row)
-            self._load_input_taskproperty(prev_row)
+        self._snapshot_manager.restore_snapshot(snap)
 
     def _push_snapshot(self):
-        snap = self._capture_snapshot()
-        del self._snapshots[self._snapshot_cursor + 1:]
-        self._snapshots.append(snap)
-        if len(self._snapshots) > self._SNAPSHOT_MAX:
-            self._snapshots.pop(0)
-        self._snapshot_cursor = len(self._snapshots) - 1
-        self._update_save_button()
+        self._snapshot_manager.push_snapshot()
 
     def _undo(self):
-        if self._snapshot_cursor < 0:
-            return
-        snap = self._snapshots[self._snapshot_cursor]
-        current = self._capture_snapshot()
-        self._snapshots[self._snapshot_cursor] = current
-        self._restore_snapshot(snap)
-        self._snapshot_cursor -= 1
-        self._update_save_button()
-        logging.debug(f'Undo → snapshot @{snap["timestamp"]}')
+        self._snapshot_manager.undo()
 
     def _redo(self):
-        if self._snapshot_cursor >= len(self._snapshots) - 1:
-            return
-        self._snapshot_cursor += 1
-        snap = self._snapshots[self._snapshot_cursor]
-        current = self._capture_snapshot()
-        self._snapshots[self._snapshot_cursor] = current
-        self._restore_snapshot(snap)
-        self._update_save_button()
-        logging.debug(f'Redo → snapshot @{snap["timestamp"]}')
+        self._snapshot_manager.redo()
 
     def on_grid_cell_change4p(self, evt):
         grid = self.v.executionGrid
@@ -3081,8 +2989,6 @@ class PETPPresenter():
     # ------------------------------------------------------------------
     # Pipeline grid: right-click menu + row reorder + undo/redo
     # ------------------------------------------------------------------
-
-    _PIPELINE_SNAPSHOT_MAX = 20
 
     def on_pipeline_grid_dclick(self, evt):
         if evt.GetCol() == 0:
@@ -3364,53 +3270,19 @@ class PETPPresenter():
     # Pipeline snapshot (undo/redo)
 
     def _push_pipeline_snapshot(self):
-        if not hasattr(self, '_pipeline_snapshots'):
-            self._pipeline_snapshots = []
-            self._pipeline_snapshot_cursor = -1
-        snap = self._capture_pipeline_snapshot()
-        self._pipeline_snapshots = self._pipeline_snapshots[:self._pipeline_snapshot_cursor + 1]
-        self._pipeline_snapshots.append(snap)
-        if len(self._pipeline_snapshots) > self._PIPELINE_SNAPSHOT_MAX:
-            self._pipeline_snapshots.pop(0)
-        self._pipeline_snapshot_cursor = len(self._pipeline_snapshots) - 1
+        self._snapshot_manager.push_pipeline_snapshot()
 
     def _capture_pipeline_snapshot(self) -> dict:
-        grid = self.v.executionGrid
-        rows = []
-        for r in range(grid.GetNumberRows()):
-            rows.append((grid.GetCellValue(r, 0), grid.GetCellValue(r, 1)))
-        return {"rows": rows, "timestamp": time.time()}
+        return self._snapshot_manager.capture_pipeline_snapshot()
 
     def _undo_pipeline(self):
-        if not hasattr(self, '_pipeline_snapshots') or self._pipeline_snapshot_cursor < 0:
-            return
-        current = self._capture_pipeline_snapshot()
-        snap = self._pipeline_snapshots[self._pipeline_snapshot_cursor]
-        self._pipeline_snapshots[self._pipeline_snapshot_cursor] = current
-        self._restore_pipeline_snapshot(snap)
-        self._pipeline_snapshot_cursor -= 1
+        self._snapshot_manager.undo_pipeline()
 
     def _redo_pipeline(self):
-        if not hasattr(self, '_pipeline_snapshots'):
-            return
-        if self._pipeline_snapshot_cursor >= len(self._pipeline_snapshots) - 1:
-            return
-        self._pipeline_snapshot_cursor += 1
-        snap = self._pipeline_snapshots[self._pipeline_snapshot_cursor]
-        current = self._capture_pipeline_snapshot()
-        self._pipeline_snapshots[self._pipeline_snapshot_cursor] = current
-        self._restore_pipeline_snapshot(snap)
+        self._snapshot_manager.redo_pipeline()
 
     def _restore_pipeline_snapshot(self, snap: dict):
-        grid = self.v.executionGrid
-        grid.ClearGrid()
-        while grid.GetNumberRows() < len(snap["rows"]):
-            grid.InsertRows(grid.GetNumberRows(), 1, True)
-        while grid.GetNumberRows() > len(snap["rows"]) and grid.GetNumberRows() > 1:
-            grid.DeleteRows(grid.GetNumberRows() - 1, 1)
-        for r, (exec_val, input_val) in enumerate(snap["rows"]):
-            grid.SetCellValue(r, 0, exec_val)
-            grid.SetCellValue(r, 1, input_val)
+        self._snapshot_manager.restore_pipeline_snapshot(snap)
 
     # Pipeline row highlight (running status)
 

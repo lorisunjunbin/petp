@@ -1,4 +1,3 @@
-import hmac
 import json
 import logging
 import threading
@@ -11,13 +10,14 @@ from typing import Any, Callable, Generator, Optional, Union
 
 import wx
 
+from httpservice.HttpServerBaseMixin import HttpServerBaseMixin
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 from mvp.presenter import PETPPresenter
 from mvp.presenter.event.PETPEvent import PETPEvent
 
 
-class HttpServer(McpMixin):
+class HttpServer(HttpServerBaseMixin, McpMixin):
     """Embedded HTTP server that exposes PETP executions as REST and MCP endpoints.
 
     Supports two API styles:
@@ -89,37 +89,6 @@ class HttpServer(McpMixin):
             "DELETE:/mcp": self._handle_mcp,
         }
 
-    # Endpoints that require a valid bearer token. /health and / are
-    # public (used by load balancers and humans). The previous
-    # /mcp/.well-known/openid-configuration route was removed in this
-    # release: it returned the bearer token in plaintext to any
-    # unauthenticated caller — a CRITICAL token-disclosure flaw.
-    _AUTHED_PATHS: frozenset[str] = frozenset({
-        "/petp/tools",
-        "/petp/exec",
-        "/petp/result",
-        "/mcp",
-    })
-
-    def _require_token(self, handler: HttpRequestHandler) -> Optional[tuple]:
-        """Validate the bearer token. Returns None on success, or an
-        (error_dict, status_code) tuple on rejection.
-
-        Fail-closed semantics: when ``http_request_token`` is not
-        configured the server refuses every authenticated request with
-        501. This prevents the previous fail-open behaviour where empty
-        token == public RCE on /petp/exec.
-        """
-        if not self._token:
-            return ({"error": "Server requires http_request_token to be configured"}, 501)
-        given = handler.headers.get("Authorization", "")
-        prefix = "Bearer "
-        if given.startswith(prefix):
-            given = given[len(prefix):]
-        if not hmac.compare_digest(given, self._token):
-            return ({"error": "Unauthorized"}, 401)
-        return None
-
     # ------------------------------------------------------------------
     # Index & health endpoints
     # ------------------------------------------------------------------
@@ -168,11 +137,6 @@ class HttpServer(McpMixin):
                 },
             ],
         }
-
-    def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
-        """Health-check endpoint returning ``{"status": "ok"}``."""
-        logging.debug("_handle_health params: %s", params)
-        return {"status": "ok", "timestamp": time.time()}
 
     # ------------------------------------------------------------------
     # PETP REST API
@@ -263,14 +227,6 @@ class HttpServer(McpMixin):
     # ------------------------------------------------------------------
     # MCP (Model Context Protocol) endpoints
     # ------------------------------------------------------------------
-
-    def _handle_mcp_get(self, handler: HttpRequestHandler, params: Optional[dict] = None):
-        """Handle GET /mcp — SSE stream for server-initiated notifications.
-        PETP does not push notifications, so return 204 No Content per MCP spec."""
-        err = self._require_token(handler)
-        if err is not None:
-            return err
-        return {}, 204
 
     def _handle_mcp(
         self, handler: HttpRequestHandler, params: Optional[dict] = None

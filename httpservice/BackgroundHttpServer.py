@@ -1,4 +1,3 @@
-import hmac
 import json
 import logging
 import threading
@@ -11,11 +10,12 @@ from queue import SimpleQueue
 from typing import Any, Callable, Generator, Optional, Union, cast
 
 from core.runtime.BackgroundRuntime import BackgroundRuntime
+from httpservice.HttpServerBaseMixin import HttpServerBaseMixin
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 
 
-class BackgroundHttpServer(McpMixin):
+class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
     MAX_RESULTS_CACHE: int = 1000
 
     def __init__(self, runtime: BackgroundRuntime, port: int, timeout: int, token: Optional[str] = None) -> None:
@@ -49,29 +49,12 @@ class BackgroundHttpServer(McpMixin):
             "DELETE:/mcp": self._handle_mcp,
         }
 
-    def _require_token(self, handler: HttpRequestHandler) -> Optional[tuple]:
-        """Validate the bearer token. Returns None on success, or an
-        (error_dict, status_code) tuple on rejection. Fail-closed when
-        ``http_request_token`` is unset (501)."""
-        if not self._token:
-            return ({"error": "Server requires http_request_token to be configured"}, 501)
-        given = handler.headers.get("Authorization", "")
-        prefix = "Bearer "
-        if given.startswith(prefix):
-            given = given[len(prefix):]
-        if not hmac.compare_digest(given, self._token):
-            return ({"error": "Unauthorized"}, 401)
-        return None
-
     def _handle_index(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
         return {
             "server": "PETP Background HTTP Server",
             "available_endpoints": ["/health", "/petp/exec", "/petp/tools", "/petp/result", "/petp/crons",
                                     "/petp/crons/history", "/mcp"],
         }
-
-    def _handle_health(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> dict:
-        return {"status": "ok", "timestamp": time.time()}
 
     def _handle_petp_tools(self, handler: HttpRequestHandler, payload: Optional[dict] = None) -> Union[dict, tuple]:
         err = self._require_token(handler)
@@ -280,14 +263,6 @@ class BackgroundHttpServer(McpMixin):
 
         return {"history": self.runtime.get_cron_history(pipeline_name, limit)}
 
-    def _handle_mcp_get(self, handler: HttpRequestHandler, params: Optional[dict] = None):
-        """Handle GET /mcp — SSE stream for server-initiated notifications.
-        PETP does not push notifications, so return 204 No Content per MCP spec."""
-        err = self._require_token(handler)
-        if err is not None:
-            return err
-        return {}, 204
-
     def _handle_mcp(
             self,
             handler: HttpRequestHandler,
@@ -394,12 +369,6 @@ class BackgroundHttpServer(McpMixin):
                                          "text/event-stream", 200, cancel_event=cancel_event)
 
         return self._mcp_method_not_found(params.get("id"), method, session_id, handler)
-
-    @staticmethod
-    def _status_code_for_result(result: Any) -> int:
-        if isinstance(result, dict) and "ok" in result:
-            return 200 if bool(result.get("ok")) else 500
-        return 200
 
     def _submit_async(self, request_id: str, task: Callable[[], dict]) -> None:
         event = threading.Event()

@@ -253,6 +253,10 @@ class Processor:
                 else not self.input_param[name] is None
             )
 
+    # ------------------------------------------------------------------
+    # region: Data & expression helpers (data_chain ops, expression2str, feed_tpl, ...)
+    # ------------------------------------------------------------------
+
     def get_all_params(self):
         return self.input_param
 
@@ -499,6 +503,10 @@ class Processor:
             result.append(arr[i:i + size])
         return result
 
+    # ------------------------------------------------------------------
+    # region: Crypto helpers (encrypt/decrypt password using cryptocode + SALT)
+    # ------------------------------------------------------------------
+
     @staticmethod
     def encrypt_pwd(str) -> str:
         import cryptocode
@@ -567,6 +575,10 @@ class Processor:
             "Set env PETP_SALT or write ~/.petp/secret (mode 0600) to enable real encryption."
         )
         return Processor.SALT
+
+    # ------------------------------------------------------------------
+    # region: Static registry (processor discovery + dynamic class loading)
+    # ------------------------------------------------------------------
 
     @staticmethod
     def get_processors():
