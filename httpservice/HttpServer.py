@@ -11,6 +11,7 @@ from typing import Any, Callable, Generator, Optional, Union
 import wx
 
 from httpservice.HttpServerBaseMixin import HttpServerBaseMixin
+from httpservice.HttpMetrics import HttpMetrics
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 from mvp.presenter import PETPPresenter
@@ -69,6 +70,18 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
         )
         self._cleanup_thread.start()
 
+        # Metrics: same surface as BG. Read 4 keys from PETPModel (auto-bound from yaml).
+        m = presenter.m
+        metrics_enabled = bool(getattr(m, "metrics_enabled", True))
+        self._metrics: Optional[HttpMetrics] = (
+            HttpMetrics(
+                slow_threshold_ms=int(getattr(m, "metrics_slow_threshold_ms", 5000)),
+                quantile_window=int(getattr(m, "metrics_quantile_window", 256)),
+                executor_provider=lambda: getattr(self, "_executor", None),
+            ) if metrics_enabled else None
+        )
+        self._metrics_log_interval: int = int(getattr(m, "metrics_log_interval_seconds", 60))
+
         # Wire handler to the presenter's view and to this server instance
         HttpRequestHandler.register_view(presenter.v)
         HttpRequestHandler.register_server(self)
@@ -84,6 +97,7 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
             "GET:/petp/tools": self._handle_petp_tools,
             "POST:/petp/exec": self._handle_petp_event,
             "GET:/petp/result": self._handle_result_check,
+            "GET:/petp/metrics": self._handle_metrics,
             "GET:/mcp": self._handle_mcp_get,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
@@ -134,6 +148,11 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
                     "description": "Standard MCP Streamable HTTP endpoint",
                     "uri": "/mcp",
                     "method": "GET | POST | DELETE",
+                },
+                {
+                    "description": "HTTP metrics snapshot (per-endpoint counters, latency p50/p95/p99, executor state, slow log)",
+                    "uri": "/petp/metrics",
+                    "method": "GET",
                 },
             ],
         }
@@ -223,6 +242,17 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
             return {"error": "Request not found or expired"}, 404
 
         return result
+
+    def _handle_metrics(
+        self, handler: HttpRequestHandler, params: Optional[dict] = None
+    ) -> Union[dict, tuple]:
+        """Return a JSON snapshot of per-endpoint metrics. Same shape as BG."""
+        err = self._require_token(handler)
+        if err is not None:
+            return err
+        if self._metrics is None:
+            return {"error": "metrics disabled"}, 503
+        return self._metrics.snapshot()
 
     # ------------------------------------------------------------------
     # MCP (Model Context Protocol) endpoints
@@ -543,11 +573,25 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
                 self._host or "localhost",
                 self._port,
             )
+            if self._metrics is not None and self._metrics_log_interval > 0:
+                threading.Thread(target=self._metrics_log_loop, daemon=True).start()
         except Exception:
             logging.exception(
                 "Failed to start HTTP Server — no HTTP requests will be handled by this instance."
             )
             self._running = False
+
+    def _metrics_log_loop(self) -> None:
+        """Periodically dump a metrics snapshot to log with the ``METRICS `` prefix."""
+        while self._running:
+            time.sleep(self._metrics_log_interval)
+            if not self._running:
+                break
+            try:
+                snap = self._metrics.snapshot()
+                logging.info("METRICS %s", json.dumps(snap, ensure_ascii=False, default=str))
+            except Exception:
+                logging.exception("metrics log loop error")
 
     def stop(self) -> None:
         """Shut down the HTTP server and release all resources."""

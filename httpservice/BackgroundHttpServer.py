@@ -10,6 +10,7 @@ from queue import SimpleQueue
 from typing import Any, Callable, Generator, Optional, Union, cast
 
 from core.runtime.BackgroundRuntime import BackgroundRuntime
+from httpservice.HttpMetrics import HttpMetrics
 from httpservice.HttpServerBaseMixin import HttpServerBaseMixin
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
@@ -18,7 +19,11 @@ from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, Streamin
 class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
     MAX_RESULTS_CACHE: int = 1000
 
-    def __init__(self, runtime: BackgroundRuntime, port: int, timeout: int, token: Optional[str] = None) -> None:
+    def __init__(self, runtime: BackgroundRuntime, port: int, timeout: int, token: Optional[str] = None,
+                 metrics_enabled: bool = True,
+                 metrics_slow_threshold_ms: int = 5000,
+                 metrics_log_interval_seconds: int = 60,
+                 metrics_quantile_window: int = 256) -> None:
         self.runtime = runtime
         self._port = int(port)
         self._timeout = int(timeout)
@@ -30,6 +35,17 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
         self._result_store: OrderedDict[str, Any] = OrderedDict()
         self._result_events: weakref.WeakValueDictionary[str, threading.Event] = weakref.WeakValueDictionary()
         self._result_lock: threading.RLock = threading.RLock()
+
+        # Metrics: in-memory, BG-only. GUI server doesn't attach _metrics so the
+        # handler hook short-circuits there.
+        self._metrics: Optional[HttpMetrics] = (
+            HttpMetrics(
+                slow_threshold_ms=int(metrics_slow_threshold_ms),
+                quantile_window=int(metrics_quantile_window),
+                executor_provider=lambda: getattr(self, "_executor", None),
+            ) if metrics_enabled else None
+        )
+        self._metrics_log_interval: int = int(metrics_log_interval_seconds)
 
         HttpRequestHandler.register_view(None)
         HttpRequestHandler.register_server(self)
@@ -44,6 +60,7 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             "GET:/petp/result": self._handle_result_check,
             "GET:/petp/crons": self._handle_cron_list,
             "GET:/petp/crons/history": self._handle_cron_history,
+            "GET:/petp/metrics": self._handle_metrics,
             "GET:/mcp": self._handle_mcp_get,
             "POST:/mcp": self._handle_mcp,
             "DELETE:/mcp": self._handle_mcp,
@@ -53,7 +70,7 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
         return {
             "server": "PETP Background HTTP Server",
             "available_endpoints": ["/health", "/petp/exec", "/petp/tools", "/petp/result", "/petp/crons",
-                                    "/petp/crons/history", "/mcp"],
+                                    "/petp/crons/history", "/petp/metrics", "/mcp"],
         }
 
     def _handle_petp_tools(self, handler: HttpRequestHandler, payload: Optional[dict] = None) -> Union[dict, tuple]:
@@ -263,6 +280,14 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
 
         return {"history": self.runtime.get_cron_history(pipeline_name, limit)}
 
+    def _handle_metrics(self, handler: HttpRequestHandler, params: Optional[dict] = None) -> Union[dict, tuple]:
+        err = self._require_token(handler)
+        if err is not None:
+            return err
+        if self._metrics is None:
+            return {"error": "metrics disabled"}, 503
+        return self._metrics.snapshot()
+
     def _handle_mcp(
             self,
             handler: HttpRequestHandler,
@@ -410,6 +435,20 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
         self._running = True
         logging.info("PETP Background HTTP Server is serving at http://%s:%d", self._host or "localhost", self._port)
         threading.Thread(target=self.runtime.warm_processor_cache, daemon=True).start()
+        if self._metrics is not None and self._metrics_log_interval > 0:
+            threading.Thread(target=self._metrics_log_loop, daemon=True).start()
+
+    def _metrics_log_loop(self) -> None:
+        """Periodically dump a metrics snapshot to log with the ``METRICS `` prefix."""
+        while self._running:
+            time.sleep(self._metrics_log_interval)
+            if not self._running:
+                break
+            try:
+                snap = self._metrics.snapshot()
+                logging.info("METRICS %s", json.dumps(snap, ensure_ascii=False, default=str))
+            except Exception:
+                logging.exception("metrics log loop error")
 
     def stop(self) -> None:
         if self._httpd and self._running:

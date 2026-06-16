@@ -307,20 +307,32 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         if path_params:
             params.update(path_params)
 
+        # Optional metrics hook — BG server attaches `_metrics`; GUI server doesn't
+        metrics = getattr(self._server, "_metrics", None) if self._server else None
+        endpoint_key = f"{self.command}:{path_for_routing}"
+        token = metrics.record_start(endpoint_key) if metrics is not None else None
+        record_end_handled_by_streaming = False
+        status_code: int = 200
+        exception_flag = False
+
         try:
             # Execute handler
             result = handler(self, params)
+            status_code = self._extract_status_code(result)
 
             # Raw JSON response (MCP JSON path) -> Content-Length, no chunked
             if isinstance(result, RawJsonResponse):
                 self.send_raw_json_response(result)
             # Streamed responses (generators/iterators) -> chunked transfer
             elif isinstance(result, StreamingResponseData):
+                record_end_handled_by_streaming = True
                 self.send_streaming_response(result.iterator, extra_headers=result.headers,
                                              content_type=result.content_type, status_code=result.status_code,
-                                             cancel_event=result.cancel_event)
+                                             cancel_event=result.cancel_event,
+                                             metrics_token=token, metrics=metrics)
             elif self._is_streaming_result(result):
-                self.send_streaming_response(result)
+                record_end_handled_by_streaming = True
+                self.send_streaming_response(result, metrics_token=token, metrics=metrics)
             # Handle tuple returns for custom status codes
             elif isinstance(result, tuple) and len(result) == 2:
                 data, code = result
@@ -329,8 +341,30 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
                 self.send_success_json(data=result)
 
         except Exception as e:
+            exception_flag = True
+            status_code = 500
             logging.exception(f"Error processing request: {str(e)}")
             self.send_failure_response(500, msg=f"Internal server error: {str(e)}")
+        finally:
+            if token is not None and not record_end_handled_by_streaming:
+                try:
+                    metrics.record_end(token, status_code, exception=exception_flag)
+                except Exception:
+                    logging.exception("metrics.record_end failed")
+
+    @staticmethod
+    def _extract_status_code(result) -> int:
+        """Best-effort HTTP status code extraction from a handler return value."""
+        if isinstance(result, tuple) and len(result) == 2:
+            try:
+                return int(result[1])
+            except (TypeError, ValueError):
+                return 200
+        if isinstance(result, RawJsonResponse):
+            return getattr(result, "status_code", 200)
+        if isinstance(result, StreamingResponseData):
+            return getattr(result, "status_code", 200)
+        return 200
 
     def _is_streaming_result(self, result):
         """Determine if the handler returned a streaming iterator/generator."""
@@ -339,7 +373,8 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         # GeneratorType covers plain generators; Iterator covers yield-based objects
         return isinstance(result, (types.GeneratorType, Iterator))
 
-    def send_streaming_response(self, stream_iter, *, extra_headers=None, content_type=None, status_code, cancel_event=None):
+    def send_streaming_response(self, stream_iter, *, extra_headers=None, content_type=None, status_code,
+                                cancel_event=None, metrics_token=None, metrics=None):
         """Send a chunked streaming response (text/plain by default)."""
         self.send_response(status_code)
         self.send_header('Content-Type', content_type or 'text/plain; charset=utf-8')
@@ -350,6 +385,7 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         self.send_cors_headers()
         self.end_headers()
 
+        exception_flag = False
         try:
             for chunk in stream_iter:
                 if chunk is None:
@@ -377,7 +413,14 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
             if cancel_event is not None:
                 cancel_event.set()
         except Exception as e:
+            exception_flag = True
             logging.error(f"Error during streaming response: {e}")
+        finally:
+            if metrics_token is not None and metrics is not None:
+                try:
+                    metrics.record_end(metrics_token, status_code, exception=exception_flag)
+                except Exception:
+                    logging.exception("metrics.record_end failed (streaming)")
 
     def send_raw_json_response(self, response: 'RawJsonResponse'):
         """Send a raw JSON response with Content-Length (no envelope wrapper)."""

@@ -17,6 +17,10 @@ application:
   last_run: T_CENC_EARTHQUAKE_SEARCH
   snapshot_max: 20
   cron_history_max_records: 500
+  metrics_enabled: true
+  metrics_slow_threshold_ms: 5000
+  metrics_log_interval_seconds: 60
+  metrics_quantile_window: 256
   ai_provider: zhipu
   ai_model: null
   ai_api_key: ${ZHIPU_ACCESS_KEY}

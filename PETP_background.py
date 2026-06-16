@@ -99,6 +99,10 @@ def _merge_config(args: argparse.Namespace, model: PETPModel) -> dict:
         "http_port": args.http_port or int(getattr(model, "http_port", 8866)),
         "http_timeout": int(getattr(model, "http_request_timeout", 600)),
         "http_token": args.http_token if args.http_token is not None else getattr(model, "http_request_token", None),
+        "metrics_enabled": _to_bool(getattr(model, "metrics_enabled", True), True),
+        "metrics_slow_threshold_ms": int(getattr(model, "metrics_slow_threshold_ms", 5000)),
+        "metrics_log_interval_seconds": int(getattr(model, "metrics_log_interval_seconds", 60)),
+        "metrics_quantile_window": int(getattr(model, "metrics_quantile_window", 256)),
         "run_execution": args.run_execution,
         "run_pipeline": args.run_pipeline,
         "init_data": args.init_data,
@@ -156,7 +160,13 @@ def start_background_app() -> None:
         return
 
     if not cfg["no_http"]:
-        server = BackgroundHttpServer(runtime, cfg["http_port"], cfg["http_timeout"], cfg["http_token"])
+        server = BackgroundHttpServer(
+            runtime, cfg["http_port"], cfg["http_timeout"], cfg["http_token"],
+            metrics_enabled=cfg["metrics_enabled"],
+            metrics_slow_threshold_ms=cfg["metrics_slow_threshold_ms"],
+            metrics_log_interval_seconds=cfg["metrics_log_interval_seconds"],
+            metrics_quantile_window=cfg["metrics_quantile_window"],
+        )
         server.start()
     else:
         server = None
