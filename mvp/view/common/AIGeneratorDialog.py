@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 import wx
 import wx.dataview as dv
 import wx.lib.scrolledpanel as scrolled
@@ -10,6 +11,9 @@ from mvp.view.PETPTheme import get_theme
 
 
 class AIGeneratorDialog(wx.Frame):
+    # Minimum gap between two successive LLM calls (seconds). Guards against
+    # provider RPM caps and user reflex-clicking Send.
+    _MIN_SEND_INTERVAL_S: float = 3.0
 
     def __init__(self, parent, locale: str, on_apply=None):
         super().__init__(
@@ -24,6 +28,8 @@ class AIGeneratorDialog(wx.Frame):
         self._redo_handler = None
         self._input_history = []
         self._history_cursor = -1
+        # Monotonic timestamp of the last successful send, for min-interval throttling.
+        self._last_send_ts: float = 0.0
         self._theme = get_theme()
         self._category_map = {}
         self._all_items = []
@@ -378,6 +384,14 @@ class AIGeneratorDialog(wx.Frame):
                 p = self._init_params
                 self.init_generator_async(p[0], p[1], p[2], p[3])
             return
+
+        # Throttle: enforce a minimum gap between two successive LLM calls.
+        elapsed = time.monotonic() - self._last_send_ts
+        if elapsed < self._MIN_SEND_INTERVAL_S:
+            wait_s = self._MIN_SEND_INTERVAL_S - elapsed
+            self._add_message(t("ai_gen_throttle_wait").format(sec=f"{wait_s:.1f}"), is_user=False)
+            return
+
         self._generator.update_filter(self.get_selected_processors())
         self._input_history.append(msg)
         if len(self._input_history) > 20:
@@ -389,6 +403,7 @@ class AIGeneratorDialog(wx.Frame):
         self._btn_send.Disable()
         self._add_message(msg, is_user=True)
         self._add_message(t("ai_gen_thinking"), is_user=False, is_thinking=True)
+        self._last_send_ts = time.monotonic()
 
         thread = threading.Thread(target=self._do_chat, args=(msg, current_tasks), daemon=True)
         thread.start()

@@ -1,6 +1,8 @@
 import importlib
 import importlib.util
+import logging
 import os
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Optional
@@ -14,6 +16,10 @@ class LLMResponse:
     completion_tokens: int = 0
 
 
+class RateLimitError(Exception):
+    """Raised when an LLM call exhausts retries on HTTP 429 (Too Many Requests)."""
+
+
 class BaseLLMClient(ABC):
 
     @abstractmethod
@@ -24,6 +30,31 @@ class BaseLLMClient(ABC):
     @abstractmethod
     def provider_name(self) -> str:
         ...
+
+    def chat_with_retry(self, messages: list, model: str, temperature: float,
+                        max_retries: int = 3, base_delay: float = 2.0, **kwargs) -> LLMResponse:
+        """Call ``chat`` with exponential backoff on rate-limit errors.
+
+        Retries only on 429 / "rate limit" / "too many requests" style errors.
+        Backoff: base_delay * 2**attempt (default 2s, 4s, 8s → 3 retries).
+        On the final failure re-raises the underlying exception (or
+        ``RateLimitError`` if it was a rate-limit).
+        """
+        last_err: Optional[Exception] = None
+        for attempt in range(max_retries + 1):
+            try:
+                return self.chat(messages=messages, model=model, temperature=temperature, **kwargs)
+            except Exception as e:
+                if not _is_rate_limit_error(e):
+                    raise
+                last_err = e
+                if attempt >= max_retries:
+                    break
+                delay = base_delay * (2 ** attempt)
+                logging.warning("LLM rate limit hit (attempt %d/%d), retrying in %.1fs: %s",
+                                attempt + 1, max_retries, delay, e)
+                time.sleep(delay)
+        raise RateLimitError(f"Rate limit exhausted after {max_retries} retries: {last_err}") from last_err
 
     @staticmethod
     def get_client_by_provider(provider: str, **kwargs) -> 'BaseLLMClient':
@@ -49,3 +80,21 @@ class BaseLLMClient(ABC):
         spec.loader.exec_module(module)
         clazz = getattr(module, class_name)
         return clazz.create(provider=provider, **kwargs)
+
+
+def _is_rate_limit_error(err: Exception) -> bool:
+    """Heuristic: detect 429 / rate-limit errors across LLM SDKs.
+
+    OpenAI SDK: ``openai.RateLimitError`` (class name check to avoid importing).
+    Anthropic:  ``anthropic.RateLimitError``.
+    Others:     inspect status_code attribute or error message.
+    """
+    cls_name = type(err).__name__
+    if cls_name in ('RateLimitError', 'TooManyRequestsError'):
+        return True
+    status = getattr(err, 'status_code', None) or getattr(err, 'code', None)
+    if status == 429 or status == '429':
+        return True
+    msg = str(err).lower()
+    return '429' in msg or 'rate limit' in msg or 'too many requests' in msg
+

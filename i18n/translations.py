@@ -512,6 +512,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_init_fail": {"en": "Connection failed: {error}\n\nHow to fix:\n1. Open config/petpconfig.yaml\n2. Set ai_provider (e.g. zhipu, deepseek, anthropic)\n3. Set ai_api_key or ensure the env var is exported\n4. Save and retry (Enter or Send button)", "zh": "连接失败：{error}\n\n解决方法：\n1. 打开 config/petpconfig.yaml\n2. 设置 ai_provider（如 zhipu、deepseek、anthropic）\n3. 设置 ai_api_key 或确保对应环境变量已导出\n4. 保存后点击发送重试"},
     "ai_gen_hello_prompt": {"en": "Introduce yourself briefly. What can you help me with? Reply in plain text, not JSON.", "zh": "请简单介绍你自己，你能帮我做什么？用自然语言回复，不要用JSON格式。"},
     "ai_gen_no_config": {"en": "ai_provider is not configured.\n\nOpen config/petpconfig.yaml and set:\n  ai_provider: zhipu  (or deepseek, anthropic, etc.)\n\nThen retry via right-click → AI Assist.", "zh": "ai_provider 未配置。\n\n请打开 config/petpconfig.yaml 设置：\n  ai_provider: zhipu  （或 deepseek、anthropic 等）\n\n保存后通过右键 → AI 协助重试。"},
+    "ai_gen_rate_limited": {"en": "Rate limit hit — the LLM provider is throttling requests. Please wait a moment and try again.", "zh": "触发限流 — LLM 服务方暂时限制了请求频率。请稍等片刻后重试。"},
+    "ai_gen_throttle_wait": {"en": "Please wait {sec}s before sending the next message.", "zh": "请等待 {sec} 秒后再发送。"},
     "ai_gen_tokens": {"en": "Tokens: {input} in / {output} out", "zh": "Token: {input} 输入 / {output} 输出"},
     "ai_gen_error": {"en": "Error: {msg}", "zh": "错误: {msg}"},
     "ai_gen_invalid_type": {"en": "Warning: unknown processor type '{ptype}'", "zh": "警告: 未知处理器类型 '{ptype}'"},

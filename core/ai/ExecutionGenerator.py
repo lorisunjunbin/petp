@@ -4,7 +4,7 @@ import os
 import re
 from typing import List, Optional, Tuple
 
-from core.processors.sub.llm.BaseLLMClient import BaseLLMClient, LLMResponse
+from core.processors.sub.llm.BaseLLMClient import BaseLLMClient, LLMResponse, RateLimitError
 from core.processor import Processor
 from core.task import Task
 from core.loop import Loop
@@ -155,7 +155,7 @@ class ExecutionGenerator:
         if self._client is None:
             return False
         messages = [{"role": "user", "content": "hi"}]
-        response = self._client.chat(messages=messages, model=self._model, temperature=0)
+        response = self._client.chat_with_retry(messages=messages, model=self._model, temperature=0)
         return bool(response.content or response.reasoning_content)
 
     def chat(self, user_message: str, current_tasks: Optional[List[Task]] = None) -> dict:
@@ -172,7 +172,7 @@ class ExecutionGenerator:
             self._messages.append({"role": "user", "content": user_message})
 
         try:
-            response: LLMResponse = self._client.chat(
+            response: LLMResponse = self._client.chat_with_retry(
                 messages=self._messages,
                 model=self._model,
                 temperature=0.7,
@@ -185,6 +185,9 @@ class ExecutionGenerator:
 
             return self._parse_response(answer)
 
+        except RateLimitError as e:
+            logging.error(f'AI Generator rate-limited after retries: {e}')
+            return {"action": "text", "content": t("ai_gen_rate_limited")}
         except Exception as e:
             logging.error(f'AI Generator LLM error: {e}')
             return {"action": "text", "content": str(e)}
@@ -306,7 +309,7 @@ Return ONLY the JSON, no markdown wrapping."""
 
         messages = [{"role": "user", "content": prompt}]
         try:
-            response = self._client.chat(messages=messages, model=self._model, temperature=0.3)
+            response = self._client.chat_with_retry(messages=messages, model=self._model, temperature=0.3)
             self._total_prompt_tokens += response.prompt_tokens
             self._total_completion_tokens += response.completion_tokens
             return response.content or ''
