@@ -102,6 +102,12 @@ class PETPPresenter():
 
         self._apply_i18n()
         self._apply_theme()
+        # Warm the Processor class cache in a daemon thread BEFORE loading
+        # last_run, so its priority pass (last_run's task types) can race
+        # against the main-thread on_task_execution_changed and cache any
+        # types the user is about to hit. BG mode has an equivalent warm
+        # step in BackgroundHttpServer.start.
+        Thread(target=self._warm_processor_cache, daemon=True).start()
         self._load_config()
 
         wx.CallAfter(self._sync_mcp_panel_visibility)
@@ -112,6 +118,48 @@ class PETPPresenter():
         self._welcome_total = 20
         self._welcome_paused = False
         wx.CallLater(800, self._rotate_welcome)
+
+    def _warm_processor_cache(self):
+        """Warm the Processor class cache in a background thread.
+
+        First pass: types referenced by ``last_run`` execution (fastest path
+        to unblock the user's first grid load). Second pass: the rest of the
+        available processors so any subsequent selection is also cached.
+        """
+        try:
+            import time as _t
+            _t0 = _t.time()
+
+            priority: list[str] = []
+            last_run = getattr(self.m, 'last_run', None)
+            if last_run:
+                try:
+                    exe = Execution.get_execution(last_run)
+                    if exe and getattr(exe, 'list', None):
+                        seen: set[str] = set()
+                        for task in exe.list:
+                            if task.type and task.type not in seen:
+                                seen.add(task.type)
+                                priority.append(task.type)
+                except Exception:
+                    pass
+
+            ordered = list(priority)
+            for name in self.available_processors:
+                if name not in priority:
+                    ordered.append(name)
+
+            loaded = 0
+            for name in ordered:
+                try:
+                    Processor.get_processor_by_type(name)
+                    loaded += 1
+                except Exception:
+                    pass
+            logging.info('GUI Processor cache warmed: %d/%d types in %.0fms (priority=%d)',
+                         loaded, len(ordered), (_t.time() - _t0) * 1000, len(priority))
+        except Exception:
+            logging.exception('GUI processor cache warm-up failed')
 
     def _rotate_welcome(self):
         if self.v is None:

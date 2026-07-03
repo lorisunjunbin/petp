@@ -43,7 +43,13 @@ class BaseLLMClient(ABC):
         last_err: Optional[Exception] = None
         for attempt in range(max_retries + 1):
             try:
-                return self.chat(messages=messages, model=model, temperature=temperature, **kwargs)
+                response = self.chat(messages=messages, model=model, temperature=temperature, **kwargs)
+                logging.info(
+                    "LLM %s [%s] tokens: request=%d, response=%d",
+                    self.provider_name, model,
+                    response.prompt_tokens, response.completion_tokens,
+                )
+                return response
             except Exception as e:
                 if not _is_rate_limit_error(e):
                     raise

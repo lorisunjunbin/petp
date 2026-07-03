@@ -76,7 +76,7 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, anthropic
             messages.append({"role": "system", "content": tools_message})
             messages.append({"role": "user", "content": prompt})
 
-            response: LLMResponse = client.chat(
+            response: LLMResponse = client.chat_with_retry(
                 messages=messages, model=model, temperature=temperature,
             )
             answer = response.content or response.reasoning_content or ''
@@ -109,7 +109,7 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, anthropic
                      "content": f"Please answer strictly based on this information: {result_text}. "
                                 "Prefer to use the language of the original question."},
                 ]
-                final_response: LLMResponse = client.chat(
+                final_response: LLMResponse = client.chat_with_retry(
                     messages=follow_up_messages, model=model, temperature=temperature,
                 )
                 final_answer = final_response.content or final_response.reasoning_content or ''
@@ -117,7 +117,6 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, anthropic
             content = read_json_from_markdown(final_answer) if convert_resp_2_json else final_answer
             display_text = final_answer if show_thinking else remove_think_tags(final_answer)
             alert_message = f"Q:\n{prompt}\n\nA:\n{display_text}"
-            logging.info('LLM MCP response received (provider=%s, model=%s)', client.provider_name, model)
 
             if show_in_popup:
                 show_notification(f"AI_LLM_QANDA_MCP ({client.provider_name})", alert_message)

@@ -71,14 +71,13 @@ Works with all supported providers: deepseek, zhipu, qianfan, minimax, doubao, m
         logging.debug(f'LLM prompt: {prompt}')
 
         try:
-            response: LLMResponse = client.chat(
+            response: LLMResponse = client.chat_with_retry(
                 messages=messages,
                 model=model,
                 temperature=temperature,
             )
 
             answer_text = response.content or response.reasoning_content or ''
-            logging.info('LLM response received (provider=%s, model=%s)', client.provider_name, model)
             logging.debug(f'Raw answer: {answer_text}')
 
             content = read_json_from_markdown(answer_text) if convert_resp_2_json else answer_text
