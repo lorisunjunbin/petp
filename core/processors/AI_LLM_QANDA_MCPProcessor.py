@@ -23,7 +23,7 @@ Connects to any standard MCP server via the official MCP SDK (Streamable HTTP tr
 Fetches available tools, lets the LLM decide whether to call one, executes it via MCP protocol,
 and feeds the result back for a refined answer.
 
-Works with all supported providers: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moonshot, gemini, ollama, openai_compatible.
+Works with all supported providers: deepseek, zhipu, qianfan, minimax, anthropic, hyperspace, doubao, moonshot, gemini, ollama, openai_compatible.
 
 - llm_data_key: key in data_chain where the LLM client instance is stored (default: "llm_client")
 - prompt: question to ask the LLM (supports expression)

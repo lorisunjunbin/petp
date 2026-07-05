@@ -72,6 +72,7 @@ class BaseLLMClient(ABC):
             'doubao': 'OpenAICompatibleClient',
             'moonshot': 'OpenAICompatibleClient',
             'anthropic': 'AnthropicClient',
+            'hyperspace': 'HyperspaceClient',
             'gemini': 'GeminiClient',
             'ollama': 'OllamaClient',
             'openai_compatible': 'OpenAICompatibleClient',

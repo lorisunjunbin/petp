@@ -878,7 +878,7 @@ class PETPPresenter():
         if not ctx:
             return
 
-        provider, api_key, base_url, model, locale = self._get_ai_config()
+        provider, api_key, base_url, model, max_tokens, max_request_tokens, locale = self._get_ai_config()
         if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
             return
@@ -1491,7 +1491,7 @@ class PETPPresenter():
     def _start_ai_generator(self, execution_name):
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
-        provider, api_key, base_url, model, locale = self._get_ai_config()
+        provider, api_key, base_url, model, max_tokens, max_request_tokens, locale = self._get_ai_config()
 
         if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
@@ -1510,7 +1510,7 @@ class PETPPresenter():
         self._ai_dialog = dialog
         self._ai_execution_name = execution_name
         dialog.Show()
-        self._init_or_reuse_generator(dialog, provider, api_key, base_url, model, locale)
+        self._init_or_reuse_generator(dialog, provider, api_key, base_url, model, max_tokens, max_request_tokens, locale)
 
     def _ai_apply_callback(self, action, tasks=None, loops=None):
         if action == 'get_tasks':
@@ -1554,7 +1554,7 @@ class PETPPresenter():
     def _on_ai_generate_mcp_desc(self):
         import threading
 
-        provider, api_key, base_url, model_name, locale = self._get_ai_config()
+        provider, api_key, base_url, model_name, max_tokens, max_request_tokens, locale = self._get_ai_config()
 
         if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
@@ -1735,7 +1735,7 @@ class PETPPresenter():
         execution_name = self.execution.execution
         from mvp.view.common.AIGeneratorDialog import AIGeneratorDialog
 
-        provider, api_key, base_url, model, locale = self._get_ai_config()
+        provider, api_key, base_url, model, max_tokens, max_request_tokens, locale = self._get_ai_config()
 
         if not provider:
             wx.MessageBox(t("ai_gen_no_config"), "Warning", wx.OK | wx.ICON_WARNING, self.v)
@@ -1743,14 +1743,23 @@ class PETPPresenter():
 
         dialog = AIGeneratorDialog(self.v, locale=locale, on_apply=self._ai_apply_callback)
         dialog.set_undo_redo_handlers(self._undo, self._redo)
+        # Pre-select only the processor types referenced by the current
+        # Execution — dramatically shrinks the system prompt tokens the LLM
+        # receives. Users can broaden the selection via the tree anytime.
+        try:
+            current_types = {tk.type for tk in self.execution.list if getattr(tk, 'type', None)}
+            if current_types:
+                dialog.set_initial_selected_processors(current_types)
+        except Exception:
+            logging.exception('Failed to collect current execution task types for AI dialog pre-selection')
 
         self._ai_dialog = dialog
         self._ai_execution_name = execution_name
         dialog.Show()
-        self._init_or_reuse_generator(dialog, provider, api_key, base_url, model, locale)
+        self._init_or_reuse_generator(dialog, provider, api_key, base_url, model, max_tokens, max_request_tokens, locale)
 
-    def _init_or_reuse_generator(self, dialog, provider, api_key, base_url, model, locale):
-        config_key = f"{provider}|{api_key}|{base_url}|{model}"
+    def _init_or_reuse_generator(self, dialog, provider, api_key, base_url, model, max_tokens, max_request_tokens, locale):
+        config_key = f"{provider}|{api_key}|{base_url}|{model}|{max_tokens}|{max_request_tokens}"
         cached_key = getattr(self, '_ai_config_key', None)
         cached_gen = getattr(self, '_ai_cached_generator', None)
 
@@ -1775,26 +1784,34 @@ class PETPPresenter():
                 dialog._orig_on_init_success(generator, p, m)
             dialog._orig_on_init_success = dialog._on_init_success
             dialog._on_init_success = _wrapped_success
-            dialog.init_generator_async(provider, api_key, base_url, model)
+            dialog.init_generator_async(provider, api_key, base_url, model, max_tokens, max_request_tokens)
 
     def _get_ai_config(self):
         provider = getattr(self.m, 'ai_provider', '')
         api_key = getattr(self.m, 'ai_api_key', '')
         model = getattr(self.m, 'ai_model', '')
         base_url = getattr(self.m, 'ai_base_url', '')
+        # Backward compat: prefer the new name ``ai_max_response_tokens`` and fall
+        # back to the legacy ``ai_max_tokens`` (which used to mean response cap).
+        max_response_tokens = (
+            getattr(self.m, 'ai_max_response_tokens', None)
+            or getattr(self.m, 'ai_max_tokens', None)
+        )
+        max_request_tokens = getattr(self.m, 'ai_max_request_tokens', None)
         locale = getattr(self.m, 'language', 'en')
-        return provider, api_key, base_url, model, locale
+        return provider, api_key, base_url, model, max_response_tokens, max_request_tokens, locale
 
     def _get_or_create_ai_generator(self):
         from core.ai.ExecutionGenerator import ExecutionGenerator, resolve_api_key
-        provider, api_key, base_url, model, locale = self._get_ai_config()
-        config_key = f"{provider}|{api_key}|{base_url}|{model}"
+        provider, api_key, base_url, model, max_response_tokens, max_request_tokens, locale = self._get_ai_config()
+        config_key = f"{provider}|{api_key}|{base_url}|{model}|{max_response_tokens}|{max_request_tokens}"
         cached_key = getattr(self, '_ai_config_key', None)
         cached_gen = getattr(self, '_ai_cached_generator', None)
         if cached_gen and cached_key == config_key:
             return cached_gen
         generator = ExecutionGenerator([], locale)
-        generator.init_client(provider, resolve_api_key(api_key), base_url, model)
+        generator.init_client(provider, resolve_api_key(api_key), base_url, model,
+                              max_response_tokens, max_request_tokens)
         self._ai_cached_generator = generator
         self._ai_config_key = config_key
         return generator

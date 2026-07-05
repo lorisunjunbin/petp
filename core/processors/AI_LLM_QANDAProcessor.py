@@ -16,7 +16,7 @@ class AI_LLM_QANDAProcessor(Processor):
     DESC: str = '''
 Ask a unified LLM a question and get the response. Depends on AI_LLM_SETUP to initialize the client first.
 
-Works with all supported providers: deepseek, zhipu, qianfan, minimax, doubao, moonshot, gemini, ollama, anthropic, openai_compatible.
+Works with all supported providers: deepseek, zhipu, qianfan, minimax, doubao, moonshot, gemini, ollama, anthropic, hyperspace, openai_compatible.
 
 - llm_data_key: key in data_chain where the LLM client instance is stored (default: "llm_client")
 - prompt: question to ask the LLM (supports expression)

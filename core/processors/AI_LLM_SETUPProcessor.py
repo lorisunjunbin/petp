@@ -11,9 +11,9 @@ class AI_LLM_SETUPProcessor(Processor):
     DESC: str = '''
 Set up a unified LLM client instance for any supported provider. The client is stored in the data_chain for use by AI_LLM_QANDA or AI_LLM_QANDA_MCP. Skips setup if the client already exists.
 
-Supported providers: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moonshot, gemini, ollama, openai_compatible
+Supported providers: deepseek, zhipu, qianfan, minimax, anthropic, hyperspace, doubao, moonshot, gemini, ollama, openai_compatible
 
-- provider: LLM provider name (default: "deepseek"), available providers: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moonshot, gemini, ollama, openai_compatible
+- provider: LLM provider name (default: "deepseek"), available providers: deepseek, zhipu, qianfan, minimax, anthropic, hyperspace, doubao, moonshot, gemini, ollama, openai_compatible
 - api_key_env: Environment variable name holding the API key; ignored for ollama (supports expression, default: provider-specific)
 - api_key: API key string; if provided, takes precedence over api_key_env (supports expression, default: "")
 - base_url: API endpoint base URL; uses provider default if empty (supports expression, default: provider-specific)
@@ -48,6 +48,11 @@ Supported providers: deepseek, zhipu, qianfan, minimax, anthropic, doubao, moons
             'api_key_env': 'ANTHROPIC_API_KEY',
             'base_url': '',
             'model': 'claude-sonnet-4-20250514',
+        },
+        'hyperspace': {
+            'api_key_env': 'HYPERSPACE_API_KEY',
+            'base_url': 'http://localhost:6655/anthropic',
+            'model': 'anthropic--claude-sonnet-latest',
         },
         'doubao': {
             'api_key_env': 'DOUBAO_API_KEY',

@@ -1,6 +1,8 @@
 import json
 import threading
 import time
+from typing import Optional
+
 import wx
 import wx.dataview as dv
 import wx.lib.scrolledpanel as scrolled
@@ -35,8 +37,27 @@ class AIGeneratorDialog(wx.Frame):
         self._all_items = []
         self._item_type_map = {}
         self._full_desc_map = {}
+        # Optional pre-selection: if set, only these processor types are checked
+        # on first populate (typically the types referenced by the current
+        # Execution). ``None`` keeps the legacy behavior (check all).
+        self._initial_selected_processors: Optional[set] = None
+        self._first_populate: bool = True
+        self._closed: bool = False
         self._build_ui()
         self._bind_events()
+
+    def set_initial_selected_processors(self, processor_types):
+        """Pre-select the given processor types on first populate.
+
+        Call BEFORE the tree is populated (i.e. before ``init_generator_async``).
+        Pass a set/list of processor type names (e.g. {'GO_TO_PAGE', 'FIND_THEN_CLICK'}).
+        """
+        if processor_types:
+            self._initial_selected_processors = set(processor_types)
+            # Reflect the partial selection state on the "select all" checkbox
+            # so users see immediately that not everything is checked.
+            if hasattr(self, '_cb_select_all'):
+                self._cb_select_all.SetValue(False)
 
     def _build_processor_map(self):
         for ptype in Processor.get_processors():
@@ -88,7 +109,12 @@ class AIGeneratorDialog(wx.Frame):
         )
         self._tree.AppendColumn("Processor", width=180)
         self._tree.AppendColumn("Description", width=280)
-        self._populate_tree()
+        # NOTE: intentionally do NOT populate the tree here. The processor map
+        # is loaded asynchronously in ``init_generator_async._init``, which
+        # then triggers ``_populate_tree`` via ``wx.CallAfter``. Populating
+        # here would run against an empty category_map (a no-op that still
+        # burns the ``_first_populate`` flag), causing
+        # ``set_initial_selected_processors`` to be silently ignored.
         tree_sizer.Add(self._tree, 1, wx.EXPAND)
         tree_panel.SetSizer(tree_sizer)
 
@@ -146,10 +172,23 @@ class AIGeneratorDialog(wx.Frame):
         panel.SetSizer(main_sizer)
 
     def _populate_tree(self, filter_text=''):
+        if self._is_dead():
+            return
         self._tree.DeleteAllItems()
         self._tree_item_map = {}
         root = self._tree.GetRootItem()
         filter_lower = filter_text.lower()
+
+        # First populate honors ``_initial_selected_processors`` (if set) to
+        # pre-check only the processors referenced by the current Execution.
+        # Subsequent populates (after a search filter, etc.) preserve whatever
+        # the user currently has checked — see ``_on_search`` which snapshots
+        # and reapplies ``checked_before`` around the repopulate.
+        use_initial_filter = (
+            self._first_populate
+            and self._initial_selected_processors is not None
+        )
+        self._first_populate = False
 
         for cat in sorted(self._category_map.keys()):
             processors = self._category_map[cat]
@@ -163,7 +202,11 @@ class AIGeneratorDialog(wx.Frame):
                 p_item = self._tree.AppendItem(cat_item, ptype)
                 self._tree.SetItemText(p_item, 1, desc)
                 self._tree_item_map[p_item] = ('processor', ptype)
-                self._tree.CheckItem(p_item)
+                if use_initial_filter:
+                    if ptype in self._initial_selected_processors:
+                        self._tree.CheckItem(p_item)
+                else:
+                    self._tree.CheckItem(p_item)
                 full_desc = self._full_desc_map.get(ptype, '')
                 if full_desc:
                     lines = full_desc.strip().split('\n')
@@ -190,8 +233,21 @@ class AIGeneratorDialog(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self._on_close)
 
     def _on_close(self, evt):
+        # Mark the dialog as dead so late ``wx.CallAfter`` callbacks from the
+        # background init thread short-circuit instead of touching freed widgets.
+        self._closed = True
         self._cleanup_timers()
         evt.Skip()
+
+    def _is_dead(self) -> bool:
+        """True once the dialog has been closed/destroyed.
+
+        Late callbacks scheduled via ``wx.CallAfter`` before the user closed
+        the dialog can fire after wx has already released the C++ widgets;
+        every method that touches ``self._chat_panel`` / ``self._tree`` /
+        ``self._input_text`` etc. from a ``CallAfter`` should guard on this.
+        """
+        return getattr(self, '_closed', False) or not self
 
     def _on_toggle_select_all(self, evt):
         checked = self._cb_select_all.GetValue()
@@ -269,9 +325,9 @@ class AIGeneratorDialog(wx.Frame):
     def set_generator(self, generator):
         self._generator = generator
 
-    def init_generator_async(self, provider, api_key, base_url, model):
+    def init_generator_async(self, provider, api_key, base_url, model, max_tokens=None, max_request_tokens=None):
         from core.ai.ExecutionGenerator import ExecutionGenerator
-        self._init_params = (provider, api_key, base_url, model)
+        self._init_params = (provider, api_key, base_url, model, max_tokens, max_request_tokens)
         self._start_loading_animation(t("ai_gen_loading_short", provider=provider))
         self._btn_send.Disable()
 
@@ -280,7 +336,7 @@ class AIGeneratorDialog(wx.Frame):
                 self._build_processor_map()
                 wx.CallAfter(self._populate_tree)
                 generator = ExecutionGenerator([], self._locale)
-                generator.init_client(provider, api_key, base_url, model)
+                generator.init_client(provider, api_key, base_url, model, max_tokens, max_request_tokens)
                 generator.validate_connection()
                 actual_model = generator._model
                 wx.CallAfter(self._on_init_success, generator, provider, actual_model)
@@ -291,6 +347,8 @@ class AIGeneratorDialog(wx.Frame):
         thread.start()
 
     def _on_init_success(self, generator, provider, model):
+        if self._is_dead():
+            return
         self._generator = generator
         self._stop_loading_animation()
         self._input_text.Enable()
@@ -299,6 +357,8 @@ class AIGeneratorDialog(wx.Frame):
         self._add_message(t("ai_gen_welcome", provider=provider, model=model), is_user=False)
 
     def _on_init_failure(self, error_msg):
+        if self._is_dead():
+            return
         self._stop_loading_animation()
         self._add_message(t("ai_gen_init_fail", error=error_msg), is_user=False)
         self._input_text.Enable()
@@ -382,7 +442,7 @@ class AIGeneratorDialog(wx.Frame):
             if hasattr(self, '_init_params'):
                 self._input_text.Clear()
                 p = self._init_params
-                self.init_generator_async(p[0], p[1], p[2], p[3])
+                self.init_generator_async(*p)
             return
 
         # Throttle: enforce a minimum gap between two successive LLM calls.
@@ -436,6 +496,8 @@ class AIGeneratorDialog(wx.Frame):
         wx.CallAfter(self._handle_response, result)
 
     def _handle_response(self, result):
+        if self._is_dead():
+            return
         self._remove_thinking()
         self._input_text.Enable()
         self._btn_send.Enable()

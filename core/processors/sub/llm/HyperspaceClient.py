@@ -1,10 +1,33 @@
+"""Hyperspace LLM client.
+
+Hyperspace is a local HTTP proxy that speaks the Anthropic ``/messages``
+protocol. The Anthropic SDK internally appends ``/v1/messages`` to its
+``base_url``, so the base_url passed here must NOT include ``/v1`` —
+we point it at ``http://localhost:6655/anthropic`` and the SDK finalises
+the URL as ``http://localhost:6655/anthropic/v1/messages``.
+
+Bearer-token auth, model names must carry the ``anthropic--`` prefix
+(e.g. ``anthropic--claude-sonnet-latest``).
+
+Implementation strategy: reuse the ``anthropic`` SDK by pointing it at the
+proxy base_url and passing the API key as ``auth_token`` — the same pattern
+``AnthropicClient`` already uses for corporate proxy scenarios. This keeps
+the request/response shape and streaming logic identical to Anthropic without
+maintaining a parallel HTTP path.
+
+See ``hyperspace_llm_guide.md`` for the underlying protocol.
+"""
+
 import logging
 
 from core.processors.sub.llm.BaseLLMClient import BaseLLMClient, LLMResponse
 
 
-class AnthropicClient(BaseLLMClient):
+class HyperspaceClient(BaseLLMClient):
 
+    # NOTE: no ``/v1`` suffix — the anthropic SDK appends it internally.
+    DEFAULT_BASE_URL: str = 'http://localhost:6655/anthropic'
+    DEFAULT_MODEL: str = 'anthropic--claude-sonnet-latest'
     DEFAULT_MAX_TOKENS: int = 4096
 
     def __init__(self, client, model: str):
@@ -13,7 +36,7 @@ class AnthropicClient(BaseLLMClient):
 
     @property
     def provider_name(self) -> str:
-        return 'anthropic'
+        return 'hyperspace'
 
     def chat(self, messages: list, model: str, temperature: float, **kwargs) -> LLMResponse:
         use_model = model or self._model
@@ -49,14 +72,11 @@ class AnthropicClient(BaseLLMClient):
         )
 
     @classmethod
-    def create(cls, provider: str, api_key: str = '', base_url: str = '', model: str = 'claude-sonnet-4-20250514', **kwargs) -> 'AnthropicClient':
+    def create(cls, provider: str, api_key: str = '', base_url: str = '',
+               model: str = '', **kwargs) -> 'HyperspaceClient':
         import anthropic
-        params = {}
-        if base_url:
-            params['base_url'] = base_url
-            params['auth_token'] = api_key
-        else:
-            params['api_key'] = api_key
-        client = anthropic.Anthropic(**params)
-        logging.info(f"Anthropic client initialized (model={model}, base_url={base_url or 'default'})")
-        return cls(client=client, model=model)
+        effective_base_url = base_url or cls.DEFAULT_BASE_URL
+        effective_model = model or cls.DEFAULT_MODEL
+        client = anthropic.Anthropic(base_url=effective_base_url, auth_token=api_key)
+        logging.info(f"Hyperspace client initialized (model={effective_model}, base_url={effective_base_url})")
+        return cls(client=client, model=effective_model)

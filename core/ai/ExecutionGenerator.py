@@ -108,9 +108,13 @@ class ExecutionGenerator:
         self._total_completion_tokens = 0
         self._client: Optional[BaseLLMClient] = None
         self._model = ''
+        self._max_tokens: Optional[int] = None
+        self._max_request_tokens: Optional[int] = None
         self._available_processors = set(Processor.get_processors())
 
-    def init_client(self, provider: str, api_key: str, base_url: str, model: str):
+    def init_client(self, provider: str, api_key: str, base_url: str, model: str,
+                    max_tokens: Optional[int] = None,
+                    max_request_tokens: Optional[int] = None):
         from core.processors.AI_LLM_SETUPProcessor import AI_LLM_SETUPProcessor
         defaults = AI_LLM_SETUPProcessor.PROVIDER_DEFAULTS.get(provider, {})
 
@@ -146,16 +150,65 @@ class ExecutionGenerator:
             kwargs['base_url'] = base_url
         self._client = BaseLLMClient.get_client_by_provider(provider, **kwargs)
         self._model = model
+        self._max_tokens = int(max_tokens) if max_tokens else None
+        self._max_request_tokens = int(max_request_tokens) if max_request_tokens else None
         self._messages = []
 
     def update_filter(self, processors: List[str]):
         self._filter = set(processors) if processors else None
 
+    def _extra_call_kwargs(self) -> dict:
+        """Common kwargs passed to every client.chat* call (e.g. max_tokens)."""
+        extra: dict = {}
+        if self._max_tokens:
+            extra['max_tokens'] = self._max_tokens
+        return extra
+
+    @staticmethod
+    def _estimate_message_tokens(messages: list) -> int:
+        """Rough local token count for a list of chat messages.
+
+        Heuristic: ~1 token per 4 characters (English-heavy) / ~1 per 1.5 chars
+        (Chinese-heavy). We split the difference and use ``chars / 2.5`` — good
+        enough to catch runaway prompts before the provider bills them. This
+        is intentionally coarse; the real number comes back in the response
+        ``usage`` object.
+        """
+        total_chars = 0
+        for msg in messages or []:
+            content = msg.get('content', '') if isinstance(msg, dict) else ''
+            if isinstance(content, str):
+                total_chars += len(content)
+            elif isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict):
+                        total_chars += len(str(block.get('text', '') or block.get('content', '')))
+        return int(total_chars / 2.5)
+
+    def _check_request_budget(self, messages: list) -> Optional[dict]:
+        """Return an error result dict if the estimated request tokens exceed
+        ``self._max_request_tokens``. ``None`` means the request may proceed."""
+        if not self._max_request_tokens:
+            return None
+        est = self._estimate_message_tokens(messages)
+        if est <= self._max_request_tokens:
+            return None
+        logging.warning(
+            "AI request blocked: estimated %d tokens exceeds ai_max_request_tokens=%d",
+            est, self._max_request_tokens,
+        )
+        return {
+            "action": "text",
+            "content": t("ai_gen_request_too_large",
+                         estimated=est, limit=self._max_request_tokens),
+        }
+
     def validate_connection(self) -> bool:
         if self._client is None:
             return False
         messages = [{"role": "user", "content": "hi"}]
-        response = self._client.chat_with_retry(messages=messages, model=self._model, temperature=0)
+        response = self._client.chat_with_retry(messages=messages, model=self._model, temperature=0,
+                                                **self._extra_call_kwargs())
         return bool(response.content or response.reasoning_content)
 
     def chat(self, user_message: str, current_tasks: Optional[List[Task]] = None) -> dict:
@@ -171,11 +224,21 @@ class ExecutionGenerator:
         else:
             self._messages.append({"role": "user", "content": user_message})
 
+        # Pre-send request-size guard. If the pending messages would exceed the
+        # configured request-token budget, refuse before hitting the network.
+        # Roll back the just-appended user message so the caller can retry with
+        # a shorter prompt without corrupting the conversation history.
+        budget_err = self._check_request_budget(self._messages)
+        if budget_err is not None:
+            self._messages.pop()
+            return budget_err
+
         try:
             response: LLMResponse = self._client.chat_with_retry(
                 messages=self._messages,
                 model=self._model,
                 temperature=0.7,
+                **self._extra_call_kwargs(),
             )
             self._total_prompt_tokens += response.prompt_tokens
             self._total_completion_tokens += response.completion_tokens
@@ -308,8 +371,12 @@ Generate a mcp_desc JSON for publishing this PETP Execution as an MCP Tool.
 Return ONLY the JSON, no markdown wrapping."""
 
         messages = [{"role": "user", "content": prompt}]
+        budget_err = self._check_request_budget(messages)
+        if budget_err is not None:
+            return budget_err.get("content", "")
         try:
-            response = self._client.chat_with_retry(messages=messages, model=self._model, temperature=0.3)
+            response = self._client.chat_with_retry(messages=messages, model=self._model, temperature=0.3,
+                                                    **self._extra_call_kwargs())
             self._total_prompt_tokens += response.prompt_tokens
             self._total_completion_tokens += response.completion_tokens
             return response.content or ''

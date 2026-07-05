@@ -514,6 +514,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "ai_gen_no_config": {"en": "ai_provider is not configured.\n\nOpen config/petpconfig.yaml and set:\n  ai_provider: zhipu  (or deepseek, anthropic, etc.)\n\nThen retry via right-click → AI Assist.", "zh": "ai_provider 未配置。\n\n请打开 config/petpconfig.yaml 设置：\n  ai_provider: zhipu  （或 deepseek、anthropic 等）\n\n保存后通过右键 → AI 协助重试。"},
     "ai_gen_rate_limited": {"en": "Rate limit hit — the LLM provider is throttling requests. Please wait a moment and try again.", "zh": "触发限流 — LLM 服务方暂时限制了请求频率。请稍等片刻后重试。"},
     "ai_gen_throttle_wait": {"en": "Please wait {sec}s before sending the next message.", "zh": "请等待 {sec} 秒后再发送。"},
+    "ai_gen_request_too_large": {"en": "Request is too large: ~{estimated} tokens estimated, limit is {limit} (ai_max_request_tokens). Shorten your message or select fewer processors.", "zh": "请求过大:预估 ~{estimated} tokens,上限 {limit}(ai_max_request_tokens)。请缩短消息或减少选中的 Processor。"},
     "ai_gen_tokens": {"en": "Tokens: {input} in / {output} out", "zh": "Token: {input} 输入 / {output} 输出"},
     "ai_gen_error": {"en": "Error: {msg}", "zh": "错误: {msg}"},
     "ai_gen_invalid_type": {"en": "Warning: unknown processor type '{ptype}'", "zh": "警告: 未知处理器类型 '{ptype}'"},
