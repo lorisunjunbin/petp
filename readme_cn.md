@@ -16,53 +16,6 @@ Task      1:1  Processor
 
 ---
 
-## AI 执行生成器
-
-通过自然语言对话与 LLM 生成和修改 PETP 任务流程。
-
-**入口：**
-- 创建 Execution → 选择 "AI 生成" 模板
-- taskGrid 右键 → "AI 协助"（对话式修改现有 Execution）
-- MCP 编辑器 → "AI" 按钮（自动生成工具描述 JSON）
-
-**亮点：**
-- 多轮对话 — 咨询 Processor 用法、生成流程、增量修改任务
-- Processor 浏览器 — 可展开的 TreeListCtrl，内置完整文档、搜索和过滤
-- 选择性上下文 — 只有勾选的 Processor 发送给 LLM（节省 Token）
-- 连接缓存 — 首次验证后即时复用，对话历史保留
-- 10 家 LLM — 最简配置：只需设置 `ai_provider`
-
-**AI 驱动的 MCP Tool 发布：**
-- 一键生成 `mcp_desc` JSON，将 Execution 发布为 MCP 工具
-- 自动从 INITIAL_PARAMS 提取输入参数，从结果任务提取输出键
-- 生成 AI Agent 可理解的描述，帮助大模型判断何时调用此工具
-- 智能合并 — 新字段补充到已有配置中，不覆盖已有内容
-- 进度弹窗实时显示状态，预览结果后再应用
-
-**AI 错误分析与自动修复：**
-- 执行失败时，AI 自动分析错误上下文（失败任务、周边任务、堆栈信息）
-- 定位根因并给出具体修复建议
-- 一键"打开 AI 助手"预填诊断结果——在多轮对话中继续修复
-
-**视觉模型支持（Ollama）：**
-- `AI_LLM_QANDA` 新增 `image_path` 参数，支持多模态提问
-- 适配 Ollama 视觉模型（gemma4、llava、moondream 等）
-- 图片路径支持表达式——可动态引用 `data_chain` 中前序任务产出的文件路径
-
-**配置**（仅 `ai_provider` 必填，其余自动从 provider 默认值填充）：
-
-```yaml
-application:
-  ai_provider: zhipu       # 或: deepseek, anthropic, gemini, ollama 等
-  ai_model: ""             # 留空 = 使用 provider 默认模型（如 GLM-5）
-  ai_api_key: ""           # 留空 = 从默认环境变量读取（如 ZHIPU_ACCESS_KEY）
-  ai_base_url: ""          # 留空 = 使用 provider 默认地址
-```
-
-详见 [配置文档](./docs/configuration_cn.md#ai-助手配置)。
-
----
-
 ## 快速开始
 
 ### 1. 安装 Python 3.14
@@ -157,6 +110,94 @@ python PETP_background.py   # 无头服务（端口 8866）
 | **鼠标与 GUI** (PyAutoGUI) | 点击、滚动、位置查询。 |
 | **执行控制** | 初始化参数、嵌套执行、条件停止/跳转、`IF_ELSE` 分支、循环、Shell 命令。 |
 | **主题** | 9 套主题（System 自动 + 8 个命名主题）实时切换。 |
+
+---
+
+## 🤖 AI 执行生成器
+
+> **重点特性** — 通过自然语言对话与 LLM 生成和修改 PETP 任务流程。支持 [10 家 LLM 供应商](./docs/configuration_cn.md#ai-助手配置),包括 [Hyperspace](./hyperspace_llm_guide.md)、Anthropic、DeepSeek、智谱、Gemini、Ollama 等。
+
+**入口：**
+- 创建 Execution → 选择 **"AI 生成"** 模板
+- taskGrid 右键 → **"AI 协助"**(对话式修改现有 Execution)—— 打开时自动只勾选当前 Execution 用到的 Processor,大幅节省 Token
+- MCP 编辑器 → **"AI"** 按钮(自动生成工具描述 JSON)
+
+**亮点：**
+- **多轮对话** —— 咨询 Processor 用法、生成流程、增量修改任务
+- **Processor 浏览器** —— 可展开的 TreeListCtrl,内置完整文档、搜索和过滤
+- **选择性上下文** —— 只有勾选的 Processor 发送给 LLM(节省 Token)
+- **连接缓存** —— 首次验证后即时复用,对话历史保留
+- **10 家 LLM 供应商** —— 最简配置:只需设置 `ai_provider`
+- **429 限流防护** —— 指数退避重试(2s / 4s / 8s)、UI 相邻请求节流 ≥ 3s、每次调用打印 token 消耗日志
+
+**Token 控制**(新增):
+- `ai_max_response_tokens` —— 模型响应长度硬上限(默认 8192)
+- `ai_max_request_tokens` —— 请求侧本地预检上限(默认 60000);超限请求在发出前拒绝,避免撞 provider 配额
+
+**AI 驱动的 MCP Tool 发布：**
+- 一键生成 `mcp_desc` JSON,将 Execution 发布为 MCP 工具
+- 自动从 `INITIAL_PARAMS` 提取输入参数,从结果任务提取输出键
+- 生成 AI Agent 可理解的描述,帮助大模型判断何时调用此工具
+- 智能合并 —— 新字段补充到已有配置中,不覆盖已有内容
+- 进度弹窗实时显示状态,预览结果后再应用
+
+**AI 错误分析与自动修复：**
+- 执行失败时,AI 自动分析错误上下文(失败任务、周边任务、堆栈信息)
+- 定位根因并给出具体修复建议
+- 一键 **"打开 AI 助手"** 预填诊断结果 —— 在多轮对话中继续修复
+
+**视觉模型支持(Ollama)：**
+- `AI_LLM_QANDA` 支持 `image_path` 参数,可用于多模态提问
+- 适配 Ollama 视觉模型(gemma4、llava、moondream 等)
+- 图片路径支持表达式 —— 可动态引用 `data_chain` 中前序任务产出的文件路径
+
+**配置**(仅 `ai_provider` 必填,其余自动从 provider 默认值填充)：
+
+```yaml
+application:
+  ai_provider: zhipu              # 或: deepseek, anthropic, hyperspace, gemini, ollama 等
+  ai_model: ""                    # 留空 = 使用 provider 默认模型(如 GLM-5)
+  ai_api_key: ""                  # 留空 = 从默认环境变量读取(如 ZHIPU_ACCESS_KEY)
+  ai_base_url: ""                 # 留空 = 使用 provider 默认地址
+  ai_max_response_tokens: 8192
+  ai_max_request_tokens: 60000
+```
+
+详见 [配置文档](./docs/configuration_cn.md#ai-助手配置)。
+
+---
+
+## 动态函数(`_fn`)与表达式增强
+
+所有动态函数参数(`_fn`、`_func`、`_func_body`、`lambda_*`)都会收到 Processor 实例作为 `p`,可在自定义代码中完整访问 PETP 工具方法：
+
+```python
+# 在 _fn 函数体中 —— p 是 Processor 实例
+result = p.get_data("my_key")
+p.populate_data("output", processed_value)
+today = p.str_to_date("2026-05-11")
+```
+
+**表达式和 _fn 上下文中可用的 `p` 方法：**
+
+| 方法 | 说明 |
+|------|------|
+| `p.get_data(key)` | 读取 data_chain |
+| `p.get_deep_data([keys])` | 嵌套数据访问 |
+| `p.get_data_chain()` | 获取整个 data_chain 字典 |
+| `p.populate_data(k, v)` | 写入 data_chain |
+| `p.get_now_str()` | 当前时间戳(YYYYMMDDHHmmss) |
+| `p.get_now_in_str(fmt)` | 自定义格式的当前时间 |
+| `p.str_to_date(s, fmt)` | 解析日期字符串为 date 对象 |
+| `p.get_rdir()` / `p.get_ddir()` / `p.get_tdir()` | 资源/下载/测试目录 |
+| `p.expression2str(s)` | 计算 f-string 表达式 |
+| `p.str2dict(s)` / `p.json2dict(s)` | 字符串解析工具 |
+
+**编辑复杂值 — Handy Tool 按钮：**
+- 右键任何属性 → "编辑复杂值" 现在包含 Handy Tool 按钮
+- 自动识别当前参数是表达式还是 `_fn` 函数体
+- 表达式上下文:代码片段用 `{p.xxx()}` 包裹,便于 f-string 求值
+- 函数体上下文:原生 `p.xxx()` 调用加 `import` 语句
 
 ---
 

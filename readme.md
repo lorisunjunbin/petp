@@ -16,87 +16,6 @@ Task      1:1  Processor
 
 ---
 
-## AI Execution Generator
-
-Generate and modify PETP task flows through natural language conversation with LLM.
-
-**Entry Points:**
-- Create Execution → "AI Generate" template
-- Right-click taskGrid → "AI Assist" (modify existing)
-- MCP Editor → "AI" button (auto-generate tool description)
-
-**Highlights:**
-- Multi-turn chat — ask questions, generate flows, modify tasks incrementally
-- Processor browser — expandable TreeListCtrl with full documentation, search & filter
-- Selective context — only checked Processors are sent to LLM (saves tokens)
-- Connection caching — first-time validation, then instant reuse across sessions
-- 10 LLM providers — minimal config: just set `ai_provider` in petpconfig.yaml
-
-**AI-Powered MCP Tool Publishing:**
-- One-click generation of `mcp_desc` JSON for exposing Executions as MCP tools
-- Auto-extracts input parameters from INITIAL_PARAMS and output keys from result tasks
-- Generates AI-agent-friendly descriptions that help LLMs understand when to call the tool
-- Smart merge — new fields are added without overwriting existing configuration
-- Progress dialog with live status and preview before applying
-
-**AI Error Analysis & Auto-Fix:**
-- On execution failure, AI automatically analyzes the error with full context (failed task, surrounding tasks, traceback)
-- Pinpoints root cause and suggests specific fixes
-- One-click "Open AI Assist" pre-fills the diagnosis — continue fixing in multi-turn chat
-
-**Vision Model Support (Ollama):**
-- `AI_LLM_QANDA` now accepts `image_path` parameter for multimodal prompts
-- Works with Ollama vision models (gemma4, llava, moondream, etc.)
-- Image path supports expressions — dynamically reference files from previous tasks in `data_chain`
-
----
-
-## Dynamic Function (`_fn`) & Expression Enhancements
-
-All dynamic function parameters (`_fn`, `_func`, `_func_body`, `lambda_*`) now receive the Processor instance as `p`, enabling full access to PETP utilities inside custom code:
-
-```python
-# In _fn function body — p is the Processor instance
-result = p.get_data("my_key")
-p.populate_data("output", processed_value)
-today = p.str_to_date("2026-05-11")
-```
-
-**Available `p` methods in both expression and _fn contexts:**
-
-| Method | Description |
-|--------|-------------|
-| `p.get_data(key)` | Read from data_chain |
-| `p.get_deep_data([keys])` | Nested data access |
-| `p.get_data_chain()` | Get entire data_chain dict |
-| `p.populate_data(k, v)` | Write to data_chain |
-| `p.get_now_str()` | Current timestamp (YYYYMMDDHHmmss) |
-| `p.get_now_in_str(fmt)` | Current time with custom format |
-| `p.str_to_date(s, fmt)` | Parse date string to date object |
-| `p.get_rdir()` / `p.get_ddir()` / `p.get_tdir()` | Resource/Download/Test directories |
-| `p.expression2str(s)` | Evaluate f-string expression |
-| `p.str2dict(s)` / `p.json2dict(s)` | String parsing utilities |
-
-**Edit Complex Value — Handy Tool button:**
-- Right-click any property → "Edit Complex Value" now includes a Handy Tool button
-- Automatically detects whether the parameter is an expression or `_fn` function body
-- Expression context: snippets wrapped in `{p.xxx()}` for f-string evaluation
-- Function body context: raw `p.xxx()` calls plus `import` statements
-
-**Configuration** (only `ai_provider` required, rest auto-fills from provider defaults):
-
-```yaml
-application:
-  ai_provider: zhipu       # or: deepseek, anthropic, gemini, ollama, etc.
-  ai_model: ""             # empty = provider default (e.g. GLM-5)
-  ai_api_key: ""           # empty = read from default env var (e.g. ZHIPU_ACCESS_KEY)
-  ai_base_url: ""          # empty = provider default URL
-```
-
-See [Configuration Docs](./docs/configuration.md#ai-assistant-configuration) for full provider list and details.
-
----
-
 ## Quick Start
 
 ### 1. Install Python 3.14
@@ -191,6 +110,94 @@ python PETP_background.py   # Headless service (port 8866)
 | **Mouse & GUI** (PyAutoGUI) | Click, scroll, position query. |
 | **Execution Control** | Init params, nested execution, conditional stop/jump, `IF_ELSE` branching, loops, shell commands. |
 | **Theme** | 9 themes (System auto + 8 named) with live switching. |
+
+---
+
+## 🤖 AI Execution Generator
+
+> **Highlight** — Generate and modify PETP task flows through natural language conversation with LLM. Supports [10 LLM providers](./docs/configuration.md#ai-assistant-configuration) including [Hyperspace](./hyperspace_llm_guide.md), Anthropic, DeepSeek, Zhipu, Gemini, Ollama, and more.
+
+**Entry Points:**
+- Create Execution → **"AI Generate"** template
+- Right-click taskGrid → **"AI Assist"** (modify existing) — pre-selects only the processors used in the current Execution to minimize token usage
+- MCP Editor → **"AI"** button (auto-generate tool description)
+
+**Highlights:**
+- **Multi-turn chat** — ask questions, generate flows, modify tasks incrementally
+- **Processor browser** — expandable TreeListCtrl with full documentation, search & filter
+- **Selective context** — only checked Processors are sent to LLM (saves tokens)
+- **Connection caching** — first-time validation, then instant reuse across sessions
+- **10 LLM providers** — minimal config: just set `ai_provider` in petpconfig.yaml
+- **429 rate-limit defense** — exponential backoff (2s / 4s / 8s), UI throttle ≥ 3s, per-call token accounting log
+
+**Token controls** (new):
+- `ai_max_response_tokens` — hard upper bound on model output length (default 8192)
+- `ai_max_request_tokens` — local pre-flight cap on request size (default 60000); over-limit prompts are rejected before hitting the provider
+
+**AI-Powered MCP Tool Publishing:**
+- One-click generation of `mcp_desc` JSON for exposing Executions as MCP tools
+- Auto-extracts input parameters from `INITIAL_PARAMS` and output keys from result tasks
+- Generates AI-agent-friendly descriptions that help LLMs understand when to call the tool
+- Smart merge — new fields are added without overwriting existing configuration
+- Progress dialog with live status and preview before applying
+
+**AI Error Analysis & Auto-Fix:**
+- On execution failure, AI automatically analyzes the error with full context (failed task, surrounding tasks, traceback)
+- Pinpoints root cause and suggests specific fixes
+- One-click **"Open AI Assist"** pre-fills the diagnosis — continue fixing in multi-turn chat
+
+**Vision Model Support (Ollama):**
+- `AI_LLM_QANDA` accepts `image_path` parameter for multimodal prompts
+- Works with Ollama vision models (gemma4, llava, moondream, etc.)
+- Image path supports expressions — dynamically reference files from previous tasks in `data_chain`
+
+**Configuration** (only `ai_provider` required, rest auto-fills from provider defaults):
+
+```yaml
+application:
+  ai_provider: zhipu              # or: deepseek, anthropic, hyperspace, gemini, ollama, etc.
+  ai_model: ""                    # empty = provider default (e.g. GLM-5)
+  ai_api_key: ""                  # empty = read from default env var (e.g. ZHIPU_ACCESS_KEY)
+  ai_base_url: ""                 # empty = provider default URL
+  ai_max_response_tokens: 8192
+  ai_max_request_tokens: 60000
+```
+
+See [Configuration Docs](./docs/configuration.md#ai-assistant-configuration) for full provider list and details.
+
+---
+
+## Dynamic Function (`_fn`) & Expression Enhancements
+
+All dynamic function parameters (`_fn`, `_func`, `_func_body`, `lambda_*`) receive the Processor instance as `p`, enabling full access to PETP utilities inside custom code:
+
+```python
+# In _fn function body — p is the Processor instance
+result = p.get_data("my_key")
+p.populate_data("output", processed_value)
+today = p.str_to_date("2026-05-11")
+```
+
+**Available `p` methods in both expression and _fn contexts:**
+
+| Method | Description |
+|--------|-------------|
+| `p.get_data(key)` | Read from data_chain |
+| `p.get_deep_data([keys])` | Nested data access |
+| `p.get_data_chain()` | Get entire data_chain dict |
+| `p.populate_data(k, v)` | Write to data_chain |
+| `p.get_now_str()` | Current timestamp (YYYYMMDDHHmmss) |
+| `p.get_now_in_str(fmt)` | Current time with custom format |
+| `p.str_to_date(s, fmt)` | Parse date string to date object |
+| `p.get_rdir()` / `p.get_ddir()` / `p.get_tdir()` | Resource/Download/Test directories |
+| `p.expression2str(s)` | Evaluate f-string expression |
+| `p.str2dict(s)` / `p.json2dict(s)` | String parsing utilities |
+
+**Edit Complex Value — Handy Tool button:**
+- Right-click any property → "Edit Complex Value" includes a Handy Tool button
+- Automatically detects whether the parameter is an expression or `_fn` function body
+- Expression context: snippets wrapped in `{p.xxx()}` for f-string evaluation
+- Function body context: raw `p.xxx()` calls plus `import` statements
 
 ---
 
