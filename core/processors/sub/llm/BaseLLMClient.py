@@ -66,7 +66,7 @@ class BaseLLMClient(ABC):
     def get_client_by_provider(provider: str, **kwargs) -> 'BaseLLMClient':
         provider_map = {
             'deepseek': 'OpenAICompatibleClient',
-            'zhipu': 'OpenAICompatibleClient',
+            'zhipu': 'AnthropicClient',
             'qianfan': 'OpenAICompatibleClient',
             'minimax': 'OpenAICompatibleClient',
             'doubao': 'OpenAICompatibleClient',

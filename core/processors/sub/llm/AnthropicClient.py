@@ -4,16 +4,25 @@ from core.processors.sub.llm.BaseLLMClient import BaseLLMClient, LLMResponse
 
 
 class AnthropicClient(BaseLLMClient):
+    """Anthropic Messages-protocol client.
+
+    Also used by any provider that exposes the Anthropic ``/v1/messages``
+    protocol through a compatible base_url — e.g. Hyperspace's local proxy
+    and Zhipu's ``https://open.bigmodel.cn/api/anthropic`` endpoint. The
+    concrete provider name is captured at ``create()`` time so the token
+    log distinguishes them.
+    """
 
     DEFAULT_MAX_TOKENS: int = 4096
 
-    def __init__(self, client, model: str):
+    def __init__(self, client, model: str, provider: str = 'anthropic'):
         self._client = client
         self._model = model
+        self._provider = provider
 
     @property
     def provider_name(self) -> str:
-        return 'anthropic'
+        return self._provider
 
     def chat(self, messages: list, model: str, temperature: float, **kwargs) -> LLMResponse:
         use_model = model or self._model
@@ -58,5 +67,5 @@ class AnthropicClient(BaseLLMClient):
         else:
             params['api_key'] = api_key
         client = anthropic.Anthropic(**params)
-        logging.info(f"Anthropic client initialized (model={model}, base_url={base_url or 'default'})")
-        return cls(client=client, model=model)
+        logging.info(f"Anthropic client initialized (provider={provider}, model={model}, base_url={base_url or 'default'})")
+        return cls(client=client, model=model, provider=provider or 'anthropic')
