@@ -420,6 +420,22 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
         ),
     },
 
+    "desc_FIND_THEN_MOVE": {
+        "zh": (
+            "\u901a\u8fc7 Selenium \u6309\u6307\u5b9a\u5b9a\u4f4d\u7b56\u7565\u67e5\u627e\u5143\u7d20\u5e76\u5c06\u9f20\u6807\u7126\u70b9(hover)\u79fb\u5230\u5176\u4e0a\u3002\n"
+            "\u5e38\u7528\u4e8e\u89e6\u53d1 hover \u5c55\u5f00\u83dc\u5355/tooltip\u3001\u6216\u5728\u540e\u7eed\u52a8\u4f5c\u524d\u628a\u5143\u7d20\u6eda\u5165\u89c6\u53e3\u3002\n"
+            "\u5e95\u5c42\u8c03\u7528 ActionChains.move_to_element(\u4e0e SeleniumUtil.wait_for_element_xpath_presence_then_move2 \u540c\u6e90)\u3002\n"
+            "\n"
+            "- find_by: \u5b9a\u4f4d\u7c7b\u578b \u2014 id\u3001xpath\u3001link \u6216 css\n"
+            "- identity: \u76ee\u6807\u5143\u7d20\u7684\u5b9a\u4f4d\u503c(\u652f\u6301\u8868\u8fbe\u5f0f)\n"
+            "- identity_key: data_chain \u4e2d\u7528\u4e8e\u5b9a\u4f4d\u5668\u7684\u952e;\u4f18\u5148\u4e8e identity(\u652f\u6301\u8868\u8fbe\u5f0f,\u9ed8\u8ba4: \"\")\n"
+            "- wait: \u79fb\u52a8\u524d\u7684\u989d\u5916\u7b49\u5f85\u79d2\u6570(\u9ed8\u8ba4: 1)\n"
+            "- timeout: \u7b49\u5f85\u5143\u7d20\u51fa\u73b0\u7684\u6700\u5927\u79d2\u6570(\u9ed8\u8ba4: 10)\n"
+            "- skip_timeout_error: \"yes\" \u8d85\u65f6\u4e0d\u62a5\u9519(\u9ed8\u8ba4: \"no\")\n"
+            "- chrome_name: data_chain \u4e2d Chrome driver \u7684\u952e(\u9ed8\u8ba4: \"chrome\")\n"
+        ),
+    },
+
     "desc_FIND_THEN_COLLECT": {
         "zh": (
             "通过 Selenium 查找单个元素，收集其 text、value 或任意属性，存入 data_chain。\n"

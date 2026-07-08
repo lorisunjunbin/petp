@@ -409,16 +409,6 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
             cancel_event=cancel_event,
         )
 
-    def _get_output_schema(self, tool_name: str) -> Optional[dict]:
-        raw = self.p.get_tools().get(tool_name)
-        if not raw:
-            return None
-        parsed = self._parse_tool_value(raw)
-        schema = parsed.get("outputSchema")
-        if isinstance(schema, dict) and schema.get("properties"):
-            return schema
-        return None
-
     # ------------------------------------------------------------------
     # Result store (async execution support)
     # ------------------------------------------------------------------

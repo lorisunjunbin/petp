@@ -138,11 +138,52 @@ class SeleniumUtil:
 
     @staticmethod
     def move_to_ele_then_click(chrome, ele):
-        ActionChains(chrome).move_to_element(ele).click(ele).perform()
+        """Hover-then-click. Same viewport-safety wrapping as ``move_to_ele``.
+
+        First scrolls the element into view; if the ``move+click`` chain still
+        fails (viewport shift mid-scroll, etc.), falls back to a plain
+        ``ele.click()``. Only when both fail do we surface the exception.
+        """
+        try:
+            chrome.execute_script(
+                "arguments[0].scrollIntoView({block: 'center', inline: 'center'});",
+                ele,
+            )
+        except Exception as scroll_err:
+            logging.debug('scrollIntoView failed (non-fatal): %s', scroll_err)
+        try:
+            ActionChains(chrome).move_to_element(ele).click(ele).perform()
+            return
+        except Exception as move_err:
+            logging.debug('move-then-click failed, falling back to plain click: %s', move_err)
+        ele.click()
 
     @staticmethod
     def move_to_ele(chrome, ele):
-        ActionChains(chrome).move_to_element(ele).perform()
+        """Hover the mouse onto an element.
+
+        Robustness: some elements sit outside the viewport (long forms, lazy
+        content). ChromeDriver's ``move_to_element`` throws
+        ``MoveTargetOutOfBoundsException`` in that case. We first scroll the
+        element into view via JS (block: 'center'), then attempt the hover.
+        If the hover still fails we swallow the error — hover is a side
+        effect (trigger lazy render / dropdowns), not a hard requirement for
+        subsequent operations (click/keyin succeed on non-visible-but-present
+        elements as long as they're reachable).
+        """
+        try:
+            chrome.execute_script(
+                "arguments[0].scrollIntoView({block: 'center', inline: 'center'});",
+                ele,
+            )
+        except Exception as scroll_err:
+            logging.debug('scrollIntoView failed (non-fatal): %s', scroll_err)
+        try:
+            ActionChains(chrome).move_to_element(ele).perform()
+        except Exception as move_err:
+            # MoveTargetOutOfBoundsException / StaleElement / etc. — do not
+            # let a best-effort hover break the caller.
+            logging.debug('move_to_element failed (non-fatal): %s', move_err)
 
     @staticmethod
     def find_elements_by_css(chrome, cssSelector=".sapMTableTBody .sapMListTblNavCol .sapMLIBImgNav"):

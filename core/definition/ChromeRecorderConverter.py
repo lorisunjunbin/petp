@@ -98,7 +98,7 @@ class ChromeRecorderConverter:
         if locator is None:
             return self._log_no_selector(step)
         by, identity = locator
-        return Task('FIND_THEN_CLICK', json.dumps({'clickby': by, 'identity': identity}))
+        return Task('FIND_THEN_CLICK', json.dumps({'find_by': by, 'identity': identity}))
 
     def _handle_double_click(self, step: dict) -> Optional[Task]:
         locator = self._resolve_selector(step.get('selectors', []))
@@ -106,7 +106,7 @@ class ChromeRecorderConverter:
             return self._log_no_selector(step)
         by, identity = locator
         return Task('FIND_THEN_COLLECT', json.dumps({
-            'collectby': by, 'identity': identity,
+            'find_by': by, 'identity': identity,
             'value_type': 'text', 'value_key': f'dblclick_{self._selector_key(identity)}',
         }))
 
@@ -116,7 +116,7 @@ class ChromeRecorderConverter:
             return self._log_no_selector(step)
         by, identity = locator
         return Task('FIND_THEN_KEYIN', json.dumps({
-            'keyinby': by, 'identity': identity, 'value': step.get('value', ''),
+            'find_by': by, 'identity': identity, 'value': step.get('value', ''),
         }))
 
     def _handle_key_down(self, step: dict) -> Optional[Task]:
@@ -129,7 +129,7 @@ class ChromeRecorderConverter:
                 logging.debug('Unmapped key: %s', key)
                 return None
         return Task('FIND_THEN_KEYIN', json.dumps({
-            'keyinby': 'xpath', 'identity': '//body', 'value': petp_key,
+            'find_by': 'xpath', 'identity': '//body', 'value': petp_key,
         }))
 
     def _handle_wait_for_element(self, step: dict) -> Optional[Task]:
