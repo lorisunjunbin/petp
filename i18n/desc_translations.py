@@ -655,7 +655,11 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": (
             "将 Chrome 驱动上下文切换到指定 iframe，支持通过多个 frame ID 访问嵌套 iframe。\n"
             "\n"
-            "- frame_ids: frame 标识符列表（索引、名称或 id），如 [\"frame1\", \"frame2\"]"
+            "- frame_ids: frame 标识符列表（索引、名称或 id），如 [\"frame1\", \"frame2\"]\n"
+            "- wait: 切换前静态等待秒数，等 iframe 渲染完成（默认: 1）\n"
+            "- timeout: 每个 iframe 变为可见的最大等待秒数（默认: 10）\n"
+            "- skip_timeout_error: iframe 在 timeout 内不可见时 — \"yes\" 记日志并继续（chrome 保留）；\"no\" 抛异常。默认 \"no\"\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认 \"chrome\"）"
         ),
     },
 

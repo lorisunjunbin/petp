@@ -44,7 +44,6 @@ WORKDIR /app
 # libssl-dev  : cryptography / paramiko / requests TLS support
 # libffi-dev  : cffi (cryptography dependency)
 # git         : some langchain tooling resolves packages via git at install time
-# chromium + chromium-driver : headless browser for Selenium tasks
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
         curl \
@@ -52,6 +51,20 @@ RUN apt-get update \
         libssl-dev \
         libffi-dev \
         git \
+ && rm -rf /var/lib/apt/lists/*
+
+# ── Chromium + chromedriver ────────────────────────────────────────────────────
+# Kept in its own layer so we can force a refresh (to pick up upstream security
+# patches / new Chromium majors) without invalidating the more expensive Python
+# dependency layer below.
+#
+# Refresh only this layer:
+#   docker buildx build --build-arg CHROMIUM_CACHEBUST=$(date +%s) ...
+# ``build/script/docker_build_bg.sh --refresh-chromium`` sets this automatically.
+ARG CHROMIUM_CACHEBUST=0
+RUN echo "CHROMIUM_CACHEBUST=${CHROMIUM_CACHEBUST}" \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends \
         chromium \
         chromium-driver \
  && rm -rf /var/lib/apt/lists/* \

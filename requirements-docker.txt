@@ -1,11 +1,19 @@
 # ============================================================
-# PETP (Docker) - Docker容器部署
-# 无GUI、无浏览器自动化的纯服务端场景
-# 不含: gui-wxpython, gui-automation, chart, web-automation,
-#       webapp (Flask), http-service (FastAPI), system-build (PyInstaller)
+# PETP (Docker) - Docker container deployment
+# Server-side with optional headless browser automation.
+# Excludes: gui-wxpython, gui-automation, chart, webapp (Flask), http-service (FastAPI), system-build (PyInstaller)
+# Note: utils/SeleniumUtil.py top-level imports PIL and selenium, so even when no
+#       browser task runs, Processor discovery will load SeleniumUtil as soon as a
+#       Selenium-related processor is scanned. Therefore web-automation must be
+#       included for the Docker scenario.
+#       gui-automation (pyautogui/pyperclip) is NOT enabled in Docker: MOUSE_*/FILE_CHOOSER
+#       processors top-level import pyautogui, which fails inside the container. If you
+#       genuinely need those processors in a container, install gui-automation separately
+#       and configure xvfb/DISPLAY.
 # ============================================================
 -r requirements/core.txt
 -r requirements/http-client.txt
+-r requirements/web-automation.txt
 -r requirements/web-scraping.txt
 -r requirements/data-processing.txt
 -r requirements/excel-data.txt

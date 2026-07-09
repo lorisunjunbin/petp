@@ -120,11 +120,16 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
         unhandled exception in process_request_thread.  Catching the
         connection-reset family here prevents those noisy tracebacks while
         still letting genuine errors propagate.
+
+        Peer disconnect is a routine network event (client timed out, user
+        cancelled, proxy idle-cut) — not an error. Logged at DEBUG so the
+        default log stream stays quiet; bump ``log_level: DEBUG`` to see them
+        when investigating client-side issues.
         """
         try:
             super().handle()
         except self._PEER_DISCONNECT_ERRORS as e:
-            logging.info(
+            logging.debug(
                 "Client %s disconnected before the request was fully read: %s",
                 self.client_address,
                 e,
@@ -376,17 +381,22 @@ class HttpRequestHandler(SimpleHTTPRequestHandler):
     def send_streaming_response(self, stream_iter, *, extra_headers=None, content_type=None, status_code,
                                 cancel_event=None, metrics_token=None, metrics=None):
         """Send a chunked streaming response (text/plain by default)."""
-        self.send_response(status_code)
-        self.send_header('Content-Type', content_type or 'text/plain; charset=utf-8')
-        self.send_header('Transfer-Encoding', 'chunked')
-        if extra_headers:
-            for k, v in extra_headers.items():
-                self.send_header(k, v)
-        self.send_cors_headers()
-        self.end_headers()
-
         exception_flag = False
         try:
+            # Header writing is inside the try because a client that disconnects
+            # between sending the request and receiving the response will cause
+            # ``end_headers()`` to raise BrokenPipeError — same disconnect family
+            # as a mid-stream abort. Catching it here keeps the log clean (DEBUG)
+            # instead of a full traceback via process_request's outer except.
+            self.send_response(status_code)
+            self.send_header('Content-Type', content_type or 'text/plain; charset=utf-8')
+            self.send_header('Transfer-Encoding', 'chunked')
+            if extra_headers:
+                for k, v in extra_headers.items():
+                    self.send_header(k, v)
+            self.send_cors_headers()
+            self.end_headers()
+
             for chunk in stream_iter:
                 if chunk is None:
                     continue

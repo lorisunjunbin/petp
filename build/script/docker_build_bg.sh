@@ -20,15 +20,22 @@ PUSH_TARGET=""
 SKIP_TAR=false
 RUN_AFTER=false
 USE_GIT_ARCHIVE=true
+REFRESH_CHROMIUM=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --no-tar)   SKIP_TAR=true; shift ;;
-    --run)      RUN_AFTER=true; shift ;;
-    --push)     PUSH_TARGET="$2"; shift 2 ;;
-    --dirty)    USE_GIT_ARCHIVE=false; shift ;;
+    --no-tar)             SKIP_TAR=true; shift ;;
+    --run)                RUN_AFTER=true; shift ;;
+    --push)               PUSH_TARGET="$2"; shift 2 ;;
+    --dirty)              USE_GIT_ARCHIVE=false; shift ;;
+    --refresh-chromium)   REFRESH_CHROMIUM=true; shift ;;
     --help|-h)
-      echo "Usage: $0 [--no-tar] [--run] [--push <registry/image:tag>] [--dirty]"
+      echo "Usage: $0 [--no-tar] [--run] [--push <registry/image:tag>] [--dirty] [--refresh-chromium]"
+      echo ""
+      echo "  --refresh-chromium   Force apt-get update in the chromium layer only,"
+      echo "                       so the image picks up the latest chromium/chromium-driver"
+      echo "                       from debian-security without invalidating the (expensive)"
+      echo "                       Python dependency layer."
       exit 0
       ;;
     *) echo "Unknown option: $1"; exit 1 ;;
@@ -95,6 +102,16 @@ if ! docker buildx inspect "${BUILDER_NAME}" >/dev/null 2>&1; then
 fi
 docker buildx use "${BUILDER_NAME}"
 
+# Assemble --build-arg for chromium-layer cache-bust when refresh requested.
+# The layer's ARG CHROMIUM_CACHEBUST default is 0; passing a new value
+# invalidates only that layer, keeping the Python-deps layer cache.
+BUILD_ARGS=()
+if [[ "${REFRESH_CHROMIUM}" == "true" ]]; then
+  CACHEBUST_VALUE="$(date +%s)"
+  echo "[chromium] Refresh requested — CHROMIUM_CACHEBUST=${CACHEBUST_VALUE}"
+  BUILD_ARGS+=(--build-arg "CHROMIUM_CACHEBUST=${CACHEBUST_VALUE}")
+fi
+
 if [[ -n "${PUSH_TARGET}" ]]; then
   echo ""
   echo "Building linux/amd64 + linux/arm64 and pushing to: ${PUSH_TARGET}"
@@ -102,6 +119,7 @@ if [[ -n "${PUSH_TARGET}" ]]; then
     --platform linux/amd64,linux/arm64 \
     --tag "${PUSH_TARGET}" \
     --push \
+    ${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"} \
     "${BUILD_CONTEXT}"
   echo "Done. Pull with: docker pull ${PUSH_TARGET}"
   exit 0
@@ -114,6 +132,7 @@ docker buildx build \
   --platform linux/amd64 \
   --tag "${LOCAL_TAG}" \
   --load \
+  ${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"} \
   "${BUILD_CONTEXT}"
 
 # Show image size

@@ -140,9 +140,14 @@ class SeleniumUtil:
     def move_to_ele_then_click(chrome, ele):
         """Hover-then-click. Same viewport-safety wrapping as ``move_to_ele``.
 
-        First scrolls the element into view; if the ``move+click`` chain still
-        fails (viewport shift mid-scroll, etc.), falls back to a plain
-        ``ele.click()``. Only when both fail do we surface the exception.
+        First scrolls the element into view; if the ``move+click`` ActionChains
+        chain still fails (headless viewport shift, overlay intercept, sticky
+        header covering center, etc.), the final fallback is a **JavaScript
+        click** — ``element.click()`` invoked in the page context dispatches the
+        click event directly without Selenium's coordinate hit-test, so it
+        never throws ``ElementClickInterceptedException``. This is the standard
+        workaround for headless Chrome where ``ele.click()`` and ActionChains
+        both fail on off-viewport / covered elements.
         """
         try:
             chrome.execute_script(
@@ -155,8 +160,10 @@ class SeleniumUtil:
             ActionChains(chrome).move_to_element(ele).click(ele).perform()
             return
         except Exception as move_err:
-            logging.debug('move-then-click failed, falling back to plain click: %s', move_err)
-        ele.click()
+            logging.debug('move-then-click failed, falling back to JS click: %s', move_err)
+        # Last resort: JS click — bypasses coordinate hit-test entirely.
+        # Works in headless where every native click path hits intercepted.
+        chrome.execute_script("arguments[0].click();", ele)
 
     @staticmethod
     def move_to_ele(chrome, ele):
@@ -347,18 +354,32 @@ class SeleniumUtil:
         return chrome
 
     @staticmethod
-    def move_to_target_frame(chrome, frames):
-        try:
-            for idx, frm in enumerate(frames):
-                chrome = SeleniumUtil.wait_for_element_id_visible(chrome, frm)
-                chrome.switch_to.frame(frm)
-                logging.debug("move_to_target_frame: " + frm + "@" + str(idx))
-                SeleniumUtil.wait_for_seconds(chrome, 1)
+    def move_to_target_frame(chrome, frames, timeout: int = 60):
+        """Switch through a chain of iframes.
 
-            return chrome
-        except:
-            chrome.quit()
-            logging.error("move_to_target_frame - fail to move_to_target_frame:" + str(frames))
+        Each frame ID must become visible within ``timeout`` seconds; otherwise
+        the whole switch is considered a failure and ``None`` is returned. On
+        failure the underlying chrome driver is left ALIVE (unlike the previous
+        implementation which called ``chrome.quit()``) so the caller can decide
+        whether to abort, retry, or continue.
+        """
+        original = chrome
+        try:
+            current = chrome
+            for idx, frm in enumerate(frames):
+                current = SeleniumUtil.wait_for_element_id_visible(current, frm, timeout=timeout)
+                if current is None:
+                    logging.error(
+                        "move_to_target_frame: iframe '%s' not visible within %ds (chain %s, idx=%d)",
+                        frm, timeout, frames, idx,
+                    )
+                    return None
+                current.switch_to.frame(frm)
+                logging.debug("move_to_target_frame: %s@%d", frm, idx)
+                SeleniumUtil.wait_for_seconds(current, 1)
+            return current
+        except Exception as e:
+            logging.error("move_to_target_frame - fail to move_to_target_frame:%s (%s)", frames, e)
             return None
 
     @staticmethod
