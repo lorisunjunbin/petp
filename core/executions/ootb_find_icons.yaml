@@ -7,16 +7,23 @@ list:
   skipped: false
   type: GO_TO_PAGE
 - !!python/object:core.task.Task
-  input: '{"identity":".i8-text-input__input","wait":3,"find_by":"css"}'
+  input: '{"find_by": "xpath", "identity": "//input[@data-test=''search-input'']",
+    "wait": 3}'
   skipped: false
   type: FIND_THEN_CLICK
 - !!python/object:core.task.Task
-  input: '{"identity":".i8-text-input__input","value":"robot","find_by":"css"}'
+  input: '{"identity": "//input[@data-test=''search-input'']", "value": "robot", "find_by":
+    "xpath"}'
   skipped: false
   type: FIND_THEN_KEYIN
 - !!python/object:core.task.Task
-  input: '{"identity":".i8-text-input__input","value":"KEY_ENTER","find_by":"css"}'
+  input: '{"identity": "//input[@data-test=''search-input'']", "value": "KEY_ENTER",
+    "find_by": "xpath"}'
   skipped: false
   type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"chrome_name":"chrome", "skip_in_pipeline":"no"}'
+  skipped: false
+  type: CLOSE_CHROME
 loops: []
 mcp_desc: ''
