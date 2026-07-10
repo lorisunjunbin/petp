@@ -273,6 +273,8 @@ class McpMixin:
             if isinstance(raw_result, dict):
                 error_msg = raw_result.get("error") or ""
             structured_content = {"error": error_msg} if error_msg else {"error": "execution failed"}
+            logging.info("MCP tools/call output for %s: %s", tool_name,
+                         self._to_mcp_text(structured_content))
             return structured_content, structured_content
 
         output_schema = self._get_output_schema(tool_name, tools_getter)
@@ -285,6 +287,8 @@ class McpMixin:
             client_result = self._strip_meta_for_client(extracted)
 
         structured_content = client_result if isinstance(client_result, dict) else {"result": client_result}
+        logging.info("MCP tools/call output for %s: %s", tool_name,
+                     self._to_mcp_text(structured_content))
         return client_result, structured_content
 
     def _mcp_tools_call_json_response(self, request_id: Any, session_id: Optional[str],
