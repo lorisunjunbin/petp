@@ -192,6 +192,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_07_docker_selenium": {
+        "en": "<strong>Docker headless Selenium + click robustness + log noise reduction</strong>: the Docker image now ships Selenium deps so browser-automation executions run inside the container; headless click gains a <strong>JavaScript-click</strong> fallback that fixes <code>ElementClickInterceptedException</code> on off-viewport / covered elements; routine HTTP client-disconnect noise dropped from INFO to DEBUG.",
+        "zh": "<strong>Docker 无头 Selenium + 点击稳健性 + 日志降噪</strong>:Docker 镜像现已内置 Selenium 依赖,浏览器自动化类 Execution 可在容器内运行;无头点击新增 <strong>JavaScript 点击</strong>兜底,修复视口外/被遮挡元素的 <code>ElementClickInterceptedException</code>;HTTP 客户端断连噪音从 INFO 降为 DEBUG。",
+    },
     "cl_2026_05_http_metrics": {
         "en": "<strong>Observability</strong>: new <code>GET /petp/metrics</code> endpoint (token-protected) returns a JSON snapshot for both BG/Docker and GUI modes — per-endpoint counters (total / success / failed / in_flight / last_called_at / avg_ms / p50_ms / p95_ms / p99_ms), executor introspection (max_workers / active_workers / queue_depth), and the most recent slow requests. Same JSON written to log every <code>metrics_log_interval_seconds</code> with the <code>METRICS </code> prefix. Stdlib-only; configurable via 4 keys; set <code>metrics_enabled: false</code> to short-circuit at zero overhead.",
         "zh": "<strong>可观测性</strong>:新增 <code>GET /petp/metrics</code> 接口(走 token 鉴权),BG/Docker 与 GUI 模式同时支持 — 每个 endpoint 的计数(total / success / failed / in_flight / last_called_at / avg_ms / p50_ms / p95_ms / p99_ms)、executor 内省(max_workers / active_workers / queue_depth)以及最近的慢请求列表。同样的 JSON 每 <code>metrics_log_interval_seconds</code> 秒写一次日志,行首前缀 <code>METRICS </code>,可 grep。纯 stdlib 实现,4 个配置项可调;设 <code>metrics_enabled: false</code> 即可零开销关闭。",
