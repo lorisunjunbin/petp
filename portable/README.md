@@ -10,6 +10,7 @@ browser automation).
 from portable.petp_run import run
 result = run("YOUR_EXECUTION", {"key": "value"})
 # result: {"ok": bool, "data": {...}, "error": str|None, "meta": {...}}
+# python petp_run.py T_Supplier_Creation_CPTDC '{"supplier_name":"ABCD","last_name":"yabang","first_name":"doufu","cell":"13899999999","email":"6666666@qq.com"}'
 ```
 
 Command line: `python portable/petp_run.py SMOKE_TEST`
@@ -73,6 +74,17 @@ absolute or relative path). Resolution order: `PETP_CHROME_BINARY` >
 `webdriver/<system>/chrome-headless-shell` > `webdriver/<system>/chrome`
 (`<system>` = `sys.platform`, e.g. `linux` / `darwin`). On CF, `manifest.yml`
 already sets `PETP_CHROME_BINARY=webdriver/linux/chrome-headless-shell`.
+
+## Environment variables
+
+| Variable | Default | Effect |
+|---|---|---|
+| `PETP_HEADLESS` | (unset) | `true` forces headless Chrome. `petp_run.py` sets it to `true`. |
+| `PETP_CHROME_BINARY` | (auto) | Path to the Chrome binary; overrides bundled auto-detection. |
+| `PETP_BROWSER_LANG` | `zh-CN` | Headless browser UI / `Accept-Language` locale (`--lang` + `intl.accept_languages`). Set `en-US` (or others) to make locale-sensitive sites like Ariba render in that language. |
+
+All are read by `utils/SeleniumUtil.py` at driver creation and only take effect
+in headless mode. On CF they are declared in `manifest.yml`.
 
 ## Keeping in sync with the main repo (avoid stale copies)
 

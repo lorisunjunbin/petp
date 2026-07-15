@@ -102,12 +102,20 @@ class SeleniumUtil:
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--disable-gpu')
             options.add_argument('--window-size=1920,1080')
+            # Match the UI/Accept-Language locale of a normal desktop browser so
+            # headless renders the same localized page as headed mode. Override
+            # via PETP_BROWSER_LANG (e.g. "en-US"); defaults to zh-CN.
+            browser_lang = os.environ.get('PETP_BROWSER_LANG', 'zh-CN')
+            options.add_argument(f'--lang={browser_lang}')
         else:
             options.add_argument("--start-maximized")
+            browser_lang = None
 
         prefs = {"profile.default_content_settings.popups": 0,
                  "download.default_directory": down_path,
                  "directory_upgrade": True}
+        if browser_lang:
+            prefs["intl.accept_languages"] = browser_lang
 
         options.add_experimental_option("prefs", prefs)
 

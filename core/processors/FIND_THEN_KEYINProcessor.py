@@ -15,7 +15,7 @@ class FIND_THEN_KEYINProcessor(Processor):
     - value: The string to type or a KEY_* constant to press (supports expression, default: "")
     - value_key: Key in data_chain to read the value from; supports nested access via ';' separator, e.g. '__m;author' means data_chain['__m']['author'] (supports expression, default: "")
     - clear_before_input: If "yes", clears the element's existing content before typing (supports expression, default: "yes|no")
-    - wait: Extra wait time in seconds after locating the element and before keying in (supports expression, default: 1)
+    - wait: Extra wait time in seconds BEFORE locating the element — lets a still-rendering element (e.g. an Angular form just switched into via MOVE_TO_IFRAME) appear (supports expression, default: 1)
 
     Supported keys: ['KEY_NULL', 'KEY_CANCEL', 'KEY_HELP', 'KEY_BACKSPACE', 'KEY_BACK_SPACE', 'KEY_TAB', 'KEY_CLEAR', 'KEY_RETURN', 'KEY_ENTER', 'KEY_SHIFT', 'KEY_LEFT_SHIFT', 'KEY_CONTROL', 'KEY_LEFT_CONTROL', 'KEY_ALT', 'KEY_LEFT_ALT', 'KEY_PAUSE', 'KEY_ESCAPE', 'KEY_SPACE', 'KEY_PAGE_UP', 'KEY_PAGE_DOWN', 'KEY_END', 'KEY_HOME', 'KEY_LEFT', 'KEY_ARROW_LEFT', 'KEY_UP', 'KEY_ARROW_UP', 'KEY_RIGHT', 'KEY_ARROW_RIGHT', 'KEY_DOWN', 'KEY_ARROW_DOWN', 'KEY_INSERT', 'KEY_DELETE', 'KEY_SEMICOLON', 'KEY_EQUALS', 'KEY_NUMPAD0', 'KEY_NUMPAD1', 'KEY_NUMPAD2', 'KEY_NUMPAD3', 'KEY_NUMPAD4', 'KEY_NUMPAD5', 'KEY_NUMPAD6', 'KEY_NUMPAD7', 'KEY_NUMPAD8', 'KEY_NUMPAD9', 'KEY_MULTIPLY', 'KEY_ADD', 'KEY_SEPARATOR', 'KEY_SUBTRACT', 'KEY_DECIMAL', 'KEY_DIVIDE', 'KEY_F1', 'KEY_F2', 'KEY_F3', 'KEY_F4', 'KEY_F5', 'KEY_F6', 'KEY_F7', 'KEY_F8', 'KEY_F9', 'KEY_F10', 'KEY_F11', 'KEY_F12', 'KEY_META', 'KEY_COMMAND'])
     '''
@@ -28,8 +28,11 @@ class FIND_THEN_KEYINProcessor(Processor):
         keyinby = self.get_param('find_by')
         identity = self.get_param('identity')
         chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
-        ele = SeleniumUtil.get_element_by(chrome, keyinby, identity)
+        # Wait BEFORE locating (mirrors FIND_THEN_CLICK). The element may still be
+        # rendering — e.g. an Angular form just switched into via MOVE_TO_IFRAME.
+        # Waiting after locating is useless when the element isn't there yet.
         super().extra_wait()
+        ele = SeleniumUtil.get_element_by(chrome, keyinby, identity)
 
         # to build chrome default support keys that match to selenium IDE recording.
         avaliable_keys = {f'KEY_{key}': val for key, val in SeleniumUtil.get_chrome_keys()}

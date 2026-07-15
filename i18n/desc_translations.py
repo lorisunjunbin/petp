@@ -459,7 +459,7 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- value: 要输入的字符串或 KEY_* 常量（支持表达式）\n"
             "- value_key: data_chain 中读取输入值的键；支持 \";\" 嵌套访问（支持表达式）\n"
             "- clear_before_input: \"yes\" 输入前清除已有内容（默认: \"yes|no\"）\n"
-            "- wait: 定位后输入前的额外等待秒数（默认: 1）"
+            "- wait: 定位元素前的额外等待秒数，等待仍在渲染的元素出现（如刚通过 MOVE_TO_IFRAME 切入的 Angular 表单）（默认: 1）"
         ),
     },
 
@@ -886,7 +886,20 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
              "- file_path_key: data_chain \u4e2d\u622a\u56fe\u8def\u5f84\u7684\u952e\uff08\u4f18\u5148\u4e8e file_path\uff09\n"
              "- data_key: 存储保存的截图文件路径的 data_chain 键\n"
              "- wait: 截取前额外等待秒数（默认: 3）\n"
-             "- chrome_name: data_chain \u4e2d Chrome \u9a71\u52a8\u7684\u952e\uff08\u9ed8\u8ba4: \"chrome\"\uff09\n"
+             "- chrome_name: \u5b58\u50a8 Chrome \u9a71\u52a8\u7684 data_chain \u952e\uff08\u9ed8\u8ba4: \"chrome\"\uff09\n"
+        ),
+    },
+    "desc_DUMP_DOM": {
+        "zh": (
+            "\u8c03\u8bd5\u8f85\u52a9\uff1adump \u5f53\u524d frame \u7684 DOM\uff0c\u7528\u4e8e\u6392\u67e5\u5b9a\u4f4d\u5668\u4e3a\u4f55\u5931\u8d25\uff08\u5c24\u5176 headless \u6a21\u5f0f\uff09\u3002"
+            "\u628a\u5f53\u524d frame \u7684\u5b8c\u6574 HTML \u5199\u5165\u6587\u4ef6\uff0c\u53ef\u9009\u4fdd\u5b58\u622a\u56fe\uff0c\u5e76\u8bb0\u5f55\u5f53\u524d frame \u5185\u6bcf\u4e2a <input> \u7684 "
+            "aria-label / id / name / \u53ef\u89c1\u6027\u3002\u63d2\u5728\u5b9a\u4f4d\u4e0d\u5230\u5143\u7d20\u7684 FIND_THEN_* \u4efb\u52a1\u4e4b\u524d\u4f7f\u7528\u3002\n"
+            "\n"
+            "- file_path: \u5199\u5165 frame HTML \u7684\u8def\u5f84\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\u3002\u9ed8\u8ba4 <\u4e0b\u8f7d\u76ee\u5f55>/dump_dom.html\uff0c\u540c\u540d .png \u7528\u4e8e\u622a\u56fe\n"
+            "- screenshot: \"yes\" \u65f6\u540c\u65f6\u4fdd\u5b58\u622a\u56fe\uff08\u9ed8\u8ba4: \"yes\"\uff09\n"
+            "- list_inputs: \"yes\" \u65f6\u8bb0\u5f55\u6240\u6709 <input>\uff08aria-label/id/name/\u53ef\u89c1\u6027\uff09\uff08\u9ed8\u8ba4: \"yes\"\uff09\n"
+            "- wait: dump \u524d\u7684\u989d\u5916\u7b49\u5f85\u79d2\u6570\uff0c\u7b49 frame \u6e32\u67d3\u5b8c\u6210\uff08\u9ed8\u8ba4: 1\uff09\n"
+            "- chrome_name: \u5b58\u50a8 Chrome \u9a71\u52a8\u7684 data_chain \u952e\uff08\u9ed8\u8ba4: \"chrome\"\uff09\n"
         ),
     },
 

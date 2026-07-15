@@ -567,6 +567,7 @@ class PETPPresenter():
             self.selected_row_2_copied_paste,
             self._check_task_skipped(self.row_copied[1])
         )
+        self._load_input_taskproperty(self.selected_row_2_copied_paste)
         self._update_save_button()
 
     def _on_grid_row_toggle_skip(self, evt):

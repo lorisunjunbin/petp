@@ -10,3 +10,6 @@ applications:
     env:
       PETP_HEADLESS: "true"
       PETP_CHROME_BINARY: webdriver/linux/chrome-headless-shell
+      # Browser UI / Accept-Language locale (headless). Default zh-CN; set en-US
+      # (or others) to make Ariba etc. render in that language.
+      PETP_BROWSER_LANG: zh-CN
