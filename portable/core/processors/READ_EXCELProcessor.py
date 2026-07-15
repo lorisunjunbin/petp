@@ -1,0 +1,49 @@
+import logging
+
+from core.processor import Processor
+from utils.ExcelUtil import ExcelUtil
+from utils.SafePaths import validate_path
+
+
+class READ_EXCELProcessor(Processor):
+    TPL: str = '{"file_path":"", "fields":"unset OR Field1|Field2|", "sheet_index":0, "file_path_key":"str on data_chain", "end_at":"10", "skip_first":"yes|no", "data_key":"name on data_chain"}'
+
+    DESC: str = '''
+        Load MS Excel file, read data into 2D array and save to data_chain. Supports field filtering and skipping rows.
+
+        - file_path: Excel file path (supports expression)
+        - fields: column filter in "Field1|Field2|" format, only keeps matching columns (optional)
+        - sheet_index: sheet index to read, 0-based (default: 0)
+        - file_path_key: key of data_chain to get the file path, takes priority over file_path if set
+        - end_at: max number of rows to read (default: 10)
+        - skip_first: "yes" to skip the first row (header), "no" to include it (default: "no")
+        - data_key: key of data_chain to store the parsed Excel data
+    '''
+    def get_category(self) -> str:
+        return super().CATE_EXCEL
+
+    def process(self):
+        skipFirst = True if self.get_param('skip_first') == 'yes' else False
+        fields_str = self.get_param('fields')
+
+        fp = self.get_data(self.get_param('file_path_key')) if self.has_param('file_path_key') \
+            else self.expression2str(self.get_param('file_path'))
+        fp = validate_path(fp)
+
+        sheet_index = int(self.expression2str(self.get_param("sheet_index"))) if self.has_param("sheet_index") else 0
+
+        end_at = int(self.expression2str(self.get_param('end_at'))) if self.has_param('end_at') else 10
+
+        data = ExcelUtil.get_data_from_excel_file(fp, 1 if skipFirst else 0, end_at, sheet_index)
+
+        if len(data) > 0 and \
+                not skipFirst and \
+                fields_str is not None and \
+                len(fields_str) > 0:
+            fields: [str] = fields_str.split(self.SEPARATOR)
+            result = ExcelUtil.filter_by_fields(fields, data)
+        else:
+            result = data
+
+        logging.info('Read Excel: %s (sheet=%d, %d rows)', fp, sheet_index, len(result))
+        self.populate_data(self.get_param('data_key'), result)

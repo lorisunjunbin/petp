@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+# chrome/chromedriver binaries + their resources (.pak/.dat/dylib/…) are large
+# external downloads — never in git. See README for how to fetch them.
+webdriver/
+download/
+log/

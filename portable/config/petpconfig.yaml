@@ -1,0 +1,7 @@
+application:
+  app_name: petp-portable
+  language: en
+  log_level: INFO
+  nogui_enabled: true
+  nogui_ui_processor_policy: skip
+  cron_history_max_records: 500

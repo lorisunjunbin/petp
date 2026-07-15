@@ -1,0 +1,127 @@
+from core.loop import Loop
+
+
+class ExecutionState:
+
+    def __init__(self, l: list):
+
+        self.list_size = len(l)
+        self.current_loop = None
+
+        # loop for collection
+        self.current_loop_collection: []
+        self.current_loop_idx = 0
+
+        # loop for times
+        self.loop_times = 0
+        self.loop_times_cur = 0
+
+        # loop index
+        self.current_index = 0
+
+        self.is_loop_execution = None
+        self.is_times_loop = None
+        self.is_loop_start = None
+        self.is_loop_end = None
+
+    def setup_loop_end_then_continue(self, data_chain: dict) -> bool | None:
+        if self.is_times_loop:
+            self.loop_times_cur += 1
+            if self.loop_times > self.loop_times_cur:
+                self.current_index = self.current_loop.get_task_start() - 1
+                data_chain[self.current_loop.get_loop_index_key()] = self.loop_times_cur
+                return True
+            else:
+                self.loop_times_cur = 0
+                self.loop_times = 0
+                data_chain[self.current_loop.get_loop_index_key()] = 0
+        else:
+            self.current_loop_idx += 1
+            if len(self.current_loop_collection) > self.current_loop_idx:
+                self.current_index = self.current_loop.get_task_start() - 1
+                data_chain[self.current_loop.get_loop_index_key()] = self.current_loop_idx
+                return True
+            else:
+                self.current_loop_idx = 0
+                data_chain[self.current_loop.get_item_key()] = None
+                data_chain[self.current_loop.get_loop_index_key()] = 0
+
+    def advance_loop_on_exception(self, data_chain: dict) -> bool:
+        """Advance to the next loop iteration after an exception (continue policy).
+
+        Returns True if there are more iterations so the caller should
+        ``continue`` the while loop.  Returns False when the loop is
+        exhausted — the caller should then ``move_to_next()`` to land on
+        the first post-loop task.
+        """
+        # Position the cursor at the loop-end task so that
+        # setup_loop_end_then_continue works correctly regardless of
+        # which task inside the loop range raised.
+        self.current_index = self.current_loop.get_task_end() - 1
+
+        if self.setup_loop_end_then_continue(data_chain):
+            return True
+
+        # Loop exhausted — current_index is already at task_end - 1
+        # (0-based).  move_to_next() in the caller will advance past.
+        return False
+
+    def force_exit_loop(self, data_chain: dict):
+        """Exit the loop immediately after an exception (break policy).
+
+        Resets loop counters and positions current_index so that
+        ``move_to_next()`` lands on the first post-loop task.
+        """
+        if self.is_times_loop:
+            self.loop_times_cur = 0
+            self.loop_times = 0
+            data_chain[self.current_loop.get_loop_index_key()] = 0
+        else:
+            self.current_loop_idx = 0
+            data_chain[self.current_loop.get_item_key()] = None
+            data_chain[self.current_loop.get_loop_index_key()] = 0
+
+        # task_end is 1-based.  Setting current_index to task_end - 1
+        # (0-based) means move_to_next() will land on task_end (0-based)
+        # which is the first task after the loop.
+        self.current_index = self.current_loop.get_task_end() - 1
+
+    def setup_loop_start(self, data_chain: dict):
+        if self.is_times_loop:
+            self.loop_times = self.current_loop.get_loop_times()
+            data_chain[self.current_loop.get_loop_index_key()] = self.loop_times_cur
+        else:
+            collection = data_chain[self.current_loop.get_loop_key()]
+            if isinstance(collection, str):
+                import json
+                try:
+                    collection = json.loads(collection)
+                except (json.JSONDecodeError, ValueError):
+                    collection = list(collection)
+                data_chain[self.current_loop.get_loop_key()] = collection
+            self.current_loop_collection = collection
+            if len(self.current_loop_collection) > self.current_loop_idx:
+                data_chain[self.current_loop.get_item_key()] = self.current_loop_collection[self.current_loop_idx]
+                data_chain[self.current_loop.get_loop_index_key()] = self.current_loop_idx
+
+    def init_loop(self, current_loop: Loop):
+        self.current_loop = current_loop
+        self.is_loop_execution = current_loop is not None
+        self.is_times_loop = self.is_loop_execution and current_loop.is_loop_for_times()
+        self.is_loop_start = self.is_loop_execution and self.get_sequence() == current_loop.get_task_start()
+        self.is_loop_end = self.is_loop_execution and self.get_sequence() == current_loop.get_task_end()
+
+    def has_next(self):
+        return self.current_index < self.list_size
+
+    def move_to_next(self):
+        self.current_index += 1
+
+    def get_sequence(self) -> int:
+        return self.get_current_index() + 1
+
+    def get_current_index(self) -> int:
+        return self.current_index
+
+    def __str__(self):
+        return str(self.__dict__)

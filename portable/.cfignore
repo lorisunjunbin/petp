@@ -1,0 +1,14 @@
+# cf push packaging excludes (does NOT affect git; that's .gitignore).
+# Keep webdriver/linux/ — CF needs it. Drop everything CF won't use.
+
+# macOS test-only binaries (~180MB, CF is linux)
+webdriver/darwin/
+
+# runtime artifacts
+log/
+download/
+__pycache__/
+*.pyc
+
+# local editor cruft
+.DS_Store

@@ -1,0 +1,12 @@
+---
+applications:
+  - name: petp-portable-runner
+    memory: 2G
+    disk_quota: 2G
+    buildpacks:
+      - https://github.com/cloudfoundry/apt-buildpack
+      - python_buildpack
+    command: chmod +x webdriver/linux/chrome-headless-shell webdriver/linux/chromedriver && python petp_run.py SMOKE_TEST
+    env:
+      PETP_HEADLESS: "true"
+      PETP_CHROME_BINARY: webdriver/linux/chrome-headless-shell

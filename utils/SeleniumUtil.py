@@ -51,6 +51,21 @@ class SeleniumUtil:
         )
 
     @staticmethod
+    def _resolve_chrome_binary():
+        """Return the chrome binary path, or None to let selenium auto-detect.
+        Priority: env PETP_CHROME_BINARY > bundled webdriver/<system>/{chrome-headless-shell,chrome}.
+        """
+        env_bin = os.environ.get('PETP_CHROME_BINARY')
+        if env_bin:
+            return env_bin
+        base = os.path.realpath('webdriver') + os.sep + OSUtils.get_system() + os.sep
+        for name in ('chrome-headless-shell', 'chrome'):
+            candidate = base + name + ('.exe' if OSUtils.get_system() == 'win32' else '')
+            if os.path.isfile(candidate):
+                return candidate
+        return None
+
+    @staticmethod
     def get_chrome_keys():
         result = list(filter(lambda k: not k[0].startswith('__'), Keys.__dict__.copy().items()))
         return result
@@ -72,10 +87,17 @@ class SeleniumUtil:
 
         options = webdriver.ChromeOptions()
 
+        chrome_bin = SeleniumUtil._resolve_chrome_binary()
+        if chrome_bin:
+            options.binary_location = chrome_bin
+
         # Auto-enable headless mode in Docker / headless environments
         if SeleniumUtil.is_running_in_docker() or os.environ.get('PETP_HEADLESS', '').lower() == 'true':
             logging.info('Headless mode enabled (Docker or PETP_HEADLESS=true)')
-            options.add_argument('--headless=new')
+            # chrome-headless-shell is already headless — passing --headless=new errors.
+            is_headless_shell = bool(chrome_bin) and 'headless-shell' in os.path.basename(chrome_bin)
+            if not is_headless_shell:
+                options.add_argument('--headless=new')
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
             options.add_argument('--disable-gpu')

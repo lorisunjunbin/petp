@@ -1,0 +1,9 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: SMOKE_TEST
+list:
+- !!python/object:core.task.Task
+  input: '{"type": "ENCODE", "inbound": "petp-portable", "outbound_key": "result", "algorithms": "base64"}'
+  skipped: false
+  type: ENCODE_DECODE_STR
+loops: []

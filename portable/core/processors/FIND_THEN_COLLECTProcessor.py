@@ -1,0 +1,55 @@
+import logging
+
+from core.processor import Processor
+from utils.SeleniumUtil import SeleniumUtil
+
+
+class FIND_THEN_COLLECTProcessor(Processor):
+    TPL: str = '{"find_by":"id|xpath|css","identity":"","value_type":"text|value|any", "value_key":"name_of_collect", "wait":1, "timeout":10, "chrome_name":"chrome"}'
+
+    DESC = '''
+        Find a single element via selenium and collect its text, value, or any property/attribute, then store to data_chain.
+
+        - find_by: locator type to find the element, "id", "xpath" or "css"
+        - identity: locator value for the target element
+        - value_type: what to collect from the element - "text" for element.text, "value" for input value, or any attribute/property name (default: "text")
+        - value_key: key of data_chain to store the collected value (supports expression)
+        - timeout: max seconds to wait for the element to appear (default: 10)
+        - wait: extra wait in seconds before locating the element (default: 1)
+    '''
+
+    def get_category(self) -> str:
+        return super().CATE_SELENIUM
+
+    def process(self):
+
+        chrome = self.get_data_by_param_default_data('chrome_name', 'chrome')
+
+        collectby = self.get_param('find_by')
+        value_type = self.get_param('value_type')
+        value_key = self.expression2str(self.get_param('value_key'))
+        identity = self.get_param('identity')
+        time_out = int(self.get_param('timeout')) if self.has_param('timeout') else 10
+
+        super().extra_wait()
+
+        ele = SeleniumUtil.get_element_by(chrome, collectby, identity, time_out)
+
+        valueCollected = None
+
+        if value_type == 'text' and ele is not None:
+            valueCollected = ele.text
+
+        if value_type == 'value' and ele is not None:
+            valueCollected = ele.get_property('value')
+
+        if valueCollected is None and value_type is not None and ele is not None:
+            valueCollected = SeleniumUtil.get_property_or_attribute(ele, value_type)
+
+        logging.info('Collected "%s"', value_key)
+        logging.debug('Collected "%s": %s', value_key, str(valueCollected))
+
+        if self.is_in_loop:
+            self.append_data_for_loop(value_key, valueCollected)
+        else:
+            self.populate_data(value_key, valueCollected)
