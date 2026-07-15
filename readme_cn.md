@@ -208,6 +208,7 @@ today = p.str_to_date("2026-05-11")
 | 桌面 | `python PETP.py` | 是 | 交互式开发 |
 | 后台 | `python PETP_background.py` | 否 | CLI、HTTP/MCP 服务 |
 | Docker | `docker run -p 8866:8866 petp` | 否 | 服务器部署 |
+| 便携 | `python portable/petp_run.py NAME` | 否 | 拷贝到其他项目 / Cloud Foundry |
 
 ```bash
 # 运行单个 Execution 后退出
@@ -267,6 +268,19 @@ python PETP_background.py --stop
 - cron 模式 Pipeline（YAML 中 `cronEnabled: true`）会注册为定时任务而非立即运行
 
 长时间运行可用辅助脚本：`scripts/macos/start_petp.sh` 和 `scripts/windows/start_petp.ps1`。
+
+### 便携运行时（Portable Runtime）
+
+`portable/` 是一个自包含单元，可脱离 GUI 与 HTTP 层、headless 地运行单个 Execution。可将 `portable/` 拷贝到任意 Python 项目，或 `cf push` 到 Cloud Foundry。
+
+```python
+from portable.petp_run import run
+result = run("MY_EXECUTION", {"key": "value"})   # {"ok", "data", "error", "meta"}
+```
+
+工作流：在桌面 GUI 中编辑 Execution → `Ctrl+S` → 把 YAML 拷到 `portable/core/executions/` → `python portable/petp_run.py NAME`。两边共用同一套引擎与 YAML 格式，GUI 编辑的 Execution 零转换直接运行。
+
+Chrome 二进制（`chrome-headless-shell` + `chromedriver`，来自 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable)）放在 `portable/webdriver/<system>/` 下，不入 git。在 Cloud Foundry 上，`manifest.yml` + `apt.yml`（apt-buildpack）提供 chrome 所需的系统 `.so` 库。完整说明见 [`portable/README.md`](./portable/README.md)。
 
 ---
 

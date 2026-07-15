@@ -208,6 +208,7 @@ today = p.str_to_date("2026-05-11")
 | Desktop | `python PETP.py` | Yes | Interactive development |
 | Background | `python PETP_background.py` | No | CLI, HTTP/MCP service |
 | Docker | `docker run -p 8866:8866 petp` | No | Server deployment |
+| Portable | `python portable/petp_run.py NAME` | No | Copy into another project / Cloud Foundry |
 
 ```bash
 # Run one execution and exit
@@ -267,6 +268,19 @@ python PETP_background.py --stop
 - Cron-enabled pipelines (`cronEnabled: true` in YAML) auto-register as scheduled jobs instead of running immediately
 
 Helper scripts for long-running sessions: see `scripts/macos/start_petp.sh` and `scripts/windows/start_petp.ps1`.
+
+### Portable Runtime
+
+`portable/` is a self-contained unit that runs a single Execution headlessly, decoupled from the GUI and HTTP layers. Copy `portable/` into any Python project, or `cf push` it to Cloud Foundry.
+
+```python
+from portable.petp_run import run
+result = run("MY_EXECUTION", {"key": "value"})   # {"ok", "data", "error", "meta"}
+```
+
+Workflow: author the Execution in the desktop GUI → `Ctrl+S` → copy the YAML into `portable/core/executions/` → `python portable/petp_run.py NAME`. The engine and YAML format are shared, so GUI-authored Executions run unchanged.
+
+Chrome binaries (`chrome-headless-shell` + `chromedriver`, from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/#stable)) are placed under `portable/webdriver/<system>/` and are not committed to git. On Cloud Foundry, `manifest.yml` + `apt.yml` (apt-buildpack) supply the required system `.so` libraries. See [`portable/README.md`](./portable/README.md) for full details.
 
 ---
 

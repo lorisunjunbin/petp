@@ -192,6 +192,10 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_07_portable_runtime": {
+        "en": "<strong>Portable Runtime + Cloud Foundry</strong>: new self-contained <code>portable/</code> unit runs a single Execution headlessly, decoupled from the GUI and HTTP layers — <code>cp -r</code> it into any Python project (<code>from portable.petp_run import run</code>) or <code>cf push</code> it to Cloud Foundry. GUI-authored Execution YAML runs unchanged (shared engine + format). Chrome for Testing <code>chrome-headless-shell</code> is bundled per-OS; on CF the apt-buildpack (<code>apt.yml</code>) supplies chrome's system <code>.so</code> libraries. A <code>sync_portable.py</code> script re-copies the engine from the main repo to avoid stale copies.",
+        "zh": "<strong>便携运行时 + Cloud Foundry</strong>:新增自包含的 <code>portable/</code> 单元,可脱离 GUI 与 HTTP 层、headless 地运行单个 Execution —— <code>cp -r</code> 到任意 Python 项目(<code>from portable.petp_run import run</code>)或 <code>cf push</code> 到 Cloud Foundry。GUI 编辑的 Execution YAML 零转换直接运行(共用引擎与格式)。按操作系统内置 Chrome for Testing 的 <code>chrome-headless-shell</code>;CF 上由 apt-buildpack(<code>apt.yml</code>)提供 chrome 所需的系统 <code>.so</code> 库。<code>sync_portable.py</code> 脚本从主 repo 重拷引擎,避免副本 stale。",
+    },
     "cl_2026_07_docker_selenium": {
         "en": "<strong>Docker headless Selenium + click robustness + log noise reduction</strong>: the Docker image now ships Selenium deps so browser-automation executions run inside the container; headless click gains a <strong>JavaScript-click</strong> fallback that fixes <code>ElementClickInterceptedException</code> on off-viewport / covered elements; routine HTTP client-disconnect noise dropped from INFO to DEBUG.",
         "zh": "<strong>Docker 无头 Selenium + 点击稳健性 + 日志降噪</strong>:Docker 镜像现已内置 Selenium 依赖,浏览器自动化类 Execution 可在容器内运行;无头点击新增 <strong>JavaScript 点击</strong>兜底,修复视口外/被遮挡元素的 <code>ElementClickInterceptedException</code>;HTTP 客户端断连噪音从 INFO 降为 DEBUG。",
