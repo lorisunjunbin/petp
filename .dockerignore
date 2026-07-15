@@ -58,6 +58,11 @@ mvp/presenter/PETPInteractor.py
 # ── Web app (separate service, not part of background runtime) ────────────────
 webapp/
 
+# ── Portable runtime (self-contained standalone unit; bundles its own engine
+#    copy + large Chrome-for-Testing binaries. The Docker image runs the main
+#    repo's BG runtime and never uses portable/) ────────────────────────────────
+portable/
+
 # ── Documentation ─────────────────────────────────────────────────────────────
 docs/
 *.md

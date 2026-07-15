@@ -78,6 +78,11 @@ if [[ "${USE_GIT_ARCHIVE}" == "true" ]]; then
     fi
   done
   echo "       Context: ${BUILD_CONTEXT} (git-tracked + modified files)"
+  # The Docker image runs the main repo's BG runtime and never uses the
+  # self-contained portable/ unit (it bundles its own engine copy + large
+  # Chrome binaries). Drop it from the context so it never bloats the image.
+  # (.dockerignore already excludes it in --dirty mode; this covers git-archive.)
+  rm -rf "${BUILD_CONTEXT}/portable"
   # Remove unreleased executions (reuse EXECUTIONS_RELEASED from build_common.py)
   echo "       Filtering executions to released-only ..."
   python -c "
