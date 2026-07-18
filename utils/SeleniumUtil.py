@@ -392,11 +392,24 @@ class SeleniumUtil:
         failure the underlying chrome driver is left ALIVE (unlike the previous
         implementation which called ``chrome.quit()``) so the caller can decide
         whether to abort, retry, or continue.
+
+        Two sentinel IDs move OUT of frames instead of into one:
+          ``$default$`` -> switch back to the top-level document (default content)
+          ``$parent$``  -> switch to the parent frame (one level up)
+        They can be mixed with real frame ids, e.g. ["$default$", "SMFrame"].
         """
         original = chrome
         try:
             current = chrome
             for idx, frm in enumerate(frames):
+                if frm == '$default$':
+                    current.switch_to.default_content()
+                    logging.debug("move_to_target_frame: $default$ (top document)@%d", idx)
+                    continue
+                if frm == '$parent$':
+                    current.switch_to.parent_frame()
+                    logging.debug("move_to_target_frame: $parent$@%d", idx)
+                    continue
                 current = SeleniumUtil.wait_for_element_id_visible(current, frm, timeout=timeout)
                 if current is None:
                     logging.error(

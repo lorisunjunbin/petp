@@ -9,7 +9,10 @@ class MOVE_TO_IFRAMEProcessor(Processor):
     DESC: str = '''
         Switch chrome driver context into specific iframe, supports nested iframes by providing multiple frame IDs.
 
-        - frame_ids: list of frame identifiers (index, name or id) to navigate through, e.g. ["frame1", "frame2"]
+        - frame_ids: list of frame identifiers (index, name or id) to navigate through, e.g. ["frame1", "frame2"].
+          Two sentinels move OUT instead of into a frame: "$default$" switches back to the top-level document,
+          "$parent$" switches to the parent frame (one level up). They can be mixed with real ids,
+          e.g. ["$default$"] to return to the main document, or ["$default$", "SMFrame"] to reset then re-enter.
         - wait: seconds to sleep before attempting to switch frame — lets the iframe finish rendering (default: 1)
         - timeout: maximum seconds to wait for EACH iframe element to become visible before switching (default: 10)
         - skip_timeout_error: when an iframe is not visible within ``timeout`` — "yes" logs & returns silently

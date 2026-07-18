@@ -96,7 +96,7 @@ python PETP_background.py   # Headless service (port 8866)
 
 | Category | Capabilities |
 |----------|-------------|
-| **Browser Automation** (Selenium) | Navigate, click, key-in, collect, batch find, iFrame, cookies, screenshot. Chrome DevTools Recorder import. |
+| **Browser Automation** (Selenium) | Navigate, click, key-in, collect, batch find, iFrame, cookies, screenshot. SAP Ariba Angular form controls: yes/no radio, cascading tree picker, multi-select dropdown. Chrome DevTools Recorder import. |
 | **SSH / SFTP** (Paramiko) | SSH/SFTP sessions, remote commands, file upload/download. |
 | **File & Folder** | Open, write, delete, read, find, watch & auto-move, ZIP/UNZIP. |
 | **Data & Spreadsheet** | CSV/Excel read & write, collect, filter, group-by, mapping, masking, merge. Chinese almanac (CNLunar). |

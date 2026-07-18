@@ -41,6 +41,7 @@ EXECUTIONS_RELEASED = [
     'T_RECEIVE_EMAIL.yaml',
     'T_DAILY_ALMANAC.yaml',
     'T_WEATHER_QUERY.yaml',
+    'T_Supplier_Creation.yaml',
     'T_SEACH_TCODE.yaml'
 ]
 

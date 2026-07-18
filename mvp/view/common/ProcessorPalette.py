@@ -328,11 +328,47 @@ class ProcessorPalette(wx.Frame):
         self._listbox._tag_fg = wx.Colour(150, 150, 150) if is_dark else wx.Colour(120, 120, 120)
         self._footer.SetForegroundColour(wx.Colour(128, 128, 128))
 
-    def ShowAt(self, pos):
+    def ShowAt(self, pos, max_bottom=None):
+        """Show the palette at ``pos`` (the bottom-left of the anchor cell).
+
+        The palette drops DOWN from the anchor (natural direction) at its normal
+        height. Its top is only nudged up when the anchor sits so low that the
+        search box + a few rows wouldn't clear ``max_bottom`` (screen y, the
+        taskGrid/loop-editor divider) — keeping input and results visible. The
+        palette floats on top, so options extending past the bar are fine and
+        scroll. ``max_bottom`` defaults to the display bottom.
+        """
+        pos = self._fit_to_screen(pos, max_bottom)
         self.SetPosition(pos)
         self.Show()
         self.Raise()
+        # macOS may reposition the frame during Show(); re-assert our computed
+        # position after the show/layout settles so it stays where we put it.
+        wx.CallAfter(self.SetPosition, pos)
         wx.CallAfter(self._search.SetFocus)
+
+    _MIN_VISIBLE = 200  # search box + a few result rows must clear the bar
+
+    def _fit_to_screen(self, pos, max_bottom=None):
+        w, h = self.GetSize()
+        display = wx.Display(wx.Display.GetFromPoint(pos) if wx.Display.GetFromPoint(pos) != wx.NOT_FOUND else 0)
+        area = display.GetClientArea()
+        x, y = pos.x, pos.y
+        # Lower bound for keeping the top usable: display bottom, capped by
+        # max_bottom (the taskGrid/loop-editor divider) when provided.
+        bottom_limit = area.y + area.height
+        if max_bottom is not None:
+            bottom_limit = min(bottom_limit, max_bottom)
+        # Drop straight down from the anchor at full height; only pull the top up
+        # if the anchor is so low that the search box + a few rows would fall
+        # below the bar. Never push the top above the display top.
+        y = max(area.y, min(y, bottom_limit - self._MIN_VISIBLE))
+        # Clamp horizontally within the display.
+        if x + w > area.x + area.width:
+            x = max(area.x, area.x + area.width - w)
+        if x < area.x:
+            x = area.x
+        return wx.Point(x, y)
 
     def _on_activate(self, evt):
         if not evt.GetActive():

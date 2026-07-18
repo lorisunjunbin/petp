@@ -1949,12 +1949,18 @@ class PETPPresenter():
         grid = self.v.taskGrid
         current_value = grid.GetCellValue(row, 0)
         rect = grid.CellToRect(row, 0)
-        pos = grid.GetGridWindow().ClientToScreen(rect.GetBottomLeft())
+        gw = grid.GetGridWindow()
+        pos = gw.ClientToScreen(rect.GetBottomLeft())
+        # Lower bound for the palette: the bottom of the "edit selected loop"
+        # gear button, so the palette may extend down to that button (a bit past
+        # the taskGrid/loop-editor bar) while keeping the search box in view.
+        btn = self.v.editLoop
+        max_bottom = btn.ClientToScreen(wx.Point(0, btn.GetSize().height)).y
         palette = ProcessorPalette(
             self.v, self.available_processors, current_value,
             on_select=lambda val: self._on_processor_palette_selected(row, val)
         )
-        palette.ShowAt(pos)
+        palette.ShowAt(pos, max_bottom=max_bottom)
 
     def _on_processor_palette_selected(self, row, value):
         grid = self.v.taskGrid
