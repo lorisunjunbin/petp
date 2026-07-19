@@ -19,6 +19,7 @@ except Exception:
 
 from core.definition.yamlro import YamlRO
 from core.executionstate import ExecutionState
+from utils.Logger import set_trace_id
 from core.loop import Loop
 from core.processor import Processor
 from core.task import Task
@@ -74,7 +75,8 @@ class Execution:
     def get_run_at(self) -> str:
         return self.run_at
 
-    def run(self, initial_data: dict, condition: Condition, view: PETPView) -> dict:
+    def run(self, initial_data: dict, condition: Condition, view: PETPView, trace_id: str = None) -> dict:
+        set_trace_id(trace_id)
         data_chain = initial_data
         mcp_defaults = self.expand_mcp_defaults(data_chain)
         for k, v in mcp_defaults.items():

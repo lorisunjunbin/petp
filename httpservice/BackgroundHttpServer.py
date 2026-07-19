@@ -79,6 +79,15 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             return err
         return self.runtime.get_tools()
 
+    @staticmethod
+    def _extract_trace_id(handler, params, fallback):
+        """Trace id for log correlation: caller-supplied X-Trace-Id header, else
+        a trace_id in the request body, else ``fallback`` (the request id).
+        ``handler.headers.get`` is case-insensitive, so one lookup suffices."""
+        return (handler.headers.get("X-Trace-Id")
+                or (params.get("trace_id") if isinstance(params, dict) else None)
+                or fallback)
+
     def _handle_petp_exec(self, handler: HttpRequestHandler, payload: Optional[dict]) -> Union[dict, tuple, StreamingResponseData]:
         err = self._require_token(handler)
         if err is not None:
@@ -91,14 +100,15 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
         if not isinstance(params, dict):
             return {"error": "params must be a JSON object"}, 400
 
+        request_id = self._generate_request_id()
+        trace_id = self._extract_trace_id(handler, params, request_id)
+
         if self._wants_sse(handler):
-            return self._stream_exec_result(action, params)
+            return self._stream_exec_result(action, params, trace_id)
 
         wait_for_result = payload.get("wait_for_result", True)
         if not isinstance(wait_for_result, bool):
             wait_for_result = str(wait_for_result).lower() == "true"
-
-        request_id = self._generate_request_id()
 
         if action == "execution":
             execution_name = params.get("execution")
@@ -107,11 +117,11 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             exec_name: str = cast(str, execution_name)
 
             if wait_for_result:
-                runtime_result = self.runtime.run_execution(exec_name, params)
+                runtime_result = self.runtime.run_execution(exec_name, params, trace_id=trace_id)
                 client_result = self._extract_business_response(runtime_result)
                 return client_result, 200 if bool(runtime_result.get("ok")) else 500
 
-            self._submit_async(request_id, lambda: self.runtime.run_execution(exec_name, params))
+            self._submit_async(request_id, lambda: self.runtime.run_execution(exec_name, params, trace_id=trace_id))
             return {
                 "status": "pending",
                 "request_id": request_id,
@@ -125,11 +135,11 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             pipe_name: str = cast(str, pipeline_name)
 
             if wait_for_result:
-                runtime_result = self.runtime.run_pipeline(pipe_name, params)
+                runtime_result = self.runtime.run_pipeline(pipe_name, params, trace_id=trace_id)
                 client_result = self._extract_business_response(runtime_result)
                 return client_result, 200 if bool(runtime_result.get("ok")) else 500
 
-            self._submit_async(request_id, lambda: self.runtime.run_pipeline(pipe_name, params))
+            self._submit_async(request_id, lambda: self.runtime.run_pipeline(pipe_name, params, trace_id=trace_id))
             return {
                 "status": "pending",
                 "request_id": request_id,
@@ -140,7 +150,7 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
 
     _SSE_HEARTBEAT_INTERVAL: float = 1.0
 
-    def _stream_exec_result(self, action: str, params: dict) -> StreamingResponseData:
+    def _stream_exec_result(self, action: str, params: dict, trace_id: str = None) -> StreamingResponseData:
         progress_queue: SimpleQueue = SimpleQueue()
         cancel_event = threading.Event()
         result_holder: dict = {}
@@ -154,7 +164,7 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             def runner():
                 try:
                     result_holder["r"] = self.runtime.run_execution(
-                        exec_name, params, progress_queue=progress_queue
+                        exec_name, params, progress_queue=progress_queue, trace_id=trace_id
                     )
                 except Exception as e:
                     result_holder["r"] = {"ok": False, "error": str(e),
@@ -168,7 +178,7 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             def runner():
                 try:
                     result_holder["r"] = self.runtime.run_pipeline(
-                        pipe_name, params, progress_queue=progress_queue
+                        pipe_name, params, progress_queue=progress_queue, trace_id=trace_id
                     )
                 except Exception as e:
                     result_holder["r"] = {"ok": False, "error": str(e),
@@ -333,10 +343,17 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
             arguments_json = json.dumps(arguments, ensure_ascii=False)
             info = f"call tool: {tool_exec_name} with params: {arguments_json}"
             logging.info("MCP tools/call: %s", info)
+            # Trace id: X-Trace-Id header, else arguments.trace_id, else the
+            # JSON-RPC request id.
+            fallback = str(request_id) if request_id is not None else None
+            if handler is not None:
+                trace_id = self._extract_trace_id(handler, arguments, fallback)
+            else:
+                trace_id = (arguments.get("trace_id") if isinstance(arguments, dict) else None) or fallback
 
             if not self._wants_sse(handler):
                 raw_result = self._run_with_timeout(
-                    lambda: self.runtime.run_execution(tool_exec_name, arguments),
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments, trace_id=trace_id),
                     self._timeout,
                 )
                 return self._mcp_tools_call_json_response(
@@ -354,7 +371,7 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
                 progress_queue = SimpleQueue()
                 result = None
                 for item in self._run_with_progress(
-                    lambda: self.runtime.run_execution(tool_exec_name, arguments, progress_queue=progress_queue),
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments, progress_queue=progress_queue, trace_id=trace_id),
                     self._timeout, tool_exec_name, progress_queue=progress_queue,
                     cancel_event=cancel_event,
                 ):

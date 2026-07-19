@@ -196,6 +196,27 @@ class SeleniumUtil:
         chrome.execute_script("arguments[0].click();", ele)
 
     @staticmethod
+    def click_with_fallback(chrome, ele):
+        """Click ``ele`` trying strategies in order, returning which one worked.
+
+        Some Angular Material controls (e.g. Ariba's div[role=button] dropdown
+        toggles) respond ONLY to a NATIVE ``ele.click()`` and ignore a
+        JS-dispatched click; others need the scroll/ActionChains/JS fallback of
+        ``move_to_ele_then_click`` for headless / covered elements. This tries
+        native first, then the fallback helper, and returns a short tag
+        ('native' | 'move' | 'failed:<ErrType>') so callers can log the tier.
+        """
+        try:
+            ele.click()
+            return 'native'
+        except Exception:
+            try:
+                SeleniumUtil.move_to_ele_then_click(chrome, ele)
+                return 'move'
+            except Exception as ex:
+                return 'failed:%s' % type(ex).__name__
+
+    @staticmethod
     def move_to_ele(chrome, ele):
         """Hover the mouse onto an element.
 

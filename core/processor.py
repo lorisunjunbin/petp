@@ -120,7 +120,24 @@ class Processor:
 
     def do_process(self):
         logging.info('[%s] input: %s', self.task.type, redact_sensitive(self.input_param))
+        if self._should_skip_by_fn():
+            return
         self.process()
+
+    def _should_skip_by_fn(self) -> bool:
+        # Optional cross-cutting gate: when a task carries a `skip_if_fn` whose body
+        # returns True, skip the whole processor BEFORE process() runs. Handy when a
+        # task's locator is built from a data_chain value that may be absent — no point
+        # waiting out a timeout for an element that was never meant to exist.
+        if not self.has_param('skip_if_fn'):
+            return False
+        from utils.CodeExplainerUtil import CodeExplainerUtil
+        body = self.get_param('skip_if_fn')
+        fn = CodeExplainerUtil.create_and_execute_func('skip_if', '(p)', body)
+        skip = bool(fn(self))
+        if skip:
+            logging.info('[%s] skipped by skip_if_fn', self.task.type)
+        return skip
 
     def handle_ui_thread_callback(self, given):
         pass

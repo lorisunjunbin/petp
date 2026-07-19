@@ -66,6 +66,16 @@ class CodeExplainerUtil:
         ],
         'FIND_THEN_CLICK': [
             ('by_condition', '(p, ele)', ''),
+            ('skip_if_fn', '(p)', ''),
+        ],
+        'FIND_THEN_KEYIN': [
+            ('skip_if_fn', '(p)', ''),
+        ],
+        'SELECT_TREE_DROPDOWN': [
+            ('skip_if_fn', '(p)', ''),
+        ],
+        'SELECT_MULTI_DROPDOWN': [
+            ('skip_if_fn', '(p)', ''),
         ],
         'GO_TO_TASK': [
             ('condition_fn', '(data_chain, p)', ''),

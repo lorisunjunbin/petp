@@ -6,7 +6,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_CLICKProcessor(Processor):
-    TPL: str = '{"find_by":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "condition_fn":"return True", "chrome_name":"chrome"}'
+    TPL: str = '{"find_by":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "condition_fn":"return True", "skip_if_fn":"return False", "chrome_name":"chrome"}'
 
     DESC: str = '''
         Find a web element via Selenium using the specified locator strategy and click it.
@@ -22,6 +22,9 @@ class FIND_THEN_CLICKProcessor(Processor):
           (useful for conditional buttons like an error-dialog "ignore & submit"). "no" or absent → raise. (default: "yes|no")
         - condition_fn: Python function body; receives (ele) where ele is the located WebElement;
           click is only performed when the function returns True (default: "return True")
+        - skip_if_fn: Python function body receiving (p); return True to SKIP this whole processor
+          before locating anything (e.g. when its xpath is built from a data_chain value that may be
+          absent). Default runs the processor. (default: "return False")
     '''
 
     def get_category(self) -> str:

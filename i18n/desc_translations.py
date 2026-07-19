@@ -417,6 +417,7 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
              "- timeout: \u7b49\u5f85\u5143\u7d20\u51fa\u73b0\u7684\u6700\u5927\u79d2\u6570\uff08\u9ed8\u8ba4: 10\uff09\n"
              "- skip_timeout_error: \"yes\" \u8d85\u65f6\u4e0d\u62a5\u9519\uff08\u9ed8\u8ba4: \"no\"\uff09\n"
              "- condition_fn: Python \u51fd\u6570\u4f53\uff0c\u70b9\u51fb\u524d\u7684\u6761\u4ef6\u68c0\u67e5\uff0c\u53c2\u6570\u4e3a \"ele\"\uff08\u53ef\u9009\uff09\n"
+             "- skip_if_fn: Python \u51fd\u6570\u4f53\uff0c\u53c2\u6570\u4e3a (p)\uff1b\u8fd4\u56de True \u5219\u5728\u5b9a\u4f4d\u4e4b\u524d\u76f4\u63a5\u8df3\u8fc7\u6574\u4e2a processor\uff08\u4f8b\u5982 xpath \u7531\u53ef\u80fd\u4e0d\u5b58\u5728\u7684 data_chain \u503c\u62fc\u63a5\u65f6\uff09\uff08\u9ed8\u8ba4: \"return False\"\uff09\n"
         ),
     },
 
@@ -461,7 +462,8 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- clear_before_input: \"yes\" 输入前清除已有内容（默认: \"yes|no\"）\n"
             "- wait: 定位元素前的额外等待秒数，等待仍在渲染的元素出现（如刚通过 MOVE_TO_IFRAME 切入的 Angular 表单）（默认: 1）\n"
             "- timeout: 等待元素出现的最长秒数（默认: 5）\n"
-            "- skip_timeout_error: 超时未找到元素时是否忽略错误。\"yes\" 记录日志并静默返回（继续执行）；\"no\" 或缺省则抛异常（默认: \"yes|no\"）"
+            "- skip_timeout_error: 超时未找到元素时是否忽略错误。\"yes\" 记录日志并静默返回（继续执行）；\"no\" 或缺省则抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（例如 xpath 由可能不存在的 data_chain 值拼接时）（默认: \"return False\"）"
         ),
     },
 
@@ -902,34 +904,34 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- container_xpath: 限定下拉控件范围的 xpath，所有查找都在其内部。空=整页。建议用该字段的输入框/容器，如 \"//input[@aria-label='供应商属性']/ancestor::div[contains(@class,'input-drop-down-container')]\"（默认: \"\"）\n"
             "- expand_xpath: 打开下拉要点击的元素 xpath（container 给定时相对其内，否则绝对）。空=自动（点 expand_more 图标 / combobox 输入框）（默认: \"\"）\n"
             "- item_class: 标记每个带复选框选项行的 CSS 类（默认: \"drop-down-menu-item-with-checkbox\"）\n"
-            "- icon_xpath: 复选框 md-icon 的 xpath（相对选项行），其文本为 \"check_box\" 表示已选（默认: \".//span[contains(@class,'display-icon')]//md-icon\"）\n"
-            "- checkbox_xpath: 勾选时点击的元素 xpath（相对选项行）——复选框图标/其包裹，不是整行（点整行会关闭下拉）（默认: \".//span[contains(@class,'display-icon')]\"）\n"
             "- wait: 开始前静态等待秒数（默认: 1）\n"
             "- timeout: 等待下拉/选项出现的最大秒数（默认: 10）\n"
             "- skip_timeout_error: \"yes\" 某选项找不到或点击失败时记日志并继续；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- close_xpath: 勾选完成后关闭下拉要点击的元素 xpath。以 \".\" 开头的相对 xpath 会限定在 container_xpath 内（只关闭本下拉的收起图标，不会误关外层面板）；绝对 xpath 原样使用。空=保持下拉当前状态；支持表达式（默认: \"\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（例如 values 由可能不存在的 data_chain 值拼接时）（默认: \"return False\"）\n"
             "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
         ),
     },
     "desc_SELECT_TREE_DROPDOWN": {
         "zh": (
             "\u64cd\u4f5c SAP Ariba \u7684\u591a\u7ea7\u7ea7\u8054\u6811\u5f62\u4e0b\u62c9\uff08smq-browse-lists / browse-pane / browse-entry\uff09\u3002\n"
-            "\u6309\u987a\u5e8f\u4f20\u5165\u6bcf\u4e00\u7ea7\u7684\u9009\u9879\u6587\u672c\uff081~4 \u7ea7\uff09\uff0c\u9010\u7ea7\u70b9\u51fb\u9009\u9879\u7684 \">\" \u53f3\u7bad\u5934\uff08expansion-btn\uff09\u5c55\u5f00\u4e0b\u4e00\u7ea7\uff0c"
+            "\u6309\u987a\u5e8f\u4f20\u5165\u6bcf\u4e00\u7ea7\u7684\u9009\u9879\u6587\u672c\uff081~8 \u7ea7\uff09\uff0c\u9010\u7ea7\u70b9\u51fb\u9009\u9879\u7684 \">\" \u53f3\u7bad\u5934\uff08expansion-btn\uff09\u5c55\u5f00\u4e0b\u4e00\u7ea7\uff0c"
             "\u6700\u540e\u4e00\u7ea7\u70b9\u51fb\u5176\u590d\u9009\u6846\u5b8c\u6210\u52fe\u9009\u3002\u9009\u9879\u6587\u672c\u6309\u53ef\u89c1\u6587\u672c\uff08.wrapped-text-content\uff09\u505a\u6a21\u7cca\u5339\u914d\uff08contains\uff09\uff0c\u4f20\u5165\u90e8\u5206\u5173\u952e\u5b57\u5373\u53ef\uff0c\u5e76\u9650\u5b9a\u5728\u6811\u5bb9\u5668\u5185\u3002\n"
             "\n"
-            "- selections: 用 \">\" 分隔的各级选项文本，最外层在前，如 \"支持和服务>海外>亚太>迪拜院\"，共 1~4 级；每级模糊匹配（可传部分关键字）；支持表达式，如 \"{level1}>{level2}\" 或整串 \"{path}\"（也兼容传列表）（必填）\n"
+            "- selections: 用 \">\" 分隔的各级选项文本，最外层在前，如 \"支持和服务>海外>亚太>迪拜院\"，共 1~8 级；每级模糊匹配（可传部分关键字）；支持表达式，如 \"{level1}>{level2}\" 或整串 \"{path}\"（也兼容传列表）（必填）\n"
+            "- open_xpath: 打开该下拉的按钮/元素的绝对 xpath（树容器要点击此按钮后才出现）；点击后等待第一级文本在 DOM 出现。空=认为已打开，跳过此步；支持表达式（默认: \"\"）\n"
+            "- close_xpath: 勾选完成后关闭下拉要点击的按钮/元素的绝对 xpath（通常与 open_xpath 是同一个 toggle 按钮）。空=保持下拉当前状态；支持表达式（默认: \"\"）\n"
             "- select_last: \"yes\" \u70b9\u51fb\u6700\u540e\u4e00\u7ea7\u7684\u590d\u9009\u6846\u8fdb\u884c\u52fe\u9009\uff1b\"no\" \u4ec5\u5c55\u5f00\u6700\u540e\u4e00\u7ea7\uff08\u9ed8\u8ba4: \"yes|no\"\uff09\n"
             "- check_from_level: 从第几级（1 起）开始勾选复选框；之前的级别只展开不勾。如 \"All>油气新能源>科研业务>迪拜院\"，值为 1 时全勾（含 All），值为 2 时 All 不勾、其余勾选（默认: 1）\n"
             "- container_xpath: \u6811\u63a7\u4ef6\u6839\u8282\u70b9 xpath\uff0c\u6240\u6709\u67e5\u627e\u90fd\u9650\u5b9a\u5728\u5176\u5185\u90e8\uff08\u9ed8\u8ba4: \"//smq-browse-lists\"\uff09\n"
             "- entry_class: 标记每个选项节点的 CSS 类（默认: \"browse-entry\"）\n"
             "- pane_tag: 每级列的标签/选择器，用于同名跨级消歧（默认: \"browse-pane\"）\n"
             "- text_class: 承载选项可见文本的元素 CSS 类（默认: \"wrapped-text-content\"）\n"
-            "- expand_xpath: 展开下一级要点击的元素 xpath（相对 entry）（默认: \".//div[contains(@class,'expansion-btn')]\"）\n"
-            "- icon_xpath: 复选框图标 xpath（相对 entry），其文本等于 checked_state 时表示已选（默认: \".//span[contains(@class,'display-icon')]//md-icon\"）\n"
-            "- checkbox_xpath: 勾选时的兜底点击 xpath（相对 entry）（默认: \".//span[contains(@class,'display-icon')]\"）\n"
             "- checked_state: 图标文本为该值表示“已勾选”（默认: \"check_box\"）\n"
             "- wait: \u5f00\u59cb\u524d\u9759\u6001\u7b49\u5f85\u79d2\u6570\uff0c\u7b49\u63a7\u4ef6\u6e32\u67d3\u5b8c\u6210\uff08\u9ed8\u8ba4: 1\uff09\n"
             "- timeout: \u7b49\u5f85\u6bcf\u4e00\u7ea7\u9009\u9879 / \u4e0b\u4e00\u7ea7\u9762\u677f\u51fa\u73b0\u7684\u6700\u5927\u79d2\u6570\uff08\u9ed8\u8ba4: 10\uff09\n"
             "- skip_timeout_error: \"yes\" \u67d0\u7ea7\u6587\u672c\u627e\u4e0d\u5230\u6216\u70b9\u51fb\u88ab\u62e6\u622a\u65f6\u8bb0\u65e5\u5fd7\u5e76\u7ee7\u7eed\uff1b\"no\" \u629b\u5f02\u5e38\uff08\u9ed8\u8ba4: \"yes|no\"\uff09\n"
+            "- skip_if_fn: Python \u51fd\u6570\u4f53\uff0c\u53c2\u6570\u4e3a (p)\uff1b\u8fd4\u56de True \u5219\u5728\u5b9a\u4f4d\u4e4b\u524d\u76f4\u63a5\u8df3\u8fc7\u6574\u4e2a processor\uff08\u4f8b\u5982 selections \u7531\u53ef\u80fd\u4e0d\u5b58\u5728\u7684 data_chain \u503c\u62fc\u63a5\u65f6\uff09\uff08\u9ed8\u8ba4: \"return False\"\uff09\n"
             "- chrome_name: data_chain \u4e2d Chrome driver \u7684\u952e\uff08\u9ed8\u8ba4: \"chrome\"\uff09"
         ),
     },

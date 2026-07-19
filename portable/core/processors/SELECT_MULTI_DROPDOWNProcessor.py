@@ -6,7 +6,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class SELECT_MULTI_DROPDOWNProcessor(Processor):
-    TPL: str = '{"values":"value1,value2", "container_xpath":"", "expand_xpath":"", "item_class":"drop-down-menu-item-with-checkbox", "icon_xpath":".//span[contains(@class,\'display-icon\')]//md-icon", "wait":1, "timeout":10, "skip_timeout_error":"yes|no", "chrome_name":"chrome"}'
+    TPL: str = '{"values":"value1,value2", "container_xpath":"", "expand_xpath":"", "item_class":"drop-down-menu-item-with-checkbox", "wait":1, "timeout":10, "skip_timeout_error":"yes|no", "close_xpath":"", "skip_if_fn":"return False", "chrome_name":"chrome"}'
     DESC: str = '''
         Select one or more options in a multi-select checkbox dropdown (e.g. SAP Ariba
         "供应商属性": 制造商 / 代理商 / 贸易商 ...). Opens the dropdown if needed, then checks
@@ -18,10 +18,11 @@ class SELECT_MULTI_DROPDOWNProcessor(Processor):
         - container_xpath: xpath scoping the dropdown widget; all lookups are scoped under it. Empty = whole page. Recommended: the field's input/container, e.g. "//input[@aria-label='供应商属性']/ancestor::div[contains(@class,'input-drop-down-container')]" (default: "")
         - expand_xpath: xpath (relative to container if container given, else absolute) of the element to click to OPEN the dropdown when options are not visible. Empty = auto (clicks an "expand_more" icon / the combobox input) (default: "")
         - item_class: CSS class marking each option row that carries the checkbox (default: "drop-down-menu-item-with-checkbox")
-        - icon_xpath: xpath (relative to an option row) of the checkbox md-icon; its ligature text is "check_box" when selected (default: ".//span[contains(@class,'display-icon')]//md-icon")
         - wait: seconds to sleep before starting (default: 1)
         - timeout: max seconds to wait for the dropdown / options to appear (default: 10)
         - skip_timeout_error: "yes" logs & continues when an option is not found or a click fails; "no" raises (default: "yes|no")
+        - close_xpath: xpath of an element to click LAST to CLOSE the dropdown after selecting. A relative xpath (starting with ".") is scoped to container_xpath (so it targets THIS dropdown's collapse icon, not an outer panel's); absolute xpath is used as-is. Empty = leave the dropdown as-is. Supports expression. (default: "")
+        - skip_if_fn: Python function body receiving (p); return True to SKIP this whole processor before locating anything (e.g. when its values are built from a data_chain value that may be absent). Default runs the processor. (default: "return False")
         - chrome_name: key in data_chain holding the Chrome driver (default: "chrome")
     '''
 
@@ -81,6 +82,32 @@ class SELECT_MULTI_DROPDOWNProcessor(Processor):
                     raise Exception('SELECT_MULTI_DROPDOWN: failed to select %r (%s)' % (text, ok))
                 logging.info('SELECT_MULTI_DROPDOWN: %r not selected (%s, skip)', text, ok)
 
+        # Optionally close the dropdown after selecting. Empty close_xpath =
+        # leave it as-is. explain_optional returns '' for an unresolved "{var}".
+        close_xpath = self.explain_optional('close_xpath', '')
+        if close_xpath:
+            self._close_dropdown(chrome, container, close_xpath)
+
+    def _close_dropdown(self, chrome, container, close_xpath):
+        """Click the element that closes the dropdown after selecting.
+
+        A relative close_xpath (starting with '.') is scoped to the container —
+        same as _ensure_open — so it targets THIS dropdown's collapse icon, not
+        the first matching icon on the page (which could collapse an outer
+        panel). Absolute xpath is used as-is. Native click first, then move-to,
+        then JS as fallback.
+        """
+        if container and close_xpath.startswith('.'):
+            xp = container + close_xpath[1:]   # container + "//..." (valid xpath)
+        else:
+            xp = close_xpath
+        eles = SeleniumUtil.find_elements_by_x_path(chrome, xp)
+        if not eles:
+            logging.info('SELECT_MULTI_DROPDOWN: close button not found: %r', xp)
+            return
+        result = SeleniumUtil.click_with_fallback(chrome, eles[0])
+        logging.info('SELECT_MULTI_DROPDOWN: close via %r -> %s', xp, result)
+
     def _select_option_js(self, chrome, container, item_class, text):
         """Select one option atomically, in the browser.
 
@@ -89,8 +116,8 @@ class SELECT_MULTI_DROPDOWNProcessor(Processor):
         visible text contains ``text`` (case-insensitive), scroll it into view,
         and — only if its checkbox is not already checked — click the checkbox
         icon ONCE. Returns 'checked' | 'already' | 'not-found' | 'no-icon'.
-        The row/icon selectors mirror the configured item_class / icon_xpath but
-        are expressed in CSS/JS to keep the whole thing atomic.
+        The row selector uses the configured item_class; the checkbox icon is
+        found by a fixed CSS selector, expressed in JS to keep it atomic.
         """
         js = r"""
         var container = arguments[0], itemClass = arguments[1], want = (arguments[2]||'').toLowerCase();
@@ -167,10 +194,9 @@ class SELECT_MULTI_DROPDOWNProcessor(Processor):
         """Open the dropdown, then confirm its options are actually visible.
 
         Always clicks the expand control first (the expand_more icon), because
-        the options DOM is present-but-hidden until opened. After clicking, use
-        get_elements (Selenium visibility_of_element_located) to confirm the
-        option became visible — more reliable than a manual is_displayed() on
-        virtual-scroller nodes.
+        the options DOM is present-but-hidden until opened. After clicking,
+        confirm by DOM PRESENCE of an option row (via _find_item) — more
+        reliable than Selenium visibility on virtual-scroller nodes.
         """
         if self._item_present(chrome, container, item_class, first_text):
             return   # already open (option row present in DOM)

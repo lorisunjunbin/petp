@@ -38,6 +38,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--http-token", help="Override HTTP auth token")
     parser.add_argument("--run-execution", help="Run one execution immediately")
     parser.add_argument("--run-pipeline", help="Run one pipeline immediately")
+    parser.add_argument("--trace-id", help="Trace id for log correlation (default: auto-generated)")
     parser.add_argument("--init-data", default="{}", help="JSON object for initial data")
     parser.add_argument("--no-http", action="store_true",
                         help="Run immediate job and exit without starting HTTP server")
@@ -105,6 +106,7 @@ def _merge_config(args: argparse.Namespace, model: PETPModel) -> dict:
         "metrics_quantile_window": int(getattr(model, "metrics_quantile_window", 256)),
         "run_execution": args.run_execution,
         "run_pipeline": args.run_pipeline,
+        "trace_id": args.trace_id,
         "init_data": args.init_data,
         "no_http": args.no_http,
     }
@@ -119,11 +121,11 @@ def _run_immediate(runtime: BackgroundRuntime, cfg: dict) -> None:
         raise ValueError(f"Invalid --init-data: {e}") from e
 
     if cfg["run_execution"]:
-        result = runtime.run_execution(cfg["run_execution"], init_data)
+        result = runtime.run_execution(cfg["run_execution"], init_data, trace_id=cfg.get("trace_id"))
         logging.info("Immediate execution result: %s", json.dumps(result, ensure_ascii=False, default=str))
 
     if cfg["run_pipeline"]:
-        result = runtime.run_pipeline(cfg["run_pipeline"], init_data)
+        result = runtime.run_pipeline(cfg["run_pipeline"], init_data, trace_id=cfg.get("trace_id"))
         logging.info("Immediate pipeline result: %s", json.dumps(result, ensure_ascii=False, default=str))
 
 

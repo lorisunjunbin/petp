@@ -13,6 +13,7 @@ from core.executionstate import ExecutionState
 from core.pipeline import Pipeline
 from core.processor import Processor
 from core.runtime.UiProcessorPolicy import decide
+from utils.Logger import set_trace_id
 from core.task import Task
 from core.constants import HTTP_RESPONSE_KEY
 from utils.DateUtil import DateUtil
@@ -34,7 +35,11 @@ class BackgroundRuntime:
         set_static_mode(True)
 
     def run_execution(self, execution_name: str, init_data: Optional[dict] = None,
-                       progress_queue: Optional[SimpleQueue] = None) -> dict:
+                       progress_queue: Optional[SimpleQueue] = None,
+                       trace_id: Optional[str] = None) -> dict:
+        # Set the trace id on THIS thread (thread-pool workers don't inherit the
+        # submitter's contextvars, so it must be set inside the executed call).
+        set_trace_id(trace_id)
         started = time.time()
         execution = Execution.get_execution(execution_name)
         if execution is None:
@@ -205,7 +210,9 @@ class BackgroundRuntime:
         return self._result(True, data_chain, None, started, skipped_tasks)
 
     def run_pipeline(self, pipeline_name: str, init_data: Optional[dict] = None,
-                     progress_queue: Optional[SimpleQueue] = None) -> dict:
+                     progress_queue: Optional[SimpleQueue] = None,
+                     trace_id: Optional[str] = None) -> dict:
+        set_trace_id(trace_id)
         started = time.time()
         pipeline = Pipeline.get_pipeline(pipeline_name)
         if pipeline is None:
