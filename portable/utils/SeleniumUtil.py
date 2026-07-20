@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 import urllib3
 
 from PIL import Image
@@ -229,6 +230,63 @@ class SeleniumUtil:
             return '"' + s + '"'
         parts = s.split("'")
         return "concat(" + ", \"'\", ".join("'" + p + "'" for p in parts) + ")"
+
+    @staticmethod
+    def fill_input_by_label(chrome, aria_label, value, timeout=10):
+        """Locate a text input by its aria-label, clear it, and type ``value``.
+        Returns True on success, False if the input isn't found. Shared by the
+        form-feeder processors (BANK_INFO_FEEDER / CONTACT_FEEDER)."""
+        xp = "//input[@aria-label=%s]" % SeleniumUtil.xpath_literal(aria_label)
+        eles = SeleniumUtil.get_elements(chrome, 'xpath', xp, timeout)
+        if not eles:
+            return False
+        ele = eles[0]
+        try:
+            ele.clear()   # some Angular inputs raise on clear(); ignore
+        except Exception:
+            pass
+        ele.send_keys(value)
+        logging.info('fill_input_by_label: %r <- %r', aria_label, value)
+        return True
+
+    @staticmethod
+    def select_type_ahead(chrome, aria_label, option_class, value, timeout=10):
+        """Type ``value`` into a type-ahead input (located by aria-label), wait
+        for the option panel, then click the option whose visible text EXACTLY
+        equals ``value`` — or, if none, the UNIQUE option that CONTAINS it (so a
+        province typed as "辽宁" matches the listed "辽宁(070)", while "中国" is
+        picked exactly rather than "中立区"/"中非共和国"). Returns True on click."""
+        input_xp = "//input[@aria-label=%s]" % SeleniumUtil.xpath_literal(aria_label)
+        eles = SeleniumUtil.get_elements(chrome, 'xpath', input_xp, timeout)
+        if not eles:
+            logging.info('select_type_ahead: input not found: %r', aria_label)
+            return False
+        ele = eles[0]
+        try:
+            ele.clear()
+        except Exception:
+            pass
+        ele.send_keys(value)
+        time.sleep(0.5)   # let the autocomplete panel render/filter
+        js = r"""
+        var optClass = arguments[0], want = (arguments[1]||'').trim();
+        var opts = document.querySelectorAll('.' + optClass);
+        var contains = [];
+        for (var i = 0; i < opts.length; i++) {
+            var txt = (opts[i].textContent || '').trim();
+            if (txt === want) { opts[i].scrollIntoView({block:'center'}); opts[i].click(); return 'clicked'; }
+            if (txt.indexOf(want) !== -1) contains.push(opts[i]);
+        }
+        if (contains.length === 1) { contains[0].scrollIntoView({block:'center'}); contains[0].click(); return 'clicked'; }
+        return contains.length > 1 ? 'ambiguous' : 'not-found';
+        """
+        try:
+            result = chrome.execute_script(js, option_class, value)
+        except Exception as ex:
+            logging.debug('select_type_ahead: click-option JS error: %s', ex)
+            result = 'error'
+        logging.info('select_type_ahead: %r <- %r -> %s', aria_label, value, result)
+        return result == 'clicked'
 
     @staticmethod
     def move_to_ele(chrome, ele):

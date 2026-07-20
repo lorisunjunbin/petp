@@ -139,6 +139,16 @@ class Processor:
             logging.info('[%s] skipped by skip_if_fn', self.task.type)
         return skip
 
+    def fail_or_skip(self, msg, skip_err, prefix=None):
+        """Uniform skip_timeout_error handling: log & return when ``skip_err``,
+        else raise. ``prefix`` defaults to the processor class name. Used by
+        Selenium processors so the skip/raise shape isn't copy-pasted."""
+        full = '%s: %s' % (prefix or type(self).__name__, msg)
+        if skip_err:
+            logging.info('%s (skip_timeout_error=yes)', full)
+            return
+        raise Exception(full)
+
     def handle_ui_thread_callback(self, given):
         pass
 

@@ -948,6 +948,58 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
         ),
     },
+    "desc_BANK_INFO_FEEDER": {
+        "zh": (
+            "用一个以 \";\" 分隔的字符串填写 SAP Ariba 银行账户表单的四个必填字段，顺序为:国家;银行代码;账号;IBAN编号"
+            "（例:\"中国;ICBC;400059399234u2;32341\"）。国家/地区是 type-ahead(md-autocomplete):先键入国家名，"
+            "再从弹出列表中点击可见文本【完全等于】该国家的选项（键入\"中国\"也会列出\"中立区\"/\"中非共和国\"，故需精确匹配）。"
+            "其余三项是普通文本框（清空后输入），按 aria-label 定位。\n"
+            "\n"
+            "- value: \";\" 分隔的\"国家;银行代码;账号;IBAN\"——四项全必填（支持表达式，如 \"{bank_info}\"）（必填）\n"
+            "- country_label: 国家 type-ahead 输入框的 aria-label（默认: \"国家/地区\"）\n"
+            "- bank_key_label: 银行代码输入框的 aria-label（默认: \"银行账户信息 银行代码/ABA 传送号码\"）\n"
+            "- account_label: 帐号输入框的 aria-label（默认: \"银行账户信息 帐号\"）\n"
+            "- iban_label: IBAN 输入框的 aria-label（默认: \"银行账户信息 IBAN 编号\"）\n"
+            "- option_class: 自动完成选项行的 CSS 类（默认: \"mat-option\"）\n"
+            "- wait: 开始前静态等待秒数（默认: 1）\n"
+            "- timeout: 等待输入框/选项列表出现的最大秒数（默认: 10）\n"
+            "- skip_timeout_error: \"yes\" 输入框/选项找不到时记日志并继续；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（默认: \"return False\"）\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
+        ),
+    },
+    "desc_CONTACT_FEEDER": {
+        "zh": (
+            "用一个以 \";\" 分隔的字符串填写 SAP Ariba 办公地址联系块的八个字段，顺序为:街道;地区;邮编;城市;国家;省;电话;邮箱"
+            "（任一段可留空以跳过该字段）。其中六项是普通文本框，按 aria-label 定位（街道 / 地区 / 邮政编码 / 城市 / 电话 / 电子邮箱，清空后输入）。"
+            "国家/地区 和 州/省/地区 都是 type-ahead(md-autocomplete):先键入值，再点击可见文本【完全等于】它的选项；"
+            "若无精确匹配则点【唯一包含】它的选项（这样省份传\"辽宁\"能匹配下拉里的\"辽宁(070)\"，而\"中国\"精确命中不会误选\"中立区\"/\"中非共和国\"）。\n"
+            "\n"
+            "- value: \";\" 分隔的 街道;地区;邮编;城市;国家;省;电话;邮箱——共八个位置，留空则跳过该字段（支持表达式，如 \"{contact}\"）（必填）\n"
+            "- option_class: 自动完成选项行的 CSS 类（默认: \"mat-option\"）\n"
+            "- wait: 开始前静态等待秒数（默认: 1）\n"
+            "- timeout: 等待输入框/选项列表出现的最大秒数（默认: 10）\n"
+            "- skip_timeout_error: \"yes\" 输入框/选项找不到时记日志并继续；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（默认: \"return False\"）\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
+        ),
+    },
+    "desc_FILE_UPLOAD": {
+        "zh": (
+            "通过向 <input type=\"file\"> 发送文件的绝对路径来上传文件——WebDriver 的标准做法，绕过操作系统的文件选择对话框。"
+            "支持【隐藏】的 file input（如 Angular\"上载文件\"控件里 class 含 hidden 的真实 input）:与 FIND_THEN_KEYIN 不同，"
+            "本 processor 只等元素【存在(presence)】而非【可见】（隐藏 input 永远不可见，等可见必然超时），并可先移除其隐藏状态。\n"
+            "\n"
+            "- identity: file input 的 xpath，如 \"//sm-questionnaire-item[.//span[contains(.,'7.2')]]//input[@type='file']\"（支持表达式）（必填）\n"
+            "- file_path: 要上传文件的【绝对路径】，须在运行 PETP 的机器上真实存在（浏览器在本地读取该文件）。支持表达式，如 \"{attached_sales_performance}\"（必填）\n"
+            "- reveal_hidden: \"yes\" 上传前先用一小段 JS 移除 input 的 'hidden'/'hidden-input' 类并清除 display:none（部分环境拒绝对完全隐藏的 input send_keys）；\"no\" 保持原样（默认: \"yes|no\"）\n"
+            "- wait: 开始前静态等待秒数（默认: 1）\n"
+            "- timeout: 等待 file input 在 DOM 中【出现】的最大秒数（默认: 30）\n"
+            "- skip_timeout_error: \"yes\" input 找不到或文件不存在时记日志并返回；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（默认: \"return False\"）\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
+        ),
+    },
     "desc_SELECT_TREE_DROPDOWN": {
         "zh": (
             "\u64cd\u4f5c SAP Ariba \u7684\u591a\u7ea7\u7ea7\u8054\u6811\u5f62\u4e0b\u62c9\uff08smq-browse-lists / browse-pane / browse-entry\uff09\u3002\n"

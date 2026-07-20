@@ -83,6 +83,15 @@ class CodeExplainerUtil:
         'DATE_PICKER': [
             ('skip_if_fn', '(p)', ''),
         ],
+        'BANK_INFO_FEEDER': [
+            ('skip_if_fn', '(p)', ''),
+        ],
+        'CONTACT_FEEDER': [
+            ('skip_if_fn', '(p)', ''),
+        ],
+        'FILE_UPLOAD': [
+            ('skip_if_fn', '(p)', ''),
+        ],
         'GO_TO_TASK': [
             ('condition_fn', '(data_chain, p)', ''),
         ],
