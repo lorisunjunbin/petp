@@ -480,11 +480,12 @@ class SeleniumUtil:
     def move_to_target_frame(chrome, frames, timeout: int = 60):
         """Switch through a chain of iframes.
 
-        Each frame ID must become visible within ``timeout`` seconds; otherwise
-        the whole switch is considered a failure and ``None`` is returned. On
-        failure the underlying chrome driver is left ALIVE (unlike the previous
-        implementation which called ``chrome.quit()``) so the caller can decide
-        whether to abort, retry, or continue.
+        Each frame ID must be PRESENT in the DOM within ``timeout`` seconds
+        (not visible — iframes often aren't "visible" by Selenium's rule yet are
+        still switchable); otherwise the whole switch is considered a failure and
+        ``None`` is returned. On failure the underlying chrome driver is left
+        ALIVE (unlike the previous implementation which called ``chrome.quit()``)
+        so the caller can decide whether to abort, retry, or continue.
 
         Two sentinel IDs move OUT of frames instead of into one:
           ``$default$`` -> switch back to the top-level document (default content)
@@ -503,10 +504,15 @@ class SeleniumUtil:
                     current.switch_to.parent_frame()
                     logging.debug("move_to_target_frame: $parent$@%d", idx)
                     continue
-                current = SeleniumUtil.wait_for_element_id_visible(current, frm, timeout=timeout)
+                # Wait for PRESENCE, not visibility: an <iframe> element is
+                # frequently NOT "visible" by Selenium's rule (zero-size box,
+                # layout quirks) — especially in headless — yet switch_to.frame
+                # only needs it to exist in the DOM. A visibility wait here times
+                # out in headless even though the frame is switchable.
+                current = SeleniumUtil.wait_for_element_id_presence(current, frm, timeout=timeout)
                 if current is None:
                     logging.error(
-                        "move_to_target_frame: iframe '%s' not visible within %ds (chain %s, idx=%d)",
+                        "move_to_target_frame: iframe '%s' not present within %ds (chain %s, idx=%d)",
                         frm, timeout, frames, idx,
                     )
                     return None
