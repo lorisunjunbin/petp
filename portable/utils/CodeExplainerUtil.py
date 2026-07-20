@@ -77,6 +77,12 @@ class CodeExplainerUtil:
         'SELECT_MULTI_DROPDOWN': [
             ('skip_if_fn', '(p)', ''),
         ],
+        'SELECT_SINGLE_DROPDOWN': [
+            ('skip_if_fn', '(p)', ''),
+        ],
+        'DATE_PICKER': [
+            ('skip_if_fn', '(p)', ''),
+        ],
         'GO_TO_TASK': [
             ('condition_fn', '(data_chain, p)', ''),
         ],

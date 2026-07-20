@@ -33,16 +33,6 @@ class SELECT_YESNOProcessor(Processor):
     def get_category(self) -> str:
         return super().CATE_SELENIUM
 
-    @staticmethod
-    def _xpath_literal(s: str) -> str:
-        """Embed an arbitrary string as an XPath string literal (quote/CJK safe)."""
-        if "'" not in s:
-            return "'" + s + "'"
-        if '"' not in s:
-            return '"' + s + '"'
-        parts = s.split("'")
-        return "concat(" + ", \"'\", ".join("'" + p + "'" for p in parts) + ")"
-
     def _normalize(self, value):
         """Map a free-form value (是/否, yes/no, true/false, 1/0) to 是 or 否."""
         v = (value or '').strip().lower()
@@ -106,7 +96,7 @@ class SELECT_YESNOProcessor(Processor):
         super().extra_wait()
 
         # Wait for the labelled group to render before clicking (xpath: fuzzy aria-label match).
-        group_xpath = "//%s[contains(@aria-label,%s)]" % (group_tag, self._xpath_literal(label))
+        group_xpath = "//%s[contains(@aria-label,%s)]" % (group_tag, SeleniumUtil.xpath_literal(label))
         SeleniumUtil.get_elements(chrome, 'xpath', group_xpath, timeout)
 
         result = self._select_radio_js(chrome, group_tag, button_tag, text_class, label, want)

@@ -831,6 +831,55 @@ class PETPPresenter():
             grid.SelectRow(row_idx)
             grid.MakeCellVisible(row_idx, 0)
 
+    def on_search_task_changed(self):
+        # Query edited — restart the search from the top on the next Enter.
+        self._search_cursor = -1
+
+    def on_search_task_cancel(self):
+        # Cancel (x) button — clear the query and reset the cursor.
+        self.v.search_task.SetValue('')
+        self._search_cursor = -1
+
+    def on_search_task_next(self):
+        """Jump to the next task whose input (column 1) contains the query,
+        case-insensitively; wraps around. Repeated Enter cycles matches.
+        Matches are logged to the log window.
+
+        The cell holds a JSON string in which CJK is \\uXXXX-escaped (e.g.
+        "统一" is stored as \\u7edf\\u4e00), so a raw substring search for
+        Chinese never matches. Decode the cell to un-escaped text before
+        matching so a query like "统一" works.
+        """
+        query = self.v.search_task.GetValue().strip().lower()
+        if not query:
+            return
+        grid = self.v.taskGrid
+        total = grid.GetNumberRows()
+        if total == 0:
+            return
+        start = getattr(self, '_search_cursor', -1)
+        for offset in range(1, total + 1):
+            row = (start + offset) % total
+            if query in self._decode_cell_for_search(grid.GetCellValue(row, 1)):
+                self._search_cursor = row
+                grid.SelectRow(row)
+                grid.MakeCellVisible(row, 0)
+                task_type = grid.GetCellValue(row, 0).strip()
+                logging.info("[SEARCH] task %d (%s) input matches '%s'", row + 1, task_type, query)
+                return
+        logging.info("[SEARCH] no task input matches '%s'", query)
+
+    @staticmethod
+    def _decode_cell_for_search(cell):
+        """Lower-cased, \\uXXXX-decoded form of a task input cell for matching.
+        The cell is normally a JSON string with CJK escaped; loads+dumps
+        (ensure_ascii=False) turns \\u7edf\\u4e00 back into 统一. Falls back to
+        the raw value when the cell isn't valid JSON."""
+        try:
+            return json.dumps(json.loads(cell), ensure_ascii=False).lower()
+        except (json.JSONDecodeError, TypeError):
+            return (cell or '').lower()
+
     def update_highlight_info_done(self, name: str, error: str = None, error_context: dict = None):
         if error_context:
             task_idx = getattr(self, '_last_running_task_index', None)

@@ -912,6 +912,42 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
         ),
     },
+    "desc_SELECT_SINGLE_DROPDOWN": {
+        "zh": (
+            "在单选 type-ahead 下拉中选中一个选项（如 SAP Ariba 的“企业注册性质”：国企/私企/有限责任公司）。\n"
+            "需要时自动展开下拉，找到可见文本匹配（模糊 contains、大小写不敏感）的选项行并点击一次。\n"
+            "单选点中后下拉会自行关闭，无需额外关闭步骤。\n"
+            "\n"
+            "- value: 要选中的选项文本，如 \"国企\"（支持表达式，如 \"{kind}\"）；若传入多个逗号分隔文本，只用第一个（必填）\n"
+            "- container_xpath: 限定下拉控件范围的 xpath，所有查找都在其内部。空=整页。建议用该字段的输入框/容器，如 \"//input[@aria-label='企业注册性质']/ancestor::div[contains(@class,'input-drop-down-container')]\"（默认: \"\"）\n"
+            "- expand_xpath: 打开下拉要点击的元素 xpath（container 给定时相对其内，否则绝对）。空=自动（点 expand_more 图标 / combobox 输入框）（默认: \"\"）\n"
+            "- item_class: 标记每个选项行的 CSS 类（默认: \"type-ahead-list-item\"）\n"
+            "- wait: 开始前静态等待秒数（默认: 1）\n"
+            "- timeout: 等待下拉/选项出现的最大秒数（默认: 10）\n"
+            "- skip_timeout_error: \"yes\" 选项找不到或点击失败时记日志并继续；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（例如 value 由可能不存在的 data_chain 值拼接时）（默认: \"return False\"）\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
+        ),
+    },
+    "desc_DATE_PICKER": {
+        "zh": (
+            "在 Angular Material 日期选择器（md-datepicker-content 日历弹层）中选中一个日期。\n"
+            "传入形如 \"2026-07-20\" 的日期，自动打开日历，必要时点上/下月箭头导航到目标月份，再点中日期格。\n"
+            "日期格按其英文 aria-label（如 \"July 20, 2026\"，Material 固定渲染的唯一可靠定位）匹配。\n"
+            "适用于 readonly、无法 send_keys、只能从日历点选的日期输入框。\n"
+            "\n"
+            "- date: 目标日期（支持表达式，如 \"{reg_date}\"）（必填）\n"
+            "- date_format: date 的 strptime 解析格式（默认: \"%Y-%m-%d\"）\n"
+            "- open_xpath: 打开日历的按钮 xpath。空=认为已打开（默认: \"//button[@aria-label='Open calendar']\"）\n"
+            "- calendar_xpath: 日历弹层根节点 xpath，导航与日期查找都限定其内（默认: \"//md-datepicker-content\"）\n"
+            "- max_nav: 上/下月箭头最多点击次数的安全上限（默认: 24）\n"
+            "- wait: 开始前静态等待秒数（默认: 1）\n"
+            "- timeout: 等待日历/日期格出现的最大秒数（默认: 10）\n"
+            "- skip_timeout_error: \"yes\" 日历/日期找不到或点击失败时记日志并继续；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（例如 date 由可能不存在的 data_chain 值拼接时）（默认: \"return False\"）\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
+        ),
+    },
     "desc_SELECT_TREE_DROPDOWN": {
         "zh": (
             "\u64cd\u4f5c SAP Ariba \u7684\u591a\u7ea7\u7ea7\u8054\u6811\u5f62\u4e0b\u62c9\uff08smq-browse-lists / browse-pane / browse-entry\uff09\u3002\n"

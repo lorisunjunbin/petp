@@ -29,22 +29,13 @@ class SELECT_MULTI_DROPDOWNProcessor(Processor):
     def get_category(self) -> str:
         return super().CATE_SELENIUM
 
-    @staticmethod
-    def _xpath_literal(s: str) -> str:
-        if "'" not in s:
-            return "'" + s + "'"
-        if '"' not in s:
-            return '"' + s + '"'
-        parts = s.split("'")
-        return "concat(" + ", \"'\", ".join("'" + p + "'" for p in parts) + ")"
-
     _UP = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     _LO = 'abcdefghijklmnopqrstuvwxyz'
 
     def _item_xpath(self, container, item_class, text):
         """Xpath of an option row whose visible text CONTAINS ``text``
         (fuzzy + case-insensitive), scoped under ``container``."""
-        lit = self._xpath_literal(text.lower())
+        lit = SeleniumUtil.xpath_literal(text.lower())
         fold = "translate(normalize-space(),'%s','%s')" % (self._UP, self._LO)
         row = ("*[contains(concat(' ',normalize-space(@class),' '),' %s ') and contains(%s,%s) and .//span[contains(@class,'display-icon')]]"
                % (item_class, fold, lit))

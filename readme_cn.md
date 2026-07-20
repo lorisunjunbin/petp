@@ -96,7 +96,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 
 | 分类 | 能力 |
 |------|------|
-| **浏览器自动化** (Selenium) | 导航、点击、输入、采集、批量查找、iFrame、Cookie、截图。SAP Ariba Angular 表单控件:是/否单选、级联树下拉、多选下拉。支持 Chrome DevTools Recorder 导入。 |
+| **浏览器自动化** (Selenium) | 导航、点击、输入、采集、批量查找、iFrame、Cookie、截图。SAP Ariba Angular 表单控件:是/否单选、级联树下拉、单选/多选下拉、Material 日期选择器。支持 Chrome DevTools Recorder 导入。 |
 | **SSH / SFTP** (Paramiko) | SSH/SFTP 会话、远程命令、文件上传下载。 |
 | **文件与文件夹** | 打开、写入、删除、读取、查找、监控自动移动、ZIP/UNZIP。 |
 | **数据与表格** | CSV/Excel 读写、采集、过滤、分组、映射、脱敏、合并。 |

@@ -144,6 +144,14 @@ class PETPInteractor():
         self.v.taskGrid.Bind(wx.grid.EVT_GRID_CELL_LEFT_DCLICK, self.on_task_grid_dclick)
         self.v.taskGrid.GetGridWindow().Bind(wx.EVT_KEY_DOWN, self.on_task_grid_key_down)
         self.v.taskGrid.Bind(wx.EVT_SIZE, self.on_task_grid_size)
+        # task editor - search box: Enter jumps to next task whose input matches;
+        # editing the query resets the search cursor
+        self.v.search_task.Bind(wx.EVT_TEXT_ENTER, self.on_search_task_next)
+        # SearchCtrl emits EVT_SEARCH (not always EVT_TEXT_ENTER, esp. on macOS)
+        # for Enter / the magnifier button — bind it so Enter actually fires.
+        self.v.search_task.Bind(wx.EVT_SEARCH, self.on_search_task_next)
+        self.v.search_task.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.on_search_task_cancel)
+        self.v.search_task.Bind(wx.EVT_TEXT, self.on_search_task_changed)
 
     def bind_view_event_4e_loop_editor(self):
         self.v.Bind(wx.EVT_BUTTON, self.on_add_loop, self.v.addLoop)
@@ -483,6 +491,17 @@ class PETPInteractor():
     def on_task_grid_size(self, evt):
         evt.Skip()
         wx.CallAfter(self.p._autosize_input_col)
+
+    def on_search_task_next(self, evt):
+        self.p.on_search_task_next()
+
+    def on_search_task_cancel(self, evt):
+        evt.Skip()
+        self.p.on_search_task_cancel()
+
+    def on_search_task_changed(self, evt):
+        evt.Skip()
+        self.p.on_search_task_changed()
 
     def on_cron_actived(self, evt):
         self.p.on_cron_actived(evt)

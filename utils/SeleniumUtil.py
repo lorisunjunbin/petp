@@ -217,6 +217,20 @@ class SeleniumUtil:
                 return 'failed:%s' % type(ex).__name__
 
     @staticmethod
+    def xpath_literal(s):
+        """Embed an arbitrary string as an XPath string literal (quote-safe).
+
+        Handles values containing single quotes, double quotes, or both (CJK is
+        fine as-is). Shared by processors that build text/attr-match xpaths.
+        """
+        if "'" not in s:
+            return "'" + s + "'"
+        if '"' not in s:
+            return '"' + s + '"'
+        parts = s.split("'")
+        return "concat(" + ", \"'\", ".join("'" + p + "'" for p in parts) + ")"
+
+    @staticmethod
     def move_to_ele(chrome, ele):
         """Hover the mouse onto an element.
 
