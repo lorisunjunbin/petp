@@ -46,8 +46,7 @@ class FIND_THEN_COLLECTProcessor(Processor):
         if valueCollected is None and value_type is not None and ele is not None:
             valueCollected = SeleniumUtil.get_property_or_attribute(ele, value_type)
 
-        logging.info('Collected "%s"', value_key)
-        logging.debug('Collected "%s": %s', value_key, str(valueCollected))
+        logging.info('Collected "%s": %s', value_key, str(valueCollected))
 
         if self.is_in_loop:
             self.append_data_for_loop(value_key, valueCollected)

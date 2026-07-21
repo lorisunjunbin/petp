@@ -11,6 +11,7 @@ from portable.petp_run import run
 result = run("YOUR_EXECUTION", {"key": "value"})
 # result: {"ok": bool, "data": {...}, "error": str|None, "meta": {...}}
 # python petp_run.py T_Supplier_Creation_CPTDC '{"supplier_name":"ABCD","last_name":"yabang","first_name":"doufu","cell":"13899999999","email":"6666666@qq.com"}'
+# python petp_run.py T_Supplier_Registration
 ```
 
 Command line: `python portable/petp_run.py SMOKE_TEST`
@@ -64,10 +65,20 @@ same version row on that page).
 After placing them, make the binaries executable:
 `chmod +x webdriver/<system>/chrome-headless-shell webdriver/<system>/chromedriver`.
 
-> **macOS one-time step**: if the first run triggers a Gatekeeper block such as
-> "libGLESv2.dylib" Not Opened, strip the quarantine attribute from the whole
-> directory: `xattr -dr com.apple.quarantine portable/webdriver/darwin`.
-> (Linux/CF have no such mechanism — not needed there.)
+> **macOS one-time step (do this right after placing the binaries — don't wait
+> for a popup)**: files downloaded from Chrome for Testing carry a
+> `com.apple.quarantine` attribute, so Gatekeeper blocks chromedriver /
+> chrome-headless-shell / the bundled `.dylib`s — often on **every** run, with
+> prompts like "libGLESv2.dylib" / "chromedriver" Not Opened. Strip the
+> attribute recursively from the whole directory once:
+>
+> ```bash
+> xattr -dr com.apple.quarantine portable/webdriver/darwin
+> ```
+>
+> Re-run this after you re-download or update the binaries (new files are
+> quarantined again). It only affects this directory and does not lower system
+> security. (Linux/CF have no such mechanism — not needed there.)
 
 The `PETP_CHROME_BINARY` env var overrides auto-detection (point it at a binary,
 absolute or relative path). Resolution order: `PETP_CHROME_BINARY` >
