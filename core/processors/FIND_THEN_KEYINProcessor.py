@@ -64,8 +64,8 @@ class FIND_THEN_KEYINProcessor(Processor):
                           else v)
 
         elif skip_timeout_error:
-            logging.info('FIND_THEN_KEYIN find %s -> %s timeout: %s (skip_timeout_error=yes)',
-                         keyinby, identity, timeout)
+            self.log_noop('element not found within %ss: %s -> %s (skip_timeout_error=yes) -- VALUE NOT ENTERED'
+                          % (timeout, keyinby, identity))
             return
         else:
             raise Exception(f'FIND_THEN_KEYINProcessor not able to find ele by: {identity}')

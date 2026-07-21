@@ -35,8 +35,7 @@ class MOVE_TO_IFRAMEProcessor(Processor):
         logging.debug('Moving to iframe: %s (timeout=%ds)', frame_ids, timeout)
         result = SeleniumUtil.move_to_target_frame(chrome, frame_ids, timeout=timeout)
         if result is None:
-            msg = f'MOVE_TO_IFRAME: failed to switch into {frame_ids} within {timeout}s'
             if skip_timeout_error:
-                logging.info('%s (skip_timeout_error=yes)', msg)
+                self.log_noop('failed to switch into %s within %ss (skip_timeout_error=yes) -- STILL IN PREVIOUS FRAME, later steps target the wrong document' % (frame_ids, timeout))
                 return
-            raise Exception(msg)
+            raise Exception(f'MOVE_TO_IFRAME: failed to switch into {frame_ids} within {timeout}s')

@@ -139,13 +139,23 @@ class Processor:
             logging.info('[%s] skipped by skip_if_fn', self.task.type)
         return skip
 
+    def log_noop(self, reason):
+        """Log a step that COMPLETED WITHOUT DOING ITS WORK (a soft skip / no-op):
+        element not found under skip_timeout_error, condition_fn returned False,
+        click intercepted-and-skipped, etc. Uses a distinct ``[NOOP]`` prefix so
+        these "green but nothing happened" cases stand out in the log and can be
+        grepped — the failure mode where the run looks successful but the target
+        system got no data."""
+        logging.warning('[NOOP] %s: %s', type(self).__name__, reason)
+
     def fail_or_skip(self, msg, skip_err, prefix=None):
-        """Uniform skip_timeout_error handling: log & return when ``skip_err``,
-        else raise. ``prefix`` defaults to the processor class name. Used by
-        Selenium processors so the skip/raise shape isn't copy-pasted."""
+        """Uniform skip_timeout_error handling: soft-skip (log a [NOOP] and
+        return) when ``skip_err``, else raise. ``prefix`` defaults to the
+        processor class name. Used by Selenium processors so the skip/raise
+        shape isn't copy-pasted."""
         full = '%s: %s' % (prefix or type(self).__name__, msg)
         if skip_err:
-            logging.info('%s (skip_timeout_error=yes)', full)
+            self.log_noop('%s (skip_timeout_error=yes)' % full)
             return
         raise Exception(full)
 

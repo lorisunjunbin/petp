@@ -71,7 +71,7 @@ class SELECT_MULTI_DROPDOWNProcessor(Processor):
             if ok not in ('checked', 'already'):
                 if not skip_err:
                     raise Exception('SELECT_MULTI_DROPDOWN: failed to select %r (%s)' % (text, ok))
-                logging.info('SELECT_MULTI_DROPDOWN: %r not selected (%s, skip)', text, ok)
+                self.log_noop('option %r NOT selected (%s, skip_timeout_error=yes)' % (text, ok))
 
         # Optionally close the dropdown after selecting. Empty close_xpath =
         # leave it as-is. explain_optional returns '' for an unresolved "{var}".

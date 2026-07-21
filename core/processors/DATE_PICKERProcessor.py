@@ -88,21 +88,14 @@ class DATE_PICKERProcessor(Processor):
         super().extra_wait()
 
         if not self._open(chrome, open_xpath, calendar_xpath, timeout):
-            return self._fail('calendar did not open', skip_err)
+            return self.fail_or_skip('calendar did not open', skip_err, prefix='DATE_PICKER')
 
         self._navigate(chrome, calendar_xpath, (dt.year, dt.month), max_nav)
 
         aria = self._target_aria(dt)
         if not self._click_day(chrome, calendar_xpath, aria, timeout):
-            return self._fail('day cell not found/clickable: %r' % aria, skip_err)
+            return self.fail_or_skip('day cell not found/clickable: %r' % aria, skip_err, prefix='DATE_PICKER')
         logging.info('DATE_PICKER: picked %s', aria)
-
-    def _fail(self, msg, skip_err):
-        full = 'DATE_PICKER: ' + msg
-        if skip_err:
-            logging.info('%s (skip_timeout_error=yes)', full)
-            return
-        raise Exception(full)
 
     def _open(self, chrome, open_xpath, calendar_xpath, timeout):
         """Ensure the calendar popup is open. If it's already present, do

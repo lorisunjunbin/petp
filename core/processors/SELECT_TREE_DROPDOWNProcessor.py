@@ -73,7 +73,7 @@ class SELECT_TREE_DROPDOWNProcessor(Processor):
         # atomic JS, so we honour timeout / skip_timeout_error consistently.
         if not self._find_entry(chrome, container, i, text, timeout):
             if skip_err:
-                logging.info('SELECT_TREE_DROPDOWN: could not check %r (not found, skip_timeout_error=yes)', text)
+                self.log_noop('level %r NOT found -- NOT checked (skip_timeout_error=yes)' % text)
                 return False
             raise Exception('SELECT_TREE_DROPDOWN: failed to check checkbox for %r (not found)' % text)
 
@@ -84,7 +84,7 @@ class SELECT_TREE_DROPDOWNProcessor(Processor):
         if result in ('checked', 'already'):
             return True
         if skip_err:
-            logging.info('SELECT_TREE_DROPDOWN: could not check %r (%s, skip_timeout_error=yes)', text, result)
+            self.log_noop('level %r NOT checked (%s, skip_timeout_error=yes)' % (text, result))
             return False
         raise Exception('SELECT_TREE_DROPDOWN: failed to check checkbox for %r (%s)' % (text, result))
 
@@ -367,7 +367,9 @@ class SELECT_TREE_DROPDOWNProcessor(Processor):
             if not self._find_entry(chrome, container, i, text, timeout):
                 msg = 'SELECT_TREE_DROPDOWN: level %d text not found: %r' % (level, text)
                 if skip_err:
-                    logging.info('%s (skip_timeout_error=yes)', msg)
+                    self.log_noop('level %d text %r NOT found -- selection ABORTED, '
+                                  'remaining levels NOT expanded/checked (skip_timeout_error=yes)'
+                                  % (level, text))
                     return
                 raise Exception(msg)
             if is_last:

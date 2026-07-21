@@ -73,7 +73,7 @@ class SELECT_SINGLE_DROPDOWNProcessor(Processor):
         if self._find_item(chrome, container, item_class, value, timeout) is None:
             msg = 'SELECT_SINGLE_DROPDOWN: option not found: %r' % value
             if skip_err:
-                logging.info('%s (skip_timeout_error=yes)', msg)
+                self.log_noop('option %r NOT found -- NOT selected (skip_timeout_error=yes)' % value)
                 return
             raise Exception(msg)
 
@@ -81,7 +81,7 @@ class SELECT_SINGLE_DROPDOWNProcessor(Processor):
         logging.info('SELECT_SINGLE_DROPDOWN: select %r -> %s', value, result)
         if result != 'clicked':
             if skip_err:
-                logging.info('SELECT_SINGLE_DROPDOWN: %r not selected (%s, skip)', value, result)
+                self.log_noop('option %r NOT selected (%s, skip_timeout_error=yes)' % (value, result))
                 return
             raise Exception('SELECT_SINGLE_DROPDOWN: failed to select %r (%s)' % (value, result))
 

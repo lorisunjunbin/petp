@@ -48,7 +48,8 @@ class FIND_THEN_CLICKProcessor(Processor):
         ele = SeleniumUtil.get_element_by(chrome, clickby, identity, timeout)
         if ele is None:
             if skip_timeout_error:
-                logging.info('Find by %s -> %s element timeout: %s (skip_timeout_error=yes)', clickby, identity, timeout)
+                self.log_noop('element not found within %ss: %s -> %s (skip_timeout_error=yes) — CLICK NOT PERFORMED'
+                              % (timeout, clickby, identity))
                 return
             else:
                 raise Exception(f'Find by {clickby} -> {identity} element timeout: {timeout}')
@@ -56,7 +57,7 @@ class FIND_THEN_CLICKProcessor(Processor):
         condition_body = self.explain_param_or_default('condition_fn', 'return True')
         condition_fn = CodeExplainerUtil.create_and_execute_func('FIND_THEN_CLICK_condition', '(p,ele)', condition_body)
         if not condition_fn(self, ele):
-            logging.info('click skipped by condition_fn: %s', identity)
+            self.log_noop('condition_fn returned False — CLICK NOT PERFORMED: %s' % identity)
             return
 
         try:
@@ -80,7 +81,7 @@ class FIND_THEN_CLICKProcessor(Processor):
                     # Log the class name of the underlying error but NOT the
                     # multi-KB webdriver stacktrace — the intent ("skipped
                     # because unclickable") is what matters here.
-                    logging.info('click intercepted, skip_timeout_error=yes → skipped: %s -> %s (%s)',
-                                 clickby, identity, type(ex2).__name__)
+                    self.log_noop('click intercepted/unclickable, skip_timeout_error=yes — CLICK NOT PERFORMED: %s -> %s (%s)'
+                                  % (clickby, identity, type(ex2).__name__))
                     return
                 raise
