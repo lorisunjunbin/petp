@@ -6,7 +6,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class FIND_THEN_CLICKProcessor(Processor):
-    TPL: str = '{"find_by":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "condition_fn":"return True", "skip_if_fn":"return False", "chrome_name":"chrome"}'
+    TPL: str = '{"find_by":"id|xpath|link|css", "identity":"","identity_key":"", "wait":5, "timeout":5, "skip_timeout_error":"yes|no", "timeout_msg":"", "condition_fn":"return True", "skip_if_fn":"return False", "chrome_name":"chrome"}'
 
     DESC: str = '''
         Find a web element via Selenium using the specified locator strategy and click it.
@@ -20,6 +20,11 @@ class FIND_THEN_CLICKProcessor(Processor):
         - skip_timeout_error: whether to suppress errors when the click cannot happen. "yes" swallows both
           "element not found within timeout" AND "element found but click intercepted / not clickable"
           (useful for conditional buttons like an error-dialog "ignore & submit"). "no" or absent → raise. (default: "yes|no")
+        - timeout_msg: optional business message appended to the raised exception when the element is not
+          found / not clickable AND skip_timeout_error is "no". Gives the hard failure domain context.
+          Supports expression against data_chain AND the special {timeout} variable, e.g.
+          "Can not find the supplier {supplier_name} in {timeout} seconds." Ignored when skip_timeout_error
+          is "yes". (default: "")
         - condition_fn: Python function body; receives (ele) where ele is the located WebElement;
           click is only performed when the function returns True (default: "return True")
         - skip_if_fn: Python function body receiving (p); return True to SKIP this whole processor
@@ -52,7 +57,9 @@ class FIND_THEN_CLICKProcessor(Processor):
                               % (timeout, clickby, identity))
                 return
             else:
-                raise Exception(f'Find by {clickby} -> {identity} element timeout: {timeout}')
+                msg = 'element not found within %ss: %s -> %s' % (timeout, clickby, identity)
+                self.fail_or_skip(msg, False, prefix='FIND_THEN_CLICK',
+                                  timeout_msg=self.resolve_timeout_msg(timeout))
 
         condition_body = self.explain_param_or_default('condition_fn', 'return True')
         condition_fn = CodeExplainerUtil.create_and_execute_func('FIND_THEN_CLICK_condition', '(p,ele)', condition_body)
@@ -84,4 +91,7 @@ class FIND_THEN_CLICKProcessor(Processor):
                     self.log_noop('click intercepted/unclickable, skip_timeout_error=yes — CLICK NOT PERFORMED: %s -> %s (%s)'
                                   % (clickby, identity, type(ex2).__name__))
                     return
-                raise
+                self.fail_or_skip('click intercepted/unclickable: %s -> %s (%s)'
+                                  % (clickby, identity, type(ex2).__name__),
+                                  False, prefix='FIND_THEN_CLICK',
+                                  timeout_msg=self.resolve_timeout_msg(timeout))

@@ -416,6 +416,7 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
              "- wait: \u70b9\u51fb\u540e\u7684\u989d\u5916\u7b49\u5f85\u79d2\u6570\uff08\u9ed8\u8ba4: 0\uff09\n"
              "- timeout: \u7b49\u5f85\u5143\u7d20\u51fa\u73b0\u7684\u6700\u5927\u79d2\u6570\uff08\u9ed8\u8ba4: 10\uff09\n"
              "- skip_timeout_error: \"yes\" \u8d85\u65f6\u4e0d\u62a5\u9519\uff08\u9ed8\u8ba4: \"no\"\uff09\n"
+             "- timeout_msg: \u53ef\u9009\u7684\u4e1a\u52a1\u63d0\u793a\uff0c\u4ec5\u5f53\u5143\u7d20\u672a\u627e\u5230/\u4e0d\u53ef\u70b9\u51fb\u4e14 skip_timeout_error \u4e3a \"no\" \u65f6\uff0c\u9644\u52a0\u5230\u629b\u51fa\u7684\u5f02\u5e38\u4e0a\uff0c\u4e3a\u786c\u5931\u8d25\u63d0\u4f9b\u4e1a\u52a1\u4e0a\u4e0b\u6587\u3002\u652f\u6301\u8868\u8fbe\u5f0f\uff08data_chain \u53d8\u91cf\uff09\u4ee5\u53ca\u7279\u6b8a\u53d8\u91cf {timeout}\uff0c\u4f8b\u5982 \"Can not find the supplier {supplier_name} in {timeout} seconds.\"\uff1bskip_timeout_error \u4e3a \"yes\" \u65f6\u5ffd\u7565\uff08\u9ed8\u8ba4: \"\"\uff09\n"
              "- condition_fn: Python \u51fd\u6570\u4f53\uff0c\u70b9\u51fb\u524d\u7684\u6761\u4ef6\u68c0\u67e5\uff0c\u53c2\u6570\u4e3a \"ele\"\uff08\u53ef\u9009\uff09\n"
              "- skip_if_fn: Python \u51fd\u6570\u4f53\uff0c\u53c2\u6570\u4e3a (p)\uff1b\u8fd4\u56de True \u5219\u5728\u5b9a\u4f4d\u4e4b\u524d\u76f4\u63a5\u8df3\u8fc7\u6574\u4e2a processor\uff08\u4f8b\u5982 xpath \u7531\u53ef\u80fd\u4e0d\u5b58\u5728\u7684 data_chain \u503c\u62fc\u63a5\u65f6\uff09\uff08\u9ed8\u8ba4: \"return False\"\uff09\n"
         ),
@@ -463,6 +464,7 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- wait: 定位元素前的额外等待秒数，等待仍在渲染的元素出现（如刚通过 MOVE_TO_IFRAME 切入的 Angular 表单）（默认: 1）\n"
             "- timeout: 等待元素出现的最长秒数（默认: 5）\n"
             "- skip_timeout_error: 超时未找到元素时是否忽略错误。\"yes\" 记录日志并静默返回（继续执行）；\"no\" 或缺省则抛异常（默认: \"yes|no\"）\n"
+            "- timeout_msg: 可选的业务提示，仅当元素未找到且 skip_timeout_error 为 \"no\" 时，附加到抛出的异常上，为硬失败提供业务上下文。支持表达式（data_chain 变量）以及特殊变量 {timeout}，例如 \"Can not find the supplier {supplier_name} in {timeout} seconds.\"；skip_timeout_error 为 \"yes\" 时忽略（默认: \"\"）\n"
             "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（例如 xpath 由可能不存在的 data_chain 值拼接时）（默认: \"return False\"）"
         ),
     },

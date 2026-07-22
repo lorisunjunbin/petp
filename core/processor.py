@@ -148,15 +148,38 @@ class Processor:
         system got no data."""
         logging.warning('[NOOP] %s: %s', type(self).__name__, reason)
 
-    def fail_or_skip(self, msg, skip_err, prefix=None):
+    def resolve_timeout_msg(self, timeout=None):
+        """Read and expression-resolve the optional business ``timeout_msg`` param.
+
+        Uses ``expression2str`` directly (not ``explain_optional``, which would
+        discard a value still containing an unresolved ``{var}`` — but a
+        ``timeout_msg`` is MEANT to contain expressions like
+        ``Can not find the supplier {supplier_name} in {timeout} seconds.``).
+        The processor's local ``timeout`` is passed as an extra local so
+        ``{timeout}`` resolves without touching the shared data_chain. Returns ''
+        when the param is absent."""
+        if not self.has_param('timeout_msg'):
+            return ''
+        return self.expression2str(self.get_param('timeout_msg'),
+                                   extra_locals={'timeout': timeout})
+
+    def fail_or_skip(self, msg, skip_err, prefix=None, timeout_msg=''):
         """Uniform skip_timeout_error handling: soft-skip (log a [NOOP] and
         return) when ``skip_err``, else raise. ``prefix`` defaults to the
         processor class name. Used by Selenium processors so the skip/raise
-        shape isn't copy-pasted."""
+        shape isn't copy-pasted.
+
+        ``timeout_msg`` is an optional caller-supplied business message. It is
+        appended to the raised exception ONLY when raising (skip_err is False),
+        so a hard failure can carry domain context (e.g. "供应商属性未选中，请检查
+        数据"). It is intentionally NOT added to the soft-skip [NOOP] log, which
+        already states the skip reason."""
         full = '%s: %s' % (prefix or type(self).__name__, msg)
         if skip_err:
             self.log_noop('%s (skip_timeout_error=yes)' % full)
             return
+        if timeout_msg:
+            full = '%s -- %s' % (full, timeout_msg)
         raise Exception(full)
 
     def handle_ui_thread_callback(self, given):
@@ -385,7 +408,7 @@ class Processor:
         lambda e: "f" + e,
     )
 
-    def expression2str(self, expression, none_if_not_matched=False):
+    def expression2str(self, expression, none_if_not_matched=False, extra_locals=None):
         """
         Evaluate an expression as an f-string against the current data_chain context.
 
@@ -399,6 +422,8 @@ class Processor:
           4. Fallback: return the original string unchanged.
 
         Local variables from data_chain are injected so that {key} references resolve.
+        ``extra_locals`` (optional dict) supplies additional runtime values (e.g.
+        {'timeout': 10}) layered on top of data_chain without mutating it.
         """
         if expression is None:
             return None
@@ -430,6 +455,11 @@ class Processor:
                 local_vars.update(self.task.data_chain)
         except Exception:
             pass
+        # extra_locals are layered LAST so caller-supplied runtime values (e.g.
+        # {timeout}) resolve even when absent from data_chain, and shadow any
+        # like-named data_chain key without mutating the shared chain.
+        if extra_locals:
+            local_vars.update(extra_locals)
 
         # Restricted globals: only whitelisted builtins. Combined with dunder pre-scan,
         # this blocks __import__, open, eval, exec, compile, and object-graph traversal.
