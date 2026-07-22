@@ -76,7 +76,7 @@ class SeleniumUtil:
         return isinstance(chrome, WebDriver)
 
     @staticmethod
-    def get_webdriver4_chrome(download_folder=None, page_load_timeout=180, maximize_window=False) -> WebDriver:
+    def get_webdriver4_chrome(download_folder=None, page_load_timeout=180, maximize_window=False, browser_lang=None) -> WebDriver:
         wdpath = SeleniumUtil._resolve_chromedriver_path()
 
         down_path = os.path.join(os.path.realpath('download'), download_folder) \
@@ -104,9 +104,10 @@ class SeleniumUtil:
             options.add_argument('--disable-gpu')
             options.add_argument('--window-size=1920,1080')
             # Match the UI/Accept-Language locale of a normal desktop browser so
-            # headless renders the same localized page as headed mode. Override
-            # via PETP_BROWSER_LANG (e.g. "en-US"); defaults to zh-CN.
-            browser_lang = os.environ.get('PETP_BROWSER_LANG', 'zh-CN')
+            # headless renders the same localized page as headed mode. Resolution
+            # order: explicit browser_lang arg (from the GO_TO_PAGE task) >
+            # PETP_BROWSER_LANG env var > zh-CN default.
+            browser_lang = browser_lang or os.environ.get('PETP_BROWSER_LANG', 'zh-CN')
             options.add_argument(f'--lang={browser_lang}')
         else:
             options.add_argument("--start-maximized")
@@ -469,9 +470,10 @@ class SeleniumUtil:
         return chrome
 
     @staticmethod
-    def get_page_from_url(crmurl, download_folder=None, page_load_timeout=180):
+    def get_page_from_url(crmurl, download_folder=None, page_load_timeout=180, browser_lang=None):
         chrome = SeleniumUtil.get_webdriver4_chrome(download_folder=download_folder,
-                                                    page_load_timeout=page_load_timeout)
+                                                    page_load_timeout=page_load_timeout,
+                                                    browser_lang=browser_lang)
         chrome.get(crmurl)
 
         return chrome

@@ -5,7 +5,7 @@ from utils.SeleniumUtil import SeleniumUtil
 
 
 class GO_TO_PAGEProcessor(Processor):
-    TPL: str = '{"page_load_timeout_seconds":"180","url":"required", "url_key":"", "chrome_name":"chrome","skip_in_pipeline":"no", "download_folder":""}'
+    TPL: str = '{"page_load_timeout_seconds":"180","url":"required", "url_key":"", "chrome_name":"chrome","skip_in_pipeline":"no", "download_folder":"", "browser_lang":"en-US|zh-CN"}'
     DESC: str = '''
         Launch chrome browser via selenium and navigate to a specific URL. Usually the first task of web-related execution.
 
@@ -15,6 +15,7 @@ class GO_TO_PAGEProcessor(Processor):
         - chrome_name: key of data_chain to store the chrome driver instance (default: "chrome")
         - skip_in_pipeline: "yes" to skip this task when running in pipeline (default: "no")
         - download_folder: folder path for chrome downloads (optional, supports expression)
+        - browser_lang: HEADLESS-only UI / Accept-Language locale (e.g. "en-US", "zh-CN") — makes locale-sensitive sites (e.g. Ariba) render in that language. Supports expression, so it can come from an Execution input like "{lang}". Empty = fall back to PETP_BROWSER_LANG env var, then "zh-CN". Ignored in headed mode. (default: "")
     '''
 
     def get_category(self) -> str:
@@ -32,7 +33,12 @@ class GO_TO_PAGEProcessor(Processor):
             if self.has_param('page_load_timeout_seconds') else 180
 
         url = self.get_data_by_param_default_param("url_key", "url")
-        chrome = SeleniumUtil.get_page_from_url(url, download_folder=download_folder, page_load_timeout=page_load_timeout_seconds)
+        # Empty (or an unresolved "{var}") → None so SeleniumUtil falls back to
+        # PETP_BROWSER_LANG env var, then zh-CN. Only takes effect in headless.
+        browser_lang = self.explain_optional('browser_lang', '') or None
+        chrome = SeleniumUtil.get_page_from_url(url, download_folder=download_folder,
+                                                page_load_timeout=page_load_timeout_seconds,
+                                                browser_lang=browser_lang)
 
         if self.has_param('chrome_name'):
             self.populate_data(self.get_param('chrome_name'), chrome)

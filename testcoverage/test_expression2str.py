@@ -83,3 +83,28 @@ class TestExpression2Str:
         proc = make_processor("RUN_JAVASCRIPT", '{"params":"{json.dumps(payload)}"}', {"payload": {"pyKey": 7}})
         assert proc.get_json_param("params") == {"pyKey": 7}
 
+    def test_extra_locals_resolves_var_absent_from_chain(self, make_processor):
+        # extra_locals supplies a runtime var not in data_chain (e.g. {timeout}).
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', {})
+        assert proc.expression2str("waited {timeout}s", extra_locals={"timeout": 10}) == "waited 10s"
+
+    def test_extra_locals_shadows_chain_key(self, make_processor):
+        # A like-named data_chain key must be shadowed by extra_locals, not win.
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', {"timeout": 999})
+        assert proc.expression2str("{timeout}", extra_locals={"timeout": 10}) == "10"
+
+    def test_extra_locals_does_not_mutate_chain(self, make_processor):
+        chain = {"name": "x"}
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', chain)
+        proc.expression2str("{timeout}", extra_locals={"timeout": 5})
+        assert "timeout" not in chain  # extra_locals is layered, never written to the chain
+
+    def test_extra_locals_combines_with_chain(self, make_processor):
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', {"who": "supplier A"})
+        result = proc.expression2str("Can not find {who} in {timeout}s", extra_locals={"timeout": 30})
+        assert result == "Can not find supplier A in 30s"
+
+    def test_extra_locals_none_is_noop(self, make_processor):
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', {"name": "world"})
+        assert proc.expression2str("{name}", extra_locals=None) == "world"
+

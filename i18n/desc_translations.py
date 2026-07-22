@@ -514,6 +514,7 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
              "- chrome_name: data_chain \u4e2d\u5b58\u50a8 Chrome \u9a71\u52a8\u7684\u952e\uff08\u9ed8\u8ba4: \"chrome\"\uff09\n"
              "- skip_in_pipeline: 设为 \"yes\" 时在流水线运行中跳过此任务（默认: \"no\"）\n"
              "- download_folder: chrome 下载路径的文件夹（可选，支持表达式）\n"
+             "- browser_lang: 仅在无头(headless)模式生效的 UI / Accept-Language 语言（如 en-US、zh-CN），让对语言敏感的站点（如 Ariba）按该语言渲染。支持表达式，可来自 Execution 输入如 {lang}。留空则回退到 PETP_BROWSER_LANG 环境变量，再回退 zh-CN；有界面模式下忽略（默认为空）\n"
         ),
     },
 
