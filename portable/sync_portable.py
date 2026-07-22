@@ -20,6 +20,26 @@ SYNC_EXECUTIONS = [
     'T_Supplier_Creation_CPTDC',
 ]
 
+# After portable is refreshed, also push the CODE parts of portable into each of
+# these external target directories (per-file overwrite; files already present in
+# the target that we don't ship are kept). Only code is copied — NOT webdriver/,
+# download/, log/, config/, or CF config — so the target gets a runnable engine +
+# processors + the SYNC_EXECUTIONS without the heavy binaries or runtime junk.
+# A target directory that does not exist is reported and skipped (never created).
+# Leave empty to skip external sync entirely.
+SYNC_TARGET_DIRS = [
+    '$target_folder',
+]
+
+# Portable subdirectories that count as "code" — pushed to each target.
+TARGET_SYNC_DIRS = ['core', 'utils', 'mvp']
+# Portable top-level files pushed to each target.
+TARGET_SYNC_FILES = ['petp_run.py', 'requirements.txt']
+# Never copy these into targets (heavy binaries / runtime products / caches).
+TARGET_IGNORE = shutil.ignore_patterns('__pycache__', '*.pyc', '.DS_Store',
+                                       'webdriver', 'download', 'log')
+
+
 # (src_rel, dst_rel) directories copied wholesale
 COPY_DIRS = [
     ('core/definition', 'core/definition'),
@@ -87,6 +107,29 @@ def _copy_executions():
         print('sync: WARNING missing in main repo (not copied): ' + ', '.join(missing))
 
 
+def _sync_to_targets():
+    """Push the CODE parts of portable into each external target (per-file
+    overwrite, keeping files the target has that we don't ship). Runs after
+    portable itself is refreshed, so targets get the freshly-synced engine +
+    processors + executions — minus webdriver/download/log/config."""
+    if not SYNC_TARGET_DIRS:
+        return
+    for target in SYNC_TARGET_DIRS:
+        if not os.path.isdir(target):
+            print('sync: WARNING target dir missing (skipped): ' + target)
+            continue
+        for d in TARGET_SYNC_DIRS:
+            src = os.path.join(PORTABLE, d)
+            if os.path.isdir(src):
+                shutil.copytree(src, os.path.join(target, d),
+                                ignore=TARGET_IGNORE, dirs_exist_ok=True)
+        for f in TARGET_SYNC_FILES:
+            src = os.path.join(PORTABLE, f)
+            if os.path.isfile(src):
+                shutil.copy2(src, os.path.join(target, f))
+        print('sync: pushed code to target -> ' + target)
+
+
 def main():
     for rel in COPY_FILES:
         _copy_file(rel)
@@ -102,6 +145,8 @@ def main():
         print('SMOKE IMPORT FAILED:\n' + r.stderr)
         sys.exit(1)
     print('sync: import smoke check PASS.')
+
+    _sync_to_targets()
 
 
 if __name__ == '__main__':
