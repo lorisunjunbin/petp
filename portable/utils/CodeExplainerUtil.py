@@ -80,6 +80,9 @@ class CodeExplainerUtil:
         'SELECT_SINGLE_DROPDOWN': [
             ('skip_if_fn', '(p)', ''),
         ],
+        'SELECT_TYPE_AHEAD': [
+            ('skip_if_fn', '(p)', ''),
+        ],
         'DATE_PICKER': [
             ('skip_if_fn', '(p)', ''),
         ],

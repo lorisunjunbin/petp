@@ -932,6 +932,23 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
             "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
         ),
     },
+    "desc_SELECT_TYPE_AHEAD": {
+        "zh": (
+            "在 SAP Ariba 的 type-ahead / md-autocomplete 字段中选中一个值（如 国家/地区、州/省/地区，或任意单值自动补全）：\n"
+            "把 value 输入到按 aria-label 定位的输入框，然后点击弹层里可见文本与 value 完全相等的选项——"
+            "若没有完全相等的，则点击唯一一个包含 value 的选项（所以“辽宁”能匹配列出的“辽宁(070)”，而“中国”会精确选中而非“中立区”/“中非共和国”）。\n"
+            "本处理器封装 bank/contact 填充器共用的 SeleniumUtil.select_type_ahead，因此可以单独填一个自动补全字段而不必走整个 feeder。\n"
+            "\n"
+            "- aria_label: type-ahead 输入框的 aria-label，如 \"国家/地区\"；支持表达式，如 \"{field}\"（必填）\n"
+            "- value: 要选中的选项文本，如 \"中国\"；支持表达式，如 \"{country}\"（必填）\n"
+            "- option_class: 弹层里每个自动补全选项行的 CSS 类（默认: \"mat-option\"）\n"
+            "- wait: 开始前静态等待秒数，等表单渲染完成（默认: 1）\n"
+            "- timeout: 等待输入框/选项弹层出现的最大秒数（默认: 10）\n"
+            "- skip_timeout_error: \"yes\" 字段/选项找不到时记日志并继续；\"no\" 抛异常（默认: \"yes|no\"）\n"
+            "- skip_if_fn: Python 函数体，参数为 (p)；返回 True 则在定位之前直接跳过整个 processor（例如 value 由可能不存在的 data_chain 值拼接时）（默认: \"return False\"）\n"
+            "- chrome_name: data_chain 中 Chrome driver 的键（默认: \"chrome\"）"
+        ),
+    },
     "desc_DATE_PICKER": {
         "zh": (
             "在 Angular Material 日期选择器（md-datepicker-content 日历弹层）中选中一个日期。\n"
@@ -1044,12 +1061,13 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
         "zh": (
             "\u6839\u636e\u5b57\u6bb5\u6807\u7b7e\u9009\u62e9 SAP Ariba \u662f/\u5426\u5355\u9009\u6846\uff08radio group\uff09\u4e2d\u7684 \u662f \u6216 \u5426\u3002\n"
             "\u901a\u8fc7 label \u6a21\u7cca\u5339\u914d\uff08contains\u3001\u5927\u5c0f\u5199\u4e0d\u654f\u611f\uff09radio group \u7684 aria-label \u6765\u5b9a\u4f4d\u5206\u7ec4\u2014\u2014"
-            "\u6240\u4ee5\u540c\u4e00\u9875\u4e0a\u591a\u4e2a\u540c\u6837\u5f0f\u7684\u662f/\u5426\u5206\u7ec4\u9760\u5404\u81ea\u7684 label \u533a\u5206\u3002\u5206\u7ec4\u5185\u6309\u53ef\u89c1\u6587\u672c\uff08\u662f/\u5426\uff09\u9009\u4e2d\u5bf9\u5e94\u9879\uff0c"
+            "\u6240\u4ee5\u540c\u4e00\u9875\u4e0a\u591a\u4e2a\u540c\u6837\u5f0f\u7684\u662f/\u5426\u5206\u7ec4\u9760\u5404\u81ea\u7684 label \u533a\u5206\u3002\u5206\u7ec4\u5185\u6309\u53ef\u89c1\u6587\u672c\u9009\u4e2d\u5bf9\u5e94\u9879\uff0c"
+            "\u540c\u65f6\u63a5\u53d7\u4e2d\u6587\uff08\u662f/\u5426\uff09\u548c\u82f1\u6587\uff08Yes/No\uff09\u4e24\u79cd\u6e32\u67d3\uff08\u5927\u5c0f\u5199\u4e0d\u654f\u611f\uff09\uff0c\u56e0\u6b64\u4e2d\u6587\u6216\u82f1\u6587\u754c\u9762\u4e0b\u540c\u4e00\u4e2a\u4efb\u52a1\u90fd\u80fd\u7528\uff1b"
             "\u4e0d\u7528 radio \u81ea\u8eab\u7684 aria-label\uff08Ariba \u628a\u4e24\u4e2a\u6309\u94ae\u90fd\u8bef\u6807\u6210\u201c\u5426\u201d\uff09\uff0c\u4e5f\u4e0d\u7528\u52a8\u6001 id\u3002"
             "\u70b9\u51fb\u5728\u6d4f\u89c8\u5668\u5185\u4e00\u6b21\u6027\u5b8c\u6210\uff0c\u89c4\u907f Angular Material \u70b9\u51fb\u76ee\u6807\u5728 label/input \u4e0a\u7684\u5751\u3002\n"
             "\n"
             "- label: \u7528\u4e8e\u5b9a\u4f4d radio group \u7684\u5b57\u6bb5\u6807\u7b7e\uff0c\u6309 aria-label \u6a21\u7cca\u5339\u914d\uff0c\u5982 \"\u662f\u5426\u6c11\u4f01\"\uff1b\u652f\u6301\u8868\u8fbe\u5f0f\uff0c\u5982 \"{field}\"\uff08\u5fc5\u586b\uff09\n"
-            "- value: \u9009\u54ea\u4e2a\u2014\u2014\u63a5\u53d7 \u662f/\u5426\u3001yes/no\u3001y/n\u3001true/false\u30011/0\uff08\u5927\u5c0f\u5199\u4e0d\u654f\u611f\uff09\uff1b\u652f\u6301\u8868\u8fbe\u5f0f\uff0c\u5982 \"{is_private}\"\uff08\u5fc5\u586b\uff09\n"
+            "- value: \u9009\u54ea\u4e2a\u2014\u2014\u63a5\u53d7 \u662f/\u5426\u3001yes/no\u3001y/n\u3001true/false\u30011/0\uff08\u5927\u5c0f\u5199\u4e0d\u654f\u611f\uff09\uff1b\u53ef\u5339\u914d\u6e32\u67d3\u4e3a \u662f/\u5426 \u6216 Yes/No \u7684\u6309\u94ae\uff1b\u652f\u6301\u8868\u8fbe\u5f0f\uff0c\u5982 \"{is_private}\"\uff08\u5fc5\u586b\uff09\n"
             "- group_tag: \u5e26 aria-label \u7684 radio group \u5143\u7d20\u7684\u6807\u7b7e/CSS \u9009\u62e9\u5668\uff08\u9ed8\u8ba4: \"md-radio-group\"\uff09\n"
             "- button_tag: \u5206\u7ec4\u5185\u6bcf\u4e2a radio \u6309\u94ae\u5143\u7d20\u7684\u6807\u7b7e/CSS \u9009\u62e9\u5668\uff08\u9ed8\u8ba4: \"md-radio-button\"\uff09\n"
             "- text_class: \u627f\u8f7d radio \u53ef\u89c1 \u662f/\u5426 \u6587\u672c\u7684\u5143\u7d20 CSS \u7c7b\uff08\u9ed8\u8ba4: \"mat-radio-label-content\"\uff09\n"

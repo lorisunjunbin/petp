@@ -16,7 +16,6 @@ EXCLUDE_PROCESSORS = {
 # Names may be given with or without the .yaml suffix.
 SYNC_EXECUTIONS = [
     'T_Supplier_Registration',
-    'T_Supplier_Creation',
     'T_Supplier_Creation_CPTDC',
 ]
 
@@ -28,7 +27,7 @@ SYNC_EXECUTIONS = [
 # A target directory that does not exist is reported and skipped (never created).
 # Leave empty to skip external sync entirely.
 SYNC_TARGET_DIRS = [
-    '$target_folder',
+    '/Users/i335607/MyProject/ariba_ai_assistant/rpa',
 ]
 
 # Portable subdirectories that count as "code" — pushed to each target.

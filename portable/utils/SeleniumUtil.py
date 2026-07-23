@@ -270,11 +270,11 @@ class SeleniumUtil:
         ele.send_keys(value)
         time.sleep(0.5)   # let the autocomplete panel render/filter
         js = r"""
-        var optClass = arguments[0], want = (arguments[1]||'').trim();
+        var optClass = arguments[0], want = (arguments[1]||'').trim().toLowerCase();
         var opts = document.querySelectorAll('.' + optClass);
         var contains = [];
         for (var i = 0; i < opts.length; i++) {
-            var txt = (opts[i].textContent || '').trim();
+            var txt = (opts[i].textContent || '').trim().toLowerCase();
             if (txt === want) { opts[i].scrollIntoView({block:'center'}); opts[i].click(); return 'clicked'; }
             if (txt.indexOf(want) !== -1) contains.push(opts[i]);
         }
