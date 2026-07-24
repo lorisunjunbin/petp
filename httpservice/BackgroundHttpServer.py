@@ -353,7 +353,13 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
 
             if not self._wants_sse(handler):
                 raw_result = self._run_with_timeout(
-                    lambda: self.runtime.run_execution(tool_exec_name, arguments, trace_id=trace_id),
+                    # apply_output_schema=False: the MCP layer maps the data_chain
+                    # through the outputSchema itself (_build_tools_call_result ->
+                    # _build_output_from_schema), so run_execution must return the
+                    # full data_chain here — mapping twice would drop fields whose
+                    # mapKey differs from the property name.
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments, trace_id=trace_id,
+                                                        apply_output_schema=False),
                     self._timeout,
                 )
                 return self._mcp_tools_call_json_response(
@@ -371,7 +377,8 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
                 progress_queue = SimpleQueue()
                 result = None
                 for item in self._run_with_progress(
-                    lambda: self.runtime.run_execution(tool_exec_name, arguments, progress_queue=progress_queue, trace_id=trace_id),
+                    lambda: self.runtime.run_execution(tool_exec_name, arguments, progress_queue=progress_queue,
+                                                       trace_id=trace_id, apply_output_schema=False),
                     self._timeout, tool_exec_name, progress_queue=progress_queue,
                     cancel_event=cancel_event,
                 ):

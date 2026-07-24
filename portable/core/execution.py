@@ -18,6 +18,7 @@ except Exception:
     wx = _WxShim()
 
 from core.definition.yamlro import YamlRO
+from core.constants import HTTP_RESPONSE_KEY
 from core.executionstate import ExecutionState
 from utils.Logger import set_trace_id
 from core.loop import Loop
@@ -186,6 +187,7 @@ class Execution:
 
             state.move_to_next()
 
+        self._log_declared_output(data_chain)
         return data_chain
 
     _LOOP_LOG_INTERVAL = 5  # seconds — minimum gap between LOG events during loops
@@ -326,6 +328,73 @@ class Execution:
                 break
         self._mcp_input_defaults_cache = all_defaults
         return all_defaults
+
+    def get_output_schema(self) -> dict:
+        """Return the mcp_desc.outputSchema dict (with a 'properties' map), or {} if
+        absent/unparseable. Lets a headless run() map a subset of data_chain into the
+        result the same way the MCP layer does, so both return the same shaped output."""
+        cached = getattr(self, '_output_schema_cache', None)
+        if cached is not None:
+            return cached
+        mcp_desc = getattr(self, 'mcp_desc', None)
+        schema = {}
+        if mcp_desc:
+            try:
+                parsed = json.loads(mcp_desc)
+                s = parsed.get("outputSchema")
+                if isinstance(s, dict) and s.get("properties"):
+                    schema = s
+            except (json.JSONDecodeError, TypeError):
+                schema = {}
+        self._output_schema_cache = schema
+        return schema
+
+    @staticmethod
+    def map_output_schema(data_chain: Any, output_schema: dict) -> dict:
+        """Map a subset of data_chain into a result dict per an mcp_desc outputSchema:
+        for each declared property, pull data_chain[mapKey] (mapKey supports an f-string
+        expression against data_chain, falling back to the property name); coerce to
+        string when the property type says "string". Missing keys are skipped. Returns
+        {} if data_chain isn't a dict. Shared by the MCP layer, the headless runtime, and
+        GUI output logging so all three produce the same shaped output."""
+        if not isinstance(data_chain, dict):
+            return {}
+        properties = output_schema.get("properties", {})
+        result = {}
+        for prop_name, prop_spec in properties.items():
+            dc_key = prop_spec.get("mapKey") or prop_name
+            if '{' in dc_key and '}' in dc_key:
+                try:
+                    value = eval(f"f'{dc_key}'", {"__builtins__": {}}, data_chain)
+                except Exception:
+                    continue
+            elif dc_key in data_chain:
+                value = data_chain[dc_key]
+            else:
+                continue
+            if prop_spec.get("type") == "string" and not isinstance(value, str):
+                value = json.dumps(value, ensure_ascii=False, default=str)
+            result[prop_name] = value
+        return result
+
+    def _log_declared_output(self, data_chain: dict):
+        """Log the declared output of this Execution so a GUI run surfaces the same
+        result an MCP client / HTTP caller would receive. Precedence mirrors the
+        runtime: mcp_desc.outputSchema (field mapping) > HTTP_RESPONSE_KEY (single
+        value). Executions declaring neither log nothing (no noise for plain runs)."""
+        if not isinstance(data_chain, dict):
+            return
+        output_schema = self.get_output_schema()
+        if output_schema:
+            mapped = Execution.map_output_schema(data_chain, output_schema)
+            logging.info('Execution [ %s ] output (outputSchema): %s',
+                         self.execution, json.dumps(mapped, ensure_ascii=False, default=str))
+            return
+        resp_key = data_chain.get(HTTP_RESPONSE_KEY)
+        if isinstance(resp_key, str) and resp_key in data_chain:
+            logging.info('Execution [ %s ] output (HTTP_RESPONSE_KEY=%s): %s',
+                         self.execution, resp_key,
+                         json.dumps(data_chain[resp_key], ensure_ascii=False, default=str))
 
     def expand_mcp_defaults(self, data_chain: dict) -> dict:
         """Return MCP input defaults with expressions expanded using a Processor context.

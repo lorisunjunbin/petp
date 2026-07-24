@@ -36,7 +36,8 @@ class BackgroundRuntime:
 
     def run_execution(self, execution_name: str, init_data: Optional[dict] = None,
                        progress_queue: Optional[SimpleQueue] = None,
-                       trace_id: Optional[str] = None) -> dict:
+                       trace_id: Optional[str] = None,
+                       apply_output_schema: bool = True) -> dict:
         # Set the trace id on THIS thread (thread-pool workers don't inherit the
         # submitter's contextvars, so it must be set inside the executed call).
         set_trace_id(trace_id)
@@ -207,6 +208,18 @@ class BackgroundRuntime:
                 skipped_tasks,
             )
 
+        # Success. Output precedence: mcp_desc.outputSchema (field mapping) >
+        # HTTP_RESPONSE_KEY (single value, handled inside _public_data) > full
+        # data_chain. When an outputSchema is declared, map the subset it names so
+        # a headless run() returns the same shaped output as the MCP layer.
+        # NOTE: apply_output_schema=False when called inside a pipeline — the
+        # mapping is an OUTPUT VIEW for the external caller; a pipeline must keep
+        # the full data_chain flowing between steps, so it must NOT be truncated.
+        if apply_output_schema:
+            output_schema = execution.get_output_schema()
+            if output_schema:
+                mapped = BackgroundRuntime._map_output_schema(data_chain, output_schema)
+                return self._result(True, mapped, None, started, skipped_tasks)
         return self._result(True, data_chain, None, started, skipped_tasks)
 
     def run_pipeline(self, pipeline_name: str, init_data: Optional[dict] = None,
@@ -314,7 +327,8 @@ class BackgroundRuntime:
                         "exec": execution_name,
                         "phase": "started",
                     })
-                result = self.run_execution(execution_name, merged_input, progress_queue=progress_queue)
+                result = self.run_execution(execution_name, merged_input, progress_queue=progress_queue,
+                                            apply_output_schema=False)
                 if progress_queue is not None:
                     progress_queue.put({
                         "type": "execution",
@@ -401,6 +415,13 @@ class BackgroundRuntime:
         if extra_meta:
             meta.update(extra_meta)
         return {"ok": ok, "data": safe_data, "error": error, "meta": meta}
+
+    @staticmethod
+    def _map_output_schema(data_chain: Any, output_schema: dict) -> dict:
+        """Delegate to Execution.map_output_schema — the single shared implementation
+        of mcp_desc.outputSchema field mapping (also used by the MCP layer and GUI
+        output logging)."""
+        return Execution.map_output_schema(data_chain, output_schema)
 
     @staticmethod
     def _public_data(data_chain: Any) -> dict:

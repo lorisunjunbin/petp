@@ -833,13 +833,13 @@ pipeline: {pipeline_name}
             original_run = bg_runtime.run_execution
 
             call_count = [0]
-            def slow_run(exec_name, init_data=None, progress_queue=None):
+            def slow_run(exec_name, init_data=None, progress_queue=None, **kwargs):
                 call_count[0] += 1
                 if call_count[0] == 1:
                     barrier.wait()
                     import time as _t
                     _t.sleep(0.3)
-                return original_run(exec_name, init_data, progress_queue)
+                return original_run(exec_name, init_data, progress_queue, **kwargs)
 
             bg_runtime.run_execution = slow_run
 

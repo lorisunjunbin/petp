@@ -90,13 +90,30 @@ def test_execution_not_found():
 DB_EXEC = "test_DB_ACCESS_Sqlite"
 
 
+def _rows(r: dict):
+    """Extract the sqlite result rows from a run_execution result.
+
+    test_DB_ACCESS_Sqlite declares an mcp_desc outputSchema (property "data"
+    <- mapKey "dataset_sqlite", type "string"), so a direct run_execution maps
+    the rows list into data["data"] AND json-serializes it to a string (type
+    "string"). Older behavior returned data["dataset_sqlite"] as a raw list.
+    Accept both: prefer the raw list if present, else json.loads the mapped
+    string back into rows."""
+    data = r["data"]
+    if "dataset_sqlite" in data:
+        return data["dataset_sqlite"]
+    mapped = data.get("data")
+    if isinstance(mapped, str):
+        return json.loads(mapped)
+    return mapped
+
+
 @case("DB_ACCESS Sqlite: SELECT all users (no placeholder)")
 def test_db_select_all_no_placeholder():
     r = _run(DB_EXEC, {"sql": "SELECT * FROM user", "param": ""})
     assert r["ok"], f"not ok: {r['error']}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
-    assert rows is not None, f"dataset_sqlite missing in: {data}"
+    rows = _rows(r)
+    assert rows is not None, f"dataset_sqlite missing in: {r['data']}"
     assert len(rows) >= 1, f"expected at least 1 row, got: {rows}"
 
 
@@ -104,8 +121,7 @@ def test_db_select_all_no_placeholder():
 def test_db_select_with_placeholder():
     r = _run(DB_EXEC, {"sql": "SELECT * FROM user WHERE id > ?", "param": "0"})
     assert r["ok"], f"not ok: {r['error']}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
+    rows = _rows(r)
     assert rows is not None and len(rows) >= 1, f"expected rows: {rows}"
 
 
@@ -113,8 +129,7 @@ def test_db_select_with_placeholder():
 def test_db_count_no_placeholder():
     r = _run(DB_EXEC, {"sql": "SELECT COUNT(*) FROM user"})
     assert r["ok"], f"not ok: {r['error']}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
+    rows = _rows(r)
     assert rows is not None and rows[0][0] >= 1, f"unexpected count: {rows}"
 
 
@@ -123,8 +138,7 @@ def test_db_sqlite_version_no_placeholder():
     # Even if param is passed, it must not be forwarded to the driver
     r = _run(DB_EXEC, {"sql": "SELECT sqlite_version()", "param": "should_be_ignored"})
     assert r["ok"], f"not ok: {r['error']}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
+    rows = _rows(r)
     assert rows is not None and len(rows) == 1, f"expected exactly 1 row: {rows}"
     version = str(rows[0][0])
     assert version.replace(".", "").isdigit() or "." in version, f"unexpected version: {version}"
@@ -134,8 +148,7 @@ def test_db_sqlite_version_no_placeholder():
 def test_db_select_by_name():
     r = _run(DB_EXEC, {"sql": "SELECT id, name FROM user WHERE name = 'PETP'", "param": ""})
     assert r["ok"], f"not ok: {r['error']}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
+    rows = _rows(r)
     assert rows is not None and len(rows) >= 1, f"PETP user not found: {rows}"
     assert rows[0][1] == "PETP", f"unexpected name: {rows[0]}"
 
@@ -144,8 +157,7 @@ def test_db_select_by_name():
 def test_db_empty_result():
     r = _run(DB_EXEC, {"sql": "SELECT * FROM user WHERE id = ?", "param": "999999"})
     assert r["ok"], f"not ok: {r['error']}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
+    rows = _rows(r)
     assert rows is not None and len(rows) == 0, f"expected empty result, got: {rows}"
 
 
@@ -154,8 +166,7 @@ def test_db_invalid_sql():
     # SqliteDBAccess.execute catches sqlite3.Error internally and returns []
     r = _run(DB_EXEC, {"sql": "THIS IS NOT VALID SQL !@#"})
     assert r["ok"], f"expected ok=True (error is swallowed by driver), got: {r}"
-    data = r["data"]
-    rows = data.get("dataset_sqlite", data.get("data"))
+    rows = _rows(r)
     assert rows is not None and len(rows) == 0, f"expected empty result for bad SQL: {rows}"
 
 

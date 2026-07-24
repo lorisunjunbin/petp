@@ -19,7 +19,7 @@ class _FakeRuntime:
         self._progress_msgs = progress_msgs or []
         self._sleep = sleep
 
-    def run_execution(self, name, params, progress_queue=None):
+    def run_execution(self, name, params, progress_queue=None, **kwargs):
         for m in self._progress_msgs:
             if progress_queue is not None:
                 progress_queue.put(m)
@@ -29,7 +29,7 @@ class _FakeRuntime:
             raise self._raise
         return self._result
 
-    def run_pipeline(self, name, params, progress_queue=None):
+    def run_pipeline(self, name, params, progress_queue=None, **kwargs):
         if progress_queue is not None:
             progress_queue.put({"type": "execution", "pipeline": name, "exec": "step1", "phase": "started"})
             progress_queue.put({"type": "task", "execution": "step1", "index": 1, "total": 1,
@@ -137,7 +137,7 @@ class _SlowProgressRuntime:
     def __init__(self):
         self._result = {"ok": True, "data": {"final": "value"}, "error": None, "meta": {}}
 
-    def run_execution(self, name, params, progress_queue=None):
+    def run_execution(self, name, params, progress_queue=None, **kwargs):
         # Total runtime ~3s — long enough that cancel (fired at 0.1s)
         # is observed within a heartbeat tick (1s) BEFORE the runner finishes,
         # avoiding races against the post-loop drain/result path.
@@ -150,7 +150,7 @@ class _SlowProgressRuntime:
             time.sleep(0.15)
         return self._result
 
-    def run_pipeline(self, name, params, progress_queue=None):
+    def run_pipeline(self, name, params, progress_queue=None, **kwargs):
         return self._result
 
     def get_tools(self):

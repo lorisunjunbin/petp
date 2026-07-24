@@ -15,8 +15,8 @@ EXCLUDE_PROCESSORS = {
 
 # Names may be given with or without the .yaml suffix.
 SYNC_EXECUTIONS = [
-    'T_Supplier_Registration',
-    'T_Supplier_Creation_CPTDC',
+    'T_Supplier_Registration_huihui',
+    'T_Supplier_Creation_huihui',
 ]
 
 # After portable is refreshed, also push the CODE parts of portable into each of
