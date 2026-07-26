@@ -15,16 +15,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # ── Index — hero ─────────────────────────────────────────────
     "index_overline":  {
-        "en": "MCP Tool Server · Task Orchestration · LLM-Native · AI-Powered Generation",
-        "zh": "MCP 工具服务器 · 任务编排 · LLM 原生 · AI 驱动生成",
+        "en": "MCP Tool Server · Task Orchestration · LLM-Native · Portable Headless Runtime",
+        "zh": "MCP 工具服务器 · 任务编排 · LLM 原生 · 便携无头运行时",
     },
     "index_title": {
         "en": "Turn any workflow into an MCP tool — callable by any Agent.",
         "zh": "将任意工作流变成 MCP 工具 — 可被任何 Agent 调用。",
     },
     "index_hero_text": {
-        "en": "PETP is a pipeline execution runtime that exposes every automation as a typed MCP tool. AI agents can discover, invoke, and chain your real business operations — while processors inside each task can call LLMs themselves for intelligent decision-making. Now with built-in OCR, captcha handling, and conditional flow control.",
-        "zh": "PETP 是一个流水线执行运行时，将每个自动化任务暴露为带类型的 MCP 工具。AI Agent 可以发现、调用并编排你的真实业务操作——同时任务内部的处理器也可以自主调用 LLM 进行智能决策。现已内置 OCR、验证码处理与条件流程控制。",
+        "en": "PETP is a pipeline execution runtime that exposes every automation as a typed MCP tool. AI agents can discover, invoke, and chain your real business operations — while processors inside each task can call LLMs themselves for intelligent decision-making. Author and test flows visually in the desktop GUI, then run them anywhere with the split-out <strong>portable</strong> runtime — a self-contained, lightweight engine that executes a single flow headless (including browser automation), making it a natural fit for RPA. With built-in OCR, captcha handling, and conditional flow control.",
+        "zh": "PETP 是一个流水线执行运行时，将每个自动化任务暴露为带类型的 MCP 工具。AI Agent 可以发现、调用并编排你的真实业务操作——同时任务内部的处理器也可以自主调用 LLM 进行智能决策。流程在桌面 GUI 中可视化编辑与测试，再借助分离出的 <strong>便携（portable）</strong>运行时随处运行——一个自包含的轻量引擎，可 headless 执行单个流程（含浏览器自动化），作为 RPA 任务极为合适。内置 OCR、验证码处理与条件流程控制。",
     },
     "index_cta_primary":   {"en": "Explore Architecture", "zh": "了解架构"},
     "index_cta_secondary": {"en": "Browse Shared Files",  "zh": "浏览共享文件"},
@@ -77,6 +77,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "feat_editor_desc":      {"en": "GUI editor with full undo / redo and snapshot history. 5 color themes including System (auto-follows OS dark / light mode). Status bar shows execution events in real time — start, done with duration, errors, and manual stops. Search &amp; highlight logs (Ctrl+F). Right-click the task grid for processor usage and reference lookup.", "zh": "图形编辑器支持完整撤销 / 重做与快照历史。5 套配色主题，含 System（自动跟随系统深浅色模式）。状态栏实时展示执行事件——启动、完成耗时、错误和手动停止。日志搜索高亮（Ctrl+F）。任务网格右键可查看处理器用法与引用查找。"},
     "feat_ai_gen_title":     {"en": "AI Execution Generator", "zh": "AI Execution生成器"},
     "feat_ai_gen_desc":      {"en": "Generate and modify task flows through natural language. Multi-turn chat with LLM, expandable Processor browser with search, selective context to save tokens. One-click MCP tool description generation with smart merge. AI-powered error analysis with fix suggestions. Vision model support for image understanding via Ollama. Supports 10 LLM providers — only <code>ai_provider</code> config needed.", "zh": "通过自然语言生成和修改任务流程。多轮 LLM 对话、可展开的 Processor 浏览器（支持搜索）、选择性上下文节省 Token。一键生成 MCP 工具描述并智能合并。AI 驱动的错误分析与修复建议。通过 Ollama 支持视觉模型图像理解。支持 10 家 LLM 供应商——只需配置 <code>ai_provider</code>。"},
+    "feat_portable_title":   {"en": "Portable Runtime", "zh": "便携运行时（Portable）"},
+    "feat_portable_desc":    {"en": "A self-contained, lightweight task-processing engine split out of PETP — runs a single Execution headless (including Selenium browser automation), decoupled from the GUI and HTTP layers. Ideal for RPA: author and test the flow visually in the PETP desktop GUI, then run it lightweight in <code>portable/</code>. <code>cp -r</code> it into any Python project (<code>from portable.petp_run import run</code>) or <code>cf push</code> it to Cloud Foundry. The engine and YAML format are shared, so a GUI-authored Execution runs unchanged — no conversion.", "zh": "从 PETP 中分离出来的自包含轻量任务处理引擎——可脱离 GUI 与 HTTP 层、headless 地运行单个 Execution（含 Selenium 浏览器自动化），作为 RPA 任务极为合适：流程在 PETP 桌面 GUI 中可视化编辑、测试，再在 <code>portable/</code> 中轻量化运行。可 <code>cp -r</code> 到任意 Python 项目（<code>from portable.petp_run import run</code>）或 <code>cf push</code> 到 Cloud Foundry。两边共用同一套引擎与 YAML 格式，GUI 编辑的 Execution 零转换直接运行。"},
 
     # ── Index — AI workflow ──────────────────────────────────────
     "ai_flow_divider":       {"en": "AI-Powered Workflow",     "zh": "AI 驱动工作流"},

@@ -109,6 +109,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 | **OCR & 验证码** | 图像文字提取（paddleocr/rapidocr/easyocr）。验证码识别（ddddocr）。 |
 | **鼠标与 GUI** (PyAutoGUI) | 点击、滚动、位置查询。 |
 | **执行控制** | 初始化参数、嵌套执行、条件停止/跳转、`IF_ELSE` 分支、循环、Shell 命令。 |
+| **便携运行时** | 从 PETP 分离出的自包含轻量引擎——可脱离 GUI/HTTP、headless 运行单个 Execution（含 Selenium），作为 RPA 任务极为合适：在 GUI 中编辑、测试，再在 `portable/` 中轻量化运行。可 `cp -r` 到任意 Python 项目或 `cf push` 到 Cloud Foundry；GUI 编辑的 YAML 零转换直接运行。 |
 | **主题** | 9 套主题（System 自动 + 8 个命名主题）实时切换。 |
 
 ---

@@ -109,6 +109,7 @@ python PETP_background.py   # Headless service (port 8866)
 | **OCR & Captcha** | Image text extraction (paddleocr/rapidocr/easyocr). Captcha solving (ddddocr). |
 | **Mouse & GUI** (PyAutoGUI) | Click, scroll, position query. |
 | **Execution Control** | Init params, nested execution, conditional stop/jump, `IF_ELSE` branching, loops, shell commands. |
+| **Portable Runtime** | Self-contained, lightweight engine split out of PETP — runs a single Execution headless (incl. Selenium), decoupled from GUI/HTTP. Ideal for RPA: author & test in the GUI, run lightweight in `portable/`. `cp -r` into any Python project or `cf push` to Cloud Foundry; GUI-authored YAML runs unchanged. |
 | **Theme** | 9 themes (System auto + 8 named) with live switching. |
 
 ---

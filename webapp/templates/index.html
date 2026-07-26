@@ -35,7 +35,7 @@
         <div class="hero-copy">
             <p class="overline">{{ t('index_overline') }}</p>
             <h1 class="display-title" style="font-size:clamp(22px,3vw,34px)">{{ t('index_title') }}</h1>
-            <p class="hero-text">{{ t('index_hero_text') }}</p>
+            <p class="hero-text">{{ t('index_hero_text') | safe }}</p>
             <div class="cta-row">
                 <a class="btn btn-primary" href="/about">{{ t('index_cta_primary') }}</a>
                 <a class="btn btn-secondary" href="/fileviewer">{{ t('index_cta_secondary') }}</a>
@@ -131,6 +131,10 @@
         <article class="card">
             <h3>{{ t('feat_ai_gen_title') }}</h3>
             <p>{{ t('feat_ai_gen_desc') | safe }}</p>
+        </article>
+        <article class="card">
+            <h3>{{ t('feat_portable_title') }}</h3>
+            <p>{{ t('feat_portable_desc') | safe }}</p>
         </article>
     </section>
 
