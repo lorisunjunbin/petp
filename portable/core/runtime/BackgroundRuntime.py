@@ -62,6 +62,8 @@ class BackgroundRuntime:
         if hasattr(execution, "loops"):
             execution.loops.sort(key=lambda loop: loop.get_attribute("task_start"))
 
+        current_seq = None      # 1-based task sequence being processed (for error context)
+        current_type = None     # its processor type
         try:
             while state.has_next():
                 if getattr(execution, "should_be_stop", False):
@@ -74,6 +76,7 @@ class BackgroundRuntime:
 
                 seq = state.get_sequence()
                 task: Task = execution.list[state.get_current_index()]
+                current_seq, current_type = seq, task.type
 
                 current_loop = execution.find_current_loop(seq)
                 state.init_loop(current_loop)
@@ -200,10 +203,11 @@ class BackgroundRuntime:
         except Exception as e:
             logging.exception("Execution failed: %s", execution_name)
             self._cleanup_data_chain_drivers(data_chain)
+            where = ' at task #%s [%s]' % (current_seq, current_type) if current_seq is not None else ''
             return self._result(
                 False,
                 data_chain,
-                f"Execution failed: {execution_name}, error: {e}",
+                f"Execution failed: {execution_name}{where}, error: {e}",
                 started,
                 skipped_tasks,
             )

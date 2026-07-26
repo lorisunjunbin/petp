@@ -1,7 +1,8 @@
-"""Sync engine/utils from the main repo into portable/ (prevents stale copies).
-Run from repo root:  python portable/sync_portable.py
-Overwrites engine code; only the executions named in SYNC_EXECUTIONS are copied
-into portable/core/executions (direct overwrite); never touches webdriver/ or CF config.
+"""Sync engine code + executions from the main repo into portable/, then optionally
+into external targets. Run from repo root:  python portable/sync_portable.py
+Executions follow an allowlist: SYNC_EXECUTIONS for portable/ (mirror — prunes extras),
+per-target lists for SYNC_TARGETS (upsert — never deletes the target's own files).
+Never touches webdriver/ or CF config.
 """
 import os, shutil, sys, subprocess
 
@@ -19,24 +20,28 @@ SYNC_EXECUTIONS = [
     'T_Supplier_Creation_huihui',
 ]
 
-# After portable is refreshed, also push the CODE parts of portable into each of
-# these external target directories (per-file overwrite; files already present in
-# the target that we don't ship are kept). Only code is copied — NOT webdriver/,
-# download/, log/, config/, or CF config — so the target gets a runnable engine +
-# processors + the SYNC_EXECUTIONS without the heavy binaries or runtime junk.
-# A target directory that does not exist is reported and skipped (never created).
-# Leave empty to skip external sync entirely.
-SYNC_TARGET_DIRS = [
-    '/Users/i335607/MyProject/ariba_ai_assistant/rpa',
+# Portable-only executions to keep (not in the main repo). SMOKE_TEST is
+# petp_run.py's default self-check target — pruning it would break the smoke check.
+KEEP_EXECUTIONS = ['SMOKE_TEST']
+
+# After portable is refreshed, push its code into each external target, then upsert
+# that target's own executions from the main repo. Each target: {'dir', 'executions'}.
+# Only code is pushed (core/utils/mvp + top files) — NOT webdriver/download/log/config.
+# Missing target dir is skipped (never created). Empty list = skip external sync.
+SYNC_TARGETS = [
+    {'dir': '/Users/i335607/MyProject/ariba_ai_assistant/rpa',
+     'executions': ['T_Supplier_Registration_huihui', 'T_Supplier_Creation_huihui']},
+    {'dir': '/Users/i335607/MyProject/ariba_ai_agent_base/rpa',
+     'executions': ['T_Supplier_Registration_CPTDC', 'T_Supplier_Creation_CPTDC']},
 ]
 
-# Portable subdirectories that count as "code" — pushed to each target.
+# Portable "code" dirs pushed to each target (executions/ excluded — synced per-target).
 TARGET_SYNC_DIRS = ['core', 'utils', 'mvp']
 # Portable top-level files pushed to each target.
 TARGET_SYNC_FILES = ['petp_run.py', 'requirements.txt']
-# Never copy these into targets (heavy binaries / runtime products / caches).
+# Never copy these into targets (heavy binaries / runtime products / per-target dir).
 TARGET_IGNORE = shutil.ignore_patterns('__pycache__', '*.pyc', '.DS_Store',
-                                       'webdriver', 'download', 'log')
+                                       'webdriver', 'download', 'log', 'executions')
 
 
 # (src_rel, dst_rel) directories copied wholesale
@@ -80,53 +85,85 @@ def _copy_processors():
     dst = os.path.join(PORTABLE, 'core/processors')
     if os.path.isdir(dst):
         shutil.rmtree(dst)
-    def ignore(dirpath, names):
-        return {n for n in names if n in EXCLUDE_PROCESSORS or n == '__pycache__'}
-    shutil.copytree(src, dst, ignore=ignore)
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns('__pycache__', *EXCLUDE_PROCESSORS))
 
 
-def _copy_executions():
-    """Copy each allowlisted execution YAML from the main repo into portable
-    (direct overwrite). Names in SYNC_EXECUTIONS may omit the .yaml suffix.
-    A named execution missing from the main repo is reported, not silently skipped."""
+def _exec_fname(n):
+    return n if n.endswith('.yaml') else n + '.yaml'
+
+
+def _sync_execution_dir(dst_dir, exec_names, prune=False):
+    """Copy each name in exec_names from the main repo into dst_dir. When prune=True,
+    also delete any other .yaml not in exec_names + KEEP_EXECUTIONS (mirror semantics —
+    only for portable's OWN dir). External targets pass prune=False (upsert only): we
+    add our executions but never delete files the target's owner put there.
+    Returns (copied, removed, missing)."""
     src_dir = os.path.join(REPO, 'core/executions')
-    dst_dir = os.path.join(PORTABLE, 'core/executions')
     os.makedirs(dst_dir, exist_ok=True)
+
     copied, missing = 0, []
-    for name in SYNC_EXECUTIONS:
-        fname = name if name.endswith('.yaml') else name + '.yaml'
+    for name in exec_names:
+        fname = _exec_fname(name)
         src = os.path.join(src_dir, fname)
         if not os.path.isfile(src):
             missing.append(fname)
             continue
         shutil.copy2(src, os.path.join(dst_dir, fname))
         copied += 1
+
+    removed = []
+    if prune:
+        keep = {_exec_fname(n) for n in exec_names} | {_exec_fname(n) for n in KEEP_EXECUTIONS}
+        for existing in os.listdir(dst_dir):
+            if existing.endswith('.yaml') and existing not in keep:
+                os.remove(os.path.join(dst_dir, existing))
+                removed.append(existing)
+    return copied, removed, missing
+
+
+def _copy_executions():
+    """Sync portable/core/executions to EXACTLY SYNC_EXECUTIONS (+ KEEP_EXECUTIONS)."""
+    dst_dir = os.path.join(PORTABLE, 'core/executions')
+    copied, removed, missing = _sync_execution_dir(dst_dir, SYNC_EXECUTIONS, prune=True)
     print('sync: %d execution(s) copied.' % copied)
+    if removed:
+        print('sync: %d stale execution(s) removed: %s' % (len(removed), ', '.join(sorted(removed))))
     if missing:
         print('sync: WARNING missing in main repo (not copied): ' + ', '.join(missing))
 
 
 def _sync_to_targets():
-    """Push the CODE parts of portable into each external target (per-file
-    overwrite, keeping files the target has that we don't ship). Runs after
-    portable itself is refreshed, so targets get the freshly-synced engine +
-    processors + executions — minus webdriver/download/log/config."""
-    if not SYNC_TARGET_DIRS:
+    """Push portable's code dirs (executions/ excluded) + top files into each target,
+    then upsert each target's own executions list from the main repo. Files the target
+    already has — including executions we don't ship — are kept (never deleted)."""
+    if not SYNC_TARGETS:
         return
-    for target in SYNC_TARGET_DIRS:
-        if not os.path.isdir(target):
-            print('sync: WARNING target dir missing (skipped): ' + target)
+    for target in SYNC_TARGETS:
+        target_dir = target['dir']
+        if not os.path.isdir(target_dir):
+            print('sync: WARNING target dir missing (skipped): ' + target_dir)
             continue
         for d in TARGET_SYNC_DIRS:
             src = os.path.join(PORTABLE, d)
             if os.path.isdir(src):
-                shutil.copytree(src, os.path.join(target, d),
+                shutil.copytree(src, os.path.join(target_dir, d),
                                 ignore=TARGET_IGNORE, dirs_exist_ok=True)
         for f in TARGET_SYNC_FILES:
             src = os.path.join(PORTABLE, f)
             if os.path.isfile(src):
-                shutil.copy2(src, os.path.join(target, f))
-        print('sync: pushed code to target -> ' + target)
+                shutil.copy2(src, os.path.join(target_dir, f))
+        # upsert this target's own executions (no prune — we don't own the target dir)
+        exec_names = target.get('executions', [])
+        copied, removed, missing = _sync_execution_dir(
+            os.path.join(target_dir, 'core/executions'), exec_names)
+        msg = 'sync: pushed code to target -> %s (%d execution(s)' % (target_dir, copied)
+        if removed:
+            msg += ', %d removed' % len(removed)
+        msg += ')'
+        print(msg)
+        if missing:
+            print('sync: WARNING missing in main repo (not copied to %s): %s'
+                  % (target_dir, ', '.join(missing)))
 
 
 def main():
