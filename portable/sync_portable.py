@@ -18,6 +18,8 @@ EXCLUDE_PROCESSORS = {
 SYNC_EXECUTIONS = [
     'T_Supplier_Registration_huihui',
     'T_Supplier_Creation_huihui',
+    'T_Supplier_Registration_CPTDC',
+    'T_Supplier_Creation_CPTDC'
 ]
 
 # Portable-only executions to keep (not in the main repo). SMOKE_TEST is
