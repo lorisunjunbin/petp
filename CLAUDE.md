@@ -266,7 +266,7 @@ The MCP server implementation (`McpMixin`) follows JSON-RPC 2.0 and MCP spec:
 - **Notifications**: `notifications/initialized` returns 202 with empty body (no JSON-RPC response per spec)
 - **Batch requests**: Supports JSON-RPC batch (array of requests in single POST)
 - **Timeout**: `tools/call` executions are protected by configurable timeout (`http_request_timeout`)
-- **Progress notifications**: Long-running tools emit periodic `notifications/message` SSE events every 5 seconds
+- **Progress notifications**: Long-running tools emit periodic `notifications/message` SSE events every 1 second (`McpMixin._PROGRESS_INTERVAL`)
 - **Session management**: `Mcp-Session-Id` header generated on initialize and validated on subsequent requests
 - **Only advertised capabilities**: `tools` only — no unimplemented `prompts`/`resources` claims
 
@@ -304,28 +304,34 @@ Both are kept intentionally. `HTTP_RESPONSE_KEY` is still required for execution
 
 Unified LLM integration via three processors: `AI_LLM_SETUP`, `AI_LLM_QANDA`, `AI_LLM_QANDA_MCP`.
 
-#### Supported Providers (10)
+#### Supported Providers (11)
 
 | Provider | Client Class | Default Model |
 |----------|-------------|---------------|
 | `deepseek` | OpenAICompatibleClient | deepseek-chat |
-| `zhipu` | OpenAICompatibleClient | GLM-5 |
+| `zhipu` | AnthropicClient | GLM-5 |
 | `qianfan` | OpenAICompatibleClient | ernie-4.5-8k |
 | `minimax` | OpenAICompatibleClient | MiniMax-Text-01 |
 | `anthropic` | AnthropicClient | claude-sonnet-4-20250514 |
+| `hyperspace` | HyperspaceClient | anthropic--claude-sonnet-latest |
 | `doubao` | OpenAICompatibleClient | doubao-1.5-pro-32k |
 | `moonshot` | OpenAICompatibleClient | moonshot-v1-8k |
 | `gemini` | GeminiClient | gemini-1.5-pro |
 | `ollama` | OllamaClient | deepseek-r1:7b |
 | `openai_compatible` | OpenAICompatibleClient | gpt-4o |
 
+Note: `zhipu` uses `AnthropicClient` (not OpenAICompatibleClient) — its `base_url` (`https://open.bigmodel.cn/api/anthropic`) speaks the Anthropic protocol. `hyperspace` is a local Anthropic-protocol HTTP proxy (SAP Hyperspace, `http://localhost:6655/anthropic`); see `hyperspace_llm_guide.md`.
+
 #### Architecture
 
 - `BaseLLMClient` — abstract base with `chat()`, `provider_name`, and `get_client_by_provider()` factory
-- `OpenAICompatibleClient` — uses OpenAI SDK; handles deepseek, zhipu, qianfan, minimax, doubao, moonshot, openai_compatible
+- `OpenAICompatibleClient` — uses OpenAI SDK; handles deepseek, qianfan, minimax, doubao, moonshot, openai_compatible
 - `GeminiClient` — native `google.genai` SDK with message format conversion
-- `AnthropicClient` — native `anthropic` SDK; separates system messages, supports thinking blocks; uses `auth_token` for proxy/Bearer auth when `base_url` is set
+- `AnthropicClient` — native `anthropic` SDK; separates system messages, supports thinking blocks; uses `auth_token` for proxy/Bearer auth when `base_url` is set. Handles both `anthropic` and `zhipu` (Anthropic-compatible endpoint)
+- `HyperspaceClient` — SAP Hyperspace local proxy (`http://localhost:6655/anthropic`); reuses the `anthropic` SDK via `base_url` + `auth_token`, model names carry the `anthropic--` prefix
 - `OllamaClient` — local Ollama, no auth required
+- `McpClient` — MCP tool client used by `AI_LLM_QANDA_MCP` (lets an LLM call MCP tools mid-conversation); not a provider LLM client
+- `llm_helpers.py` — shared helpers (markdown JSON extraction, think-tag stripping, MCP tool-message building/parsing); not a client class
 
 #### Adding a New Provider
 
@@ -375,7 +381,7 @@ Right-clicking a row in `taskGrid` shows: Copy, Paste, Skip/Unskip, AI Assist, a
 
 #### Processor Categories
 
-Each processor defines `get_category()` returning one of: `AI_LLM`, `Default`, `File`, `Zip`, `Selenium`, `Mouse`, `GUI`, `Email`, `Database`, `Paramiko`, `JSON`, `Excel`, `General`, `Youtube`, `DataProcessing`, `HTTP`, `JAVASCRIPT`. Currently used for metadata only — not yet surfaced as a filter in the dropdown.
+Each processor defines `get_category()` returning one of: `AI_LLM`, `File`, `Zip`, `Selenium`, `Mouse`, `GUI`, `Email`, `Database`, `Paramiko`, `JSON`, `Excel`, `General`, `Youtube`, `DataProcessing`, `HTTP`, `JAVASCRIPT` (16 values actually in use; a `Default` constant exists in `processor.py` but no processor returns it). Currently used for metadata only — not yet surfaced as a filter in the dropdown.
 
 #### Editing Snapshots
 
@@ -456,6 +462,15 @@ In BG mode and Docker, Execution/Pipeline YAML files are **never modified at run
 - `invalidate_execution_cache()` is only meaningful in GUI mode (called after user saves in the editor)
 
 When optimizing BG/Docker performance, you can safely assume all YAML-based definitions are immutable for the lifetime of the process.
+
+### Portable Runtime (`portable/`)
+
+A self-contained, copy-able runtime that extracts the "run one Execution headless" core into a unit deployable to Cloud Foundry (`cf push`). Design + plan: `docs/superpowers/specs/2026-07-15-petp-portable-runtime-design.md` and `docs/superpowers/plans/2026-07-15-petp-portable-runtime.md`.
+
+- Entry: `portable/petp_run.py` exposes `run(name, init_data) -> dict` and a CLI (`python petp_run.py <NAME> '{...}'`); `os.chdir`s to its own directory.
+- `portable/sync_portable.py` re-copies engine/utils/event classes from the main repo per a manifest to avoid stale copies. All processors are copied except the pure-GUI ones (`FILE_CHOOSER`, `MOUSE_*`).
+- Bundles `core/` (engine + `core/executions/` business YAML), `utils/`, `mvp/`, `config/`, `webdriver/`, plus CF artifacts (`manifest.yml`, `apt.yml`, `requirements.txt`, `.cfignore`, `README.md`). Chrome uses Chrome for Testing linux64 (to sidestep CF glibc 2.35 incompatibility).
+- Division of labor: the main repo (GUI) is the **editor**, `portable/` is the **runtime**, and the Execution YAML is the portable contract between them.
 
 ### Configuration (`config/petpconfig.yaml`)
 
@@ -548,7 +563,7 @@ The `data_chain` dict is the single shared state that flows through all tasks in
 
 ### Web App (`webapp/`)
 
-Separate Flask application serving on port 5555. Provides a landing page (`index.html`), file viewer (`fileviewer.html`), and about/documentation pages. Uses session-based auth. No web-based execution editor — task editing is GUI-only.
+Separate Flask application serving on port 5555. Provides a landing page (`index.html`), file viewer (`fileviewer.html`), and about/documentation pages. Auth: session-based via `/login` + `/logout` routes (fileviewer and shared-folder downloads are `@_session_login_required`); the `GET /api/v1/search/files/` JSON search API is Basic-Auth protected. `POST /<shared_folder>/<path>` serves session-guarded file downloads. No web-based execution editor — task editing is GUI-only. (See `webapp/CLAUDE.md` for full route details.)
 
 ### Documentation (`docs/`)
 
