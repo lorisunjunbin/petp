@@ -1173,6 +1173,7 @@ DESC_TRANSLATIONS: dict[str, dict[str, str]] = {
              "\n"
              "- file_path: \u76ee\u6807\u6587\u4ef6\u8def\u5f84\uff08\u652f\u6301\u8868\u8fbe\u5f0f\uff09\n"
              "- content: data_chain \u4e2d\u5185\u5bb9\u7684\u952e\uff08\u4f18\u5148\u4e8e content\uff09\n"
+             "- mode: \u201cw\u201d \u8986\u76d6\u5199\u5165\uff0c\u201ca\u201d \u8ffd\u52a0\u5230\u6587\u4ef6\u672b\u5c3e\uff08\u9ed8\u8ba4: \"w\"\uff09\u3002\u5728\u5faa\u73af\u5185\u7528 \u201ca\u201d \u53ef\u9010\u884c\u7d2f\u52a0\n"
              "- data_key: 在 data_chain 中存储写入文件路径的键名；若为空，则不存储数据（支持表达式，默认: \"\"）\n"
         ),
     },
