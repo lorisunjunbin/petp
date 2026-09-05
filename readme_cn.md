@@ -24,27 +24,9 @@ Task      1:1  Processor
 
 ### 2. 安装 wxPython（仅 GUI 模式）
 
-<details>
-<summary>Python 3.14 需要开发快照版本（点击展开）</summary>
-
-PyPI 稳定版（4.2.x）**不支持** Python 3.14。从 [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/) 下载匹配平台的 4.3.0-alpha `.whl`：
-
 ```bash
-# macOS Apple Silicon
-uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-macosx_11_0_arm64.whl
-
-# Windows 64-bit
-uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-win_amd64.whl
+pip install wxPython          # 4.3.1+ 支持 Python 3.12–3.14
 ```
-
-或通过 PETP 自动下载（无需预装 wxPython）：
-```bash
-python PETP_background.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
-```
-
-</details>
-
-Python 3.12/3.13 直接：`pip install wxPython`
 
 ### 3. 安装依赖
 
@@ -393,7 +375,7 @@ docker run --rm -p 8866:8866 petp-background:amd64-local
 | 问题 | 解决方案 |
 |------|----------|
 | `ModuleNotFoundError` | 安装对应的 `requirements/*.txt` 分组 |
-| wxPython 导入失败 | 确保 `.whl` 匹配 Python 版本 — 见[快照构建](https://wxpython.org/Phoenix/snapshot-builds/) |
+| wxPython 导入失败 | 确保版本匹配你的 Python 版本（`pip install wxPython`） |
 | ChromeDriver 版本不匹配 | 从 [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) 下载 |
 | 端口 8866 被占用 | 修改 `config/petpconfig.yaml` 中的 `http_port` |
 

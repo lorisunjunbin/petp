@@ -137,7 +137,7 @@ uv pip install -r requirements-docker.txt
 uv pip install -r requirements/core.txt -r requirements/http-service.txt
 ```
 
-wxPython must be installed manually from a `.whl` matching your Python version and OS — it is **not** in `requirements.txt`.
+wxPython is installed from PyPI via the `gui-wxpython.txt` requirements group (4.3.1+ supports Python 3.12–3.14; no manual `.whl` or snapshot build needed).
 
 ---
 

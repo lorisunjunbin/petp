@@ -259,6 +259,51 @@ class McpDescEditor(wx.ScrolledWindow):
     # UI construction
     # ------------------------------------------------------------------ #
 
+    def apply_ui_polish(self, font):
+        """Windows-only cosmetic pass invoked by PETPPresenter._apply_ui_polish:
+        apply the unified font to labels, small header buttons and both grids."""
+        for w in (self._lbl_desc, self._lbl_input, self._lbl_output,
+                  self._desc_text, self._btn_preview, self._btn_ai_gen,
+                  self._btn_sync_input, self._btn_add_input, self._btn_del_input,
+                  self._btn_sync_output, self._btn_add_output, self._btn_del_output):
+            try:
+                w.SetFont(wx.Font(font))
+            except Exception:
+                pass
+        for grid in (self._input_grid, self._output_grid):
+            try:
+                grid.SetLabelFont(wx.Font(font))
+                grid.SetDefaultCellFont(wx.Font(font))
+                # Row height must track the (bigger) unified font or the
+                # text clips vertically.
+                dc = wx.ClientDC(grid)
+                dc.SetFont(font)
+                text_h = dc.GetTextExtent("Ag")[1]
+                grid.SetDefaultRowSize(max(26, text_h + 12))
+                grid.SetColLabelSize(max(24, text_h + 8))
+                # Desired widths were computed at creation with the OLD font;
+                # the unified font renders headers wider — recompute so every
+                # header still fits in full after the font change.
+                desired = getattr(grid, '_desired_col_widths', None)
+                if desired:
+                    dc.SetFont(grid.GetLabelFont())
+                    grid._desired_col_widths = [
+                        max(w, dc.GetTextExtent(grid.GetColLabelValue(i))[0] + 24)
+                        for i, w in enumerate(desired)
+                    ]
+                self._fit_grid_height(grid)
+                grid.ForceRefresh()
+            except Exception:
+                pass
+        # Column fitting only ran on EVT_SIZE so far — the first show may not
+        # fire one, leaving hardcoded widths (left columns clipped on narrow
+        # panels). Run the fit explicitly here.
+        try:
+            self._resize_desc_column(self._input_grid, 4)
+            self._resize_desc_column(self._output_grid, 3)
+        except Exception:
+            pass
+
     def _build_ui(self):
         main = wx.BoxSizer(wx.VERTICAL)
 
@@ -293,10 +338,10 @@ class McpDescEditor(wx.ScrolledWindow):
         main.Add(inp_hdr, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 3)
 
         self._input_grid = self._create_grid(5, [
-            (t("mcp_col_name"), 80),
-            (t("mcp_col_type"), 70),
+            (t("mcp_col_name"), 96),       # fits startTime etc. at 10pt
+            (t("mcp_col_type"), 76),
             (t("mcp_col_required"), 60),
-            (t("mcp_col_default"), 80),
+            (t("mcp_col_default"), 90),
             (t("mcp_col_desc"), 80),
         ])
         main.Add(self._input_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
@@ -318,9 +363,9 @@ class McpDescEditor(wx.ScrolledWindow):
         main.Add(out_hdr, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 3)
 
         self._output_grid = self._create_grid(4, [
-            (t("mcp_col_name"), 80),
-            (t("mcp_col_type"), 70),
-            (t("mcp_col_map_key"), 140),
+            (t("mcp_col_name"), 96),
+            (t("mcp_col_type"), 76),
+            (t("mcp_col_map_key"), 160),  # header 映射DataChain键 needs the room
             (t("mcp_col_desc"), 80),
         ])
         main.Add(self._output_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
@@ -332,17 +377,36 @@ class McpDescEditor(wx.ScrolledWindow):
         grid.CreateGrid(0, num_cols)
         grid.SetRowLabelSize(0)
         grid.DisableDragRowSize()
-        grid.SetDefaultRowSize(24)
-        grid.SetColLabelSize(22)
+        # Row height from the CURRENT font — a hardcoded 24 clipped the
+        # unified 10pt text (YaHei UI renders ~19px tall). Label row too.
+        font = self.GetFont()
+        if not font.IsOk():
+            font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        dc = wx.ClientDC(grid)
+        dc.SetFont(font)
+        text_h = dc.GetTextExtent("Ag")[1]
+        grid.SetDefaultRowSize(max(26, text_h + 12))
+        grid.SetColLabelSize(max(24, text_h + 8))
         grid.EnableScrolling(False, False)
         grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
         th = get_theme()
         grid.SetSelectionBackground(wx.Colour(*th.grid_sel_bg))
         grid.SetSelectionForeground(wx.Colour(*th.grid_sel_fg))
         grid.GetGridWindow().Bind(wx.EVT_MOUSEWHEEL, self._on_child_mousewheel)
+        desired = []
         for i, (label, width) in enumerate(col_defs):
             grid.SetColLabelValue(i, label)
-            grid.SetColSize(i, width)
+            # Desired width must at least fit the column HEADER text in full
+            # (bold label font) — a header like 映射DataChain键 needs more
+            # than the data-driven default.
+            label_w = dc.GetTextExtent(label)[0]
+            w = max(width, label_w + 24)
+            desired.append(w)
+            grid.SetColSize(i, w)
+        # Remember the DESIRED widths — column fitting must always recompute
+        # from these, never from current sizes, or a one-time shrink (narrow
+        # panel) becomes permanent and later extra width all goes to Desc.
+        grid._desired_col_widths = desired
         return grid
 
     def _fit_grid_height(self, grid):
@@ -520,11 +584,35 @@ class McpDescEditor(wx.ScrolledWindow):
         self._text_snapshot_timer.Stop()
 
     def _resize_desc_column(self, grid, desc_col_idx):
+        """Fit the grid width to the panel: give the Desc column all spare
+        width, and when the panel is too narrow for even the fixed columns,
+        shrink them proportionally instead of letting the leftmost columns
+        slide out of view (scrollbars are hidden, so overflow = invisible).
+        Always recomputed from the original desired widths so a one-time
+        narrow-panel shrink never sticks."""
         available = self.GetClientSize().width - 6
-        fixed = sum(grid.GetColSize(c) for c in range(grid.GetNumberCols()) if c != desc_col_idx)
-        remaining = available - fixed
-        if remaining > 80:
+        n_cols = grid.GetNumberCols()
+        desired = getattr(grid, '_desired_col_widths', None) or \
+                  [grid.GetColSize(c) for c in range(n_cols)]
+        fixed_cols = [c for c in range(n_cols) if c != desc_col_idx]
+        fixed_want = sum(desired[c] for c in fixed_cols)
+        min_desc = 80
+        if fixed_want + min_desc > available and fixed_want > 0:
+            # Panel too narrow: scale the fixed columns down so Desc keeps a
+            # usable minimum and every column stays visible.
+            scale = max(0.5, (available - min_desc) / fixed_want)
+            for c in fixed_cols:
+                grid.SetColSize(c, max(40, int(desired[c] * scale)))
+            fixed_want = sum(grid.GetColSize(c) for c in fixed_cols)
+        else:
+            for c in fixed_cols:
+                grid.SetColSize(c, desired[c])
+        remaining = available - fixed_want
+        if remaining > min_desc:
             grid.SetColSize(desc_col_idx, remaining)
+        # SetColSize alone doesn't reliably repaint an already-shown grid —
+        # force the dimension recalc or the resized columns render blank.
+        grid.ForceRefresh()
 
     # ------------------------------------------------------------------ #
     # JSON helpers

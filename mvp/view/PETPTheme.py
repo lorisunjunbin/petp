@@ -4,6 +4,20 @@ from typing import Tuple
 RGB = Tuple[int, int, int]
 
 
+# --------------------------------------------------------------------------- #
+# Windows UI polish palette — single source of truth for the neutral greys
+# used by _apply_ui_polish (flat buttons, hover, separators). Centralised so
+# every polished surface derives from ONE set of values instead of scattered
+# magic numbers.
+# --------------------------------------------------------------------------- #
+UI_BTN_FACE: RGB = (232, 234, 237)      # flat button background
+UI_BTN_HOVER: RGB = (216, 219, 224)     # flat button hover
+UI_BTN_PRESS: RGB = (210, 213, 218)     # flat button pressed
+UI_TEXT: RGB = (40, 40, 40)             # flat button text
+UI_SEPARATOR: RGB = (200, 203, 208)     # toolbar group separators
+
+
+
 @dataclass(frozen=True)
 class PETPTheme:
     name: str

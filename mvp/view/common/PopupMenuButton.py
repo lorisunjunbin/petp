@@ -2,7 +2,7 @@ import sys
 
 import wx
 
-from mvp.view.PETPTheme import get_theme
+from mvp.view.PETPTheme import get_theme, UI_BTN_FACE, UI_BTN_HOVER, UI_BTN_PRESS, UI_TEXT
 
 _IS_WINDOWS = sys.platform == 'win32'
 
@@ -34,7 +34,9 @@ class PopupMenuButton(wx.Control):
         self._variant = variant
         self._hover = False
         self._pressed = False
-        self.SetMinSize((min_width, 22))
+        self._min_width = min_width
+        self._min_height = 28 if (variant == "button" and _IS_WINDOWS) else 22
+        self.SetMinSize((self._fitted_width(), self._min_height))
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         self.Bind(wx.EVT_PAINT, self._on_paint)
@@ -43,6 +45,18 @@ class PopupMenuButton(wx.Control):
         self.Bind(wx.EVT_LEFT_DOWN, self._on_down)
         self.Bind(wx.EVT_LEFT_UP, self._on_up)
         self.Bind(wx.EVT_ERASE_BACKGROUND, lambda e: None)
+
+    def _fitted_width(self):
+        """Width that fits the longest choice with horizontal padding, never
+        narrower than the caller's min_width — so every choice label shows
+        in full (Windows toolbar variant). Other platforms: fixed min_width."""
+        if not _IS_WINDOWS or self._variant != "button":
+            return self._min_width
+        dc = wx.ClientDC(self)
+        font = self.GetFont() or wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        dc.SetFont(font)
+        longest = max((dc.GetTextExtent(c)[0] for c in self._choices if c), default=0)
+        return max(self._min_width, longest + 24)
 
     def SetChoices(self, choices):
         self._choices = list(choices)
@@ -150,34 +164,60 @@ class PopupMenuButton(wx.Control):
         gc.DrawText(label, (w - tw) / 2, (h - th2) / 2)
 
     def _paint_button_variant(self, gc, w, h):
-        btn_face = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
-        btn_text = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT)
-        btn_shadow = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNSHADOW)
-        btn_highlight = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT)
-
-        face_rgb = (btn_face.Red(), btn_face.Green(), btn_face.Blue())
-        shadow_rgb = (btn_shadow.Red(), btn_shadow.Green(), btn_shadow.Blue())
-        highlight_rgb = (btn_highlight.Red(), btn_highlight.Green(), btn_highlight.Blue())
-
-        if self._pressed:
-            fill = wx.Colour(*_blend(face_rgb, shadow_rgb, 0.3))
-        elif self._hover:
-            fill = wx.Colour(*_blend(face_rgb, highlight_rgb, 0.3))
+        if _IS_WINDOWS:
+            # Flat look matching the polished native toolbar buttons
+            # (PETPTheme UI palette) — same face/hover/press/text colours and
+            # borderless fill, so switchers read as siblings of Stop/Save.
+            if self._pressed:
+                fill = wx.Colour(*UI_BTN_PRESS)
+            elif self._hover:
+                fill = wx.Colour(*UI_BTN_HOVER)
+            else:
+                fill = wx.Colour(*UI_BTN_FACE)
+            txt_colour = wx.Colour(*UI_TEXT)
+            gc.SetBrush(wx.Brush(fill))
+            gc.SetPen(wx.TRANSPARENT_PEN)
+            path = gc.CreatePath()
+            path.AddRoundedRectangle(0, 0, w, h, 0)
+            gc.FillPath(path)
         else:
-            fill = btn_face
+            # macOS/Linux: original system-button appearance.
+            btn_face = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE)
+            btn_text = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNTEXT)
+            btn_shadow = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNSHADOW)
+            btn_highlight = wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNHIGHLIGHT)
 
-        r = 0 if _IS_WINDOWS else 4
-        gc.SetBrush(wx.Brush(fill))
-        gc.SetPen(wx.Pen(btn_shadow, 1))
-        path = gc.CreatePath()
-        path.AddRoundedRectangle(1, 1, w - 2, h - 2, r)
-        gc.FillPath(path)
-        gc.StrokePath(path)
+            face_rgb = (btn_face.Red(), btn_face.Green(), btn_face.Blue())
+            shadow_rgb = (btn_shadow.Red(), btn_shadow.Green(), btn_shadow.Blue())
+            highlight_rgb = (btn_highlight.Red(), btn_highlight.Green(), btn_highlight.Blue())
+
+            if self._pressed:
+                fill = wx.Colour(*_blend(face_rgb, shadow_rgb, 0.3))
+            elif self._hover:
+                fill = wx.Colour(*_blend(face_rgb, highlight_rgb, 0.3))
+            else:
+                fill = btn_face
+
+            txt_colour = btn_text
+            gc.SetBrush(wx.Brush(fill))
+            gc.SetPen(wx.Pen(btn_shadow, 1))
+            path = gc.CreatePath()
+            path.AddRoundedRectangle(1, 1, w - 2, h - 2, 4)
+            gc.FillPath(path)
+            gc.StrokePath(path)
 
         font = self.GetFont()
         if not font.IsOk():
             font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
-        gc.SetFont(font, btn_text)
+        if _IS_WINDOWS and self._variant == "button":
+            # Switcher label reads best slightly smaller than the neighbours
+            # (self-drawn GC text at the same pt reads bigger than native
+            # owner-draw labels). 8pt keeps it clearly subordinate and every
+            # choice (longest: "Cyberpunk" 57px) fits the control in full.
+            f2 = wx.Font(font)
+            f2.SetPointSize(min(font.GetPointSize(), 8))
+            font = f2
+        gc.SetFont(font, txt_colour)
         label = self._value
         tw, th2 = gc.GetTextExtent(label)[:2]
         gc.DrawText(label, (w - tw) / 2, (h - th2) / 2)

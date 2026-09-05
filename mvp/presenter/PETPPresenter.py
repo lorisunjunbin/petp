@@ -1,5 +1,6 @@
 import json
 import logging
+import platform
 import random
 import concurrent.futures
 import time
@@ -26,12 +27,15 @@ from mvp.view.common.InputDialog import InputDialog
 from mvp.view.common.SearchableGridChoiceEditor import SearchableGridChoiceEditor
 from mvp.view.common.ProcessorPalette import ProcessorPalette
 from mvp.view.common.TaskInfoRenderer import TaskInfoRenderer
+from mvp.view.common.ProcessorNameRenderer import ProcessorNameRenderer
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from utils.OSUtils import OSUtils
 from utils.CodeExplainerUtil import CodeExplainerUtil
 from i18n.translations import t, set_locale
-from mvp.view.PETPTheme import get_theme, set_theme, get_theme_names, is_system_theme, SYSTEM_THEME_NAME
+from mvp.view.PETPTheme import (get_theme, set_theme, get_theme_names,
+                                is_system_theme, SYSTEM_THEME_NAME,
+                                UI_BTN_FACE, UI_BTN_HOVER, UI_SEPARATOR, UI_TEXT)
 
 
 class PETPPresenter():
@@ -102,6 +106,7 @@ class PETPPresenter():
 
         self._apply_i18n()
         self._apply_theme()
+        self._apply_ui_polish()
         # Warm the Processor class cache in a daemon thread BEFORE loading
         # last_run, so its priority pass (last_run's task types) can race
         # against the main-thread on_task_execution_changed and cache any
@@ -318,6 +323,197 @@ class PETPPresenter():
         v.runExecution.apply_theme()
         v.runPipeline.apply_theme()
         v.cb_astool.apply_theme()
+
+    def _apply_ui_polish(self):
+        """Windows-only cosmetic pass: unify fonts and tidy grids across the whole
+        view. Walks every descendant so any grid / property grid gets a consistent
+        font (no per-widget enumeration — catches McpDescEditor's grids and
+        anything else, present or future). No-op on macOS/Linux.
+        """
+        if platform.system() != "Windows" or self.v is None:
+            return
+        v = self.v
+        # Unified GUI font (Segoe UI on Windows), bumped to a readable size.
+        base = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        font = wx.Font(base)
+        if font.GetPointSize() < 10:
+            font.SetPointSize(10)
+        try:
+            v.SetFont(font)  # native children inherit
+        except Exception:
+            pass
+        # taskGrid / executionGrid: taller rows so two-line TaskInfoRenderer
+        # text is never clipped (a big part of the "rough" look at 150% DPI).
+        tall = v.FromDIP(34)
+        for grid in (v.taskGrid, v.executionGrid):
+            try:
+                grid.SetDefaultRowSize(tall, resizeExistingRows=True)
+                # Column headers keep BOLD at the unified size — a header
+                # visually heavier than the cells below is the correct
+                # hierarchy (a plain 10pt header reads weaker than the
+                # all-caps processor names in the cells).
+                label_font = wx.Font(font)
+                label_font.SetWeight(wx.FONTWEIGHT_BOLD)
+                grid.SetLabelFont(label_font)
+                grid.SetDefaultCellFont(wx.Font(font))
+                grid.ForceRefresh()
+            except Exception as e:
+                logging.warning(f'ui_polish grid failed: {e}')
+        # Unify fonts on every property grid / custom control in the view.
+        self._polish_widgets(v, font)
+        # Log panel: monospace, bumped a couple of points above the unified
+        # size — it's a dense reading surface and 10pt Consolas reads small.
+        try:
+            mono = wx.Font(font)
+            mono.SetFamily(wx.FONTFAMILY_MODERN)
+            mono.SetPointSize(max(14, font.GetPointSize()))
+            v.logContents.SetFont(mono)
+            # SetFont on a TE_RICH2 control resets the insertion-point style
+            # to default (black-on-white tiny font) — without this, every
+            # AppendText after the polish lands black and in the reset size.
+            # The default style must carry font AND colours.
+            th = get_theme()
+            v.logContents.SetDefaultStyle(
+                wx.TextAttr(wx.Colour(*th.log_fg), wx.Colour(*th.log_bg),
+                            wx.Font(mono)))
+        except Exception as e:
+            logging.warning(f'ui_polish log font failed: {e}')
+        # Rotating status slogan (highlightInfo): a touch larger than body
+        # text — it sits above the log console as a status banner.
+        try:
+            banner = wx.Font(font)
+            banner.SetPointSize(max(12, font.GetPointSize()))
+            v.highlightInfo.SetFont(banner)
+        except Exception as e:
+            logging.warning(f'ui_polish banner font failed: {e}')
+        try:
+            v.execution_desc.apply_ui_polish(font)
+        except Exception as e:
+            logging.warning(f'ui_polish mcpdesc failed: {e}')
+        # actionPanel toolbars: consistent 28-DIP button height + spacing, and
+        # flatten native 3D buttons into the clean look used elsewhere.
+        for chooser in (v.executionChooser, v.pipelineChooser):
+            try:
+                chooser.SetMinSize((chooser.FromDIP(300), -1))
+                sz = chooser.GetContainingSizer()
+                if sz is not None:
+                    self._polish_actionpanel(sz, chooser.FromDIP(5), chooser)
+            except Exception as e:
+                logging.warning(f'ui_polish actionpanel failed: {e}')
+        # Theme/lang switchers are PopupMenuButtons (not wx.Button) — the flat
+        # paint style is in the control itself (Windows branch); give them the
+        # same 28-DIP height as the neighbouring toolbar buttons.
+        for sw in (v.themeChooser, v.langChooser):
+            try:
+                ms = sw.GetMinSize()
+                sw.SetMinSize((ms.width, v.FromDIP(28)))
+            except Exception as e:
+                logging.warning(f'ui_polish switcher height failed: {e}')
+        # RunButton (Execute / Pipeline run): a touch taller than the 28-DIP
+        # toolbar buttons — primary-action emphasis.
+        tall_btn_h = v.FromDIP(30)
+        for rb in (v.runExecution, v.runPipeline):
+            try:
+                ms = rb.GetMinSize()
+                rb.SetMinSize((ms.width, tall_btn_h))
+            except Exception as e:
+                logging.warning(f'ui_polish runbtn height failed: {e}')
+        v.nbFirstPage.Layout()
+        v.nbSecondPage.Layout()
+
+    def _polish_widgets(self, win, font):
+        for child in win.GetChildren():
+            try:
+                if isinstance(child, wx.grid.Grid):
+                    label_font = wx.Font(font)
+                    label_font.SetWeight(wx.FONTWEIGHT_BOLD)
+                    child.SetLabelFont(label_font)
+                    child.SetDefaultCellFont(wx.Font(font))
+                    child.ForceRefresh()
+                elif isinstance(child, wx.propgrid.PropertyGridManager):
+                    pg = child.GetGrid()
+                    if hasattr(pg, "SetCaptionFont"):
+                        pg.SetCaptionFont(wx.Font(font))
+                    child.Refresh()
+                else:
+                    # Unified font on EVERY other child — wx does not
+                    # propagate font changes to already-created windows, so
+                    # custom-drawn controls (PopupMenuButton, ToggleSwitch,
+                    # RunButton, ThemedButton) and plain StaticText/TextCtrl
+                    # keep whatever font they inherited at creation. Setting
+                    # it explicitly here is what makes the whole view read as
+                    # one type system.
+                    child.SetFont(wx.Font(font))
+                    # ToggleSwitch sizes itself from its label font — re-run
+                    # that layout math so a font change doesn't clip it.
+                    if hasattr(child, '_update_min_size'):
+                        try:
+                            child._update_min_size()
+                        except Exception:
+                            pass
+                    if type(child) is wx.Button:
+                        # Flatten native 3D buttons (Windows drops the 3D
+                        # theme once a bg colour is set) + hover highlight.
+                        # Colours come from the centralised polish palette.
+                        child.SetBackgroundColour(wx.Colour(*UI_BTN_FACE))
+                        child.SetForegroundColour(wx.Colour(*UI_TEXT))
+                        ms = child.GetMinSize()
+                        if ms.width > 1 and ms.height > 1:
+                            child.SetMinSize((ms.width + 6, ms.height + 2))
+                        child.Bind(wx.EVT_ENTER_WINDOW,
+                                   lambda e, b=child: b.SetBackgroundColour(wx.Colour(*UI_BTN_HOVER)))
+                        child.Bind(wx.EVT_LEAVE_WINDOW,
+                                   lambda e, b=child: b.SetBackgroundColour(wx.Colour(*UI_BTN_FACE)))
+            except Exception as e:
+                logging.warning(f'ui_polish widget failed: {e}')
+            self._polish_widgets(child, font)
+
+    @staticmethod
+    def _polish_actionpanel(sizer, border, unit):
+        """Style the actionPanel toolbar: vertically center every item, give it
+        the same border, size native buttons to a uniform 28-DIP height, and
+        draw a subtle group separator after each stretch spacer so the
+        left (file) group and right (run/options) group read as two blocks."""
+        btn_h = unit.FromDIP(28)
+        small_w = unit.FromDIP(32)
+        parent = None
+        for item in sizer.GetChildren():
+            try:
+                if item.IsWindow():
+                    item.SetBorder(border)
+                    item.SetFlag(item.GetFlag() | wx.ALIGN_CENTER_VERTICAL)
+                    w = item.GetWindow()
+                    if parent is None:
+                        parent = w.GetParent()
+                    if type(w) is wx.Button:
+                        lbl = (w.GetLabel() or "").strip()
+                        width = small_w if len(lbl) <= 2 else w.GetMinSize().width
+                        w.SetMinSize((width, btn_h))
+            except Exception:
+                pass
+        # Group separator: this toolbar is a wx.WrapSizer, which ignores
+        # stretch proportions — so the theme/lang choosers are NOT pushed to
+        # the right edge; the wide "gap" is just the (5,30) spacer after the
+        # execute-on-startup checkbox. Insert a visible vertical separator
+        # there to split "file ops | run/options" from "theme/lang".
+        try:
+            if parent is not None:
+                sep = wx.StaticLine(parent, style=wx.LI_VERTICAL,
+                                    size=(unit.FromDIP(2), btn_h),
+                                    name='polish_sep')
+                sep.SetBackgroundColour(wx.Colour(*UI_SEPARATOR))
+                sep.SetForegroundColour(wx.Colour(*UI_SEPARATOR))
+                sep.SetMinSize((unit.FromDIP(2), btn_h))
+                # widen the gap spacer right before the checkbox, then insert
+                # the separator between checkbox and theme chooser
+                for i, item in enumerate(sizer.GetChildren()):
+                    if item.IsWindow() and item.GetWindow().GetName() == 'checkbox_executeonstartup':
+                        sizer.Insert(i + 1, sep, 0,
+                                     wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT,
+                                     unit.FromDIP(12))
+                        break
+        except Exception as e:
+            logging.warning(f'ui_polish separator failed: {e}')
 
     @staticmethod
     def _update_pgrid_category(pgm, label):
@@ -620,6 +816,7 @@ class PETPPresenter():
         execution_grid = self.v.executionGrid
         col0_attr = wx.grid.GridCellAttr()
         col0_attr.SetReadOnly(True)
+        col0_attr.SetRenderer(ProcessorNameRenderer())
         execution_grid.SetColAttr(0, col0_attr)
 
     def _inject_pipeline_add_button(self):
@@ -645,6 +842,7 @@ class PETPPresenter():
         task_grid = self.v.taskGrid
         col0_attr = wx.grid.GridCellAttr()
         col0_attr.SetReadOnly(True)
+        col0_attr.SetRenderer(ProcessorNameRenderer())
         task_grid.SetColAttr(0, col0_attr)
         col1_attr = wx.grid.GridCellAttr()
         col1_attr.SetReadOnly(True)

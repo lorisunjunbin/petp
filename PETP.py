@@ -117,20 +117,108 @@ def build_model():
     return PETPModel(config)
 
 
+def _windows_scale_from_registry():
+    """Real system DPI scale from the registry (e.g. 1.5 at 150%).
+
+    On RDP sessions the display DPI arrives asynchronously: every runtime
+    API (GetDpiForSystem / GetDpiForMonitor / wx ToDIP) still reports 96
+    while a window created in that window of time gets migrated later
+    (WM_DPICHANGED) and re-scaled — the visible size jump. The registry
+    AppliedDPI value is written at logon and is the reliable truth.
+    Returns 1.0 on non-Windows or any failure.
+    """
+    if platform.system() != "Windows":
+        return 1.0
+    try:
+        import winreg
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                            r"Control Panel\Desktop\WindowMetrics") as k:
+            applied, _ = winreg.QueryValueEx(k, "AppliedDPI")
+        return max(1.0, applied / 96.0)
+    except Exception:
+        return 1.0
+
+
 def build_view():
     view = PETPView(None, wx.ID_ANY, "")
 
     try:
         screen = wx.Display(0).GetGeometry()
-        win_w = max(1200, int(screen.width * 0.80))
-        win_h = max(700, int(screen.height * 0.80))
+        # GetGeometry() returns PHYSICAL pixels; SetSize() expects DIPs on
+        # DPI-aware wx 3.3+. Convert with the registry scale — the window is
+        # not on screen yet, so view.ToDIP() still assumes 96 DPI and would
+        # return the physical value unchanged (oversized window + later
+        # re-scale = the visible "shrink" jump).
+        scale = _windows_scale_from_registry()
+        win_w = max(1200, int(screen.width * 0.80 / scale))
+        win_h = max(700, int(screen.height * 0.80 / scale))
         view.SetSize((win_w, win_h))
         view.Centre()
-        logging.info(f'Init PETPView - {win_w}x{win_h} (screen: {screen.width}x{screen.height})')
+        logging.info(f'Init PETPView - {win_w}x{win_h} DIP (screen: {screen.width}x{screen.height} physical, scale {scale})')
     except Exception as e:
         logging.warning(f'Could not determine screen size, keeping default window size: {e}')
 
     return view
+
+
+def _show_when_dpi_stable(view, timeout_ms=4000):
+    """Show the frame only after the display DPI has settled (Windows).
+
+    On some setups (typically RDP) the monitor's real DPI arrives a second
+    or two after process start; a window that is already visible then gets
+    migrated (WM_DPICHANGED) and re-scaled on screen — the visible
+    "window jumps to a smaller size" effect. Keep the frame hidden, pump
+    events until its DPI matches the logon registry value (or timeout),
+    re-apply the intended physical size with the now-correct scale, and
+    only then Show() — one clean appearance, no jump. On machines where
+    DPI is stable from the start the wait exits immediately.
+    """
+    if platform.system() != "Windows":
+        view.Show()
+        return
+    import ctypes
+    import time as _time
+    target = int(round(_windows_scale_from_registry() * 96))
+    t0 = _time.time()
+    while _time.time() - t0 < timeout_ms / 1000.0:
+        wx.Yield()
+        try:
+            cur = ctypes.windll.user32.GetDpiForWindow(view.GetHandle())
+        except Exception:
+            cur = 0
+        if cur and abs(cur - target) <= 1:
+            break
+        _time.sleep(0.05)
+    try:
+        screen = wx.Display(0).GetGeometry()
+        want_w, want_h = int(screen.width * 0.80), int(screen.height * 0.80)
+        # Set the PHYSICAL size via Win32 directly. wx's DIP bookkeeping for a
+        # still-hidden frame can lag the settled Win32 DPI on RDP (scale
+        # reports 1.5 but SetSize renders 1:1), so DIP math lands wrong;
+        # MoveWindow takes physical pixels and is unambiguous for a
+        # per-monitor-aware process.
+        import ctypes
+        from ctypes import wintypes
+
+        class _MONITORINFO(ctypes.Structure):
+            _fields_ = [("cbSize", wintypes.DWORD),
+                        ("rcMonitor", wintypes.RECT),
+                        ("rcWork", wintypes.RECT),
+                        ("dwFlags", wintypes.DWORD)]
+
+        hwnd = view.GetHandle()
+        mon = ctypes.windll.user32.MonitorFromWindow(hwnd, 1)
+        mi = _MONITORINFO()
+        mi.cbSize = ctypes.sizeof(mi)
+        ctypes.windll.user32.GetMonitorInfoW(mon, ctypes.byref(mi))
+        mx = (mi.rcWork.left + mi.rcWork.right - want_w) // 2
+        my = (mi.rcWork.top + mi.rcWork.bottom - want_h) // 2
+        ctypes.windll.user32.MoveWindow(hwnd, mx, my, want_w, want_h, True)
+        logging.info(f'Show PETPView at {want_w}x{want_h} physical '
+                     f'(DPI settled: {cur} target {target})')
+    except Exception as e:
+        logging.warning(f're-apply size before Show failed: {e}')
+    view.Show()
 
 
 def build_presenter(model, view):
@@ -150,7 +238,29 @@ def _set_macos_app_name(name: str):
         logging.warning(f'Could not set macOS app name via AppKit: {e}')
 
 
+def _ensure_windows_dpi_aware():
+    """Set PER_MONITOR_AWARE_V2 before any window exists.
+
+    On RDP sessions the display DPI arrives asynchronously: a window created
+    while the process is still DPI-unaware starts at 96 DPI, then Windows
+    migrates it (WM_DPICHANGED) and re-scales its physical size — the visible
+    "big window shrinks" jump. Setting awareness at the very entry (before
+    importing/creating any wx window) makes windows initialize at the real
+    DPI from the start. Windows-only; no-op elsewhere.
+    """
+    if platform.system() == "Windows":
+        try:
+            import ctypes
+            try:
+                ctypes.windll.user32.SetProcessDpiAwarenessContext(-4)  # PER_MONITOR_AWARE_V2
+            except Exception:
+                ctypes.windll.shcore.SetProcessDpiAwareness(2)
+        except Exception as e:
+            logging.warning(f'set DPI awareness failed: {e}')
+
+
 def start_app():
+    _ensure_windows_dpi_aware()
     app = wx.App(False)
     # Set the app name shown in the menu bar and task switcher
     app.SetAppName('PETP')
@@ -164,7 +274,7 @@ def start_app():
     view: PETPView = build_view()
     presenter: PETPPresenter = build_presenter(model, view)
 
-    view.Show()
+    _show_when_dpi_stable(view)
 
     logging.info(f'PETP is running on {platform.architecture()[0]} platform')
 

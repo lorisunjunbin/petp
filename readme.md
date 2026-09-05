@@ -24,27 +24,9 @@ Download from [python.org](https://www.python.org/downloads/). On Windows, check
 
 ### 2. Install wxPython (GUI only)
 
-<details>
-<summary>Python 3.14 requires a development snapshot (click to expand)</summary>
-
-The stable release (4.2.x on PyPI) does **not** support Python 3.14. Download a 4.3.0-alpha `.whl` from [wxpython.org/Phoenix/snapshot-builds](https://wxpython.org/Phoenix/snapshot-builds/) matching your platform:
-
 ```bash
-# macOS Apple Silicon
-uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-macosx_11_0_arm64.whl
-
-# Windows 64-bit
-uv pip install wxPython-4.3.0a1XXXX-cp314-cp314-win_amd64.whl
+pip install wxPython          # 4.3.1+ supports Python 3.12–3.14
 ```
-
-Or auto-download via PETP (no wxPython needed):
-```bash
-python PETP_background.py --run-execution OOTB_DOWNLOAD_LATEST_WXPYTHON_mac_arm
-```
-
-</details>
-
-For Python 3.12/3.13: `pip install wxPython`
 
 ### 3. Install Dependencies
 
@@ -447,7 +429,7 @@ Routes configured:
 | Problem | Solution |
 |---------|----------|
 | `ModuleNotFoundError` | Install the corresponding `requirements/*.txt` group |
-| wxPython import error | Ensure `.whl` matches Python version — see [snapshot builds](https://wxpython.org/Phoenix/snapshot-builds/) |
+| wxPython import error | Ensure the version matches your Python version (`pip install wxPython`) |
 | ChromeDriver mismatch | Download from [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) |
 | Port 8866 in use | Change `http_port` in `config/petpconfig.yaml` |
 
