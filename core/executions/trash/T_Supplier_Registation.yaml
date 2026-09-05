@@ -1,0 +1,513 @@
+!!python/object:core.execution.Execution
+astool: false
+execution: T_Supplier_Registation
+list:
+- !!python/object:core.task.Task
+  input: '{"url": "https://s1.sapariba.cn/Sourcing/Main/ad/loginPage/SSOActions?awsso_cc=cGFzc3dvcmRhZGFwdGVyOlZHaHBjbVJRWVhKMGVWVnpaWEk9O3JlYWxtOk56UTFNRFk1TWpjMUxWUT07YXdzc29fcnU6YUhSMGNITTZMeTl6TVM1ellYQmhjbWxpWVM1amJpOVRiM1Z5WTJsdVp5OU5ZV2x1UDNKbFlXeHRQVGMwTlRBMk9USTNOUzFVSm5CaGMzTjNiM0prWVdSaGNIUmxjajFVYUdseVpGQmhjblI1VlhObGNnPT07YXdzc29fbHU6YUhSMGNITTZMeTl6TVM1ellYQmhjbWxpWVM1amJpOVRiM1Z5WTJsdVp5OU5ZV2x1TDJGa0wyTnNhV1Z1ZEV4dloyOTFkQzlUVTA5QlkzUnBiMjV6O2F3c3NvX2FwOlFVTk47YXdzc29fYXJpZDpNVGM0TkRBNE16RTNNamMwTUE9PTthd3Nzb19rdTphSFIwY0hNNkx5OXpNUzV6WVhCaGNtbGlZUzVqYmk5VGIzVnlZMmx1Wnk5TllXbHVMMkZrTDJOc2FXVnVkRXRsWlhCQmJHbDJaUzlUVTA5QlkzUnBiMjV6O2F3c3NvX2ZsOk1RPT0%3D%3ANDJWXZbdlKL6K3iPxUCAr3aLJ%2BA%3D&awsso_ap=ACM&awsso_hpk=true&passwordadapter=ThirdPartyUser&realm=745069275-T&awsr=true"}'
+  skipped: false
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"UserName\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"UserName\"]", "value": "sap"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"Password\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"Password\"]", "value": "ariba@Sap2026"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"loginForm\"]/table/tbody/tr[2]/td/input"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-dashboard-container\"]/supplier-search-bar/div/div/div/div[1]/input"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-dashboard-container\"]/supplier-search-bar/div/div/div/div[1]/input",
+    "value": ""}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-dashboard-container\"]/supplier-search-bar/div/div/div/div[1]/input",
+    "value": "\u4f9b\u5e94\u5546\u6d4b\u8bd5\u752807"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"ngb-typeahead-0-0\"]/ngb-highlight"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-search-page-container\"]/div/div[2]/div[2]/div[3]/supplier-results/div/supplier-row-without-description/div/div[2]/div/supplier-name-with-tooltip/div/a"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-profile-registration\"]/div"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"start-internal-registration-btn\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"accept\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"internal-registration-invite-container\"]/div[2]/div[1]/div[2]/div/registration-questionnaire-contact/div/div/sm-material-data-table/div/md-table/md-row/md-cell[5]/div/div/div/a/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"search-input\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"search-input\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//body", "value": "KEY_META"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//body", "value": "v"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"search-input\"]", "value": "80857123"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//body", "value": "KEY_ENTER"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-radio-11\"]/label/div[1]/div[1]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"cdk-overlay-2\"]/md-dialog-container/pick-user-modal/div/div[3]/button[1]/span/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"send-invite-btn\"]/span/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_ca3tkd\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_tezkoc\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_qxspl\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_gbdjxb\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_gbdjxb\"]", "value": "80857123"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_eyopdc\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_uqxzcd\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_9k9u6d\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-dashboard-container\"]/supplier-search-bar/div/div/div/div[1]/input"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-dashboard-container\"]/supplier-search-bar/div/div/div/div[1]/input",
+    "value": "\u4f9b\u5e94\u5546\u6d4b\u8bd5\u75280715"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//body", "value": "KEY_ENTER"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-search-page-container\"]/div/div[2]/div[2]/div[3]/supplier-results/div/supplier-row-without-description/div/div[2]/div/supplier-name-with-tooltip/div/a"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"supplier-profile-registration\"]/div/span[2]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"questionnaire-table-container\"]/sm-material-data-table/div/md-table/md-row/md-cell[3]/div/div/div[1]/a/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"questionnaire-table-container\"]/sm-material-data-table/div/md-table/md-row/md-cell[3]/div/div/div[2]/div/div[1]/div/div"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"header\"]/div/div/div[2]/div/div/supplier-workspace-detail/div"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"editQuestionnaire\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-short-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"type-ahead-item-na-1-na\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u4e2d\u77f3\u6cb9\uff08cnpc\uff09\u5916-117843844\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/div/sm-questionnaire-section/div/div/div[2]/div[3]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-short-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/div/sm-questionnaire-section/div/div/div[2]/div[3]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-short-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"type-ahead-item-na-0-na\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/div/sm-questionnaire-section/div/div/div[2]/div[4]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-short-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/div/sm-questionnaire-section/div/div/div[2]/div[4]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-short-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/div/div/div/virtual-scroller/div[2]/div[1]/div/span[1]/md-icon"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-radio-2\"]/label/div[1]/div[1]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-radio-2-input\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[2]/div/div/sm-questionnaire-section/div/div/div[2]/div[5]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-dimension/div/div/div/div/div[3]/div/div/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"browse-lists-container-117843852\"]/div/browse-pane/div/browse-entry/div/div[1]/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"browse-lists-container-117843852\"]/div/browse-pane[2]/div/browse-entry[2]/div/div[1]/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"browse-lists-container-117843852\"]/div/browse-pane[3]/div/browse-entry[2]/div/div[2]/span/md-icon"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[2]/div/div/sm-questionnaire-section/div/div/div[2]/div[6]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-short-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"type-ahead-item-na-1-na\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7edf\u4e00\u793e\u4f1a\u4fe1\u7528\u4ee3\u7801\u6ce8\u518c-117843854\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7edf\u4e00\u793e\u4f1a\u4fe1\u7528\u4ee3\u7801\u6ce8\u518c-117843854\"]",
+    "value": "123456765"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u80a1\u4e1c\u540d\u79f0-117843855\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u80a1\u4e1c\u540d\u79f0-117843855\"]",
+    "value": "\u5f20\u4e09\u674e\u56db"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6210\u7acb\u65f6\u95f4-117843857\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[1]/div/sm-questionnaire-section/div/div/div[2]/div[2]/div/div/sm-questionnaire-section/div/div/div[2]/div[10]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-date/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/div/mat-datepicker-toggle/button/span/md-icon/svg"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-datepicker-0\"]/div[2]/md-month-view/table/tbody/tr[1]/td[2]/div"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6ce8\u518c\u8d44\u91d1-117843859\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6ce8\u518c\u8d44\u91d1-117843859\"]",
+    "value": "8000"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6ce8\u518c\u8d44\u91d1\u5e01\u79cd-117843860\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"type-ahead-item-na-0-na\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u96c7\u5458\u4eba\u6570-117843863\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u96c7\u5458\u4eba\u6570-117843863\"]",
+    "value": "90"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6cd5\u4eba\u4ee3\u8868-117843864\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6cd5\u4eba\u4ee3\u8868-117843864\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6cd5\u4eba\u4ee3\u8868-117843864\"]",
+    "value": "\u738b\u4e8c"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[2]/div/sm-questionnaire-section/div/div/div/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/sm-questionnaire-repeatable-section-link/div/a"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/supplier-repeatable-section-edit/div/sm-questionnaire/div/div/sm-questionnaire-edit-mode/form/div/div/div[2]/div/sm-questionnaire-section/div/div/div/div/div/sm-questionnaire-repeatable-section-component/div[1]/div/collapsible-panel/div/div/div[2]/div[1]/div/tbody/tr/button"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-input-2\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-option-259\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u94f6\u884c\u8d26\u6237\u4fe1\u606f-117843872\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u94f6\u884c\u8d26\u6237\u4fe1\u606f-117843872\"]",
+    "value": "8909876"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u94f6\u884c\u8d26\u6237\u4fe1\u606f-117843872\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u94f6\u884c\u8d26\u6237\u4fe1\u606f-117843872\"]",
+    "value": "789097"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u94f6\u884c\u8d26\u6237\u4fe1\u606f-117843872\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u94f6\u884c\u8d26\u6237\u4fe1\u606f-117843872\"]",
+    "value": "56789876"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/supplier-repeatable-section-edit/div/sm-questionnaire/div/div/sm-questionnaire-edit-mode/form/div/div/div[10]/button[1]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/supplier-repeatable-section-edit/div/div/back-button/div/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u8857\u9053\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u8857\u9053\"]", "value": "\u4e94\u4e00\u8def"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u5730\u533a\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u5730\u533a\"]", "value": "\u5927\u8fde"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u90ae\u653f\u7f16\u7801\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u90ae\u653f\u7f16\u7801\"]",
+    "value": "115023"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u57ce\u5e02\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u57ce\u5e02\"]", "value": "\u5927\u8fde"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-input-3\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-option-509\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-input-4\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-input-4\"]", "value": "\u8fbd\u5b81"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"md-option-791\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u8bdd-117843877\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u8bdd-117843877\"]",
+    "value": "84836567"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u5b50\u90ae\u7bb1-117843878\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u5b50\u90ae\u7bb1-117843878\"]",
+    "value": "test"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//body", "value": "KEY_TAB"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u5b50\u90ae\u7bb1-117843878\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u5b50\u90ae\u7bb1-117843878\"]",
+    "value": "test@"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u7535\u5b50\u90ae\u7bb1-117843878\"]",
+    "value": "test@sap.com"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[6]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-multi-line-free-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/textarea"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[6]/div/sm-questionnaire-section/div/div/div[2]/div[1]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-multi-line-free-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/textarea",
+    "value": "it service"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"\u6240\u63d0\u4f9b\u4ea7\u54c1\u6216\u670d\u52a1\u7684\u5546-117843897\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[6]/div/sm-questionnaire-section/div/div/div[2]/div[2]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-dimension/div/div/div/div/div[3]/div/div/div/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"browse-lists-container-117843897\"]/div/browse-pane/div/browse-entry/div/div[1]/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"browse-lists-container-117843897\"]/div/browse-pane[2]/div/browse-entry[1]/div/div[1]/div/i"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"browse-lists-container-117843897\"]/div/browse-pane[3]/div/browse-entry[2]/div/div[2]/span/md-icon"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[6]/div/sm-questionnaire-section/div/div/div[2]/div[3]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-multi-line-free-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/textarea"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[6]/div/sm-questionnaire-section/div/div/div[2]/div[3]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-multi-line-free-text/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/textarea",
+    "value": "test"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[7]/div/sm-questionnaire-section/div/div/div[3]/div[2]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-attachment/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/div/button"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[1]/div/div[7]/div/sm-questionnaire-section/div/div/div[3]/div[2]/div/sm-questionnaire-item/div/div/sm-questionnaire-answer-type-switch/div/div/smq-answer-type-attachment/div/div/smq-flat-row-renderer/div/div[1]/div[3]/div/div/div/button"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"hidden-attachment-file-input117845006\"]",
+    "value": "C:\\fakepath\\\u5185\u90e8\u6ce8\u518c\u95ee\u5377.xlsx"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"resizable-iframe-container\"]/edit-workspace-questionnaire/div/edit-internal-questionnaire/div/div[2]/sm-questionnaire/div[1]/div/sm-questionnaire-edit-mode/form/div[2]/button[1]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"done\"]/span"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+loops: []
+mcp_desc: ''

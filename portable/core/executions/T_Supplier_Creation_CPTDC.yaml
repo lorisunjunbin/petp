@@ -1,0 +1,126 @@
+!!python/object:core.execution.Execution
+astool: true
+execution: T_Supplier_Creation_CPTDC
+list:
+- !!python/object:core.task.Task
+  input: '{"supplier_name": "\u4e2b\u68d2\u8c46\u798f-\u91d1\u8c46", "first_name":
+    "\u8c46\u798f", "last_name": "\u4e2b\u68d2", "result": "succesfully created for
+    {supplier_name}", "email": "6099999@qq.com", "user": 80857123, "url": "https://s1.sapariba.cn/Sourcing/Main/ad/loginPage/SSOActions?awsso_cc=cGFzc3dvcmRhZGFwdGVyOlZHaHBjbVJRWVhKMGVWVnpaWEk9O3JlYWxtOk56UTFNRFk1TWpjMUxWUT07YXdzc29fcnU6YUhSMGNITTZMeTl6TVM1ellYQmhjbWxpWVM1amJpOVRiM1Z5WTJsdVp5OU5ZV2x1UDNKbFlXeHRQVGMwTlRBMk9USTNOUzFVSm5CaGMzTjNiM0prWVdSaGNIUmxjajFVYUdseVpGQmhjblI1VlhObGNnPT07YXdzc29fbHU6YUhSMGNITTZMeTl6TVM1ellYQmhjbWxpWVM1amJpOVRiM1Z5WTJsdVp5OU5ZV2x1TDJGa0wyTnNhV1Z1ZEV4dloyOTFkQzlUVTA5QlkzUnBiMjV6O2F3c3NvX2FwOlFVTk47YXdzc29fYXJpZDpNVGM0TkRBeE56STFNRFF4Tnc9PTthd3Nzb19rdTphSFIwY0hNNkx5OXpNUzV6WVhCaGNtbGlZUzVqYmk5VGIzVnlZMmx1Wnk5TllXbHVMMkZrTDJOc2FXVnVkRXRsWlhCQmJHbDJaUzlUVTA5QlkzUnBiMjV6O2F3c3NvX2ZsOk1RPT0%3D%3Aj9Dxr3iTrVqrkNlo9HnzT4PvSao%3D&awsso_ap=ACM&awsso_hpk=true&passwordadapter=ThirdPartyUser&realm=745069275-T&awsr=true",
+    "phone": 13456788888}'
+  skipped: false
+  type: INITIAL_PARAMS
+- !!python/object:core.task.Task
+  input: '{"url": "{url}"}'
+  skipped: false
+  type: GO_TO_PAGE
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "/html/body/div[5]/table/tbody/tr[2]/td/table/tbody/tr/td[1]/div[2]/table/tbody/tr/td/div/label"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"UserName\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"UserName\"]", "value": "sap"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"_w3f29d\"]/label"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"Password\"]"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"Password\"]", "value": "{p.decrypt(\"pZHBAorZjMPzgIcybw==*byDJXXhILZc6SOSYRvtlcw==*jsn29/n1tEcfSuxFziEreg==*yVWZ9QDVqj0UPjiaPCt55g==\")}"}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//*[@id=\"loginForm\"]/table/tbody/tr[2]/td/input"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//div[contains(@class,''a-mastCmd-create-button'')
+    and   .//span[normalize-space()=''\u521b\u5efa'']]", "wait": 5}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"identity": "\u4f9b\u5e94\u5546\u8bf7\u6c42", "find_by": "link", "wait":
+    3}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"frame_ids": ["SMFrame"], "chrome_name": "chrome", "wait": 5}'
+  skipped: false
+  type: MOVE_TO_IFRAME
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//input[@aria-label=''\u4f9b\u5e94\u5546\u540d\u79f0'']",
+    "wait": 1}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//input[@aria-label=''\u4f9b\u5e94\u5546\u540d\u79f0'']",
+    "value": "{supplier_name}", "wait": 5}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//input[@aria-label=''\u8054\u7cfb\u4eba\u59d3'']",
+    "value": "{last_name}", "wait": 2}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//input[@aria-label=''\u8054\u7cfb\u4eba\u540d'']",
+    "value": "{first_name}", "wait": 2}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//input[@aria-label=''\u529e\u516c/\u79fb\u52a8\u7535\u8bdd'']",
+    "value": "{phone}", "wait": 2}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//input[@aria-label=''\u8054\u7cfb\u4eba\u90ae\u7bb1'']",
+    "value": "{email}", "wait": 2}'
+  skipped: false
+  type: FIND_THEN_KEYIN
+- !!python/object:core.task.Task
+  input: '{"find_by": "css", "identity": "button.fd-button--emphasized"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": "//span[normalize-space()=''\u5ffd\u7565\u5e76\u63d0\u4ea4\u8bf7\u6c42'']",
+    "wait": 2, "timeout": 5, "skip_timeout_error": "yes"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+- !!python/object:core.task.Task
+  input: '{"find_by": "xpath", "identity": " //button[.//span[contains(@class,''button-txt-fiori'')
+    and   normalize-space()=''\u5b8c\u6210'']] ", "wait": 2, "timeout": 10, "skip_timeout_error":
+    "no"}'
+  skipped: false
+  type: FIND_THEN_CLICK
+loops: []
+mcp_desc: "{\n  \"desc\": \"\u767B\u5F55 SAP Ariba \u7CFB\u7EDF\u5E76\u63D0\u4EA4\u4E00\u4E2A\u4F9B\u5E94\u5546\u521B\u5EFA\u8BF7\u6C42\uFF08Supplier
+  Request\uFF09\u3002\u6839\u636E\u4F20\u5165\u53C2\u6570\u586B\u5199\u4F9B\u5E94\u5546\u540D\u79F0\u4E0E\u8054\u7CFB\u4EBA\u4FE1\u606F\u540E\u63D0\u4EA4\u3002\\r\\r\u3010\u5B57\u6BB5\u793A\u4F8B\u3011\\r-
+  supplier_name\uFF08\u4F9B\u5E94\u5546\u540D\u79F0\uFF09: \\\"\u4E2B\u68D2\u8C46\u798F-\u91D1\u8C46\\\"\\r-
+  first_name\uFF08\u8054\u7CFB\u4EBA\u540D\uFF09: \\\"\u8C46\u798F\\\"\\r- last_name\uFF08\u8054\u7CFB\u4EBA\u59D3\uFF09:
+  \\\"\u4E2B\u68D2\\\"\\r- email\uFF08\u8054\u7CFB\u4EBA\u90AE\u7BB1\uFF09: \\\"6099999@qq.com\\\"\\r-
+  phone\uFF08\u8054\u7CFB\u4EBA\u624B\u673A\u53F7\uFF09: \\\"13456788888\\\"\",\n
+  \ \"inputSchema\": {\n    \"type\": \"object\",\n    \"title\": \"T_Supplier_Creation_CPTDCArguments\",\n
+  \   \"properties\": {\n      \"supplier_name\": {\n        \"title\": \"supplier_name\",\n
+  \       \"type\": \"string\",\n        \"description\": \"\u4F9B\u5E94\u5546\u540D\u79F0\uFF0C\u4F8B\u5982:
+  \u53EE\u549A\u732B\"\n      },\n      \"first_name\": {\n        \"title\": \"first_name\",\n
+  \       \"type\": \"string\",\n        \"description\": \"\u8054\u7CFB\u4EBA\u540D\u5B57\uFF08\u540D\uFF09\uFF0C\u4F8B\u5982:\u5B59\"\n
+  \     },\n      \"last_name\": {\n        \"title\": \"last_name\",\n        \"type\":
+  \"string\",\n        \"description\": \"\u8054\u7CFB\u4EBA\u59D3\u6C0F\uFF08\u59D3\uFF09\uFF0C\u4F8B\u5982:\u51B0\u68D2\"\n
+  \     },\n      \"email\": {\n        \"title\": \"email\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\u8054\u7CFB\u4EBA\u90AE\u7BB1\u5730\u5740\uFF0C\u4F8B\u5982:6099999@qq.com\"\n
+  \     },\n      \"phone\": {\n        \"title\": \"phone\",\n        \"type\": \"string\",\n
+  \       \"description\": \"\u8054\u7CFB\u4EBA\u624B\u673A\u53F7\u7801\uFF0C\u4F8B\u5982:13456788888\"\n
+  \     }\n    },\n    \"required\": [\n      \"supplier_name\",\n      \"first_name\",\n
+  \     \"last_name\",\n      \"email\",\n      \"phone\"\n    ]\n  },\n  \"outputSchema\":
+  {\n    \"type\": \"object\",\n    \"title\": \"T_Supplier_Creation_CPTDCOutput\",\n
+  \   \"properties\": {\n      \"result\": {\n        \"title\": \"result\",\n        \"type\":
+  \"string\",\n        \"description\": \"\u521B\u5EFA\u7ED3\u679C\u8BF4\u660E\"\n
+  \     }\n    },\n    \"required\": [\n      \"result\"\n    ]\n  }\n}"
