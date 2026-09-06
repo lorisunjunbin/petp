@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.txt)
 
-Python RPA 工具包，80+ 处理器编排浏览器自动化、AI/LLM（10 家供应商）、数据库、SSH、邮件和 HTTP 任务。可配置的 Pipeline 支持 cron 定时与循环。支持 wxPython GUI、无头服务和 Docker 容器三种运行模式。内置 MCP 工具服务器（Streamable-HTTP）供 AI Agent 集成。
+Python RPA 工具包，80+ 处理器编排浏览器自动化、AI/LLM（11 家供应商）、数据库、SSH、邮件和 HTTP 任务。可配置的 Pipeline 支持 cron 定时与循环。支持 wxPython GUI、无头服务和 Docker 容器三种运行模式。内置 MCP 工具服务器（Streamable-HTTP）供 AI Agent 集成。
 
 ```
 Pipeline  1:n  Execution
@@ -83,7 +83,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 | **文件与文件夹** | 打开、写入、删除、读取、查找、监控自动移动、ZIP/UNZIP。 |
 | **数据与表格** | CSV/Excel 读写、采集、过滤、分组、映射、脱敏、合并。 |
 | **数据库** | MySQL、PostgreSQL、SAP HANA、SQLite — 统一 `DB_ACCESS` 处理器。 |
-| **AI / LLM**（10 家供应商） | DeepSeek、Gemini、Ollama、智谱、Anthropic、千帆、MiniMax、豆包、月之暗面、OpenAI 兼容。初始化 + 问答 + MCP 工具调用。 |
+| **AI / LLM**（11 家供应商） | DeepSeek、Gemini、Ollama、智谱、Anthropic、Hyperspace、千帆、MiniMax、豆包、月之暗面、OpenAI 兼容。初始化 + 问答 + MCP 工具调用。 |
 | **AI 执行生成器** | 自然语言 → 任务流程生成。多轮对话、Processor 浏览器、选择性上下文、连接缓存。 |
 | **MCP** | 标准 MCP 工具服务器（Streamable-HTTP）。支持所有 LLM 供应商的 MCP 客户端。 |
 | **HTTP / 网络** | 可配置请求、响应提取、OAuth2/PKCE、Basic Auth、XSRF。 |
@@ -98,7 +98,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 
 ## 🤖 AI 执行生成器
 
-> **重点特性** — 通过自然语言对话与 LLM 生成和修改 PETP 任务流程。支持 [10 家 LLM 供应商](./docs/configuration_cn.md#ai-助手配置),包括 [Hyperspace](./hyperspace_llm_guide.md)、Anthropic、DeepSeek、智谱、Gemini、Ollama 等。
+> **重点特性** — 通过自然语言对话与 LLM 生成和修改 PETP 任务流程。支持 [11 家 LLM 供应商](./docs/configuration_cn.md#ai-助手配置),包括 [Hyperspace](./hyperspace_llm_guide.md)、Anthropic、DeepSeek、智谱、Gemini、Ollama 等。
 
 **入口：**
 - 创建 Execution → 选择 **"AI 生成"** 模板
@@ -110,7 +110,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 - **Processor 浏览器** —— 可展开的 TreeListCtrl,内置完整文档、搜索和过滤
 - **选择性上下文** —— 只有勾选的 Processor 发送给 LLM(节省 Token)
 - **连接缓存** —— 首次验证后即时复用,对话历史保留
-- **10 家 LLM 供应商** —— 最简配置:只需设置 `ai_provider`
+- **11 家 LLM 供应商** —— 最简配置:只需设置 `ai_provider`
 - **429 限流防护** —— 指数退避重试(2s / 4s / 8s)、UI 相邻请求节流 ≥ 3s、每次调用打印 token 消耗日志
 
 **Token 控制**(新增):
@@ -280,6 +280,7 @@ PETP 通过 Streamable-HTTP（端口 8866）将 Execution 暴露为 MCP 工具�
 > - **路径遍历守卫（opt-in)**:设置 `PETP_PATH_ALLOW_ROOTS=/path1:/path2` 后,所有文件 IO processor(`READ_*`、`WRITE_*`、`OPEN_FILE`、`FILE_DELETE`、`UNZIP`)被限制在白名单根目录内。默认关闭——保留现有用绝对路径的 yaml 行为不变。
 > - **请求大小限制**:HTTP body 上限 4 MiB(`PETP_MAX_BODY_BYTES`);JSON-RPC 批量数组上限 64 项(`PETP_MAX_BATCH_ITEMS`)。超限直接 `413` / `400`,不再解析 body。
 > - **日志脱敏(默认开)**:`process start` / `[Type] input` 日志中,敏感 key(`api_key`、`password`、`token`、`authorization`、`secret`...)的值替换为 `***REDACTED***`。临时调试可设 `PETP_LOG_REDACT=off` 关闭。
+> - **安全 YAML 反序列化**:执行/流水线 YAML 经由 `PETPSafeLoader`(基于 `SafeLoader`)加载,**仅**为四个项目类注册构造器 —— `Execution`、`Task`、`Pipeline`、`Loop`。从不使用 `yaml.Loader` / `UnsafeLoader` / `FullLoader`,因此 `!!python/object/apply:...` 标签无法在加载时执行任意代码 —— 任何未注册标签都会抛出 `ConstructorError`。你在 YAML 里看到的 `!!python/object:...` 标签只是外观,并非开放的 `pickle` 式加载器。
 
 **性能优化（无头/Docker 模式）：**
 - 共享线程池处理并发工具调用（消除每次请求创建 Executor 的开销）

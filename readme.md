@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE.txt)
 
-Python RPA toolkit with 80+ processors orchestrating browser automation, AI/LLM (10 providers), databases, SSH, email, and HTTP tasks. Configurable pipelines with cron scheduling and loops. Runs as wxPython GUI, headless service, or Docker container. Built-in MCP Tool Server (Streamable-HTTP) for AI agent integration.
+Python RPA toolkit with 80+ processors orchestrating browser automation, AI/LLM (11 providers), databases, SSH, email, and HTTP tasks. Configurable pipelines with cron scheduling and loops. Runs as wxPython GUI, headless service, or Docker container. Built-in MCP Tool Server (Streamable-HTTP) for AI agent integration.
 
 ```
 Pipeline  1:n  Execution
@@ -83,7 +83,7 @@ python PETP_background.py   # Headless service (port 8866)
 | **File & Folder** | Open, write, delete, read, find, watch & auto-move, ZIP/UNZIP. |
 | **Data & Spreadsheet** | CSV/Excel read & write, collect, filter, group-by, mapping, masking, merge. Chinese almanac (CNLunar). |
 | **Database** | MySQL, PostgreSQL, SAP HANA, SQLite — unified `DB_ACCESS` processor. |
-| **AI / LLM** (10 providers) | DeepSeek, Gemini, Ollama, Zhipu, Anthropic, Qianfan, MiniMax, Doubao, Moonshot, OpenAI-compatible. Setup + Q&A + MCP tool calling. |
+| **AI / LLM** (11 providers) | DeepSeek, Gemini, Ollama, Zhipu, Anthropic, Hyperspace, Qianfan, MiniMax, Doubao, Moonshot, OpenAI-compatible. Setup + Q&A + MCP tool calling. |
 | **AI Execution Generator** | Natural language → task flow generation. Multi-turn chat, Processor browser, selective context, connection caching. |
 | **MCP** | Standard MCP Tool Server (Streamable-HTTP). MCP client for all LLM providers. OOTB tools: weather query, daily almanac. |
 | **HTTP / Network** | Configurable requests, response extraction, OAuth2/PKCE, Basic Auth, XSRF. |
@@ -98,7 +98,7 @@ python PETP_background.py   # Headless service (port 8866)
 
 ## 🤖 AI Execution Generator
 
-> **Highlight** — Generate and modify PETP task flows through natural language conversation with LLM. Supports [10 LLM providers](./docs/configuration.md#ai-assistant-configuration) including [Hyperspace](./hyperspace_llm_guide.md), Anthropic, DeepSeek, Zhipu, Gemini, Ollama, and more.
+> **Highlight** — Generate and modify PETP task flows through natural language conversation with LLM. Supports [11 LLM providers](./docs/configuration.md#ai-assistant-configuration) including [Hyperspace](./hyperspace_llm_guide.md), Anthropic, DeepSeek, Zhipu, Gemini, Ollama, and more.
 
 **Entry Points:**
 - Create Execution → **"AI Generate"** template
@@ -110,7 +110,7 @@ python PETP_background.py   # Headless service (port 8866)
 - **Processor browser** — expandable TreeListCtrl with full documentation, search & filter
 - **Selective context** — only checked Processors are sent to LLM (saves tokens)
 - **Connection caching** — first-time validation, then instant reuse across sessions
-- **10 LLM providers** — minimal config: just set `ai_provider` in petpconfig.yaml
+- **11 LLM providers** — minimal config: just set `ai_provider` in petpconfig.yaml
 - **429 rate-limit defense** — exponential backoff (2s / 4s / 8s), UI throttle ≥ 3s, per-call token accounting log
 
 **Token controls** (new):
@@ -280,6 +280,7 @@ PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 > - **Path traversal guard** (opt-in): set `PETP_PATH_ALLOW_ROOTS=/path1:/path2` to confine all file IO processors (`READ_*`, `WRITE_*`, `OPEN_FILE`, `FILE_DELETE`, `UNZIP`) to a whitelist of root directories. Default off — preserves existing yaml using absolute paths.
 > - **Request size limits**: HTTP body capped at 4 MiB (`PETP_MAX_BODY_BYTES`); JSON-RPC batch arrays capped at 64 items (`PETP_MAX_BATCH_ITEMS`). Both return `413` / `400` with no body parsing.
 > - **Log redaction** (default on): values of sensitive keys (`api_key`, `password`, `token`, `authorization`, `secret`, ...) are masked as `***REDACTED***` in `process start` / `[Type] input` log lines. Disable with `PETP_LOG_REDACT=off` for ad-hoc debugging.
+> - **Safe YAML deserialization**: execution/pipeline YAML is loaded via `PETPSafeLoader` (built on `SafeLoader`), which registers constructors for **only** the four project classes — `Execution`, `Task`, `Pipeline`, `Loop`. `yaml.Loader` / `UnsafeLoader` / `FullLoader` are never used, so `!!python/object/apply:...` tags cannot execute arbitrary code at load time — any unregistered tag raises `ConstructorError`. The `!!python/object:...` tags you see in the YAML are cosmetic, not an open `pickle`-style loader.
 
 **Performance (headless/Docker):**
 - Shared thread pool for concurrent tool calls (no per-request executor overhead)
