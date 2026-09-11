@@ -198,6 +198,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
     # === Grid column headers ===
     "grid_task_chooser": {"en": "Task Chooser", "zh": "Task选择"},
+    "placeholder_find_task": {"en": "find task", "zh": "查找任务"},
     "grid_task_desc": {"en": "Description", "zh": "描述"},
     "grid_input": {"en": "Input", "zh": "输入"},
     "grid_exec_chooser": {"en": "Execution Chooser", "zh": "Execution选择"},

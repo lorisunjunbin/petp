@@ -196,6 +196,7 @@ class PETPPresenter():
         # --- Execution tab: task editor ---
         v.addRow4E.SetToolTip(t("tip_add_row"))
         v.delRow4E.SetToolTip(t("tip_delete_row"))
+        v.search_task.SetDescriptiveText(t("placeholder_find_task"))
         v.selectRecording.SetLabel(t("btn_select"))
         v.selectRecording.SetToolTip(t("tip_select_recording"))
         v.loadRecording.SetLabel(t("btn_convert"))

@@ -1,6 +1,10 @@
+import sys
+
 import wx
 
 from mvp.view.PETPTheme import get_theme
+
+_IS_WINDOWS = sys.platform == 'win32'
 
 
 class ToggleSwitch(wx.Control):
@@ -10,17 +14,25 @@ class ToggleSwitch(wx.Control):
     IsChecked/SetLabel so the presenter code works unchanged.
     """
 
-    _TRACK_W = 36
-    _TRACK_H = 18
+    # Windows: Win11-Fluent proportions (40x20 track, bordered off-state,
+    # softer knob shadow) — reads as a sibling of the 28-DIP toolbar buttons.
+    # macOS/Linux: original compact size and flat colours.
+    _TRACK_W = 40 if _IS_WINDOWS else 36
+    _TRACK_H = 20 if _IS_WINDOWS else 18
     _KNOB_PAD = 2
-    _GAP = 6
+    _GAP = 10 if _IS_WINDOWS else 6  # wider label gap on Windows toolbar
 
-    _OFF_TRACK = wx.Colour(189, 189, 189)
+    _OFF_TRACK = wx.Colour(244, 244, 244) if _IS_WINDOWS else wx.Colour(189, 189, 189)
     _DISABLED_TRACK = wx.Colour(220, 220, 220)
     _KNOB = wx.Colour(255, 255, 255)
-    _KNOB_SHADOW = wx.Colour(0, 0, 0, 30)
+    _KNOB_SHADOW = wx.Colour(0, 0, 0, 30) if not _IS_WINDOWS else wx.Colour(0, 0, 0, 55)
 
     def __init__(self, parent, id=wx.ID_ANY, label="", **kwargs):
+        if _IS_WINDOWS:
+            # wx.BORDER_NONE: without it the system draws a 2px non-client
+            # frame around the control — a visible outer border that also
+            # shrinks the paint area by 4px on each axis.
+            kwargs.setdefault("style", wx.BORDER_NONE)
         super().__init__(parent, id, **kwargs)
         self._checked = False
         self._label = label
@@ -79,10 +91,13 @@ class ToggleSwitch(wx.Control):
     def _update_min_size(self):
         dc = wx.ClientDC(self)
         dc.SetFont(self.GetFont() or wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT))
+        # Measure with the same reduced point size the paint pass uses on
+        # Windows, plus extra breathing padding.
         labels = [self._label, self._on_label, self._off_label]
         tw = max((dc.GetTextExtent(l)[0] for l in labels if l), default=0)
         total_w = self._TRACK_W + (self._GAP + tw if tw else 0)
-        self.SetMinSize((total_w + 4, self._TRACK_H + 4))
+        pad = 14 if _IS_WINDOWS else 4
+        self.SetMinSize((total_w + pad, self._TRACK_H + 4))
 
     def _on_enter(self, _evt):
         self._hover = True
@@ -136,6 +151,7 @@ class ToggleSwitch(wx.Control):
             track_colour = wx.Colour(min(255, r + 15), min(255, g + 15), min(255, b + 15))
 
         gc.SetBrush(wx.Brush(track_colour))
+        gc.SetPen(wx.TRANSPARENT_PEN)
         path = gc.CreatePath()
         path.AddRoundedRectangle(0, ty, tw, th, radius)
         gc.FillPath(path)
@@ -144,8 +160,16 @@ class ToggleSwitch(wx.Control):
         knob_y = ty + self._KNOB_PAD
         knob_x = (tw - knob_d - self._KNOB_PAD) if self._checked else self._KNOB_PAD
 
-        gc.SetBrush(wx.Brush(self._KNOB_SHADOW))
-        gc.DrawEllipse(knob_x + 0.5, knob_y + 1, knob_d, knob_d)
+        if _IS_WINDOWS:
+            # Soft drop shadow: two offset translucent ellipses instead of a
+            # hard 1px offset — reads like Win11 elevation.
+            gc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 25)))
+            gc.DrawEllipse(knob_x + 1.5, knob_y + 2, knob_d, knob_d)
+            gc.SetBrush(wx.Brush(wx.Colour(0, 0, 0, 30)))
+            gc.DrawEllipse(knob_x + 0.5, knob_y + 1, knob_d, knob_d)
+        else:
+            gc.SetBrush(wx.Brush(self._KNOB_SHADOW))
+            gc.DrawEllipse(knob_x + 0.5, knob_y + 1, knob_d, knob_d)
 
         gc.SetBrush(wx.Brush(self._KNOB))
         gc.DrawEllipse(knob_x, knob_y, knob_d, knob_d)
@@ -154,6 +178,12 @@ class ToggleSwitch(wx.Control):
             font = self.GetFont()
             if not font.IsOk():
                 font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+            if _IS_WINDOWS:
+                # One point below the unified size — the switch label reads
+                # oversized next to the flat toolbar buttons (macOS unchanged).
+                f2 = wx.Font(font)
+                f2.SetPointSize(max(8, font.GetPointSize() - 1))
+                font = f2
             fg = self.GetForegroundColour()
             if not self.IsEnabled():
                 fg = wx.Colour(160, 160, 160)

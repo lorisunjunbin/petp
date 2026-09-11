@@ -17,6 +17,11 @@ class RunButton(wx.Control):
     _TEXT_COLOUR = wx.Colour(255, 255, 255)
 
     def __init__(self, parent, label="Run", **kwargs):
+        if _IS_WINDOWS:
+            # wx.BORDER_NONE: without it the system draws a 2px non-client
+            # frame around the control — a visible outer border that also
+            # shrinks the paint area by 4px on each axis.
+            kwargs.setdefault("style", wx.BORDER_NONE)
         super().__init__(parent, wx.ID_ANY, **kwargs)
         self._label = label
         self._hover = False
@@ -164,6 +169,10 @@ class RunButton(wx.Control):
         if not font.IsOk():
             font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
         font.SetWeight(wx.FONTWEIGHT_BOLD)
+        if _IS_WINDOWS:
+            # Windows: one point below the unified size — bold 10pt reads
+            # oversized next to the flat toolbar buttons (macOS unchanged).
+            font.SetPointSize(max(8, font.GetPointSize() - 1))
         gc.SetFont(font, txt)
         tw, th = gc.GetTextExtent(self._label)[:2]
         gc.DrawText(self._label, (w - tw) / 2, (h - th) / 2)

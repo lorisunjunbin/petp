@@ -21,6 +21,11 @@ class ThemedButton(wx.Control):
     _TEXT_COLOUR = wx.Colour(255, 255, 255)
 
     def __init__(self, parent, id=wx.ID_ANY, label="", **kwargs):
+        if _IS_WINDOWS:
+            # wx.BORDER_NONE: without it the system draws a 2px non-client
+            # frame around the control — a visible outer border that also
+            # shrinks the paint area by 4px on each axis.
+            kwargs.setdefault("style", wx.BORDER_NONE)
         super().__init__(parent, id, **kwargs)
         self._label = label.replace("&", "")
         self._hover = False

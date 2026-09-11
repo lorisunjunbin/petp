@@ -340,7 +340,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._input_grid = self._create_grid(5, [
             (t("mcp_col_name"), 96),       # fits startTime etc. at 10pt
             (t("mcp_col_type"), 76),
-            (t("mcp_col_required"), 60),
+            (t("mcp_col_required"), 100),
             (t("mcp_col_default"), 90),
             (t("mcp_col_desc"), 80),
         ])
@@ -365,7 +365,7 @@ class McpDescEditor(wx.ScrolledWindow):
         self._output_grid = self._create_grid(4, [
             (t("mcp_col_name"), 96),
             (t("mcp_col_type"), 76),
-            (t("mcp_col_map_key"), 160),  # header 映射DataChain键 needs the room
+            (t("mcp_col_map_key"), 260),  # header 映射DataChain键 needs the room
             (t("mcp_col_desc"), 80),
         ])
         main.Add(self._output_grid, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 3)
@@ -597,19 +597,28 @@ class McpDescEditor(wx.ScrolledWindow):
         fixed_cols = [c for c in range(n_cols) if c != desc_col_idx]
         fixed_want = sum(desired[c] for c in fixed_cols)
         min_desc = 80
+        dc = wx.ClientDC(grid)
+        dc.SetFont(grid.GetLabelFont())
+        # Headers must never truncate — every column's floor is its own
+        # header width + padding (a clipped "Map To DataChain Key" etc. is
+        # unreadable). The flexible Desc column absorbs the squeeze, down to
+        # its own header floor.
+        header_floor = {
+            c: dc.GetTextExtent(grid.GetColLabelValue(c))[0] + 16
+            for c in range(n_cols)
+        }
         if fixed_want + min_desc > available and fixed_want > 0:
-            # Panel too narrow: scale the fixed columns down so Desc keeps a
-            # usable minimum and every column stays visible.
+            # Panel too narrow: scale the fixed columns down, but never below
+            # their header floors.
             scale = max(0.5, (available - min_desc) / fixed_want)
             for c in fixed_cols:
-                grid.SetColSize(c, max(40, int(desired[c] * scale)))
+                grid.SetColSize(c, max(40, header_floor[c], int(desired[c] * scale)))
             fixed_want = sum(grid.GetColSize(c) for c in fixed_cols)
         else:
             for c in fixed_cols:
                 grid.SetColSize(c, desired[c])
         remaining = available - fixed_want
-        if remaining > min_desc:
-            grid.SetColSize(desc_col_idx, remaining)
+        grid.SetColSize(desc_col_idx, max(40, header_floor[desc_col_idx], remaining))
         # SetColSize alone doesn't reliably repaint an already-shown grid —
         # force the dimension recalc or the resized columns render blank.
         grid.ForceRefresh()
