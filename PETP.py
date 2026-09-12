@@ -139,29 +139,71 @@ def _windows_scale_from_registry():
         return 1.0
 
 
-def build_view():
+def _saved_window_rect(model):
+    """Window rect (w, h, x, y) remembered from the last session.
+
+    Reads the single config item ``window_rect`` — a "w,h,x,y" string saved
+    on close. Returns None when there is no usable memory (never saved,
+    malformed, below the 1200x700 floor, or no longer fitting the current
+    monitor) so the caller falls back to the 80%-of-screen rule. x/y may be
+    None when the size is valid but the position is off-screen (caller
+    centres instead).
+    """
+    raw = getattr(model, 'window_rect', None)
+    if not raw or not isinstance(raw, str):
+        return None
+    try:
+        w, h, x, y = (int(v) for v in raw.split(','))
+    except Exception:
+        return None
+    if w < 1200 or h < 700:
+        return None
+    screen = wx.Display(0).GetGeometry()
+    # The remembered values come straight from GetSize()/GetPosition() and go
+    # back straight into SetSize()/MoveWindow() — compare them against the
+    # physical screen as-is (no scale factor round-trip, which would double
+    # the DPI math and wrongly reject valid rects).
+    if w > screen.width or h > screen.height:
+        return None  # remembered size no longer fits the current monitor
+    if x >= screen.width or y >= screen.height \
+            or x + w <= 0 or y + h <= 0:
+        return (w, h, None, None)  # size ok, position fully off-screen
+    return (w, h, x, y)
+
+
+def build_view(model):
     view = PETPView(None, wx.ID_ANY, "")
 
     try:
         screen = wx.Display(0).GetGeometry()
-        # GetGeometry() returns PHYSICAL pixels; SetSize() expects DIPs on
-        # DPI-aware wx 3.3+. Convert with the registry scale — the window is
-        # not on screen yet, so view.ToDIP() still assumes 96 DPI and would
-        # return the physical value unchanged (oversized window + later
-        # re-scale = the visible "shrink" jump).
         scale = _windows_scale_from_registry()
-        win_w = max(1200, int(screen.width * 0.80 / scale))
-        win_h = max(700, int(screen.height * 0.80 / scale))
-        view.SetSize((win_w, win_h))
-        view.Centre()
-        logging.info(f'Init PETPView - {win_w}x{win_h} DIP (screen: {screen.width}x{screen.height} physical, scale {scale})')
+        saved = _saved_window_rect(model)
+        if saved:
+            win_w, win_h, win_x, win_y = saved
+            view.SetSize((win_w, win_h))
+            if win_x is not None:
+                view.SetPosition((win_x, win_y))
+            else:
+                view.Centre()
+            logging.info(f'Init PETPView - {win_w}x{win_h} DIP at ({win_x},{win_y}) '
+                         f'(remembered; screen: {screen.width}x{screen.height} physical, scale {scale})')
+        else:
+            # Fallback: 80% of screen. GetGeometry() returns PHYSICAL pixels;
+            # SetSize() expects DIPs on DPI-aware wx 3.3+ — convert with the
+            # registry scale (ToDIP on a not-yet-shown window still assumes
+            # 96 DPI and would return the physical value unchanged).
+            win_w = max(1200, int(screen.width * 0.80 / scale))
+            win_h = max(700, int(screen.height * 0.80 / scale))
+            view.SetSize((win_w, win_h))
+            view.Centre()
+            logging.info(f'Init PETPView - {win_w}x{win_h} DIP (screen: {screen.width}x{screen.height} physical, scale {scale})')
     except Exception as e:
         logging.warning(f'Could not determine screen size, keeping default window size: {e}')
 
     return view
 
 
-def _show_when_dpi_stable(view, timeout_ms=4000):
+def _show_when_dpi_stable(view, model=None, timeout_ms=4000):
     """Show the frame only after the display DPI has settled (Windows).
 
     On some setups (typically RDP) the monitor's real DPI arrives a second
@@ -169,9 +211,10 @@ def _show_when_dpi_stable(view, timeout_ms=4000):
     migrated (WM_DPICHANGED) and re-scaled on screen — the visible
     "window jumps to a smaller size" effect. Keep the frame hidden, pump
     events until its DPI matches the logon registry value (or timeout),
-    re-apply the intended physical size with the now-correct scale, and
-    only then Show() — one clean appearance, no jump. On machines where
-    DPI is stable from the start the wait exits immediately.
+    re-apply the intended physical size (remembered rect or 80% of screen)
+    with the now-correct scale, and only then Show() — one clean appearance,
+    no jump. On machines where DPI is stable from the start the wait exits
+    immediately.
     """
     if platform.system() != "Windows":
         view.Show()
@@ -191,13 +234,18 @@ def _show_when_dpi_stable(view, timeout_ms=4000):
         _time.sleep(0.05)
     try:
         screen = wx.Display(0).GetGeometry()
-        want_w, want_h = int(screen.width * 0.80), int(screen.height * 0.80)
+        saved = _saved_window_rect(model) if model is not None else None
+        if saved:
+            # Remembered values are used AS-IS (same semantics round-trip as
+            # GetSize at save time — physical on Windows).
+            want_w, want_h = saved[0], saved[1]
+        else:
+            want_w, want_h = int(screen.width * 0.80), int(screen.height * 0.80)
         # Set the PHYSICAL size via Win32 directly. wx's DIP bookkeeping for a
         # still-hidden frame can lag the settled Win32 DPI on RDP (scale
         # reports 1.5 but SetSize renders 1:1), so DIP math lands wrong;
         # MoveWindow takes physical pixels and is unambiguous for a
         # per-monitor-aware process.
-        import ctypes
         from ctypes import wintypes
 
         class _MONITORINFO(ctypes.Structure):
@@ -211,11 +259,14 @@ def _show_when_dpi_stable(view, timeout_ms=4000):
         mi = _MONITORINFO()
         mi.cbSize = ctypes.sizeof(mi)
         ctypes.windll.user32.GetMonitorInfoW(mon, ctypes.byref(mi))
-        mx = (mi.rcWork.left + mi.rcWork.right - want_w) // 2
-        my = (mi.rcWork.top + mi.rcWork.bottom - want_h) // 2
+        if saved and saved[2] is not None:
+            mx, my = saved[2], saved[3]
+        else:
+            mx = (mi.rcWork.left + mi.rcWork.right - want_w) // 2
+            my = (mi.rcWork.top + mi.rcWork.bottom - want_h) // 2
         ctypes.windll.user32.MoveWindow(hwnd, mx, my, want_w, want_h, True)
         logging.info(f'Show PETPView at {want_w}x{want_h} physical '
-                     f'(DPI settled: {cur} target {target})')
+                     f'(DPI settled: {cur} target {target}, remembered: {bool(saved)})')
     except Exception as e:
         logging.warning(f're-apply size before Show failed: {e}')
     view.Show()
@@ -271,10 +322,10 @@ def start_app():
 
     model: PETPModel = build_model()
     set_locale(getattr(model, 'language', 'zh'))
-    view: PETPView = build_view()
+    view: PETPView = build_view(model)
     presenter: PETPPresenter = build_presenter(model, view)
 
-    _show_when_dpi_stable(view)
+    _show_when_dpi_stable(view, model)
 
     logging.info(f'PETP is running on {platform.architecture()[0]} platform')
 

@@ -28,3 +28,4 @@ application:
   ai_max_response_tokens: 8192
   ai_max_request_tokens: 60000
   last_pipeline: OOTB_TEST_PIPLINE_BG
+  window_rect: 2235,1381,1232,481

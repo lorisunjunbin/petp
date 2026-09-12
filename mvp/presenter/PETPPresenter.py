@@ -947,6 +947,19 @@ class PETPPresenter():
                 return False
 
         self.logger_thread = None
+        # Remember the window rect (single config item "w,h,x,y") so the next
+        # launch reopens at the size and position the user left it. Skipped
+        # when maximised — restoring a maximised frame as a plain window
+        # covers the screen but isn't really maximised; keep the last normal
+        # rect instead. Saved while the frame is still alive.
+        try:
+            if not self.v.IsMaximized():
+                w, h = self.v.GetSize()
+                x, y = self.v.GetPosition()
+                if w >= 1200 and h >= 700:
+                    self.m.set_config('window_rect', f"{int(w)},{int(h)},{int(x)},{int(y)}")
+        except Exception as e:
+            logging.warning(f'save window rect failed: {e}')
         self.keep_running = False
         self._log_timer.Stop()
         if self._log_fd is not None:
