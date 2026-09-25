@@ -22,13 +22,21 @@ class READ_EXCELProcessor(Processor):
     def get_category(self) -> str:
         return super().CATE_EXCEL
 
+    def _resolve_file_path(self):
+        # file_path_key takes priority, but only when it is a real data_chain key —
+        # the TPL default "str on data_chain" is a non-empty placeholder that would
+        # otherwise hijack this branch (has_param is true for any non-empty string),
+        # leaving the file_path expression (e.g. "{input_data}") unevaluated.
+        fp_key = self.get_param('file_path_key')
+        if fp_key and fp_key != 'str on data_chain':
+            return self.get_data(fp_key)
+        return self.expression2str(self.get_param('file_path'))
+
     def process(self):
         skipFirst = True if self.get_param('skip_first') == 'yes' else False
         fields_str = self.get_param('fields')
 
-        fp = self.get_data(self.get_param('file_path_key')) if self.has_param('file_path_key') \
-            else self.expression2str(self.get_param('file_path'))
-        fp = validate_path(fp)
+        fp = validate_path(self._resolve_file_path())
 
         sheet_index = int(self.expression2str(self.get_param("sheet_index"))) if self.has_param("sheet_index") else 0
 

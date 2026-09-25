@@ -44,7 +44,7 @@ class FIND_THEN_KEYINProcessor(Processor):
         ele = SeleniumUtil.get_element_by(chrome, keyinby, identity, timeout)
 
         # to build chrome default support keys that match to selenium IDE recording.
-        avaliable_keys = {f'KEY_{key}': val for key, val in SeleniumUtil.get_chrome_keys()}
+        available_keys = {f'KEY_{key}': val for key, val in SeleniumUtil.get_chrome_keys()}
 
         if not ele is None:
             v: any
@@ -60,8 +60,8 @@ class FIND_THEN_KEYINProcessor(Processor):
 
             logging.debug(f"send_key: {v}")
 
-            ele.send_keys(avaliable_keys[v]
-                          if v in avaliable_keys.keys()
+            ele.send_keys(available_keys[v]
+                          if v in available_keys.keys()
                           else v)
 
         elif skip_timeout_error:

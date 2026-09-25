@@ -5,3 +5,7 @@ __pycache__/
 webdriver/
 download/
 log/
+/core/executions/T_Supplier_Registration_huihui.yaml
+/core/executions/T_Supplier_Registration_CPTDC.yaml
+/core/executions/T_Supplier_Creation_huihui.yaml
+/core/executions/T_Supplier_Creation_CPTDC.yaml
