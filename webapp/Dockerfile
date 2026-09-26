@@ -11,7 +11,7 @@ COPY requirements.txt /app/requirements.txt
 # Use a China mirror + generous timeout/retries — the default PyPI index is slow
 # and TLS-flaky from CN networks, causing "SSL: UNEXPECTED_EOF_WHILE_READING".
 RUN pip install --no-cache-dir \
-    --index-url https://pypi.tuna.tsinghua.edu.cn/simple \
+    --index-url https://mirrors.aliyun.com/pypi/simple \
     --timeout 120 --retries 5 \
     -r /app/requirements.txt
 
