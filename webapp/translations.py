@@ -183,7 +183,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mcp_inspector_desc":  {"en": "Connect any MCP Inspector or MCP-compatible client directly to PETP's HTTP server.", "zh": "将任何 MCP Inspector 或兼容 MCP 的客户端直接连接到 PETP 的 HTTP 服务器。"},
     "mcp_cap_transport":   {"en": "Transport Type: <strong>Streamable HTTP</strong>", "zh": "传输类型：<strong>Streamable HTTP</strong>"},
     "mcp_cap_url":         {"en": "URL: <strong>http://localhost:8866/mcp</strong>",   "zh": "URL：<strong>http://localhost:8866/mcp</strong>"},
-    "mcp_cap_noauth":      {"en": "No authentication required for local dev",          "zh": "本地开发无需身份验证"},
+    "mcp_cap_auth":        {"en": "No auth by default for local dev — optional token or OAuth2 JWT", "zh": "本地开发默认无需认证——可选 token 或 OAuth2 JWT"},
     "mcp_cap_clients":     {"en": "Claude Code, Cursor, VS Code Copilot — add as MCP server in settings", "zh": "Claude Code、Cursor、VS Code Copilot——在设置中添加为 MCP 服务器"},
 
     # ── About — install ──────────────────────────────────────────
@@ -194,6 +194,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "install_custom":  {"en": "Custom: combine any group files with", "zh": "自定义：任意组合分组文件，使用"},
 
     # ── About — changelog entries (2026) ────────────────────────────
+    "cl_2026_09_oauth2_jwt": {
+        "en": "<strong>OAuth2 / JWT authentication for the HTTP &amp; MCP API</strong>: a new <code>auth_mode: oauth2</code> turns PETP into an OAuth2 resource server — bearer JWTs (RS256) are validated locally against your IdP's JWKS endpoint (<code>oauth2_jwks_url</code>, <code>oauth2_audience</code>, <code>oauth2_issuer</code>) with no IdP SDK, so the token is checked before any execution fires and invalid / expired / wrong-audience tokens return 401. 14 automated tests exercise the valid, expired, tampered and wrong-audience/issuer paths against a real in-process JWKS server.",
+        "zh": "<strong>HTTP 与 MCP API 的 OAuth2 / JWT 认证</strong>：新增 <code>auth_mode: oauth2</code> 让 PETP 成为 OAuth2 资源服务器——Bearer JWT（RS256）直接在你 IdP 的 JWKS 端点（<code>oauth2_jwks_url</code>、<code>oauth2_audience</code>、<code>oauth2_issuer</code>）上本地校验，无需 IdP SDK；执行触发前先验 token，无效 / 过期 / audience 不符一律返回 401。14 个自动化测试在真实进程内 JWKS 服务器上覆盖有效、过期、篡改与 audience/issuer 不符等路径。",
+    },
+    "cl_2026_09_env_token": {
+        "en": "<strong>Environment-variable secret injection</strong>: <code>http_request_token</code> and the AI <code>api_key</code> now resolve <code>${ENV_VAR}</code> placeholders, so secrets never sit in plaintext inside <code>petpconfig.yaml</code> — keep the value in the environment (or a container secret) and reference it by name. New <code>tools/gen_token.py</code> generates a strong URL-safe token, and config round-trips through <code>ruamel.yaml</code> so hand-written EN/CN comments survive saves.",
+        "zh": "<strong>环境变量密钥注入</strong>：<code>http_request_token</code> 与 AI <code>api_key</code> 现解析 <code>${ENV_VAR}</code> 占位符，密钥不再以明文写在 <code>petpconfig.yaml</code>——把真实值放进环境变量（或容器 secret）按名引用。新增 <code>tools/gen_token.py</code> 生成强随机 URL-safe token；配置经 <code>ruamel.yaml</code> 往返读写，手写的中英文注释保存后依然保留。",
+    },
     "cl_2026_09_window_rect": {
         "en": "<strong>Remember main window size and position</strong>: PETP reopens at the exact rect you left it — saved on close as a single <code>window_rect</code> config item (w,h,x,y). Safe fallbacks everywhere: 80% of screen when missing or malformed, minimum 1200×700, re-centres if the saved position no longer fits the monitor, and closing while maximized skips the save. On Windows the restore rides the DPI-stable show path, so there is no resize jump.",
         "zh": "<strong>记住主窗口大小与位置</strong>：PETP 现在会在你上次离开的位置与尺寸重新打开 —— 关闭时保存为单个 <code>window_rect</code> 配置项（w,h,x,y）。处处有安全兜底：缺失或格式错误时回退为屏幕 80%，下限 1200×700，保存位置不再适配显示器时自动居中，最大化状态下关闭则跳过保存。Windows 上恢复走 DPI 稳定的显示路径，不会出现尺寸跳动。",

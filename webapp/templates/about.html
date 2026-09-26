@@ -438,7 +438,7 @@ python PETP_background.py</code></pre>
             <ul class="cap-list">
                 <li>{{ t('mcp_cap_transport') | safe }}</li>
                 <li>{{ t('mcp_cap_url') | safe }}</li>
-                <li>{{ t('mcp_cap_noauth') }}</li>
+                <li>{{ t('mcp_cap_auth') }}</li>
                 <li>{{ t('mcp_cap_clients') }}</li>
             </ul>
         </div>
@@ -680,6 +680,8 @@ python PETP_background.py</code></pre>
             </tr>
             </thead>
             <tbody>
+            <tr><td>2026-09</td><td>{{ t('cl_2026_09_oauth2_jwt') | safe }}</td></tr>
+            <tr><td>2026-09</td><td>{{ t('cl_2026_09_env_token') | safe }}</td></tr>
             <tr><td>2026-09</td><td>{{ t('cl_2026_09_window_rect') | safe }}</td></tr>
             <tr><td>2026-09</td><td>{{ t('cl_2026_09_win_polish') | safe }}</td></tr>
             <tr><td>2026-09</td><td>{{ t('cl_2026_09_v150') | safe }}</td></tr>
