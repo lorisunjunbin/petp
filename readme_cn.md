@@ -273,6 +273,18 @@ PETP 通过 Streamable-HTTP（端口 8866）将 Execution 暴露为 MCP 工具�
 
 > **🔒 鉴权 fail-closed。** `petpconfig.yaml` 未设置 `http_request_token` 时,所有受保护端点(`/petp/*`、`/mcp`)返回 `501 Not Configured`。对外暴露(如经 Tailscale Funnel)前必须配置 token,且每次请求通过 `Authorization: Bearer <token>` 头携带。
 
+> **🔒 Token 从环境变量注入。** `http_request_token` 支持 `${ENV_VAR}` 引用 —— 设置 `http_request_token: ${PETP_HTTP_TOKEN}` 并导出 `PETP_HTTP_TOKEN`,即可把真实 token 留在 YAML 之外。用 `python tools/gen_token.py` 生成强随机 token(32 字节,URL-safe)。`ai_api_key` 复用同一 `${ENV}` 机制(`utils/SecretUtil.py`)。
+
+> **🔒 OAuth2 / JWT（资源服务器）。** 设置 `auth_mode: oauth2` 后,PETP 会在本地通过 JWKS 端点校验 `Authorization: Bearer` JWT,替代静态 token —— 无需引入 IdP SDK：
+> ```yaml
+> application:
+>   auth_mode: oauth2
+>   oauth2_jwks_url: https://idp.example.com/.well-known/jwks.json
+>   oauth2_audience: petp              # 可选 aud 校验
+>   oauth2_issuer: https://idp.example.com  # 可选 iss 校验
+> ```
+> 当 `auth_mode: oauth2` 且 `oauth2_jwks_url` 有效时,静态 `http_request_token` 会被忽略。`auth_mode: static`(默认)保持原有 token 校验。实现见 `httpservice/auth/OAuth2JwtProvider.py`。
+
 > **🔒 安全加固（Phase 2）。**
 > - **`CMD` processor**：默认走 `shlex.split`（不进 shell）。仅在需要管道/重定向且命令可信时才设 `shell="yes"`。
 > - **动态 `_fn` / `lambda_*` 参数**：运行在沙箱里，`__import__`、`open`、`eval`、`exec`、`compile`、`getattr`、`hasattr` 被移除。白名单模块：`re`、`json`、`datetime`、`math`。

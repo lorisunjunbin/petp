@@ -20,5 +20,6 @@
 -r requirements/javascript.txt
 -r requirements/video-download.txt
 -r requirements/http-service.txt
+-r requirements/auth.txt
 -r requirements/webapp.txt
 -r requirements/system-build.txt

@@ -2,9 +2,15 @@ import logging
 import os
 import threading
 
-import yaml
+from ruamel.yaml import YAML
 
 from utils.AppPaths import get_config_dir
+
+# Round-trip YAML: preserves comments, key order and formatting across
+# load()/dump(), so hand-written comments in petpconfig.yaml survive set_config().
+_yaml = YAML()
+_yaml.preserve_quotes = True
+_yaml.width = 4096
 
 
 class SystemConfig():
@@ -16,7 +22,7 @@ class SystemConfig():
         logging.info(f'load config file from: {self.config_path}')
 
         with open(self.config_path, 'r', encoding='utf8') as f:
-            self.yamldoc = yaml.safe_load(f)
+            self.yamldoc = _yaml.load(f)
 
     def get_config(self, *keys):
         try:
@@ -36,7 +42,7 @@ class SystemConfig():
                 temp = temp[key]
             temp[keys[-1]] = value
             with open(self.config_path, 'w', encoding='utf8') as f:
-                yaml.dump(self.yamldoc, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+                _yaml.dump(self.yamldoc, f)
         logging.debug('set_config -' + str(keys) + '= ' + str(value))
 
     def bind_model(self, model, keys=None, exclude_keys=None):

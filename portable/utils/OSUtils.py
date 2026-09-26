@@ -8,7 +8,6 @@ from shutil import copy2, copyfile
 import platform
 
 from utils.AppPaths import get_log_dir, get_download_dir
-import ctypes
 
 class OSUtils:
 
@@ -33,11 +32,6 @@ class OSUtils:
           'i386'   -> 32-bit x86
         """
         return platform.machine().lower()
-
-    @staticmethod
-    def ensure_hdpi():
-        if platform.system() == "Windows":
-            ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
     @staticmethod
     def wait_for_file_within_seconds(file_path, timeout):

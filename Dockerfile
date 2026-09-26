@@ -36,6 +36,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     # Use non-interactive Agg backend so matplotlib never tries to open a window
     MPLBACKEND=Agg
 
+# ── Auth token ─────────────────────────────────────────────────────────────────
+# PETP_HTTP_TOKEN is the Bearer token for the HTTP/MCP API. It is baked into the
+# image at build time so the container works out-of-the-box. NOTE: baked-in values
+# are visible via `docker history` / `docker save` — for anything beyond a private
+# deployment, inject at runtime instead: `docker run -e PETP_HTTP_TOKEN=...`
+ENV PETP_HTTP_TOKEN=cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
+
 WORKDIR /app
 
 # ── System dependencies ────────────────────────────────────────────────────────

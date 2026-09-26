@@ -25,3 +25,4 @@
 -r requirements/ai-ollama.txt
 -r requirements/ai-zhipu.txt
 -r requirements/mcp.txt
+-r requirements/auth.txt

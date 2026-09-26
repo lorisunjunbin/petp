@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import re
 from typing import List, Optional, Tuple
 
@@ -9,6 +8,7 @@ from core.processor import Processor
 from core.task import Task
 from core.loop import Loop
 from i18n.translations import t
+from utils.SecretUtil import resolve_secret
 
 SYSTEM_PROMPT_ZH = """你是 PETP 执行流程生成助手。你可以：
 1. 根据用户的自然语言描述，生成 PETP Execution 的 Task 序列
@@ -90,12 +90,7 @@ When the user asks to generate or modify a flow, use these JSON formats:
 
 
 def resolve_api_key(raw: str) -> str:
-    if not raw:
-        return ''
-    m = re.fullmatch(r'\$\{(.+)\}', raw.strip())
-    if m:
-        return os.environ.get(m.group(1), '')
-    return raw
+    return resolve_secret(raw)
 
 
 class ExecutionGenerator:

@@ -24,11 +24,14 @@ class HttpServerBaseMixin:
         Returns ``None`` on success, or an ``(error_dict, status_code)``
         tuple on rejection.
 
-        Fail-closed semantics: when ``http_request_token`` is not
-        configured the server refuses every authenticated request with
+        Fail-closed semantics: when neither a provider nor ``http_request_token``
+        is configured the server refuses every authenticated request with
         501. This prevents a fail-open mode where empty token == public
         RCE on /petp/exec.
         """
+        provider = getattr(self, '_auth_provider', None)
+        if provider is not None:
+            return provider.validate(handler.headers.get("Authorization", ""))
         if not self._token:
             return ({"error": "Server requires http_request_token to be configured"}, 501)
         given = handler.headers.get("Authorization", "")

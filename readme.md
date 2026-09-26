@@ -273,6 +273,18 @@ PETP exposes executions as MCP tools via Streamable-HTTP on port 8866.
 
 > **🔒 Auth is fail-closed.** When `http_request_token` is unset in `petpconfig.yaml`, every protected endpoint (`/petp/*`, `/mcp`) returns `501 Not Configured`. Set a token before exposing the server (e.g. via Tailscale Funnel). Send it as `Authorization: Bearer <token>` on every request.
 
+> **🔒 Token from the environment.** `http_request_token` supports `${ENV_VAR}` references — set `http_request_token: ${PETP_HTTP_TOKEN}` and export `PETP_HTTP_TOKEN` to keep the real token out of the YAML. Generate a strong token with `python tools/gen_token.py` (32 bytes, URL-safe). `ai_api_key` uses the same `${ENV}` mechanism (`utils/SecretUtil.py`).
+
+> **🔒 OAuth2 / JWT (resource server).** Set `auth_mode: oauth2` to validate inbound `Authorization: Bearer` JWTs locally against a JWKS endpoint instead of the static token — no IdP SDK required:
+> ```yaml
+> application:
+>   auth_mode: oauth2
+>   oauth2_jwks_url: https://idp.example.com/.well-known/jwks.json
+>   oauth2_audience: petp              # optional aud check
+>   oauth2_issuer: https://idp.example.com  # optional iss check
+> ```
+> With `auth_mode: oauth2` and a valid `oauth2_jwks_url`, the static `http_request_token` is ignored. `auth_mode: static` (default) keeps the existing token check. See `httpservice/auth/OAuth2JwtProvider.py`.
+
 > **🔒 Security hardening (Phase 2).**
 > - **`CMD` processor**: defaults to `shlex.split` (no shell). Set `shell="yes"` only for trusted commands needing pipes/redirects.
 > - **Dynamic `_fn` / `lambda_*` parameters**: run in a sandbox with `__import__`, `open`, `eval`, `exec`, `compile`, `getattr`, `hasattr` removed. Whitelisted modules: `re`, `json`, `datetime`, `math`.

@@ -10,6 +10,7 @@ from typing import Any
 import utils.Logger as Logger
 from core.runtime.BackgroundRuntime import BackgroundRuntime
 from core.runtime.UiProcessorPolicy import normalize_policy
+from httpservice.auth.OAuth2JwtProvider import build_auth_provider
 from httpservice.BackgroundHttpServer import BackgroundHttpServer
 from i18n.translations import set_locale
 from mvp.model.PETPModel import PETPModel
@@ -164,6 +165,7 @@ def start_background_app() -> None:
     if not cfg["no_http"]:
         server = BackgroundHttpServer(
             runtime, cfg["http_port"], cfg["http_timeout"], cfg["http_token"],
+            auth_provider=build_auth_provider(model),
             metrics_enabled=cfg["metrics_enabled"],
             metrics_slow_threshold_ms=cfg["metrics_slow_threshold_ms"],
             metrics_log_interval_seconds=cfg["metrics_log_interval_seconds"],

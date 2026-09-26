@@ -84,7 +84,6 @@ from mvp.presenter.PETPPresenter import PETPPresenter
 from mvp.view.PETPView import PETPView
 from utils.DateUtil import DateUtil
 from httpservice.HttpServer import HttpServer
-from utils.OSUtils import OSUtils
 from i18n.translations import set_locale
 from utils.SystemConfig import SystemConfig
 
@@ -96,20 +95,10 @@ def init_log():
     logging.info("PETP starting @ " + DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S"))
 
 
-def init_display():
-    OSUtils.ensure_hdpi()  # only run on windows & use autogui and canvas.
-
-
 def set_log_level(m: PETPModel) -> None:
     log_level_str = getattr(m, 'log_level')
     logging.getLogger().setLevel(logging.getLevelName(log_level_str))
     getattr(logging, log_level_str.lower())('Default log level is <' + log_level_str + '>')
-
-
-def setup_windows_display(m: PETPModel):
-    enabled = True if getattr(m, 'enable_windows_hdpi') else False
-    if enabled:
-        OSUtils.ensure_hdpi()
 
 
 def build_model():
@@ -330,7 +319,6 @@ def start_app():
     logging.info(f'PETP is running on {platform.architecture()[0]} platform')
 
     set_log_level(model)
-    setup_windows_display(model)
 
     # start the http server
     httpServer = HttpServer(presenter)

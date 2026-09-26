@@ -1,31 +1,57 @@
+# ============================================================
+# PETP 配置文件 / Configuration file (application section)
+# 所有字段在启动时自动绑定到运行时；GUI 修改的设置会写回此文件。
+# All fields bind to the runtime at startup; GUI-changed settings are written back.
+# 值支持 ${ENV_VAR} 引用环境变量 / Values support ${ENV_VAR} references.
+# ============================================================
 application:
-  app_name: petp
-  version: 1.4.0
-  author: sunjunbin@DalianChina
-  email: 6099012@qq.com
-  cell: +86-13478653323
-  language: en
-  theme: Forest
-  log_level: INFO
-  enable_windows_hdpi: false
-  http_port: 8866
-  http_request_timeout: 600
-  http_request_token: cGV0cDpzdW5qdW5iaW46ODYxMzQ3ODY1MzMyMzo2MDk5MDEyQHFxLmNvbQ==
-  nogui_enabled: true
-  nogui_ui_processor_policy: skip
-  execute_on_startup: false
-  last_run: ootb_keep_screen_unlocked
-  snapshot_max: 20
-  cron_history_max_records: 500
-  metrics_enabled: true
-  metrics_slow_threshold_ms: 5000
-  metrics_log_interval_seconds: 300
-  metrics_quantile_window: 256
-  ai_provider: zhipu
-  ai_model: null
-  ai_api_key: ${ZHIPU_ACCESS_KEY}
-  ai_base_url: null
-  ai_max_response_tokens: 8192
-  ai_max_request_tokens: 60000
-  last_pipeline: OOTB_TEST_PIPLINE_BG
-  window_rect: 1645,994,45,39
+  # ---- 基本信息 / Basic info ----
+  app_name: petp                       # 应用名称 App name
+  version: 1.4.0                       # 版本号 Version
+  author: sunjunbin@DalianChina        # 作者 Author
+  email: 6099012@qq.com                # 邮箱 Email
+  cell: +86-13478653323                # 联系电话 Phone
+
+  # ---- 界面 / 语言 UI & language ----
+  language: en                         # 界面语言 UI language: en | zh
+  theme: Forest                        # 界面主题 Theme
+
+  # ---- 日志 / Logging ----
+  log_level: INFO                      # 日志级别 Log level: DEBUG | INFO | WARNING | ERROR
+
+  # ---- HTTP / MCP 服务（端口 8866）/ Service (port 8866) ----
+  http_port: 8866                      # HTTP 服务端口 Service port
+  http_request_timeout: 600            # 请求超时（秒）Request timeout (seconds)
+  http_request_token: ${PETP_HTTP_TOKEN}  # Bearer token；支持 ${ENV} 注入 / supports ${ENV} injection
+  auth_mode: static                    # 认证模式 Auth mode: static | oauth2
+  oauth2_jwks_url: ""                  # OAuth2 JWKS 地址（oauth2 时必填）JWKS URL (required for oauth2)
+  oauth2_audience: ""                  # OAuth2 JWT aud 校验（可选）audience check (optional)
+  oauth2_issuer: ""                    # OAuth2 JWT iss 校验（可选）issuer check (optional)
+
+  # ---- 后台 / 无 GUI 模式 Background / headless ----
+  nogui_enabled: true                  # 启用无 GUI 模式 Enable headless mode
+  nogui_ui_processor_policy: skip      # GUI 处理器策略 UI processor policy: skip | abort
+  execute_on_startup: false            # 启动时自动执行 last_run Run last_run on startup
+  last_run: T_CENC_EARTHQUAKE_SEARCH   # 上次运行的 execution Last run execution
+
+  # ---- 快照 / 历史 Snapshot & history ----
+  snapshot_max: 20                     # 编辑快照上限（撤销/重做）Max edit snapshots
+  cron_history_max_records: 500        # cron 历史记录上限 Max cron history records
+
+  # ---- 监控指标 / Metrics ----
+  metrics_enabled: true                # 启用 HTTP 指标统计 Enable HTTP metrics
+  metrics_slow_threshold_ms: 5000      # 慢请求阈值（毫秒）Slow request threshold (ms)
+  metrics_log_interval_seconds: 300    # 指标日志输出间隔（秒）Metrics log interval (seconds)
+  metrics_quantile_window: 256         # 分位数统计窗口 Quantile window
+
+  # ---- AI LLM ----
+  ai_provider: zhipu                   # AI 提供商 Provider
+  ai_model:                            # 模型名（null = 默认）Model (null = default)
+  ai_api_key: ${ZHIPU_ACCESS_KEY}      # API key；支持 ${ENV} 注入 / supports ${ENV} injection
+  ai_base_url:                         # 自定义 base_url（可选）Custom base_url (optional)
+  ai_max_response_tokens: 8192         # 最大响应 token 数 Max response tokens
+  ai_max_request_tokens: 60000         # 最大请求 token 数 Max request tokens
+
+  # ---- 运行时状态（程序自动维护，勿手改）Runtime state (auto-managed) ----
+  last_pipeline: OOTB_TEST_PIPLINE_BG   # 上次运行的 pipeline Last run pipeline
+  window_rect: 2048,1152,1159,441       # 窗口位置与大小（w,h,x,y）Window rect (w,h,x,y)

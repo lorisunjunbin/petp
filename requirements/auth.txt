@@ -1,0 +1,3 @@
+# [Auth] OAuth2 / JWT 服务端认证
+# httpservice.auth: OAuth2JwtProvider
+pyjwt[crypto]             # JWT 验证 (RS256 需要 cryptography)

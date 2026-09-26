@@ -10,12 +10,14 @@ from typing import Any, Callable, Generator, Optional, Union
 
 import wx
 
+from httpservice.auth.OAuth2JwtProvider import build_auth_provider
 from httpservice.HttpServerBaseMixin import HttpServerBaseMixin
 from httpservice.HttpMetrics import HttpMetrics
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
 from mvp.presenter import PETPPresenter
 from mvp.presenter.event.PETPEvent import PETPEvent
+from utils.SecretUtil import resolve_secret
 
 
 class HttpServer(HttpServerBaseMixin, McpMixin):
@@ -49,7 +51,8 @@ class HttpServer(HttpServerBaseMixin, McpMixin):
         self.p: PETPPresenter = presenter
         self._port: int = int(presenter.m.http_port)
         self._timeout: int = max(int(presenter.m.http_request_timeout), self.MIN_HTTP_TIMEOUT_SECONDS)
-        self._token: Optional[str] = presenter.m.http_request_token
+        self._token: Optional[str] = resolve_secret(presenter.m.http_request_token)
+        self._auth_provider = build_auth_provider(presenter.m)
         self._host: str = ""  # Empty string = listen on all interfaces
         self._httpd: Optional[ThreadingHTTPServer] = None
         self._running: bool = False

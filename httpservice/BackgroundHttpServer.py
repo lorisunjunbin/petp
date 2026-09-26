@@ -11,15 +11,18 @@ from typing import Any, Callable, Generator, Optional, Union, cast
 
 from core.runtime.BackgroundRuntime import BackgroundRuntime
 from httpservice.HttpMetrics import HttpMetrics
+from httpservice.auth.OAuth2JwtProvider import OAuth2JwtProvider
 from httpservice.HttpServerBaseMixin import HttpServerBaseMixin
 from httpservice.McpMixin import McpMixin
 from httpservice.handlers.HttpRequestHandler import HttpRequestHandler, StreamingResponseData
+from utils.SecretUtil import resolve_secret
 
 
 class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
     MAX_RESULTS_CACHE: int = 1000
 
     def __init__(self, runtime: BackgroundRuntime, port: int, timeout: int, token: Optional[str] = None,
+                 auth_provider: Optional[OAuth2JwtProvider] = None,
                  metrics_enabled: bool = True,
                  metrics_slow_threshold_ms: int = 5000,
                  metrics_log_interval_seconds: int = 60,
@@ -27,7 +30,8 @@ class BackgroundHttpServer(HttpServerBaseMixin, McpMixin):
         self.runtime = runtime
         self._port = int(port)
         self._timeout = int(timeout)
-        self._token = token
+        self._token = resolve_secret(token)
+        self._auth_provider = auth_provider
         self._host = ""
         self._httpd: Optional[ThreadingHTTPServer] = None
         self._running = False
