@@ -177,6 +177,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     "mode_docker_desc":   {"en": "Multi-arch image (arm64 build → amd64 run). Headless, no browser automation. Supports CI/CD and NAS deployment.", "zh": "多架构镜像（arm64 构建 → amd64 运行），无头模式，支持 CI/CD 和 NAS 部署。"},
     "mode_mcp_title":     {"en": "MCP Tool Server",      "zh": "MCP 工具服务器"},
     "mode_mcp_desc":      {"en": "Exposes executions as typed MCP tools over <strong>Streamable-HTTP</strong> transport (JSON-RPC 2.0).", "zh": "将执行任务暴露为带类型的 MCP 工具，采用 <strong>Streamable-HTTP</strong> 传输方式（JSON-RPC 2.0）。"},
+    "mode_portable_title": {"en": "Portable Runtime", "zh": "便携运行时（Portable）"},
+    "mode_portable_desc":  {"en": "A self-contained, copy-able runtime built on headless Chrome — runs a single Execution as pure RPA with no GUI or HTTP layer. <code>cf push</code> straight to Cloud Foundry, or <code>cp -r</code> into any Python project (<code>from portable.petp_run import run</code>).", "zh": "基于无头 Chrome 的自包含可复制运行时——脱离 GUI 与 HTTP 层，将单个 Execution 作为纯 RPA 任务运行。一条 <code>cf push</code> 直接发布到 Cloud Foundry，或 <code>cp -r</code> 进任意 Python 项目（<code>from portable.petp_run import run</code>）。"},
 
     # ── About — MCP inspector ────────────────────────────────────
     "mcp_inspector_title": {"en": "MCP Inspector setup",  "zh": "MCP Inspector 配置"},

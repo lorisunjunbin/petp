@@ -654,6 +654,7 @@ a {
 .icon-green  { background: rgba(32,151,11,0.12); }
 .icon-amber  { background: rgba(245,158,11,0.12); }
 .icon-rose   { background: rgba(239,68,68,0.1); }
+.icon-cyan   { background: rgba(6,182,212,0.12); }
 .scenario-name {
     font-family: 'General Sans', Arial, sans-serif;
     font-size: 16px;
