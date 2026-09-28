@@ -1,4 +1,5 @@
 pyyaml
+ruamel.yaml
 cachetools
 python-dateutil
 cryptocode
