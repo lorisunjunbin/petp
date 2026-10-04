@@ -10,6 +10,7 @@ from core.cron.cron import Cron
 from core.cron.cron_history import CronHistory
 from core.execution import Execution
 from core.executionstate import ExecutionState
+from core.loop import LoopTerminateError
 from core.pipeline import Pipeline
 from core.processor import Processor
 from core.runtime.UiProcessorPolicy import decide
@@ -133,7 +134,7 @@ class BackgroundRuntime:
                     )
                 else:
                     exception_policy = current_loop.get_exception_then() if current_loop else ''
-                    if exception_policy in ('continue', 'break'):
+                    if exception_policy in ('continue', 'break', 'terminate'):
                         try:
                             processor.do_process()
                         except Exception as e:
@@ -143,6 +144,9 @@ class BackgroundRuntime:
                             )
                             task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
                             self._log_end_process(seq, proc_name, loop_cursor, task)
+                            if exception_policy == 'terminate':
+                                raise LoopTerminateError(
+                                    execution._build_terminate_msg(current_loop, processor, state, data_chain, e))
                             if exception_policy == 'continue':
                                 if state.advance_loop_on_exception(data_chain):
                                     continue
@@ -172,6 +176,9 @@ class BackgroundRuntime:
                 # loop_condition: evaluate after every task inside a loop
                 if state.is_loop_execution and current_loop:
                     cond_action = Execution._eval_loop_condition(current_loop, data_chain)
+                    if cond_action == 'terminate':
+                        raise LoopTerminateError(
+                            execution._build_terminate_msg(current_loop, processor, state, data_chain, None))
                     if cond_action == 'break':
                         state.force_exit_loop(data_chain)
                         state.move_to_next()

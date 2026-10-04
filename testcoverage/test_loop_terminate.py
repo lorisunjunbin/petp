@@ -142,3 +142,99 @@ class TestTerminateMsgExpression:
             ex.run({"items": ["a", "b", "c"]}, Condition(), None)
         # expression2str 对未解析变量兜底返回原串;不得崩成其它异常
         assert "nonexistent_var_xyz" in str(ei.value)
+
+
+class TestBackgroundRuntimeTerminate:
+
+    def _run_mem_execution_in_bg(self, ex, init_data=None):
+        """用 BackgroundRuntime 跑内存构造的 Execution(不写磁盘 YAML)。
+        通过 monkeypatch Execution.get_execution 让 BG 拿到内存对象。"""
+        import os
+        import core.runtime.BackgroundRuntime as bg_mod
+        from mvp.model.PETPModel import PETPModel
+        from utils.SystemConfig import SystemConfig
+        from core.execution import Execution as ExecClass
+
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        os.chdir(project_root)
+
+        model = PETPModel(SystemConfig("petpconfig.yaml"))
+        runtime = bg_mod.BackgroundRuntime(model, ui_policy="skip")
+
+        orig = ExecClass.get_execution
+        ExecClass.get_execution = staticmethod(lambda name: ex if name == ex.execution else orig(name))
+        try:
+            return runtime.run_execution(ex.execution, init_data or {})
+        finally:
+            ExecClass.get_execution = staticmethod(orig)
+
+    def test_bg_task_exception_terminate_returns_not_ok(self):
+        loop_attrs = {
+            "task_start": 2, "task_end": 2,
+            "loop_key": "items", "loop_times": "0",
+            "loop_index_key": "loop_idx", "item_key": "loop_item",
+            "exception_then": "terminate",
+            "loop_condition": "", "terminate_msg": "bg stop {loop_item}",
+        }
+        body = [
+            Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
+            Task(type="READ_JSON", input='{"file_path":"/no/such/file_xyz.json","data_key":"j"}'),
+        ]
+        loop = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        ex = Execution(execution="__mem_bg_terminate_test", list=body, mcp_desc="", astool=False, loops=[loop])
+        r = self._run_mem_execution_in_bg(ex, {"items": ["a", "b", "c"]})
+        assert r["ok"] is False
+        assert "bg stop a" in str(r["error"])
+
+    def test_bg_loop_condition_terminate_returns_not_ok(self):
+        loop_attrs = {
+            "task_start": 2, "task_end": 2,
+            "loop_key": "items", "loop_times": "0",
+            "loop_index_key": "loop_idx", "item_key": "loop_item",
+            "exception_then": "",
+            "loop_condition": "return True, 'terminate'",
+            "terminate_msg": "bg cond stop",
+        }
+        body = [
+            Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
+            Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
+        ]
+        loop = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        ex = Execution(execution="__mem_bg_cond_terminate_test", list=body, mcp_desc="", astool=False, loops=[loop])
+        r = self._run_mem_execution_in_bg(ex, {"items": ["a", "b", "c"]})
+        assert r["ok"] is False
+        assert "bg cond stop" in str(r["error"])
+
+
+class TestDualRuntimeConsistency:
+
+    def test_main_raises_bg_returns_not_ok_same_msg(self):
+        loop_attrs = {
+            "task_start": 2, "task_end": 2,
+            "loop_key": "items", "loop_times": "0",
+            "loop_index_key": "loop_idx", "item_key": "loop_item",
+            "exception_then": "terminate",
+            "loop_condition": "", "terminate_msg": "unified {loop_item}",
+        }
+        # Main runtime test
+        body_main = [
+            Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
+            Task(type="READ_JSON", input='{"file_path":"/no/such/file_xyz.json","data_key":"j"}'),
+        ]
+        loop_main = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        ex_main = Execution(execution="__mem_dual_test_main", list=body_main, mcp_desc="", astool=False, loops=[loop_main])
+        with pytest.raises(LoopTerminateError) as ei:
+            ex_main.run({"items": ["a", "b", "c"]}, Condition(), None)
+        main_msg = str(ei.value)
+
+        # BG runtime test
+        body_bg = [
+            Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
+            Task(type="READ_JSON", input='{"file_path":"/no/such/file_xyz.json","data_key":"j"}'),
+        ]
+        loop_bg = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        ex_bg = Execution(execution="__mem_dual_test", list=body_bg, mcp_desc="", astool=False, loops=[loop_bg])
+        r = TestBackgroundRuntimeTerminate()._run_mem_execution_in_bg(ex_bg, {"items": ["a", "b", "c"]})
+        assert r["ok"] is False
+        assert "unified a" in main_msg
+        assert "unified a" in str(r["error"])
