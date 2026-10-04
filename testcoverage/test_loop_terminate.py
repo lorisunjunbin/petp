@@ -122,3 +122,4 @@ class TestExecutionTerminateOnCondition:
         with pytest.raises(LoopTerminateError) as ei:
             ex.run({"items": ["a", "b", "c"]}, Condition(), None)
         assert "tloop" in str(ei.value)
+        assert "task 1" in str(ei.value)
