@@ -21,6 +21,7 @@ See ``hyperspace_llm_guide.md`` for the underlying protocol.
 import logging
 
 from core.processors.sub.llm.BaseLLMClient import BaseLLMClient, LLMResponse
+from core.processors.sub.llm.llm_helpers import filter_unsupported_kwargs
 
 
 class HyperspaceClient(BaseLLMClient):
@@ -54,7 +55,8 @@ class HyperspaceClient(BaseLLMClient):
         if system_text.strip():
             params['system'] = system_text.strip()
 
-        response = self._client.messages.create(**params)
+        response = self._client.messages.create(
+            **filter_unsupported_kwargs(self._client.messages.create, params))
 
         content = ''
         reasoning = ''
