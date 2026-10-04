@@ -58,6 +58,7 @@ def make_loop():
             "item_key": "loop_item",
             "exception_then": "",
             "loop_condition": "",
+            "terminate_msg": "",
         }
         defaults.update(attrs)
         return Loop(code, json.dumps(defaults))
