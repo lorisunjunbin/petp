@@ -20,6 +20,7 @@ _KEY_TIPS = {
     'item_key':       'loop_tip_item_key',
     'exception_then': 'loop_tip_exception_then',
     'terminate_msg':  'loop_tip_terminate_msg',
+    'wait_seconds':   'loop_tip_wait_seconds',
     'loop_condition': 'loop_tip_loop_condition',
 }
 

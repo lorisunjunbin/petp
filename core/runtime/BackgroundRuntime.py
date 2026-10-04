@@ -190,6 +190,7 @@ class BackgroundRuntime:
                         continue
 
                 if state.is_loop_end and state.setup_loop_end_then_continue(data_chain):
+                    execution._wait_between_iterations(current_loop, processor)
                     continue
 
                 goto_target = data_chain.pop('__goto_task', None)

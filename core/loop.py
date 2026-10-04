@@ -40,7 +40,10 @@ class Loop:
         # terminate_msg   - optional message (supports f-string against data_chain) raised
         #                   with LoopTerminateError when exception_then="terminate" or
         #                   loop_condition returns (True,'terminate'); empty → default message
-        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break", "loop_condition":"", "terminate_msg":""}'
+        # wait_seconds    - seconds to sleep BETWEEN iterations (supports expression against
+        #                   data_chain, e.g. "{delay}"); the 1st iteration runs immediately and
+        #                   there is no wait after the last one; empty/0/negative → no wait
+        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break", "loop_condition":"", "terminate_msg":"", "wait_seconds":"0"}'
 
     def get_loop_code(self):
         return self.loop_code
@@ -71,6 +74,9 @@ class Loop:
 
     def get_terminate_msg(self):
         return self.get_attributes().get('terminate_msg', '')
+
+    def get_wait_seconds(self):
+        return self.get_attributes().get('wait_seconds', '0')
 
     def get_attribute(self, name):
         return self.get_attributes()[name]
