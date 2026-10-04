@@ -175,6 +175,7 @@ class Execution:
                     continue
 
             if state.is_loop_end and state.setup_loop_end_then_continue(data_chain):
+                self._wait_between_iterations(current_loop, processor)
                 continue
 
             goto_target = data_chain.pop('__goto_task', None)
@@ -225,6 +226,31 @@ class Execution:
         loop_code = current_loop.get_loop_code() if current_loop else ''
         base = f"Loop [{loop_code}] terminated at task {state.get_sequence()}"
         return f"{base}: {exc}" if exc is not None else base
+
+    _WAIT_POLL_INTERVAL = 0.2  # seconds — granularity for interruptible inter-iteration wait
+
+    def _wait_between_iterations(self, current_loop, processor) -> None:
+        """Sleep ``wait_seconds`` between loop iterations, in short slices so a
+        manual stop (``should_be_stop``) is honoured within one poll interval.
+        No-op when wait_seconds is empty/0/negative or unparseable."""
+        if current_loop is None:
+            return
+        raw = current_loop.get_wait_seconds()
+        if not raw:
+            return
+        try:
+            seconds = float(processor.expression2str(raw))
+        except (ValueError, TypeError):
+            return
+        if seconds <= 0:
+            return
+        logging.info('Loop %s waiting %.3gs before next iteration', current_loop.get_loop_code(), seconds)
+        remaining = seconds
+        while remaining > 0:
+            if getattr(self, 'should_be_stop', False):
+                return
+            time.sleep(min(self._WAIT_POLL_INTERVAL, remaining))
+            remaining -= self._WAIT_POLL_INTERVAL
 
     def post_log_reload(self, lp, view, proc_name=''):
         if view is None:
