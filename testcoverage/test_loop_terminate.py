@@ -156,6 +156,7 @@ class TestBackgroundRuntimeTerminate:
         from core.execution import Execution as ExecClass
 
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        _prev_cwd = os.getcwd()
         os.chdir(project_root)
 
         model = PETPModel(SystemConfig("petpconfig.yaml"))
@@ -167,6 +168,7 @@ class TestBackgroundRuntimeTerminate:
             return runtime.run_execution(ex.execution, init_data or {})
         finally:
             ExecClass.get_execution = staticmethod(orig)
+            os.chdir(_prev_cwd)
 
     def test_bg_task_exception_terminate_returns_not_ok(self):
         loop_attrs = {
@@ -180,7 +182,7 @@ class TestBackgroundRuntimeTerminate:
             Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
             Task(type="READ_JSON", input='{"file_path":"/no/such/file_xyz.json","data_key":"j"}'),
         ]
-        loop = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        loop = Loop("tloop", json.dumps(loop_attrs))
         ex = Execution(execution="__mem_bg_terminate_test", list=body, mcp_desc="", astool=False, loops=[loop])
         r = self._run_mem_execution_in_bg(ex, {"items": ["a", "b", "c"]})
         assert r["ok"] is False
@@ -199,7 +201,7 @@ class TestBackgroundRuntimeTerminate:
             Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
             Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
         ]
-        loop = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        loop = Loop("tloop", json.dumps(loop_attrs))
         ex = Execution(execution="__mem_bg_cond_terminate_test", list=body, mcp_desc="", astool=False, loops=[loop])
         r = self._run_mem_execution_in_bg(ex, {"items": ["a", "b", "c"]})
         assert r["ok"] is False
@@ -221,7 +223,7 @@ class TestDualRuntimeConsistency:
             Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
             Task(type="READ_JSON", input='{"file_path":"/no/such/file_xyz.json","data_key":"j"}'),
         ]
-        loop_main = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        loop_main = Loop("tloop", json.dumps(loop_attrs))
         ex_main = Execution(execution="__mem_dual_test_main", list=body_main, mcp_desc="", astool=False, loops=[loop_main])
         with pytest.raises(LoopTerminateError) as ei:
             ex_main.run({"items": ["a", "b", "c"]}, Condition(), None)
@@ -232,7 +234,7 @@ class TestDualRuntimeConsistency:
             Task(type="INITIAL_PARAMS", input='{"noop":"1"}'),
             Task(type="READ_JSON", input='{"file_path":"/no/such/file_xyz.json","data_key":"j"}'),
         ]
-        loop_bg = __import__("core.loop", fromlist=["Loop"]).Loop("tloop", __import__("json").dumps(loop_attrs))
+        loop_bg = Loop("tloop", json.dumps(loop_attrs))
         ex_bg = Execution(execution="__mem_dual_test", list=body_bg, mcp_desc="", astool=False, loops=[loop_bg])
         r = TestBackgroundRuntimeTerminate()._run_mem_execution_in_bg(ex_bg, {"items": ["a", "b", "c"]})
         assert r["ok"] is False
