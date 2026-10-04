@@ -4,6 +4,12 @@ Loop, represent the loop scope and condition.
 import json
 import logging
 
+
+class LoopTerminateError(Exception):
+    """Raised when a loop's exception_then='terminate' or loop_condition
+    returns (True,'terminate'): exit the loop and terminate the whole execution."""
+
+
 class Loop:
     loop_code: str
     loop_attributes: str
@@ -22,12 +28,19 @@ class Loop:
         # loop_index_key  - data_chain key that receives the current 0-based iteration index
         # item_key        - data_chain key that receives the current collection item each iteration
         # exception_then  - behaviour when a task inside the loop raises an exception:
-        #                   "break" stops the loop, "continue" skips to the next iteration
+        #                   "break" stops the loop (execution continues after the loop),
+        #                   "continue" skips to the next iteration,
+        #                   "terminate" exits the loop AND terminates the whole execution
+        #                   (raises LoopTerminateError; caller treats it as a failure)
         # loop_condition  - optional Python function body (data_chain); evaluated at the end of each iteration:
         #                   return True,'break'    → exit the loop after this iteration
         #                   return True,'continue' → skip to the next iteration immediately
+        #                   return True,'terminate' → exit the loop and terminate the whole execution
         #                   return False,''        → normal flow, loop continues as before
-        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break", "loop_condition":""}'
+        # terminate_msg   - optional message (supports f-string against data_chain) raised
+        #                   with LoopTerminateError when exception_then="terminate" or
+        #                   loop_condition returns (True,'terminate'); empty → default message
+        return '{"task_start":2, "task_end":5, "loop_key":"loop_list", "loop_times":"0", "loop_index_key":"loop_idx", "item_key":"loop_item", "exception_then":"break", "loop_condition":"", "terminate_msg":""}'
 
     def get_loop_code(self):
         return self.loop_code
@@ -55,6 +68,9 @@ class Loop:
 
     def get_loop_condition(self):
         return self.get_attributes().get('loop_condition', '')
+
+    def get_terminate_msg(self):
+        return self.get_attributes().get('terminate_msg', '')
 
     def get_attribute(self, name):
         return self.get_attributes()[name]
