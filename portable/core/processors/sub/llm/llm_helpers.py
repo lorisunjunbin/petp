@@ -9,6 +9,36 @@ except ImportError:
     wx = None
 
 
+def filter_unsupported_kwargs(func, params: Dict[str, Any]) -> Dict[str, Any]:
+    """Drop params the callable's signature cannot accept.
+
+    Some Anthropic-protocol SDK builds (e.g. a corporate/Hyperspace-gateway
+    ``anthropic`` package) expose a ``messages.create`` whose signature omits
+    ``temperature``/``top_p`` and has no ``**kwargs`` — passing those raises
+    ``TypeError: ... got an unexpected keyword argument``. When the signature
+    accepts ``**kwargs`` (the normal upstream SDK) nothing is dropped.
+    """
+    import inspect
+    try:
+        sig = inspect.signature(func)
+    except (TypeError, ValueError):
+        return dict(params)  # can't introspect — pass through unchanged
+    accepts_var_kw = any(
+        p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+    )
+    if accepts_var_kw:
+        return dict(params)
+    allowed = set(sig.parameters.keys())
+    filtered = {}
+    for k, v in params.items():
+        if k in allowed:
+            filtered[k] = v
+        else:
+            logging.warning(
+                "LLM client: dropping unsupported param '%s' not in %s signature", k, getattr(func, '__name__', 'create'))
+    return filtered
+
+
 def read_json_from_markdown(markdown_content: str) -> Optional[Any]:
     if not markdown_content:
         return None
