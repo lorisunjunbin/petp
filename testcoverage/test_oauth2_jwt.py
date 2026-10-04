@@ -163,7 +163,14 @@ class TestJwtValidation:
     def test_tampered_signature_returns_401(self, jwks_server):
         provider = self._provider(jwks_server)
         token = _sign(jwks_server, self._claims())
-        tampered = token[:-1] + ("A" if token[-1] != "A" else "B")
+        # Flip a byte of the decoded signature (not just the last base64url
+        # char: its low 4 bits are slack, so swapping it decodes to the same
+        # signature bytes ~24% of the time and the token stays valid).
+        header, payload, sig = token.split(".")
+        raw = base64.urlsafe_b64decode(sig + "=" * (-len(sig) % 4))
+        raw = bytes([raw[0] ^ 0xFF]) + raw[1:]
+        tampered_sig = base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
+        tampered = f"{header}.{payload}.{tampered_sig}"
         body, status = provider.validate(f"Bearer {tampered}")
         assert status == 401
 
