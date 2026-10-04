@@ -89,3 +89,36 @@ class TestExecutionTerminateOnException:
         msg = str(ei.value)
         assert "tloop" in msg          # 默认消息含 loop_code
         assert "task 1" in msg         # 含 task 序号
+
+
+class TestExecutionTerminateOnCondition:
+
+    def test_loop_condition_terminate_raises(self):
+        loop_attrs = {
+            "task_start": 1, "task_end": 1,
+            "loop_key": "items", "loop_times": "0",
+            "loop_index_key": "loop_idx", "item_key": "loop_item",
+            "exception_then": "",
+            "loop_condition": "return True, 'terminate'",
+            "terminate_msg": "cond stop {loop_item}",
+        }
+        body = [Task(type="INITIAL_PARAMS", input='{"noop":"1"}')]
+        ex = _build_execution(loop_attrs, body)
+        with pytest.raises(LoopTerminateError) as ei:
+            ex.run({"items": ["a", "b", "c"]}, Condition(), None)
+        assert "cond stop a" in str(ei.value)
+
+    def test_loop_condition_terminate_empty_msg_default(self):
+        loop_attrs = {
+            "task_start": 1, "task_end": 1,
+            "loop_key": "items", "loop_times": "0",
+            "loop_index_key": "loop_idx", "item_key": "loop_item",
+            "exception_then": "",
+            "loop_condition": "return True, 'terminate'",
+            "terminate_msg": "",
+        }
+        body = [Task(type="INITIAL_PARAMS", input='{"noop":"1"}')]
+        ex = _build_execution(loop_attrs, body)
+        with pytest.raises(LoopTerminateError) as ei:
+            ex.run({"items": ["a", "b", "c"]}, Condition(), None)
+        assert "tloop" in str(ei.value)

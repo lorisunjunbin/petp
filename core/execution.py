@@ -161,6 +161,9 @@ class Execution:
             # loop_condition: evaluate after every task inside a loop
             if state.is_loop_execution and current_loop:
                 cond_action = self._eval_loop_condition(current_loop, data_chain)
+                if cond_action == 'terminate':
+                    raise LoopTerminateError(
+                        self._build_terminate_msg(current_loop, processor, state, data_chain, None))
                 if cond_action == 'break':
                     state.force_exit_loop(data_chain)
                     state.move_to_next()
@@ -209,7 +212,7 @@ class Execution:
         triggered, action = result if isinstance(result, tuple) else (result, '')
         if triggered:
             logging.info('Loop %s condition triggered: %s', current_loop.get_loop_code(), action)
-            return action if action in ('break', 'continue') else 'break'
+            return action if action in ('break', 'continue', 'terminate') else 'break'
         return None
 
     def _build_terminate_msg(self, current_loop, processor, state, data_chain, exc) -> str:
