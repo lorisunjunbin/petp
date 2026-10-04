@@ -240,3 +240,21 @@ class TestDualRuntimeConsistency:
         assert r["ok"] is False
         assert "unified a" in main_msg
         assert "unified a" in str(r["error"])
+
+
+class TestLoopSchemaMerge:
+    def test_merge_fills_missing_keys(self):
+        from mvp.view.common.LoopEditDialog import merge_loop_schema
+        legacy = {"task_start": 2, "task_end": 5, "exception_then": "break"}
+        merged = merge_loop_schema(legacy)
+        assert "terminate_msg" in merged
+        assert merged["terminate_msg"] == ""
+        assert merged["exception_then"] == "break"   # existing value preserved
+        assert merged["task_start"] == 2
+
+    def test_merge_preserves_all_existing(self):
+        from mvp.view.common.LoopEditDialog import merge_loop_schema
+        legacy = {"task_start": 3, "loop_key": "mylist", "loop_condition": "return True,'break'"}
+        merged = merge_loop_schema(legacy)
+        assert merged["loop_key"] == "mylist"
+        assert merged["loop_condition"] == "return True,'break'"

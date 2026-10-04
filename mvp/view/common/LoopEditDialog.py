@@ -4,6 +4,7 @@ import os
 import wx
 import wx.grid
 
+from core.loop import Loop
 from i18n.translations import t
 from mvp.view.PETPTheme import get_theme
 from mvp.view.common.HandyToolButton import HandyToolButton
@@ -18,8 +19,18 @@ _KEY_TIPS = {
     'loop_index_key': 'loop_tip_loop_index_key',
     'item_key':       'loop_tip_item_key',
     'exception_then': 'loop_tip_exception_then',
+    'terminate_msg':  'loop_tip_terminate_msg',
     'loop_condition': 'loop_tip_loop_condition',
 }
+
+
+def merge_loop_schema(data: dict) -> dict:
+    """Fill missing keys from Loop.tpl() so legacy loops expose newly added
+    fields (e.g. terminate_msg). Existing values are never overwritten."""
+    tpl = json.loads(Loop.tpl())
+    merged = dict(tpl)
+    merged.update(data)
+    return merged
 
 
 class LoopEditDialog(wx.Dialog):
@@ -40,6 +51,7 @@ class LoopEditDialog(wx.Dialog):
         except (json.JSONDecodeError, TypeError):
             self._data = {}
 
+        self._data = merge_loop_schema(self._data)
         self._keys = list(self._data.keys())
         self._build_ui()
         self._try_set_icon()
