@@ -123,3 +123,22 @@ class TestExecutionTerminateOnCondition:
             ex.run({"items": ["a", "b", "c"]}, Condition(), None)
         assert "tloop" in str(ei.value)
         assert "task 1" in str(ei.value)
+
+
+class TestTerminateMsgExpression:
+
+    def test_terminate_msg_unresolved_var_falls_back(self):
+        loop_attrs = {
+            "task_start": 1, "task_end": 1,
+            "loop_key": "items", "loop_times": "0",
+            "loop_index_key": "loop_idx", "item_key": "loop_item",
+            "exception_then": "",
+            "loop_condition": "return True, 'terminate'",
+            "terminate_msg": "ref {nonexistent_var_xyz}",
+        }
+        body = [Task(type="INITIAL_PARAMS", input='{"noop":"1"}')]
+        ex = _build_execution(loop_attrs, body)
+        with pytest.raises(LoopTerminateError) as ei:
+            ex.run({"items": ["a", "b", "c"]}, Condition(), None)
+        # expression2str 对未解析变量兜底返回原串;不得崩成其它异常
+        assert "nonexistent_var_xyz" in str(ei.value)
