@@ -21,7 +21,7 @@ from core.definition.yamlro import YamlRO
 from core.constants import HTTP_RESPONSE_KEY
 from core.executionstate import ExecutionState
 from utils.Logger import set_trace_id
-from core.loop import Loop
+from core.loop import Loop, LoopTerminateError
 from core.processor import Processor
 from core.task import Task
 from mvp.presenter.event.PETPEvent import PETPEvent
@@ -129,7 +129,7 @@ class Execution:
             else:
                 # * main process *
                 exception_policy = current_loop.get_exception_then() if current_loop else ''
-                if exception_policy in ('continue', 'break'):
+                if exception_policy in ('continue', 'break', 'terminate'):
                     try:
                         processor.do_process()
                     except Exception as e:
@@ -139,6 +139,9 @@ class Execution:
                         )
                         task.end = DateUtil.get_now_in_str("%Y-%m-%d %H:%M:%S")
                         self.log_end_process(current_loop, state, processor, task, view, loop_cursor, proc_name)
+                        if exception_policy == 'terminate':
+                            raise LoopTerminateError(
+                                self._build_terminate_msg(current_loop, processor, state, data_chain, e))
                         if exception_policy == 'continue':
                             if state.advance_loop_on_exception(data_chain):
                                 continue
@@ -158,6 +161,9 @@ class Execution:
             # loop_condition: evaluate after every task inside a loop
             if state.is_loop_execution and current_loop:
                 cond_action = self._eval_loop_condition(current_loop, data_chain)
+                if cond_action == 'terminate':
+                    raise LoopTerminateError(
+                        self._build_terminate_msg(current_loop, processor, state, data_chain, None))
                 if cond_action == 'break':
                     state.force_exit_loop(data_chain)
                     state.move_to_next()
@@ -206,8 +212,19 @@ class Execution:
         triggered, action = result if isinstance(result, tuple) else (result, '')
         if triggered:
             logging.info('Loop %s condition triggered: %s', current_loop.get_loop_code(), action)
-            return action if action in ('break', 'continue') else 'break'
+            return action if action in ('break', 'continue', 'terminate') else 'break'
         return None
+
+    def _build_terminate_msg(self, current_loop, processor, state, data_chain, exc) -> str:
+        raw = current_loop.get_terminate_msg() if current_loop else ''
+        if raw:
+            try:
+                return processor.expression2str(raw)
+            except Exception:
+                return raw
+        loop_code = current_loop.get_loop_code() if current_loop else ''
+        base = f"Loop [{loop_code}] terminated at task {state.get_sequence()}"
+        return f"{base}: {exc}" if exc is not None else base
 
     def post_log_reload(self, lp, view, proc_name=''):
         if view is None:
