@@ -258,3 +258,18 @@ class TestLoopSchemaMerge:
         merged = merge_loop_schema(legacy)
         assert merged["loop_key"] == "mylist"
         assert merged["loop_condition"] == "return True,'break'"
+
+
+class TestI18n:
+
+    def test_terminate_msg_tip_exists(self):
+        from i18n.translations import t, set_locale
+        set_locale("en")
+        assert t("loop_tip_terminate_msg") != "loop_tip_terminate_msg"
+        set_locale("zh")
+        assert t("loop_tip_terminate_msg") != "loop_tip_terminate_msg"
+
+    def test_exception_then_tip_mentions_terminate(self):
+        from i18n.translations import t, set_locale
+        set_locale("en")
+        assert "terminate" in t("loop_tip_exception_then").lower()
