@@ -323,6 +323,13 @@ class Processor:
     def append_data_for_loop(self, k, v):
         """
         keep the data @ data_chain[loop_code][current_idx][k] = v
+
+        Also mirror the value to the top-level data_chain[k] so that
+        loop_condition (which receives the whole data_chain) and post-loop
+        tasks can read the latest iteration's value with a plain key — the
+        same key they would use outside a loop. The top-level copy is
+        overwritten every iteration (last-write-wins), which is the intended
+        behaviour for condition checks.
         """
         d = self.task.data_chain
         l = self.get_current_loop()
@@ -337,6 +344,7 @@ class Processor:
             d[loop_code][current_idx] = {}
 
         d[loop_code][current_idx][k] = v
+        d[k] = v
 
         item_key = l.get_item_key()
         if item_key and item_key in d and item_key not in d[loop_code][current_idx]:

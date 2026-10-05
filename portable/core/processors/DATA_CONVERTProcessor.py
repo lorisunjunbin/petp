@@ -36,5 +36,5 @@ class DATA_CONVERTProcessor(Processor):
 
         if self.is_in_loop:
             self.append_data_for_loop(target_key, target_value)
-
-        self.populate_data(target_key, target_value)
+        else:
+            self.populate_data(target_key, target_value)
