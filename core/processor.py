@@ -338,8 +338,9 @@ class Processor:
 
         d[loop_code][current_idx][k] = v
 
-        if not l.get_item_key() in d[loop_code][current_idx]:
-            d[loop_code][current_idx][l.get_item_key()] = d[l.get_item_key()]
+        item_key = l.get_item_key()
+        if item_key and item_key in d and item_key not in d[loop_code][current_idx]:
+            d[loop_code][current_idx][item_key] = d[item_key]
 
     def get_data_by_loop(self, k):
         d = self.task.data_chain

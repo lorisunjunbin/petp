@@ -109,3 +109,31 @@ class TestLoopData:
 
         assert chain["iter_loop"][0]["val"] == "first"
         assert chain["iter_loop"][1]["val"] == "second"
+
+    def test_append_with_empty_item_key(self, make_processor, make_loop):
+        # time-based loops leave item_key empty; append_data_for_loop must not
+        # try to back-fill d[''] (would raise KeyError: '').
+        loop = make_loop(code="times_loop", loop_times="3", loop_key="", item_key="")
+        chain = {"loop_idx": 0}
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', chain)
+        proc.set_current_loop(loop)
+        proc.set_in_loop(True)
+
+        proc.append_data_for_loop("supplier_found", None)
+
+        assert chain["times_loop"][0]["supplier_found"] is None
+        assert "" not in chain["times_loop"][0]
+
+    def test_append_item_key_set_but_absent_from_chain(self, make_processor, make_loop):
+        # item_key configured but the engine never populated d[item_key] yet;
+        # back-fill must be skipped rather than raising KeyError.
+        loop = make_loop(code="c_loop", loop_times="2", loop_key="", item_key="loop_item")
+        chain = {"loop_idx": 0}  # no "loop_item" key
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', chain)
+        proc.set_current_loop(loop)
+        proc.set_in_loop(True)
+
+        proc.append_data_for_loop("val", "x")
+
+        assert chain["c_loop"][0]["val"] == "x"
+        assert "loop_item" not in chain["c_loop"][0]
