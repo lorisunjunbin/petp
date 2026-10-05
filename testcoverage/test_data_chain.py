@@ -137,3 +137,23 @@ class TestLoopData:
 
         assert chain["c_loop"][0]["val"] == "x"
         assert "loop_item" not in chain["c_loop"][0]
+
+    def test_append_mirrors_value_to_top_level(self, make_processor, make_loop):
+        # loop_condition receives the whole data_chain and reads plain keys,
+        # so append_data_for_loop must also mirror the value to data_chain[k].
+        loop = make_loop(code="poll_loop", loop_times="3", loop_key="", item_key="")
+        chain = {"loop_idx": 0}
+        proc = make_processor("ENCODE_DECODE_STR", '{"type":"ENCODE"}', chain)
+        proc.set_current_loop(loop)
+        proc.set_in_loop(True)
+
+        proc.append_data_for_loop("supplier_found", None)
+        assert chain["supplier_found"] is None  # top-level mirror present
+
+        chain["loop_idx"] = 1
+        proc.append_data_for_loop("supplier_found", "VDR383190")
+        # last-write-wins: top-level reflects the latest iteration
+        assert chain["supplier_found"] == "VDR383190"
+        # per-iteration storage still intact
+        assert chain["poll_loop"][0]["supplier_found"] is None
+        assert chain["poll_loop"][1]["supplier_found"] == "VDR383190"
