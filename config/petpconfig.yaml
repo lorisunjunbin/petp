@@ -7,7 +7,7 @@
 application:
   # ---- 基本信息 / Basic info ----
   app_name: petp                       # 应用名称 App name
-  version: 1.4.0                       # 版本号 Version
+  version: 1.5.1                       # 版本号 Version
   author: sunjunbin@DalianChina        # 作者 Author
   email: 6099012@qq.com                # 邮箱 Email
   cell: +86-13478653323                # 联系电话 Phone
@@ -32,7 +32,7 @@ application:
   nogui_enabled: true                  # 启用无 GUI 模式 Enable headless mode
   nogui_ui_processor_policy: skip      # GUI 处理器策略 UI processor policy: skip | abort
   execute_on_startup: false            # 启动时自动执行 last_run Run last_run on startup
-  last_run: T_CENC_EARTHQUAKE_SEARCH   # 上次运行的 execution Last run execution
+  last_run: T_Supplier_Registration_CPTDC # 上次运行的 execution Last run execution
 
   # ---- 快照 / 历史 Snapshot & history ----
   snapshot_max: 20                     # 编辑快照上限（撤销/重做）Max edit snapshots
