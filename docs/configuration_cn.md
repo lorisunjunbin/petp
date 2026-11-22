@@ -63,7 +63,7 @@ application:
 ```yaml
 application:
   ai_provider: zhipu
-  ai_model: GLM-5
+  ai_model: glm-5.3
   ai_api_key: "${ZHIPU_ACCESS_KEY}"
   ai_base_url: "https://open.bigmodel.cn/api/paas/v4/"
 ```
@@ -73,7 +73,7 @@ application:
 | Provider | 默认模型 | 默认环境变量 | 默认 Base URL |
 |----------|---------|-------------|--------------|
 | `deepseek` | deepseek-chat | DEEPSEEK_API_KEY | https://api.deepseek.com |
-| `zhipu` | GLM-5 | ZHIPU_ACCESS_KEY | https://open.bigmodel.cn/api/paas/v4/ |
+| `zhipu` | glm-5.3 | ZHIPU_ACCESS_KEY | https://open.bigmodel.cn/api/paas/v4/ |
 | `qianfan` | ernie-4.5-8k | QIANFAN_API_KEY | https://qianfan.baidubce.com/v2 |
 | `minimax` | MiniMax-Text-01 | MINIMAX_API_KEY | https://api.minimaxi.com/v1 |
 | `anthropic` | claude-sonnet-4-20250514 | ANTHROPIC_API_KEY | — |

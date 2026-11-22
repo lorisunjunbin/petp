@@ -60,8 +60,20 @@ class AnthropicClient(BaseLLMClient):
         )
 
     @classmethod
-    def create(cls, provider: str, api_key: str = '', base_url: str = '', model: str = 'claude-sonnet-4-20250514', **kwargs) -> 'AnthropicClient':
+    def create(cls, provider: str, api_key: str = '', base_url: str = '', model: str = '', **kwargs) -> 'AnthropicClient':
         import anthropic
+        if not api_key:
+            # Fail fast with an actionable hint: an empty key silently builds
+            # an illegal "Authorization: Bearer " header, which the SDK later
+            # surfaces as a misleading "Connection error."
+            raise ValueError(
+                "LLM api_key is empty — set 'ai_api_key' in "
+                "config/petpconfig.yaml, or export the env var it references "
+                "(e.g. ZHIPU_ACCESS_KEY for zhipu, ANTHROPIC_API_KEY for anthropic)")
+        if not model:
+            # Per-provider default: zhipu exposes the Anthropic protocol but
+            # serves GLM-* models (mirror of AI_LLM_SETUPProcessor defaults).
+            model = 'glm-5.3' if provider == 'zhipu' else 'claude-sonnet-4-20250514'
         params = {}
         if base_url:
             params['base_url'] = base_url

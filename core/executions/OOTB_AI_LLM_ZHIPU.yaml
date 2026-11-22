@@ -3,7 +3,7 @@ astool: false
 execution: OOTB_AI_LLM_ZHIPU
 list:
 - !!python/object:core.task.Task
-  input: '{"api_key_env": "ZHIPU_ACCESS_KEY", "provider": "zhipu", "model": "GLM-5",
+  input: '{"api_key_env": "ZHIPU_ACCESS_KEY", "provider": "zhipu", "model": "glm-5.3",
     "llm_data_key": "llm_client"}'
   skipped: false
   type: AI_LLM_SETUP
@@ -15,7 +15,7 @@ list:
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
   input: '{"llm_data_key": "llm_client", "prompt": "{self.get_data(\"given_prompt\")}",
-    "model": "GLM-5", "temperature": "1.0", "show_in_popup": "yes"}'
+    "model": "glm-5.3", "temperature": "1.0", "show_in_popup": "yes"}'
   skipped: false
   type: AI_LLM_QANDA
 loops: []

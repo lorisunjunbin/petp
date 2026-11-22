@@ -139,7 +139,7 @@ python PETP_background.py   # 无头服务（端口 8866）
 ```yaml
 application:
   ai_provider: zhipu              # 或: deepseek, anthropic, hyperspace, gemini, ollama 等
-  ai_model: ""                    # 留空 = 使用 provider 默认模型(如 GLM-5)
+  ai_model: ""                    # 留空 = 使用 provider 默认模型(如 glm-5.3)
   ai_api_key: ""                  # 留空 = 从默认环境变量读取(如 ZHIPU_ACCESS_KEY)
   ai_base_url: ""                 # 留空 = 使用 provider 默认地址
   ai_max_response_tokens: 8192

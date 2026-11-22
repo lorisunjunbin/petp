@@ -139,7 +139,7 @@ python PETP_background.py   # Headless service (port 8866)
 ```yaml
 application:
   ai_provider: zhipu              # or: deepseek, anthropic, hyperspace, gemini, ollama, etc.
-  ai_model: ""                    # empty = provider default (e.g. GLM-5)
+  ai_model: ""                    # empty = provider default (e.g. glm-5.3)
   ai_api_key: ""                  # empty = read from default env var (e.g. ZHIPU_ACCESS_KEY)
   ai_base_url: ""                 # empty = provider default URL
   ai_max_response_tokens: 8192

@@ -63,7 +63,7 @@ application:
 | Provider | Default Model | Default Env Var | Default Base URL |
 |----------|--------------|----------------|-----------------|
 | `deepseek` | deepseek-chat | DEEPSEEK_API_KEY | https://api.deepseek.com |
-| `zhipu` | GLM-5 | ZHIPU_ACCESS_KEY | https://open.bigmodel.cn/api/paas/v4/ |
+| `zhipu` | glm-5.3 | ZHIPU_ACCESS_KEY | https://open.bigmodel.cn/api/paas/v4/ |
 | `qianfan` | ernie-4.5-8k | QIANFAN_API_KEY | https://qianfan.baidubce.com/v2 |
 | `minimax` | MiniMax-Text-01 | MINIMAX_API_KEY | https://api.minimaxi.com/v1 |
 | `anthropic` | claude-sonnet-4-20250514 | ANTHROPIC_API_KEY | — |

@@ -32,7 +32,7 @@ application:
   nogui_enabled: true                  # 启用无 GUI 模式 Enable headless mode
   nogui_ui_processor_policy: skip      # GUI 处理器策略 UI processor policy: skip | abort
   execute_on_startup: false            # 启动时自动执行 last_run Run last_run on startup
-  last_run: T_Supplier_Registration_CPTDC # 上次运行的 execution Last run execution
+  last_run: SEARCH_BANGDOU_ON_BAIDU                       # 上次运行的 execution Last run execution
 
   # ---- 快照 / 历史 Snapshot & history ----
   snapshot_max: 20                     # 编辑快照上限（撤销/重做）Max edit snapshots
@@ -46,7 +46,7 @@ application:
 
   # ---- AI LLM ----
   ai_provider: zhipu                   # AI 提供商 Provider
-  ai_model:                            # 模型名（null = 默认）Model (null = default)
+  ai_model: glm-5.3                      # 模型名（null = 默认）Model (null = default)
   ai_api_key: ${ZHIPU_ACCESS_KEY}      # API key；支持 ${ENV} 注入 / supports ${ENV} injection
   ai_base_url:                         # 自定义 base_url（可选）Custom base_url (optional)
   ai_max_response_tokens: 8192         # 最大响应 token 数 Max response tokens
@@ -54,4 +54,4 @@ application:
 
   # ---- 运行时状态（程序自动维护，勿手改）Runtime state (auto-managed) ----
   last_pipeline: OOTB_TEST_PIPLINE_BG   # 上次运行的 pipeline Last run pipeline
-  window_rect: 2048,1152,1159,441       # 窗口位置与大小（w,h,x,y）Window rect (w,h,x,y)
+  window_rect: 2354,1424,851,629        # 窗口位置与大小（w,h,x,y）Window rect (w,h,x,y)

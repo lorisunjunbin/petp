@@ -36,6 +36,13 @@ class OpenAICompatibleClient(BaseLLMClient):
 
     @classmethod
     def create(cls, provider: str, api_key: str = '', base_url: str = '', **kwargs) -> 'OpenAICompatibleClient':
+        if not api_key:
+            # Same fast-fail contract as AnthropicClient — one consistent,
+            # actionable message instead of SDK-specific credential errors.
+            raise ValueError(
+                "LLM api_key is empty — set 'ai_api_key' in "
+                "config/petpconfig.yaml, or export the env var it references "
+                "(e.g. DEEPSEEK_API_KEY for deepseek, ZHIPU_ACCESS_KEY for zhipu)")
         if provider == 'zhipu':
             client, backend = cls._create_zhipu_client(api_key=api_key, base_url=base_url)
             logging.info('LLM client initialized via %s', backend)

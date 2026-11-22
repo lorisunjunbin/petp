@@ -16,7 +16,7 @@ list:
   skipped: false
   type: INPUT_DIALOG
 - !!python/object:core.task.Task
-  input: '{"llm_data_key": "llmZHIPU", "prompt": "{given_prompt}", "model": "GLM-5",
+  input: '{"llm_data_key": "llmZHIPU", "prompt": "{given_prompt}", "model": "glm-5.3",
     "temperature": "1.0", "show_thinking": "no", "resp_content_key": "", "convert_resp_2_json":
     "yes", "show_in_popup": "yes", "mcp_server_url": "http://localhost:8888/mcp",
     "mcp_auth_token": "{self.decrypt(\"rUn7rZGlHiNeTwFNuadfhBJNUn0ISUs5mJrOg3Z43BZCHlgMpVhgpYmU2cplWr/rWdo5O/dbPk4nDud9*gR1+ruE09447s7mpZI/ZNg==*vTdcDUWGcfslgz7V8CbddQ==*H8WpJ+mWEBhkiHFFQoiiEg==\")}"}'

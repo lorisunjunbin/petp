@@ -309,7 +309,7 @@ Unified LLM integration via three processors: `AI_LLM_SETUP`, `AI_LLM_QANDA`, `A
 | Provider | Client Class | Default Model |
 |----------|-------------|---------------|
 | `deepseek` | OpenAICompatibleClient | deepseek-chat |
-| `zhipu` | AnthropicClient | GLM-5 |
+| `zhipu` | AnthropicClient | glm-5.3 |
 | `qianfan` | OpenAICompatibleClient | ernie-4.5-8k |
 | `minimax` | OpenAICompatibleClient | MiniMax-Text-01 |
 | `anthropic` | AnthropicClient | claude-sonnet-4-20250514 |

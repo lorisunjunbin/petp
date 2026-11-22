@@ -32,7 +32,7 @@ Supported providers: deepseek, zhipu, qianfan, minimax, anthropic, hyperspace, d
         'zhipu': {
             'api_key_env': 'ZHIPU_ACCESS_KEY',
             'base_url': 'https://open.bigmodel.cn/api/anthropic',
-            'model': 'GLM-5',
+            'model': 'glm-5.3',
         },
         'qianfan': {
             'api_key_env': 'QIANFAN_API_KEY',
